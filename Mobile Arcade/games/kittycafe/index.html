@@ -1,0 +1,2707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#fbe9dc">
+<title>Kitty Café</title>
+<style>
+/* =====================================================================
+   KITTY CAFÉ — styles
+   Latte cream + soft pink. Change the colors here to restyle the game.
+===================================================================== */
+:root{
+  --cream:#fff6ea; --latte:#f1dcc0; --caramel:#c58a57; --mocha:#7a5236;
+  --pink:#ffdbe4; --pink2:#ff8fab; --mint:#d3f1e4; --mint2:#4cbf98;
+  --lav:#e8defe; --lav2:#a58cff; --lemon:#fff1b8; --lemon2:#ffd34d; --sky2:#5fb2f0;
+  --ink:#5b3d2c; --ink2:#937663; --card:#fffdf9; --line:#f0dcc8;
+  --gold:#ffc83d; --good:#3fbf8f; --bad:#ff6b81;
+  --r:18px; --font:"Nunito","Trebuchet MS","Segoe UI",system-ui,sans-serif;
+  --fs:1;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#fbefe3;color:var(--ink);font-family:var(--font);font-size:calc(15px * var(--fs))}
+body.easy{--font:Verdana,"Segoe UI",Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.12em;line-height:1.5}
+button{font-family:inherit;font-size:inherit;color:inherit;border:0;cursor:pointer;background:none}
+input{font-family:inherit;font-size:16px}
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+/* coin + fish gem icons (drawn with CSS, no image) */
+.cn{display:inline-block;width:.95em;height:.95em;border-radius:50%;vertical-align:-.13em;position:relative;
+  background:radial-gradient(circle at 35% 30%,#fff6c4 0 14%,#ffd54a 32%,#f0a91c 78%,#c98200);box-shadow:0 1px 0 #0002,inset 0 0 0 1.5px #fff5}
+.cn::after{content:"";position:absolute;inset:26%;border-radius:50%;border:1.5px solid #c98200aa}
+.gm{display:inline-block;width:1.15em;height:.8em;vertical-align:-.06em;
+  background:linear-gradient(135deg,#d9f4ff 0,#7fd0ff 35%,#4f9df5 70%,#3a6fe0);
+  clip-path:polygon(0 50%,22% 10%,58% 4%,76% 40%,100% 8%,96% 50%,100% 92%,76% 60%,58% 96%,22% 90%)}
+/* ---------- top bar ---------- */
+#top{display:flex;align-items:center;gap:6px;padding:calc(6px + env(safe-area-inset-top)) 8px 6px;background:linear-gradient(#fffaf3,#fbe6d6);border-bottom:2px solid #efd2bb;z-index:20}
+.pill{display:flex;align-items:center;gap:4px;background:#fff;border-radius:99px;padding:5px 10px 5px 7px;font-weight:900;box-shadow:0 2px 0 #ecd2bd;white-space:nowrap;min-width:0;font-size:1em}
+.pill .ic{font-size:18px;line-height:1}
+.pill .cn{width:18px;height:18px}
+.pill .gm{width:21px;height:15px}
+.pill.lv{flex:1;max-width:200px;min-width:70px}
+.xpbar{flex:1;height:9px;background:#f6e7da;border-radius:9px;overflow:hidden;min-width:30px}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--caramel),var(--pink2));border-radius:9px;transition:width .4s}
+#boosts{display:flex;gap:3px;overflow:hidden;flex-wrap:nowrap}
+.bst{font-size:11px;font-weight:900;background:var(--lemon);border-radius:99px;padding:3px 7px;white-space:nowrap}
+.roundBtn{width:40px;height:40px;border-radius:50%;background:#fff;box-shadow:0 2px 0 #ecd2bd;display:grid;place-items:center;flex:none;font-size:20px;overflow:hidden}
+#muteBtn{margin-left:auto}
+#profBtn svg{width:40px;height:36px}
+@media (max-width:420px){#boosts .bst:nth-child(n+2){display:none}.pill{padding:4px 8px 4px 5px}}
+/* ---------- body / nav ---------- */
+#body{flex:1;display:flex;flex-direction:column;min-height:0;position:relative}
+#main{flex:1;position:relative;min-width:0;overflow:hidden}
+#nav{display:flex;justify-content:space-around;background:#fff;border-top:2px solid #efd2bb;padding:4px 2px calc(4px + env(safe-area-inset-bottom));z-index:20}
+#nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 0;border-radius:14px;font-size:12px;font-weight:900;color:var(--ink2);position:relative;min-height:54px}
+#nav button .e{font-size:25px;line-height:1.1}
+#nav button.on{background:var(--pink);color:var(--ink)}
+.dot{position:absolute;top:3px;right:24%;width:11px;height:11px;border-radius:50%;background:var(--bad);border:2px solid #fff;display:none}
+.dot.show{display:block}
+@media (min-width:820px){
+  #body{flex-direction:row-reverse}
+  #nav{flex-direction:column;justify-content:flex-start;gap:6px;border-top:0;border-right:2px solid #efd2bb;padding:10px 8px;width:96px}
+  #nav button{flex:none;padding:10px 0}
+  .view .inner{max-width:760px;margin:0 auto}
+}
+/* ---------- views ---------- */
+.view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;padding:12px 12px 30px;-webkit-overflow-scrolling:touch;background:#fdf4ea}
+.view.on{display:block}
+#vCafe{padding:0;overflow:hidden;background:#f6e3cf}
+h2{margin:4px 0 10px;font-size:1.35em}
+h3{margin:14px 0 8px;font-size:1.08em}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;padding:9px 14px;border-radius:99px;background:#fff;font-weight:900;box-shadow:0 2px 0 var(--line)}
+.tabs button.on{background:var(--pink);box-shadow:0 2px 0 #f3b9c8}
+.card{background:var(--card);border-radius:var(--r);padding:10px;display:flex;align-items:center;gap:10px;margin-bottom:8px;box-shadow:0 3px 0 var(--line);position:relative}
+.card .art{width:62px;height:62px;flex:none;border-radius:14px;background:var(--latte);display:grid;place-items:center;font-size:32px;overflow:hidden}
+.card .art svg{width:58px;height:54px}
+.card .info{flex:1;min-width:0}
+.nm{font-weight:900}
+.sub{font-size:.86em;color:var(--ink2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.tile{background:var(--card);border-radius:16px;padding:8px 4px 6px;text-align:center;box-shadow:0 3px 0 var(--line);position:relative;font-size:.84em;font-weight:900}
+.tile svg{width:76px;height:70px;display:block;margin:0 auto}
+.tile.lock{background:#f4ece4}
+.tile.lock svg{filter:brightness(0) opacity(.16)}
+.btn{background:var(--pink2);color:#fff;font-weight:900;padding:10px 15px;border-radius:14px;box-shadow:0 3px 0 #dd6f8f;white-space:nowrap;min-height:42px}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #dd6f8f}
+.btn.mint{background:var(--mint2);box-shadow:0 3px 0 #2f9a76}
+.btn.lav{background:var(--lav2);box-shadow:0 3px 0 #7c62dd}
+.btn.gold{background:var(--gold);color:#5a3b00;box-shadow:0 3px 0 #d79d12}
+.btn.brown{background:var(--caramel);box-shadow:0 3px 0 #96613a}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--line)}
+.btn.wide{display:block;width:100%;margin-top:8px;padding:13px}
+.btn[disabled],.btn.off{opacity:.45;pointer-events:none}
+.btn.sm{padding:7px 11px;font-size:.88em;min-height:38px}
+.tag{display:inline-block;font-size:.74em;font-weight:900;padding:2px 7px;border-radius:99px;background:var(--lemon);vertical-align:middle}
+.r0{background:#f4ece4}.r1{background:#dcefff}.r2{background:linear-gradient(90deg,#ffe0ea,#e7dcff)}.r3{background:linear-gradient(90deg,#fff1b8,#ffd9c2)}.r4{background:linear-gradient(90deg,#2f3566,#6b5fb0)}
+.bar{height:11px;border-radius:9px;background:#f5e9de;overflow:hidden;flex:1}
+.bar i{display:block;height:100%;border-radius:9px}
+.mood{display:flex;align-items:center;gap:6px;margin:5px 0;font-size:.92em;font-weight:900}
+.mood span{width:26px;text-align:center}
+.row{display:flex;align-items:center;gap:8px}
+.muted{color:var(--ink2);font-size:.86em}
+.center{text-align:center}
+.hearts{letter-spacing:-1px}
+.seg{display:flex;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 0 var(--line)}
+.seg button{flex:1;padding:9px 6px;font-weight:900}
+.seg button.on{background:var(--pink)}
+/* ---------- café scene ---------- */
+#scene{position:absolute;inset:0;overflow:hidden;touch-action:none}
+#sceneBg{position:absolute;inset:0;width:100%;height:100%}
+#props,#fxL,#cats{position:absolute;inset:0}
+#props{pointer-events:none}
+#props .slotAdd{pointer-events:auto}
+.prop{position:absolute;transform:translate(-50%,-100%)}
+.prop svg{width:100%;height:100%;display:block;overflow:visible}
+.slotAdd{position:absolute;transform:translate(-50%,-80%);width:46px;height:46px;border-radius:50%;border:3px dashed #ffffffd0;background:#ffffff40;color:#fff;font-size:26px;font-weight:900;display:grid;place-items:center;text-shadow:0 1px 2px #0003;z-index:2}
+.slotAdd small{position:absolute;bottom:-18px;font-size:11px;white-space:nowrap;background:#fffd;color:var(--ink);border-radius:8px;padding:0 5px;text-shadow:none}
+.beam{position:absolute;pointer-events:none;background:linear-gradient(180deg,#fff7c000,#fff3b066 40%,#ffe9805e);clip-path:polygon(30% 0,70% 0,100% 100%,0 100%);animation:beam 5s ease-in-out infinite alternate;mix-blend-mode:screen}
+@keyframes beam{from{opacity:.55}to{opacity:1}}
+#dark{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 35%,#3a2a5a,#140f28);opacity:0;transition:opacity 1.2s}
+#fxL{pointer-events:none;z-index:200}
+.cat{position:absolute;width:80px;height:72px;transform:translate(-50%,-94%);touch-action:none;z-index:3}
+.cat .flip{width:100%;height:100%;transition:transform .3s}
+.cat .bob{width:100%;height:100%;transform-origin:50% 100%}
+.cat svg{width:100%;height:100%;overflow:visible;display:block}
+.cat .front{position:absolute;left:-12%;right:-12%;bottom:-5%;height:36%;pointer-events:none}
+.cat .front svg{width:100%;height:100%}
+.cat.walk .bob{animation:walk .32s ease-in-out infinite alternate}
+.cat.nap .bob{animation:breathe 3.4s ease-in-out infinite}
+.cat.sit .bob{animation:idle 4s ease-in-out infinite}
+.cat.pop .bob{animation:pop .45s ease}
+.cat .tl{transform-box:fill-box;transform-origin:10% 90%;animation:tail 2.6s ease-in-out infinite}
+.cat.happy .tl{animation:tail .35s ease-in-out 6}
+.cat .zz{position:absolute;top:2px;right:6px;font-size:15px;font-weight:900;color:#8a6ac9;animation:zz 2s infinite}
+.cat .bub{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:17px;background:#fff;border-radius:12px;padding:0 5px;box-shadow:0 2px 0 #0002;white-space:nowrap}
+.cat.sel::after{content:"";position:absolute;left:18%;right:18%;bottom:-5px;height:9px;border-radius:50%;background:#fff9;box-shadow:0 0 10px #fff}
+.cat.leave{transition:opacity 1s;opacity:0}
+.cat.adoptable .bob svg{filter:drop-shadow(0 0 4px #ffd34d)}
+.glowOn .cat.glowy .bob svg{filter:drop-shadow(0 0 6px var(--gc)) drop-shadow(0 0 12px var(--gc))}
+.cust{position:absolute;transform:translate(-50%,-100%);pointer-events:none}
+.cust svg{width:100%;height:100%;display:block}
+.cust.sip .cup{animation:sip 3s ease-in-out infinite}
+@keyframes sip{0%,70%,100%{transform:translateY(0)}80%,90%{transform:translateY(-3px)}}
+@keyframes walk{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-4px) rotate(2deg)}}
+@keyframes idle{0%,100%{transform:scale(1,1)}50%{transform:scale(1.02,.98)}}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.03,.95)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.18,.84)}70%{transform:scale(.94,1.1)}100%{transform:scale(1)}}
+@keyframes tail{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(7deg)}}
+@keyframes zz{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(8px,-14px)}}
+.fx{position:absolute;pointer-events:none;font-size:21px;font-weight:900;animation:fxup 1.1s ease-out forwards;white-space:nowrap;text-shadow:0 2px 0 #fff}
+@keyframes fxup{from{opacity:1;transform:translate(-50%,0) scale(.7)}30%{transform:translate(-50%,-14px) scale(1.15)}to{opacity:0;transform:translate(-50%,-56px) scale(1)}}
+.steam{position:absolute;width:6px;height:14px;border-radius:6px;background:#fff9;pointer-events:none;animation:steam 2.2s ease-out forwards}
+@keyframes steam{from{opacity:.8;transform:translate(0,0) scaleX(1)}to{opacity:0;transform:translate(6px,-30px) scaleX(1.8)}}
+.star{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;box-shadow:0 0 6px #fff;animation:twk 2.5s ease-in-out infinite alternate;pointer-events:none}
+@keyframes twk{from{opacity:.2}to{opacity:1}}
+.flake{position:absolute;top:-10px;font-size:12px;pointer-events:none;animation:fall linear infinite;color:#fff}
+@keyframes fall{to{transform:translate(30px,110vh) rotate(360deg)}}
+#roomName{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#fffe;border-radius:99px;padding:3px 6px;font-weight:900;z-index:210;white-space:nowrap;display:flex;gap:4px;align-items:center;box-shadow:0 2px 0 #0001}
+#roomName button{font-size:20px;width:38px;height:38px;border-radius:50%}
+#roomName button[disabled]{opacity:.25}
+#sideR{position:absolute;top:60px;right:8px;display:flex;flex-direction:column;gap:10px;z-index:210}
+.fab{width:56px;height:56px;border-radius:50%;background:#fff;box-shadow:0 3px 0 #0002;font-size:26px;display:grid;place-items:center;position:relative}
+.fab small{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:900;background:#fff;border-radius:6px;padding:0 4px;white-space:nowrap}
+.fab .bdg{position:absolute;top:-3px;right:-3px;background:var(--bad);color:#fff;font-size:11px;font-weight:900;border-radius:99px;min-width:19px;height:19px;display:grid;place-items:center;padding:0 4px}
+.fab.glow{animation:wob .6s ease-in-out infinite alternate}
+@media (max-height:700px){#sideR{top:52px;gap:6px}.fab{width:46px;height:46px;font-size:21px}#roomName button{width:32px;height:32px;font-size:17px}}
+@keyframes wob{from{transform:rotate(-6deg)}to{transform:rotate(6deg)}}
+#careBar{position:absolute;left:8px;right:8px;bottom:10px;z-index:210;display:flex;justify-content:center}
+#careBar .cb{background:#fffe;border-radius:20px;padding:8px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 0 #0002;max-width:520px;width:100%}
+#careBar .cb .who{flex:1;min-width:0;font-weight:900;line-height:1.2;overflow:hidden}
+#careBar .cb .who small{display:block;font-weight:700;color:var(--ink2);font-size:.8em}
+#careBar .cbtn{display:flex;flex-direction:column;align-items:center;font-size:11px;font-weight:900;background:var(--pink);border-radius:14px;padding:5px 4px;min-width:52px;min-height:52px;justify-content:center}
+#careBar .cbtn b{font-size:22px;line-height:1}
+#careBar .cbtn.gold{background:var(--lemon2);animation:wob .6s ease-in-out infinite alternate}
+#careBar .hint{background:#fffd;border-radius:99px;padding:8px 14px;font-weight:900;box-shadow:0 3px 0 #0002}
+/* ---------- modal ---------- */
+#modalBg{position:fixed;inset:0;background:#4a2e2066;display:none;z-index:500;align-items:center;justify-content:center;padding:14px}
+#modalBg.on{display:flex}
+#modal{background:#fff;border-radius:24px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto;padding:16px;box-shadow:0 10px 40px #0003;animation:mIn .25s ease;position:relative}
+@keyframes mIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+#modal h2{text-align:center;margin-top:0;padding:0 30px}
+#mClose{position:absolute;top:8px;right:10px;font-size:22px;width:40px;height:40px;border-radius:50%;background:#f8efe6}
+.reward{text-align:center}
+.reward .big{font-size:60px;line-height:1.1}
+.reward .big svg{width:170px;height:153px}
+.reward .amt{font-size:1.5em;font-weight:900;margin:6px 0}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:800;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:92%}
+.tst{background:#fff;border-radius:14px;padding:10px 15px;font-weight:900;box-shadow:0 4px 14px #0002;animation:tIn .3s ease;max-width:100%;text-align:center}
+.tst.gold{background:var(--lemon)}.tst.err{background:#ffe0e5}
+@keyframes tIn{from{transform:translateY(-12px);opacity:0}to{transform:none;opacity:1}}
+.pickGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;max-height:44vh;overflow-y:auto;padding:2px}
+.pickGrid button{background:#fbf3ea;border-radius:14px;padding:4px;font-weight:900;font-size:.8em;border:3px solid transparent}
+.pickGrid button svg{width:70px;height:63px;display:block;margin:0 auto}
+.pickGrid button.on{border-color:var(--pink2);background:var(--pink)}
+/* ---------- mini games ---------- */
+#game{position:fixed;inset:0;z-index:600;background:#f1dcc0;display:none;touch-action:none}
+#game.on{display:block}
+#gCanvas{position:absolute;inset:0;width:100%;height:100%}
+#gHud{position:absolute;top:calc(8px + env(safe-area-inset-top));left:8px;right:8px;display:flex;justify-content:space-between;align-items:center;z-index:2;font-weight:900;font-size:1.1em;gap:6px}
+#gOver,#gIntro{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#4a2e2055;z-index:3;padding:16px}
+#gOver.on,#gIntro.on{display:flex}
+#gOver .box,#gIntro .box{background:#fff;border-radius:24px;padding:18px;width:100%;max-width:360px;text-align:center}
+/* ---------- loading ---------- */
+#load{position:fixed;inset:0;z-index:1000;background:linear-gradient(#fff6ea,#ffdbe4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .6s}
+#load .logo{font-size:2.4em;font-weight:900;color:#ff7fa0;text-shadow:0 3px 0 #fff;text-align:center;line-height:1.05}
+#load .wd{width:140px;height:126px;animation:walk .6s ease-in-out infinite alternate}
+#load .wd svg{width:100%;height:100%}
+#load .tip{max-width:300px;text-align:center;font-weight:800;color:var(--ink2);padding:0 20px}
+#load .lbar{width:200px;height:11px;background:#fff;border-radius:9px;overflow:hidden}
+#load .lbar i{display:block;height:100%;width:0;background:var(--pink2);transition:width .3s}
+/* ---------- tutorial ---------- */
+#tut{position:fixed;left:8px;right:8px;z-index:450;display:none;pointer-events:none}
+#tut.on{display:flex;justify-content:center}
+#tut .box{pointer-events:auto;background:#fff;border-radius:20px;padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 6px 24px #0003;max-width:460px;width:100%;border:3px solid var(--lemon2)}
+#tut #tutCap svg{width:58px;height:52px;flex:none}
+#tut .tx{flex:1;font-weight:900;font-size:.95em}
+.hl{outline:4px solid var(--lemon2)!important;outline-offset:2px;animation:hlp 1s infinite alternate;z-index:440}
+@keyframes hlp{from{outline-color:var(--lemon2)}to{outline-color:var(--pink2)}}
+</style>
+</head>
+<body>
+<div id="load">
+  <div class="logo">Kitty<br>Café</div>
+  <div class="wd" id="loadCat"></div>
+  <div class="lbar"><i id="loadBar"></i></div>
+  <div class="tip" id="loadTip"></div>
+</div>
+<div id="app">
+  <div id="top">
+    <button class="pill" id="pCoin"><i class="cn"></i><span id="vCoin">0</span></button>
+    <button class="pill" id="pGem"><i class="gm"></i><span id="vGem">0</span></button>
+    <button class="pill lv" id="pLevel"><span class="ic">⭐</span><span id="vLevel">1</span><span class="xpbar"><i id="vXp"></i></span></button>
+    <div id="boosts"></div>
+    <button class="roundBtn" id="muteBtn" aria-label="Sound">🔊</button>
+    <button class="roundBtn" id="profBtn" aria-label="Profile"></button>
+  </div>
+  <div id="body">
+    <div id="main">
+      <div class="view on" id="vCafe">
+        <div id="scene">
+          <svg id="sceneBg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+          <div id="props"></div>
+          <div id="dark"></div>
+          <div id="cats"></div>
+          <div id="fxL"></div>
+        </div>
+        <div id="roomName"></div>
+        <div id="sideR"></div>
+        <div id="careBar"></div>
+      </div>
+      <div class="view" id="vCats"><div class="inner" id="iCats"></div></div>
+      <div class="view" id="vShop"><div class="inner" id="iShop"></div></div>
+      <div class="view" id="vGames"><div class="inner" id="iGames"></div></div>
+      <div class="view" id="vMore"><div class="inner" id="iMore"></div></div>
+    </div>
+    <div id="nav"></div>
+  </div>
+</div>
+<div id="modalBg"><div id="modal"><button id="mClose" aria-label="Close">✕</button><div id="mBody"></div></div></div>
+<div id="toast"></div>
+<div id="tut"><div class="box"><div id="tutCap"></div><div class="tx" id="tutTx"></div><button class="btn sm" id="tutBtn">OK</button></div></div>
+<div id="game">
+  <canvas id="gCanvas"></canvas>
+  <div id="gHud"></div>
+  <div id="gIntro"><div class="box" id="gIntroBox"></div></div>
+  <div id="gOver"><div class="box" id="gOverBox"></div></div>
+</div>
+<script>
+/* =====================================================================
+   KITTY CAFÉ  —  a cozy cat café idle game  (MOS Arcade)
+   ---------------------------------------------------------------------
+   HOW THIS FILE IS ORGANISED
+     1. CONFIG        ← all the tuning numbers. Change feel here.
+     2. DATA          ← cat breeds, rooms, spots, menu, themes...
+     3. LANGUAGE      ← English / French words
+     4. STATE + SAVE  ← what the game remembers (on the phone only)
+     5. ECONOMY       ← coins, visits, friendship, adopting
+     6. ART           ← cats, customers and the café drawn in code (SVG)
+     7. SOUND         ← purrs, meows and soft café music made in code
+     8. CAFÉ VIEW     ← cats walking in, napping, petting
+     9. SCREENS       ← Cats, Shop, Games, More
+    10. MINI GAMES    ← Laser Chase, Treat Catch
+    11. MONEY         ← ads + purchases (demo in browser)
+    12. MAIN LOOP     ← ticks, away time, tutorial, start-up
+===================================================================== */
+
+/* =====================================================================
+   1. CONFIG — tune the game here. Numbers only, no code knowledge needed.
+===================================================================== */
+const CONFIG = {
+  /* ---- start ---- */
+  START_COINS: 150,
+  START_GEMS: 10,
+  START_KIBBLE: 6,
+
+  /* ---- coins (idle money) ---- */
+  BASE_RATE: 1,                   // coins per second from customers for one happy common cat
+  RARITY_MULT: [1, 1.6, 2.6, 3.5, 5],   // Common, Uncommon, Rare, Seasonal, Exclusive
+  ROOM_MULT: 3,                   // each new room earns x3 more
+  FAV_BONUS: 0.25,                // a cat in its favorite spot earns +25%
+  RESIDENT_BONUS: 0.5,            // resident cats earn +50%
+  SAD_MIN: 0.4,                   // a very hungry/bored cat still brings 40%
+  OFFLINE_HOURS: 8,               // coins keep coming while the app is closed, up to this many hours
+  OFFLINE_UP_HOURS: 2,            // each "Tip jar" upgrade adds this many hours
+  GEM_CHANCE: 0.01,               // each minute, chance that a cat brings a fish gem
+  PET_COINS_SEC: 3,               // petting gives this many seconds of income as a bonus
+
+  /* ---- visits ---- */
+  ARRIVE_MIN: [1.5, 4],           // a new cat walks in every 1.5-4 minutes (if there is a free spot)
+  FIRST_ARRIVE_SEC: 40,
+  STAY_HOURS: [2, 6],             // visitors stay 2-6 hours, then go home (they remember you!)
+  FEED_STAY_MIN: 20,              // each meal makes a visitor stay 20 min longer
+  RETURN_CHANCE: 0.4,             // chance that a cat you already know comes back
+  SEASON_CHANCE: 0.04,            // chance that a seasonal cat comes (in its real season)
+
+  /* ---- care ---- */
+  MOOD_EMPTY_HOURS: 5,            // full -> empty in about 5 hours
+  PET_FUN: 8, PET_FRIEND: 3, PET_COOLDOWN_MS: 1500,
+  TOY_COOLDOWN_SEC: 20,
+  FRIEND_LEVELS: [0, 12, 35, 70, 120, 185, 265, 360, 480, 640],   // friendship points for 1..10 hearts
+  FRIEND_BONUS: 0.05,             // +5% coins per heart
+  ADOPT_HEARTS: 5,                // hearts needed to adopt a cat as a Resident
+
+  /* ---- player ---- */
+  XP_BASE: 40, XP_POW: 1.5,
+
+  /* ---- optional ads ---- */
+  AD_2X_MIN: 30, AD_2X_MAX_H: 4,
+  TICKETS_MAX: 5, TICKET_MIN: 15, AD_TICKETS: 3,
+
+  /* ---- mini games ---- */
+  LASER_TIME: 45, LASER_SPEED: 330,
+  CATCH_SPEED: 170, CATCH_RAMP: 5,
+
+  /* ---- day + night (real clock) ---- */
+  NIGHT_START: 20, NIGHT_END: 7,
+};
+
+/* =====================================================================
+   2. DATA — everything in the café
+===================================================================== */
+const RARITY = [
+  {en:'Common', fr:'Commun', c:'#9a8676'},
+  {en:'Uncommon', fr:'Peu commun', c:'#3f86d0'},
+  {en:'Rare', fr:'Rare', c:'#c04fd0'},
+  {en:'Seasonal', fr:'Saisonnier', c:'#e08a1e'},
+  {en:'Exclusive', fr:'Exclusif', c:'#e0679a'},
+];
+/* cat breeds. body / belly / ear (inside) / eye.
+   pat = pattern drawn on top. pc, pc2 = pattern colors.
+   need = an item the café must have for this cat to come.
+   season = only comes in that real season. paid = Starry Night pack. */
+const BREEDS = {
+  tabby:    {en:'Orange tabby', fr:'Tigré roux',     r:0, body:'#f6a75c', belly:'#ffe6c8', ear:'#ffb4b4', eye:'#78b84a', pat:'stripes', pc:'#d6772c'},
+  grey:     {en:'Grey kitty',   fr:'Chaton gris',    r:0, body:'#aeb2bf', belly:'#e6e8ee', ear:'#ffc0c8', eye:'#f0bf45'},
+  tuxedo:   {en:'Tuxedo',       fr:'Smoking',        r:0, body:'#3d3b46', belly:'#ffffff', ear:'#e8a0b0', eye:'#8ed16a', pat:'tux', hi:true},
+  white:    {en:'Snowy white',  fr:'Blanc neige',    r:0, body:'#fffaf4', belly:'#ffffff', ear:'#ffb8c6', eye:'#62aef0'},
+  cream:    {en:'Cream tabby',  fr:'Tigré crème',    r:0, body:'#f7ddb4', belly:'#fff5e6', ear:'#ffbcbc', eye:'#c98b3a', pat:'stripes', pc:'#e2b679'},
+  calico:   {en:'Calico',       fr:'Calico',         r:1, body:'#fffaf2', belly:'#ffffff', ear:'#ffb8c6', eye:'#e6b13a', pat:'calico', pc:'#f19a4a', pc2:'#3f3b42'},
+  black:    {en:'Black cat',    fr:'Chat noir',      r:1, body:'#2f2c38', belly:'#3f3b4a', ear:'#6b5470', eye:'#f6d33c', hi:true},
+  siamese:  {en:'Siamese',      fr:'Siamois',        r:1, body:'#f5e8d4', belly:'#fff8ec', ear:'#6b4b3a', eye:'#59a6f0', pat:'points', pc:'#6b4b3a'},
+  tortie:   {en:'Tortoiseshell', fr:'Écaille de tortue', r:1, body:'#4c3a35', belly:'#6a5048', ear:'#c78a7a', eye:'#e8a83c', pat:'tortie', pc:'#dc8448', pc2:'#f0b46a', hi:true},
+  ragdoll:  {en:'Ragdoll',      fr:'Ragdoll',        r:2, body:'#f8f2ea', belly:'#ffffff', ear:'#a08670', eye:'#5aa8f2', pat:'points', pc:'#a08670', fluffy:true},
+  persian:  {en:'Persian',      fr:'Persan',         r:2, body:'#efe6f3', belly:'#ffffff', ear:'#ffbcd0', eye:'#ea8a3c', fluffy:true, flat:true, need:'fishplush'},
+  sphynx:   {en:'Sphynx',       fr:'Sphynx',         r:2, body:'#f3c8bc', belly:'#f9ddd4', ear:'#f0a49a', eye:'#8ed16a', pat:'sphynx', bigEars:true, need:'heatedbed'},
+  mainecoon:{en:'Maine Coon',   fr:'Maine Coon',     r:2, body:'#8c6c4e', belly:'#e8d6bc', ear:'#d8a890', eye:'#e8b33c', pat:'stripes', pc:'#5c4330', fluffy:true, tufts:true, need:'cattree'},
+  blossom:  {en:'Blossom cat',  fr:'Chat fleuri',    r:3, body:'#ffe0ea', belly:'#ffffff', ear:'#ff9ec0', eye:'#c56ad6', acc:'crown', season:'spring'},
+  sunny:    {en:'Sunny cat',    fr:'Chat soleil',    r:3, body:'#ffd65e', belly:'#fff4c4', ear:'#ffab7a', eye:'#e07a2a', pat:'stripes', pc:'#f2ad2e', acc:'sunflower', season:'summer'},
+  pumpkin:  {en:'Pumpkin cat',  fr:'Chat citrouille', r:3, body:'#f28c3e', belly:'#ffd9b0', ear:'#ffb08a', eye:'#7a4ad0', pat:'stripes', pc:'#c9602a', acc:'pumpkin', season:'autumn'},
+  snow:     {en:'Snowflake cat', fr:'Chat flocon',   r:3, body:'#eef3ff', belly:'#ffffff', ear:'#bcd0ff', eye:'#4f8ef0', acc:'scarf', season:'winter', fluffy:true},
+  moon:     {en:'Moon cat',     fr:'Chat lune',      r:4, body:'#363c74', belly:'#4d548f', ear:'#9a8cff', eye:'#ffe27a', acc:'moon', glow:'#a99cff', paid:true, hi:true},
+  star:     {en:'Star cat',     fr:'Chat étoile',    r:4, body:'#fff2c8', belly:'#ffffff', ear:'#ffc6a0', eye:'#f08a3c', acc:'star', glow:'#ffd54a', paid:true},
+  /* Mocha, the café owner (not in the book) */
+  mocha:    {en:'Mocha', fr:'Moka', r:0, body:'#b07c55', belly:'#f2dcc2', ear:'#f0b0a0', eye:'#6fb14a', pat:'stripes', pc:'#8a5a3a', acc:'apron', hidden:true},
+};
+const BREED_IDS = Object.keys(BREEDS).filter(k => !BREEDS[k].hidden);
+const SEASONS = {
+  spring: {e:'🌸', en:'Spring (Mar–May)', fr:'Printemps (mars–mai)', m:[2, 3, 4]},
+  summer: {e:'☀️', en:'Summer (Jun–Aug)', fr:'Été (juin–août)', m:[5, 6, 7]},
+  autumn: {e:'🎃', en:'Autumn (Sep–Nov)', fr:'Automne (sept.–nov.)', m:[8, 9, 10]},
+  winter: {e:'❄️', en:'Winter (Dec–Feb)', fr:'Hiver (déc.–févr.)', m:[11, 0, 1]},
+};
+const seasonNow = () => { const m = new Date().getMonth(); return Object.keys(SEASONS).find(k => SEASONS[k].m.includes(m)); };
+
+const PERSONALITIES = {
+  sleepy:  {e:'😴', en:'Sleepy',  fr:'Endormi',  d:{en:'Naps a lot. Gets bored slowly.', fr:'Fait plein de siestes. S’ennuie lentement.'}},
+  playful: {e:'🧶', en:'Playful', fr:'Joueur',   d:{en:'Loves toys: double fun and friendship!', fr:'Adore les jouets : double plaisir et amitié!'}},
+  shy:     {e:'🙈', en:'Shy',     fr:'Timide',   d:{en:'Slow to make friends, but each heart gives more coins.', fr:'Lent à devenir ami, mais chaque cœur rapporte plus.'}},
+  greedy:  {e:'😋', en:'Greedy',  fr:'Gourmand', d:{en:'Brings +20% coins, but gets hungry fast.', fr:'Rapporte +20% de pièces, mais a vite faim.'}},
+  grumpy:  {e:'😾', en:'Grumpy',  fr:'Grognon',  d:{en:'Doesn’t always like pets. Treats work better!', fr:'N’aime pas toujours les caresses. Les gâteries marchent mieux!'}},
+};
+const PERS_IDS = Object.keys(PERSONALITIES);
+/* the 5 kinds of cat spots */
+const SPOTS = {
+  cushion: {e:'🛋️', en:'Cushion',  fr:'Coussin'},
+  window:  {e:'🪟', en:'Window',   fr:'Fenêtre'},
+  box:     {e:'📦', en:'Box',      fr:'Boîte'},
+  shelf:   {e:'📚', en:'Shelf',    fr:'Étagère'},
+  sunbeam: {e:'☀️', en:'Sunbeam',  fr:'Rayon de soleil'},
+};
+const SPOT_IDS = Object.keys(SPOTS);
+
+/* rooms. slots = cat spots in the order you buy them (x,y in % of the screen,
+   y = where the cat's feet are). tables = where customers sit. */
+const ROOMS = [
+  {id:'cafe', e:'☕', en:'Main Café', fr:'Café principal', lvl:1, cost:0, start:3,
+    slots:[{k:'cushion',x:24,y:82}, {k:'window',x:50,y:38}, {k:'sunbeam',x:50,y:70}, {k:'shelf',x:17,y:29}, {k:'box',x:82,y:73},
+           {k:'shelf',x:81,y:36}, {k:'cushion',x:66,y:87}, {k:'box',x:14,y:66}],
+    tables:[[73,59]], counter:[17,56], board:[34,50], music:[[0,2,4,7,9], 74, 'triangle']},
+  {id:'patio', e:'🌷', en:'Garden Patio', fr:'Terrasse fleurie', lvl:5, cost:6000, start:1,
+    slots:[{k:'sunbeam',x:30,y:76}, {k:'cushion',x:66,y:84}, {k:'box',x:16,y:64}, {k:'shelf',x:22,y:34}, {k:'window',x:58,y:38},
+           {k:'cushion',x:84,y:70}, {k:'sunbeam',x:44,y:88}],
+    tables:[[48,61]], music:[[0,2,4,7,9], 80, 'sine']},
+  {id:'tower', e:'🗼', en:'Cat Tower Room', fr:'Salle des tours à chat', lvl:10, cost:150000, start:1,
+    slots:[{k:'shelf',x:22,y:24}, {k:'cushion',x:30,y:82}, {k:'window',x:56,y:36}, {k:'shelf',x:22,y:46}, {k:'box',x:72,y:84},
+           {k:'shelf',x:80,y:40}, {k:'sunbeam',x:54,y:70}, {k:'cushion',x:84,y:66}],
+    tables:[[30,62]], music:[[0,3,5,7,10], 66, 'sine']},
+];
+const ROOM_IDS = ROOMS.map(r => r.id);
+const ROOM = id => ROOMS.find(r => r.id === id);
+
+/* café décor themes. bonus = +% coins forever once owned */
+const THEMES = {
+  wood:   {e:'🪵', en:'Cozy wood',     fr:'Bois douillet',   p:0,     wall:'#f8e7d2', wall2:'#f1d9bf', trim:'#b98157', floor:'#c99568', floor2:'#b9845a', acc:'#ff9fb5'},
+  pastel: {e:'🍬', en:'Pastel dream',  fr:'Rêve pastel',     p:3000,  wall:'#ffe3ec', wall2:'#dff3ea', trim:'#f3a9c0', floor:'#f3dcc8', floor2:'#ecccb4', acc:'#9fd8c4', bonus:0.08},
+  jungle: {e:'🌿', en:'Plant jungle',  fr:'Jungle de plantes', p:25000, wall:'#dff0d6', wall2:'#cfe7c2', trim:'#6aa86a', floor:'#d9a07a', floor2:'#c98c66', acc:'#4fae6a', bonus:0.08},
+  winter: {e:'❄️', en:'Winter cabin',  fr:'Chalet d’hiver',  g:40,    wall:'#a8704a', wall2:'#99633f', trim:'#6e4428', floor:'#7a5238', floor2:'#6a462f', acc:'#d94a4a', bonus:0.10},
+  starry: {e:'🌙', en:'Starry Night',  fr:'Nuit étoilée',    paid:true, wall:'#2d2f63', wall2:'#26285a', trim:'#8a78c4', floor:'#4a3f7a', floor2:'#3f356c', acc:'#ffd54a', bonus:0.15},
+};
+const THEME_IDS = Object.keys(THEMES);
+
+/* special items: some cats only come when the café has their favorite thing */
+const ITEMS = {
+  fishplush: {e:'🐟', en:'Fish plushie', fr:'Peluche poisson', p:1500,  for:'persian'},
+  heatedbed: {e:'🔥', en:'Heated bed',   fr:'Lit chauffant',   g:20,    for:'sphynx'},
+  cattree:   {e:'🌳', en:'Cat tree',     fr:'Arbre à chat',    p:15000, for:'mainecoon'},
+};
+const ITEM_IDS = Object.keys(ITEMS);
+
+/* the menu: each level = more coins per customer */
+const MENU = {
+  coffee: {e:'☕', en:'Coffee', fr:'Café',     p:150,  bonus:0.15, lvl:1},
+  tea:    {e:'🍵', en:'Tea',    fr:'Thé',      p:1200, bonus:0.20, lvl:3},
+  cake:   {e:'🍰', en:'Cakes',  fr:'Gâteaux',  p:9000, bonus:0.25, lvl:6},
+};
+const MENU_IDS = Object.keys(MENU);
+const MENU_MAX = 25;
+
+const FOODS = {
+  kibble: {e:'🥣', en:'Kibble',     fr:'Croquettes',    food:35,  fun:0,  fr_:4, p:25},
+  fish:   {e:'🐟', en:'Fish treat', fr:'Gâterie poisson', food:60, fun:10, fr_:7, p:70},
+  tuna:   {e:'🥫', en:'Tuna',       fr:'Thon',          food:100, fun:5,  fr_:10, p:180},
+};
+const FOOD_IDS = Object.keys(FOODS);
+const TOYS = {
+  feather: {e:'🪶', en:'Feather wand', fr:'Plumeau',        fun:30, fr_:5,  p:0},
+  yarn:    {e:'🧶', en:'Yarn ball',    fr:'Pelote de laine', fun:45, fr_:8,  p:800},
+  mouse:   {e:'🐭', en:'Toy mouse',    fr:'Souris jouet',   fun:60, fr_:11, p:3500},
+};
+const TOY_IDS = Object.keys(TOYS);
+
+const TITLES = [
+  [1,  {en:'New Barista', fr:'Nouveau barista'}],
+  [4,  {en:'Cat Friend', fr:'Ami des chats'}],
+  [8,  {en:'Café Keeper', fr:'Gardien du café'}],
+  [12, {en:'Purr Expert', fr:'Expert en ronrons'}],
+  [18, {en:'Cat Whisperer', fr:'Charmeur de chats'}],
+  [25, {en:'Kitty Legend', fr:'Légende des chats'}],
+];
+const GIFT_DAYS = [   // daily gift, day 1..7 then repeats. p = minutes of coins, g = gems
+  {p:5, kibble:3}, {p:8, fish:2}, {p:10, g:5}, {p:12, tuna:1}, {p:15, kibble:5}, {p:20, fish:3}, {p:30, g:15},
+];
+const NAMES = ['Mochi','Biscuit','Pudding','Noodle','Pip','Luna','Muffin','Peanut','Maple','Toffee','Ginger','Pickles','Dumpling','Kiki',
+  'Tofu','Waffle','Cookie','Puff','Olive','Nori','Boba','Taro','Ziggy','Poppy','Bean','Mango','Fig','Plum','Cocoa','Pumpkin',
+  'Daisy','Jelly','Kiwi','Miso','Pebble','Simba','Oreo','Tigger','Felix','Milo','Leo','Nala','Cleo','Smokey','Whiskers','Button',
+  'Sushi','Latte','Chai','Croissant','Brioche','Caramel','Hazel','Bubbles','Marshmallow','Snickers','Lulu','Momo','Sprinkles','Pancake'];
+const TIPS = [
+  {en:'Cats love their favorite spot. Buy more spots so more cats can visit!', fr:'Les chats adorent leur endroit préféré. Achète plus d’endroits pour que plus de chats viennent!'},
+  {en:'Make friends with a cat (5 ❤️) to adopt it. Residents stay forever!', fr:'Deviens ami avec un chat (5 ❤️) pour l’adopter. Les résidents restent pour toujours!'},
+  {en:'Some cats only come if you have their favorite thing.', fr:'Certains chats viennent seulement si tu as leur objet préféré.'},
+  {en:'Customers keep paying while the app is closed.', fr:'Les clients continuent de payer même quand l’app est fermée.'},
+  {en:'Seasonal cats only visit in their season. Look out for them!', fr:'Les chats saisonniers viennent seulement dans leur saison. Guette-les!'},
+  {en:'A cozier café calls rarer cats.', fr:'Un café plus douillet attire des chats plus rares.'},
+  {en:'Ads are always your choice. Nothing plays on its own.', fr:'Les pubs sont toujours ton choix. Rien ne joue tout seul.'},
+];
+
+/* =====================================================================
+   4. STATE + SAVE — and small helpers
+   Everything is saved on this phone only (no account, no internet).
+===================================================================== */
+const $ = id => document.getElementById(id);
+const now = () => Date.now();
+const rnd = (a, b) => a + Math.random() * (b - a);
+const rint = (a, b) => Math.floor(rnd(a, b + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CN = '<i class="cn"></i>', GM = '<i class="gm"></i>';
+function weighted(odds){ let s = odds.reduce((a, b) => a + b, 0), r = Math.random() * s; for(let i=0;i<odds.length;i++){ r -= odds[i]; if(r < 0) return i; } return odds.length - 1; }
+function fmt(n){
+  n = Math.floor(n || 0); if(n < 1000) return String(n);
+  const u = ['K','M','B','T','Qa','Qi','Sx','Sp']; let i = -1;
+  while(n >= 1000 && i < u.length - 1){ n /= 1000; i++; }
+  return (n >= 100 ? Math.floor(n) : n >= 10 ? (Math.floor(n * 10) / 10) : (Math.floor(n * 100) / 100)) + u[i];
+}
+function fmtTime(sec){
+  sec = Math.max(0, Math.ceil(sec));
+  if(sec < 60) return sec + 's';
+  const m = Math.floor(sec / 60), s = sec % 60;
+  if(m < 60) return m + 'm' + (s ? ' ' + s + 's' : '');
+  const h = Math.floor(m / 60); if(h < 48) return h + 'h ' + (m % 60) + 'm';
+  return Math.floor(h / 24) + 'd ' + (h % 24) + 'h';
+}
+function dayNum(t){ const d = new Date(t); return Math.floor((t - d.getTimezoneOffset() * 60000) / 86400000); }
+function isNight(t){ const h = new Date(t || now()).getHours(); return h >= CONFIG.NIGHT_START || h < CONFIG.NIGHT_END; }
+
+const SAVE_KEY = 'kittycafe_v1';
+let S = null;
+
+function newState(){
+  const t = now();
+  return {
+    v:1, created:t, lastSeen:t, name:'', avatar:null,
+    lang:(navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en',
+    snd:true, mus:true, easy:false, fsz:1,
+    co:CONFIG.START_COINS, gm:CONFIG.START_GEMS, xp:0, lv:1,
+    cur:'cafe', open:['cafe'], rooms:{cafe:{spots:ROOMS[0].start}},
+    cats:[], nextId:1, queue:[],
+    inv:{kibble:CONFIG.START_KIBBLE, fish:0, tuna:0}, toys:{feather:1}, items:{},
+    menu:{coffee:1, tea:0, cake:0}, up:{jar:0, flap:0},
+    themes:{wood:1}, theme:'wood',
+    book:{}, daily:{streak:0, last:null}, dvDay:null,
+    nextArrive:t + CONFIG.FIRST_ARRIVE_SEC * 1000,
+    ad2x:0, tickets:CONFIG.TICKETS_MAX, tkT:t,
+    stats:{coins:0, play:0, visits:0, adopted:0, games:0, pets:0, feeds:0, toys:0, gems:0, best:{laser:0, catch:0}},
+    tut:0, noAds:false, pack:false, iapDone:{}, awayLast:0,
+  };
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){ const o = JSON.parse(raw); if(o && o.v) return fixState(o); }
+  }catch(e){}
+  return null;
+}
+/* fills in anything missing from an older save */
+function fixState(o){
+  const d = newState();
+  for(const k in d) if(o[k] === undefined) o[k] = d[k];
+  ['stats','inv','menu','up'].forEach(g => { for(const k in d[g]) if(o[g][k] === undefined) o[g][k] = d[g][k]; });
+  o.open.forEach(id => { if(!o.rooms[id]) o.rooms[id] = {spots: ROOM(id).start}; });
+  return o;
+}
+function saveNow(){
+  if(!S) return;
+  S.lastSeen = now();
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
+}
+
+/* =====================================================================
+   3. LANGUAGE — tr('English text') gives French when French is chosen.
+   To fix a French word, change it in FR (near the end of the file).
+===================================================================== */
+function L(o){ if(!o) return ''; return (S && S.lang === 'fr' && o.fr) ? o.fr : (o.en || ''); }
+function tr(s, vars){
+  let out = (S && S.lang === 'fr' && FR[s]) ? FR[s] : s;
+  if(vars) for(const k in vars) out = out.split('{' + k + '}').join(vars[k]);
+  return out;
+}
+
+/* =====================================================================
+   5. ECONOMY — coins, gems, levels, visits, friendship, adopting
+===================================================================== */
+const MOOD_RATE = () => 100 / (CONFIG.MOOD_EMPTY_HOURS * 3600);
+const catById = id => S.cats.find(c => c.id === id);
+const present = () => S.cats.filter(c => c.here);
+const catsIn = r => S.cats.filter(c => c.here && c.here.r === r);
+const residents = () => S.cats.filter(c => c.res);
+const tierOf = r => ROOM_IDS.indexOf(r);
+const slotsOwned = r => S.rooms[r] ? S.rooms[r].spots : 0;
+const slotCat = (r, i) => S.cats.find(c => c.here && c.here.r === r && c.here.s === i);
+function freeSlots(r){ const out = []; for(let i=0;i<slotsOwned(r);i++) if(!slotCat(r, i)) out.push(i); return out; }
+const spotOf = c => c.here ? ROOM(c.here.r).slots[c.here.s] : null;
+const inFav = c => { const sp = spotOf(c); return !!(sp && sp.k === c.fav); };
+const moodAvg = c => (c.m.food + c.m.fun) / 2;
+function hearts(c){ let h = 0; CONFIG.FRIEND_LEVELS.forEach(v => { if(c.f >= v) h++; }); return h; }
+function nextHeartAt(c){ return CONFIG.FRIEND_LEVELS.find(v => v > c.f); }
+const canAdopt = c => !c.res && c.here && hearts(c) >= CONFIG.ADOPT_HEARTS;
+
+const roomMult = r => Math.pow(CONFIG.ROOM_MULT, tierOf(r));
+const menuMult = () => 1 + MENU_IDS.reduce((s, k) => s + S.menu[k] * MENU[k].bonus, 0);
+const themeMult = () => 1 + THEME_IDS.reduce((s, k) => s + (S.themes[k] && THEMES[k].bonus ? THEMES[k].bonus : 0), 0);
+const itemMult = () => 1 + 0.05 * ITEM_IDS.filter(k => S.items[k]).length;
+function globalMult(t){ return menuMult() * themeMult() * itemMult() * (S.ad2x > (t || now()) ? 2 : 1); }
+function catRate(c, t){
+  if(!c.here) return 0;
+  const B = BREEDS[c.b] || BREEDS.tabby, h = hearts(c);
+  const mood = CONFIG.SAD_MIN + (1 - CONFIG.SAD_MIN) * moodAvg(c) / 100;
+  const friend = 1 + h * (CONFIG.FRIEND_BONUS + (c.t === 'shy' ? 0.03 : 0));
+  return CONFIG.BASE_RATE * CONFIG.RARITY_MULT[B.r] * roomMult(c.here.r) * mood * friend *
+    (inFav(c) ? 1 + CONFIG.FAV_BONUS : 1) * (c.res ? 1 + CONFIG.RESIDENT_BONUS : 1) * (c.t === 'greedy' ? 1.2 : 1) * globalMult(t);
+}
+const incomePerSec = () => present().reduce((s, c) => s + catRate(c), 0);
+const roomIncome = r => catsIn(r).reduce((s, c) => s + catRate(c), 0);
+const incomeFloor = () => Math.max(2, incomePerSec());
+const priceScale = () => Math.pow(3, S.open.length - 1);
+/* how cozy the café is: more spots, themes, items and rooms = rarer cats */
+function coziness(){
+  return ROOM_IDS.reduce((s, r) => s + slotsOwned(r), 0) + 3 * (S.open.length - 1) +
+    2 * (THEME_IDS.filter(k => S.themes[k]).length - 1) + 2 * ITEM_IDS.filter(k => S.items[k]).length + Math.floor(MENU_IDS.reduce((s, k) => s + S.menu[k], 0) / 4);
+}
+
+function addC(n){ S.co += n; if(n > 0) S.stats.coins += n; }
+function addG(n){ S.gm += n; }
+function canPay(cur, n){ return cur === 'g' ? S.gm >= n : S.co >= n; }
+function pay(cur, n){
+  if(!canPay(cur, n)){ toast(cur === 'g' ? GM + ' ' + tr('Not enough fish gems') : CN + ' ' + tr('Not enough coins'), 'err'); sfx('err'); return false; }
+  if(cur === 'g') S.gm -= n; else S.co -= n;
+  return true;
+}
+const xpNeed = lv => Math.round(CONFIG.XP_BASE * Math.pow(lv, CONFIG.XP_POW));
+function titleOf(lv){ let t = TITLES[0][1]; TITLES.forEach(([l, n]) => { if(lv >= l) t = n; }); return t; }
+function addXP(n){
+  S.xp += n;
+  while(S.xp >= xpNeed(S.lv)){
+    S.xp -= xpNeed(S.lv); S.lv++;
+    const pr = Math.round(Math.max(200, incomeFloor() * 300)), gr = 2 + Math.floor(S.lv / 3);
+    addC(pr); addG(gr); sfx('level');
+    const opens = ROOMS.filter((r, i) => i > 0 && r.lvl === S.lv).map(r => '<br>🔓 ' + r.e + ' ' + L(r) + ' ' + tr('can be opened in the Shop!'));
+    const menu = MENU_IDS.filter(k => MENU[k].lvl === S.lv && k !== 'coffee').map(k => '<br>🔓 ' + MENU[k].e + ' ' + L(MENU[k]) + ' ' + tr('is on the menu now!'));
+    queueModal(() => showReward('⭐', tr('Level {n}!', {n: S.lv}), '+' + fmt(pr) + ' ' + CN + ' +' + gr + ' ' + GM + '<br>' + L(titleOf(S.lv)) + opens.join('') + menu.join('')));
+  }
+}
+
+/* ---------- cats: who comes to visit? ---------- */
+function randName(){ const used = new Set(S.cats.map(c => c.n)); const free = NAMES.filter(n => !used.has(n)); return pick(free.length ? free : NAMES); }
+function breedOK(b){ const B = BREEDS[b]; return !B.hidden && !B.paid && !B.season && (!B.need || S.items[B.need]); }
+function chooseBreed(kind){
+  const season = seasonNow(), cz = coziness();
+  const sChance = kind === 'daily' ? 0.12 : kind === 'rare' ? 0.2 : CONFIG.SEASON_CHANCE * (1 + cz / 40);
+  if(Math.random() < sChance){ const sb = BREED_IDS.find(k => BREEDS[k].season === season); if(sb) return sb; }
+  const odds = kind === 'rare' ? [0, 50, 50] : kind === 'daily' ? [25, 55, 20] : [70, 24, 6 * (1 + cz / 25)];
+  const r = weighted(odds);
+  let pool = BREED_IDS.filter(k => BREEDS[k].r === r && breedOK(k));
+  if(!pool.length) pool = BREED_IDS.filter(k => BREEDS[k].r === 1);
+  return pick(pool);
+}
+function newCat(b, o){
+  o = o || {};
+  const c = {id: S.nextId++, n: o.n || randName(), b, t: o.t || pick(PERS_IDS), fav: o.fav || pick(SPOT_IDS), f: o.f || 0, visits: 0, res: false,
+    here: null, m: {food: 70, fun: 70}, pet: 0, toyAt: 0, met: now(), left: 0};
+  S.cats.push(c);
+  return c;
+}
+/* where can a cat sit? its favorite spot if free, else any free spot */
+function pickSlot(c, prefer){
+  const rooms = [prefer || S.cur].concat(S.open).filter((r, i, a) => a.indexOf(r) === i);
+  for(const r of rooms){
+    const fr = freeSlots(r); if(!fr.length) continue;
+    const fav = fr.filter(i => ROOM(r).slots[i].k === c.fav);
+    return {r, s: fav.length ? pick(fav) : pick(fr)};
+  }
+  return null;
+}
+const anyFree = () => S.open.some(r => freeSlots(r).length > 0);
+/* a cat walks in. kind: random | daily | rare | pack. Returns the cat or null */
+function arrive(kind, t, offline, forceCat){
+  t = t || now();
+  if(!anyFree()){
+    if(kind !== 'random' && !forceCat){ S.queue.push(kind); if(!offline) toast('🐾 ' + tr('A cat is waiting at the door! Buy a new spot in the Shop.'), 'gold'); }
+    return null;
+  }
+  let c = forceCat || null;
+  if(!c && kind === 'random' && Math.random() < CONFIG.RETURN_CHANCE){
+    const known = S.cats.filter(q => !q.here && !q.res && t - (q.left || 0) > 20 * 60000 && !BREEDS[q.b].paid && (!BREEDS[q.b].season || BREEDS[q.b].season === seasonNow()));
+    if(known.length) c = pick(known);
+  }
+  if(!c) c = newCat(chooseBreed(kind));
+  const where = pickSlot(c); if(!where) return null;
+  const stay = rnd(...CONFIG.STAY_HOURS) * 3600000;
+  c.here = {r: where.r, s: where.s, until: c.res ? 0 : t + stay};
+  if(!forceCat) c.m = {food: rnd(35, 75), fun: rnd(45, 85)};
+  c.visits++; S.stats.visits++;
+  const isNew = !S.book[c.b];
+  addToBook(c.b, offline);
+  if(!offline){
+    sfx('meow');
+    if(where.r === S.cur && curView === 'Cafe') actorEnter(c);
+    if(!isNew) toast('🐾 ' + (c.visits > 1 ? tr('{n} came back to visit!', {n: esc(c.n)}) : tr('{n} came in!', {n: esc(c.n)})), c.visits > 1 ? 'gold' : '');
+    renderCafeLight();
+  }
+  return c;
+}
+function leave(c, offline){
+  if(!c.here || c.res) return;
+  const r = c.here.r;
+  c.here = null; c.left = now();
+  if(sel === c.id) sel = null;
+  if(!offline){
+    if(r === S.cur && curView === 'Cafe') actorLeave(c);
+    toast('👋 ' + tr('{n} went home. See you soon!', {n: esc(c.n)}));
+    renderCafeLight();
+  }
+  // keep the save small: forget old visitors you never made friends with
+  if(S.cats.length > 90){
+    const drop = S.cats.filter(q => !q.here && !q.res && q.id !== S.avatar).sort((x, y) => (x.f - y.f) || (x.left - y.left)).slice(0, S.cats.length - 75);
+    const ids = new Set(drop.map(q => q.id)); S.cats = S.cats.filter(q => !ids.has(q.id));
+  }
+  // a waiting cat can come in now
+  if(S.queue.length) S.nextArrive = Math.min(S.nextArrive, now() + 4000);
+}
+const arriveGap = () => rnd(...CONFIG.ARRIVE_MIN) * 60000 * Math.pow(0.82, S.up.flap);
+
+/* first time a breed visits = a new page in the cat book */
+function addToBook(b, offline){
+  if(S.book[b]) return false;
+  S.book[b] = now();
+  if(S.tut === 0) return true;   // the starting cats
+  const B = BREEDS[b], gr = [3, 6, 12, 15, 0][B.r];
+  addG(gr); addXP(15 + B.r * 12);
+  queueModal(() => {
+    sfx('new');
+    showReward(catSVG(b, {size: 170}), '✨ ' + tr('New cat in your book!'),
+      '<b style="color:' + RARITY[B.r].c + '">' + L(B) + ' · ' + L(RARITY[B.r]) + '</b>' + (gr ? '<br>+' + gr + ' ' + GM : '') + '<br><span class="muted">' + tr('Make friends to adopt it!') + '</span>');
+  });
+  return true;
+}
+
+/* ---------- care ---------- */
+function addFriend(c, n){
+  const h0 = hearts(c);
+  c.f += n * (c.t === 'shy' ? 0.7 : 1);
+  if(hearts(c) > h0){
+    toast('💗 ' + esc(c.n) + ' ' + tr('likes you more!') + ' ' + '❤️'.repeat(hearts(c)), 'gold'); sfx('level');
+    if(!c.res && hearts(c) === CONFIG.ADOPT_HEARTS){ setTimeout(() => toast('🏠 ' + tr('{n} can be adopted now!', {n: esc(c.n)}), 'gold'), 900); }
+  }
+}
+/* returns true, false (cooldown) or 'hiss' (grumpy cat said no) */
+function petCat(c, silent){
+  const t = now();
+  if(t - (c.pet || 0) < CONFIG.PET_COOLDOWN_MS) return false;
+  c.pet = t;
+  if(c.t === 'grumpy' && hearts(c) < 3 && Math.random() < 0.35){ if(!silent) sfx('hiss'); return 'hiss'; }
+  c.m.fun = Math.min(100, c.m.fun + CONFIG.PET_FUN);
+  addFriend(c, CONFIG.PET_FRIEND);
+  const bonus = Math.max(1, Math.round(catRate(c) * CONFIG.PET_COINS_SEC));
+  addC(bonus); c.lastBonus = bonus;
+  S.stats.pets++; addXP(1);
+  if(!silent) sfx('purr');
+  tutEvent('pet');
+  return true;
+}
+function feedCat(c, k){
+  if(S.inv[k] < 1){ toast(FOODS[k].e + ' ' + tr('You have none. Buy some in the Shop.'), 'err'); sfx('err'); return false; }
+  const F = FOODS[k];
+  S.inv[k]--; c.m.food = Math.min(100, c.m.food + F.food); c.m.fun = Math.min(100, c.m.fun + F.fun);
+  addFriend(c, F.fr_ * (c.t === 'grumpy' ? 1.5 : 1));
+  if(c.here && !c.res) c.here.until += CONFIG.FEED_STAY_MIN * 60000;
+  S.stats.feeds++; addXP(2); sfx('eat');
+  tutEvent('feed'); saveNow();
+  return true;
+}
+function toyCat(c, k){
+  const T = TOYS[k], t = now();
+  if(t < (c.toyAt || 0)){ toast('⏳ ' + tr('Let it rest a moment'), 'err'); return false; }
+  c.toyAt = t + CONFIG.TOY_COOLDOWN_SEC * 1000;
+  const x2 = c.t === 'playful' ? 2 : 1;
+  c.m.fun = Math.min(100, c.m.fun + T.fun * x2);
+  addFriend(c, T.fr_ * x2); S.stats.toys++; addXP(2); sfx('boing'); saveNow();
+  return true;
+}
+function adoptCat(c){
+  if(!canAdopt(c)) return;
+  c.res = true; c.here.until = 0; S.stats.adopted++;
+  addG(5); addXP(30); sfx('new'); saveNow();
+  if(!S.avatar || !catById(S.avatar) || !catById(S.avatar).res) S.avatar = c.id;
+  showReward(catSVG(c.b, {size: 180, collar: true}), '🏠 ' + tr('{n} lives here now!', {n: esc(c.n)}),
+    tr('Resident cats stay forever and bring +50% coins.') + '<br>+5 ' + GM);
+  renderCafe();
+}
+
+/* ---------- costs ---------- */
+const spotCost = r => Math.round(150 * Math.pow(2.3, slotsOwned(r) - ROOM(r).start + tierOf(r) * 0.5) * roomMult(r));
+const menuCost = k => Math.round(MENU[k].p * Math.pow(1.75, S.menu[k] - (k === 'coffee' ? 1 : 0)));
+const menuOpen = k => S.lv >= MENU[k].lvl;
+const jarCost = () => Math.round(2000 * Math.pow(4, S.up.jar));
+const flapCost = () => Math.round(1000 * Math.pow(3, S.up.flap));
+const foodPrice = k => Math.round(FOODS[k].p * priceScale());
+const toyPrice = k => Math.round(TOYS[k].p * priceScale());
+const offlineCapH = () => CONFIG.OFFLINE_HOURS + CONFIG.OFFLINE_UP_HOURS * S.up.jar;
+function canOpenRoom(i){ return !S.open.includes(ROOMS[i].id) && S.open.length === i && S.lv >= ROOMS[i].lvl; }
+/* the cheapest coin upgrade (for the free upgrade ad) */
+function cheapestUpgrade(){
+  const opts = [];
+  S.open.forEach(r => { if(slotsOwned(r) < ROOM(r).slots.length) opts.push({cost: spotCost(r), n: SPOTS[ROOM(r).slots[slotsOwned(r)].k].e + ' ' + tr('New spot') + ' · ' + L(ROOM(r)), go: () => { S.rooms[r].spots++; S.nextArrive = Math.min(S.nextArrive, now() + 8000); }}); });
+  MENU_IDS.forEach(k => { if(menuOpen(k) && S.menu[k] < MENU_MAX) opts.push({cost: menuCost(k), n: MENU[k].e + ' ' + L(MENU[k]) + ' ' + tr('Lv') + ' ' + (S.menu[k] + 1), go: () => { S.menu[k]++; }}); });
+  opts.sort((a, b) => a.cost - b.cost);
+  return opts[0] || null;
+}
+
+/* =====================================================================
+   6. ART — every cat, customer and café thing is drawn in code (SVG).
+   No image files needed.
+===================================================================== */
+function shade(hex, amt){ // amt -1..1 (darker..lighter)
+  let c = hex.replace('#', ''); if(c.length === 3) c = c.split('').map(x => x + x).join('');
+  let r = parseInt(c.substr(0, 2), 16), g = parseInt(c.substr(2, 2), 16), b = parseInt(c.substr(4, 2), 16);
+  const f = v => Math.round(amt < 0 ? v * (1 + amt) : v + (255 - v) * amt);
+  return '#' + [f(r), f(g), f(b)].map(v => clamp(v, 0, 255).toString(16).padStart(2, '0')).join('');
+}
+let svgUid = 0;
+/* stable pseudo-random numbers, so patterns look the same every time */
+function seeded(n){ const out = []; let s = n * 9301 + 49297; for(let i=0;i<60;i++){ s = (s * 9301 + 49297) % 233280; out.push(s / 233280); } return out; }
+const E = (cx, cy, rx, ry, fill, extra) => '<ellipse cx="' + (+cx).toFixed(1) + '" cy="' + (+cy).toFixed(1) + '" rx="' + (+rx).toFixed(1) + '" ry="' + (+ry).toFixed(1) + '" fill="' + fill + '"' + (extra || '') + '/>';
+const P = (d, fill, extra) => '<path d="' + d + '" fill="' + fill + '"' + (extra || '') + '/>';
+const mirror = (pts, cx) => pts.map(([x, y]) => [2 * cx - x, y]);
+const poly = pts => 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' L') + ' Z';
+
+/* the cat. b = breed id. opt: sleep (curled up loaf), size (px), collar, halo */
+function catSVG(b, opt){
+  opt = opt || {};
+  const B = BREEDS[b] || BREEDS.tabby, u = 'ct' + (++svgUid), sl = !!opt.sleep;
+  const G = sl ? {hx:33, hy:61, hrx:20, hry:17, bx:57, by:73, brx:31, bry:14.5}
+               : {hx:50, hy:36, hrx:24, hry:20.5, bx:50, by:66, brx:21, bry:20};
+  const body = B.body, dark = shade(body, -0.16), line = B.hi ? '#e9dbe8' : '#6b4a3a';
+  const pts = B.pat === 'points', tux = B.pat === 'tux';
+  const pawC = tux ? '#fff' : pts ? B.pc : body, earC = pts ? B.pc : body;
+  const sz = opt.size ? ' width="' + opt.size + '" height="' + Math.round(opt.size * 0.9) + '"' : '';
+  const glowSt = opt.halo && B.glow ? ' style="filter:drop-shadow(0 0 6px ' + B.glow + ')"' : '';
+  let s = '<svg viewBox="0 0 100 90"' + sz + glowSt + ' xmlns="http://www.w3.org/2000/svg"><defs>';
+  // clip = the cat's fur (head + body), patterns are drawn inside it
+  s += '<clipPath id="' + u + 'c">' + E(G.hx, G.hy, G.hrx, G.hry, '#000') + E(G.bx, G.by, G.brx, G.bry, '#000') +
+    (sl ? '' : E(33, 77, 10.5, 9, '#000') + E(67, 77, 10.5, 9, '#000')) + '</clipPath>';
+  if(pts) s += '<radialGradient id="' + u + 'm"><stop offset="0" stop-color="' + B.pc + '" stop-opacity=".95"/><stop offset=".65" stop-color="' + B.pc + '" stop-opacity=".7"/><stop offset="1" stop-color="' + B.pc + '" stop-opacity="0"/></radialGradient>';
+  s += '</defs>';
+  // ears (behind the head)
+  const earL = sl ? [[17, 57], [18.5, 39], [30, 47]] : B.bigEars ? [[27, 31], [24, 2], [47, 18]] : [[29, 28], [30.5, 8], [46, 19.5]];
+  const earR = sl ? [[50, 56], [49, 39], [37, 46]] : mirror(earL, 50);
+  const inner = e => { const cx = (e[0][0] + e[1][0] + e[2][0]) / 3, cy = (e[0][1] + e[1][1] + e[2][1]) / 3; return e.map(([x, y]) => [cx + (x - cx) * 0.55, cy + (y - cy) * 0.55 + 1.2]); };
+  // tail
+  let tail;
+  if(sl){
+    tail = '<path d="M86 76 C96 90 62 93 40 87" stroke="' + body + '" stroke-width="9" fill="none" stroke-linecap="round"/>' +
+      (B.pat === 'stripes' ? '<path d="M78 87 l2 -6 M66 89 l1 -7 M54 89 l0 -7" stroke="' + B.pc + '" stroke-width="2.6" stroke-linecap="round"/>' : '') +
+      (pts ? '<path d="M50 89 C46 88 42 88 40 87" stroke="' + B.pc + '" stroke-width="9" fill="none" stroke-linecap="round"/>' : '');
+  } else {
+    const td = 'M64 81 C82 86 93 73 88 58 C86 51 79 51 80 57 C83 67 78 75 63 73 Z';
+    tail = '<g class="tl">' + P(td, body) +
+      (B.pat === 'stripes' ? '<path d="M85 66 l6 2 M82 74 l5 4 M74 79 l2 5" stroke="' + B.pc + '" stroke-width="2.8" stroke-linecap="round"/>' : '') +
+      (pts || B.pat === 'calico' ? '<path d="M80 57 C79 52 86 51 88 58 C89 63 88 66 87 68 C84 66 82 62 80 57Z" fill="' + (pts ? B.pc : B.pc2) + '"/>' : '') +
+      (B.fluffy ? '<path d="M66 79 C82 88 96 72 88 54" stroke="' + body + '" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="2 3"/>' : '') + '</g>';
+  }
+  if(!opt.noTail) s += tail;
+  [earL, earR].forEach(e => { s += P(poly(e), earC, ' stroke="' + earC + '" stroke-width="3" stroke-linejoin="round"') + P(poly(inner(e)), B.ear); });
+  if(B.tufts && !sl) s += '<path d="M30.5 8 l-2 -6 M30.5 8 l2 -6 M69.5 8 l-2 -6 M69.5 8 l2 -6" stroke="' + dark + '" stroke-width="1.6" stroke-linecap="round"/>';
+  // body
+  if(!sl){
+    s += E(33, 77, 10.5, 9, body) + E(67, 77, 10.5, 9, body);
+  }
+  s += E(G.bx, G.by, G.brx, G.bry, body);
+  if(sl) s += E(48, 85, 7, 3.6, pawC);
+  // head (fluffy cheeks first)
+  if(B.fluffy){
+    for(let i=0;i<9;i++){ const a = 0.15 + i * (Math.PI - 0.3) / 8; s += E(G.hx + Math.cos(a) * G.hrx * 0.98, G.hy + Math.sin(a) * G.hry * 0.92 + 1, 5.2, 4.6, body); }
+  }
+  s += E(G.hx, G.hy, G.hrx, G.hry, body);
+  // pattern (clipped to the fur)
+  s += '<g clip-path="url(#' + u + 'c)">' + patternSVG(B, b, G, sl, u) + '</g>';
+  // chest / bib
+  if(!sl){
+    s += E(G.bx, G.by + 1, G.brx * (tux ? 0.62 : 0.52), G.bry * (tux ? 0.78 : 0.66), B.belly);
+    if(B.fluffy) for(let i=0;i<5;i++) s += E(G.bx - 8 + i * 4, G.by - G.bry * 0.62 + (i % 2) * 2, 3.6, 3.6, B.belly);
+    // front paws
+    s += E(43, 85, 6.2, 3.8, pawC) + E(57, 85, 6.2, 3.8, pawC);
+    s += '<path d="M41 86 v-2 M45 86 v-2 M55 86 v-2 M59 86 v-2" stroke="' + shade(pawC, -0.2) + '" stroke-width=".9" stroke-linecap="round"/>';
+  }
+  // face
+  s += faceSVG(B, G, sl || opt.closed, line);
+  // little things they wear
+  s += accSVG(B.acc, G, sl, body);
+  if(opt.collar){
+    const cy = sl ? G.hy + G.hry * 0.86 : G.hy + G.hry * 0.93;
+    s += '<path d="M' + (G.hx - G.hrx * 0.62) + ' ' + (cy - 1.5) + ' Q' + G.hx + ' ' + (cy + 4) + ' ' + (G.hx + G.hrx * 0.62) + ' ' + (cy - 1.5) + '" stroke="#e8455a" stroke-width="3.4" fill="none" stroke-linecap="round"/>' +
+      '<circle cx="' + G.hx + '" cy="' + (cy + 3.6) + '" r="2.8" fill="#ffd34d" stroke="#d99a12" stroke-width=".8"/>';
+  }
+  return s + '</svg>';
+}
+function faceSVG(B, G, closed, line){
+  const ex = B.flat ? 8.5 : 9, ey = G.hy + (B.flat ? 2 : 1), er = B.flat ? 5 : 4.4;
+  let s = '';
+  // muzzle
+  const ny = G.hy + G.hry * (B.flat ? 0.3 : 0.38);
+  s += E(G.hx - 4.2, ny + 2.5, 5.6, 4.2, B.belly, ' opacity=".85"') + E(G.hx + 4.2, ny + 2.5, 5.6, 4.2, B.belly, ' opacity=".85"');
+  if(B.pat === 'sphynx') s += '<path d="M' + (G.hx - 7) + ' ' + (G.hy - 11) + ' q7 -3 14 0 M' + (G.hx - 5) + ' ' + (G.hy - 8) + ' q5 -2 10 0" stroke="' + shade(B.body, -0.18) + '" stroke-width="1.1" fill="none" stroke-linecap="round"/>';
+  if(closed){
+    [-1, 1].forEach(d => s += '<path d="M' + (G.hx + d * ex - 4) + ' ' + ey + ' Q' + (G.hx + d * ex) + ' ' + (ey + 3.6) + ' ' + (G.hx + d * ex + 4) + ' ' + ey + '" stroke="' + line + '" stroke-width="1.7" fill="none" stroke-linecap="round"/>');
+  } else {
+    [-1, 1].forEach(d => {
+      const x = G.hx + d * ex;
+      s += E(x, ey, er, er * 1.15, B.eye) + E(x, ey + 0.3, er * 0.42, er * 0.86, '#1d1720') + E(x + er * 0.32, ey - er * 0.42, er * 0.32, er * 0.32, '#fff') + E(x - er * 0.3, ey + er * 0.5, er * 0.16, er * 0.16, '#fff', ' opacity=".8"');
+      if(B.hi) s += E(x, ey, er + 0.6, er * 1.15 + 0.6, 'none', ' stroke="#00000033" stroke-width=".6"');
+    });
+  }
+  s += P('M' + (G.hx - 2.7) + ' ' + ny + ' L' + (G.hx + 2.7) + ' ' + ny + ' L' + G.hx + ' ' + (ny + 2.7) + ' Z', '#ff8fa3', ' stroke="#ff8fa3" stroke-width="1" stroke-linejoin="round"');
+  s += '<path d="M' + G.hx + ' ' + (ny + 2.7) + ' q-1.8 3.2 -4.6 1.3 M' + G.hx + ' ' + (ny + 2.7) + ' q1.8 3.2 4.6 1.3" stroke="' + line + '" stroke-width="1.2" fill="none" stroke-linecap="round"/>';
+  s += E(G.hx - 13.5, G.hy + 7, 3.8, 2.1, '#ff8fa3', ' opacity=".38"') + E(G.hx + 13.5, G.hy + 7, 3.8, 2.1, '#ff8fa3', ' opacity=".38"');
+  const wc = B.hi ? '#ffffffa0' : '#8a6a5a70';
+  let w = '';
+  [-1, 1].forEach(d => { [[-2, 0], [1.5, 0.4], [5, 1]].forEach(([dy, k]) => { w += 'M' + (G.hx + d * 8) + ' ' + (ny + 2) + ' L' + (G.hx + d * 24) + ' ' + (ny + dy - k) + ' '; }); });
+  s += '<path d="' + w + '" stroke="' + wc + '" stroke-width=".8" fill="none" stroke-linecap="round"/>';
+  return s;
+}
+/* fur patterns: stripes, tux, calico, points, tortie */
+function patternSVG(B, b, G, sl, u){
+  const R = seeded(b.length * 13 + b.charCodeAt(0)), pc = B.pc || '#000', pc2 = B.pc2 || '#000';
+  let s = '';
+  if(B.pat === 'stripes'){
+    const t = G.hy - G.hry;
+    s += '<path d="M' + G.hx + ' ' + (t + 1) + ' l0 8 M' + (G.hx - 6) + ' ' + (t + 2) + ' l2 7 M' + (G.hx + 6) + ' ' + (t + 2) + ' l-2 7" stroke="' + pc + '" stroke-width="2.6" stroke-linecap="round"/>';
+    s += '<path d="M' + (G.hx - G.hrx) + ' ' + (G.hy + 2) + ' l7 -1 M' + (G.hx - G.hrx) + ' ' + (G.hy + 7) + ' l6 0 M' + (G.hx + G.hrx) + ' ' + (G.hy + 2) + ' l-7 -1 M' + (G.hx + G.hrx) + ' ' + (G.hy + 7) + ' l-6 0" stroke="' + pc + '" stroke-width="2.2" stroke-linecap="round"/>';
+    if(sl){ for(let i=0;i<4;i++){ const x = G.bx - 10 + i * 10; s += '<path d="M' + x + ' ' + (G.by - G.bry) + ' q3 8 0 14" stroke="' + pc + '" stroke-width="3" fill="none" stroke-linecap="round"/>'; } }
+    else { for(let i=0;i<3;i++){ const y = G.by - 8 + i * 9; s += '<path d="M' + (G.bx - G.brx - 2) + ' ' + y + ' q7 3 10 -1 M' + (G.bx + G.brx + 2) + ' ' + y + ' q-7 3 -10 -1" stroke="' + pc + '" stroke-width="2.8" fill="none" stroke-linecap="round"/>'; }
+      s += '<path d="M24 74 q5 2 8 0 M76 74 q-5 2 -8 0" stroke="' + pc + '" stroke-width="2.6" fill="none" stroke-linecap="round"/>'; }
+  }
+  if(B.pat === 'tux'){
+    s += E(G.hx, G.hy + G.hry * 0.62, G.hrx * 0.42, G.hry * 0.42, '#fff');
+    s += '<path d="M' + G.hx + ' ' + (G.hy - G.hry * 0.1) + ' L' + (G.hx - 5) + ' ' + (G.hy + G.hry * 0.4) + ' L' + (G.hx + 5) + ' ' + (G.hy + G.hry * 0.4) + 'Z" fill="#fff"/>';
+  }
+  if(B.pat === 'calico'){
+    s += E(G.hx - G.hrx * 0.55, G.hy - G.hry * 0.45, G.hrx * 0.55, G.hry * 0.55, pc) + E(G.hx + G.hrx * 0.62, G.hy - G.hry * 0.55, G.hrx * 0.45, G.hry * 0.48, pc2);
+    s += E(G.bx + G.brx * 0.55, G.by - G.bry * 0.1, G.brx * 0.6, G.bry * 0.55, pc) + E(G.bx - G.brx * 0.7, G.by + G.bry * 0.3, G.brx * 0.45, G.bry * 0.45, pc2);
+    if(!sl) s += E(30, 78, 8, 6, pc) + E(70, 80, 6, 5, pc2);
+  }
+  if(B.pat === 'points'){
+    s += '<ellipse cx="' + G.hx + '" cy="' + (G.hy + G.hry * 0.32) + '" rx="' + (G.hrx * 0.62) + '" ry="' + (G.hry * 0.62) + '" fill="url(#' + u + 'm)"/>';
+    if(!sl) s += E(30, 82, 9, 5, pc, ' opacity=".55"') + E(70, 82, 9, 5, pc, ' opacity=".55"');
+  }
+  if(B.pat === 'tortie'){
+    for(let i=0;i<16;i++){ const onHead = i < 6;
+      const cx = onHead ? G.hx - G.hrx + R[i] * G.hrx * 2 : G.bx - G.brx + R[i] * G.brx * 2, cy = onHead ? G.hy - G.hry + R[i + 20] * G.hry * 1.6 : G.by - G.bry + R[i + 20] * G.bry * 2;
+      s += E(cx, cy, 3 + R[i + 40] * 4, 2.5 + R[(i + 7) % 60] * 3, i % 3 ? pc : pc2, ' opacity=".85"'); }
+  }
+  return s;
+}
+/* accessories for seasonal / special cats */
+function accSVG(acc, G, sl, body){
+  if(!acc) return '';
+  const top = G.hy - G.hry;
+  if(acc === 'crown'){
+    let s = '';
+    for(let i=0;i<5;i++){ const a = Math.PI * (1.18 + i * 0.16), x = G.hx + Math.cos(a) * G.hrx * 0.9, y = G.hy + Math.sin(a) * G.hry * 0.92;
+      for(let k=0;k<5;k++){ const q = k * 1.2566; s += E(x + Math.cos(q) * 2, y + Math.sin(q) * 2, 1.8, 1.8, i % 2 ? '#ff8fbd' : '#c9a6ff'); }
+      s += E(x, y, 1.2, 1.2, '#ffe27a'); }
+    return s;
+  }
+  if(acc === 'sunflower'){
+    const x = G.hx - G.hrx * 0.55, y = top + 4; let s = '';
+    for(let k=0;k<8;k++){ const q = k * 0.785; s += E(x + Math.cos(q) * 3.4, y + Math.sin(q) * 3.4, 2.4, 1.3, '#ffcf2e', ' transform="rotate(' + (q * 57.3) + ' ' + (x + Math.cos(q) * 3.4) + ' ' + (y + Math.sin(q) * 3.4) + ')"'); }
+    return s + E(x, y, 2.3, 2.3, '#8a5a2a');
+  }
+  if(acc === 'pumpkin'){
+    const x = G.hx + (sl ? 0 : 0), y = top + 2.5;
+    return E(x - 4, y, 4.2, 4, '#ff9a3c') + E(x + 4, y, 4.2, 4, '#ff9a3c') + E(x, y, 4.6, 4.4, '#ffad4f') + '<path d="M' + x + ' ' + (y - 4) + ' q1 -3 3 -3.5" stroke="#4f9a4a" stroke-width="1.8" fill="none" stroke-linecap="round"/>' + E(x + 3.5, y - 6, 2.2, 1.1, '#6cc06a');
+  }
+  if(acc === 'scarf'){
+    const y = sl ? G.hy + G.hry * 0.8 : G.hy + G.hry * 0.92;
+    return '<path d="M' + (G.hx - G.hrx * 0.68) + ' ' + (y - 2) + ' Q' + G.hx + ' ' + (y + 5) + ' ' + (G.hx + G.hrx * 0.68) + ' ' + (y - 2) + '" stroke="#5b8ff0" stroke-width="5.5" fill="none" stroke-linecap="round"/>' +
+      '<path d="M' + (G.hx + 7) + ' ' + (y + 1) + ' l3 11 l5 -1 l-2 -10z" fill="#4a7de0"/><path d="M' + (G.hx - 9) + ' ' + (y - 0.5) + ' l3 3 M' + (G.hx - 3) + ' ' + (y + 1.5) + ' l3 2 M' + (G.hx + 3) + ' ' + (y + 1.5) + ' l3 1" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>';
+  }
+  if(acc === 'moon'){
+    const x = G.hx, y = G.hy - G.hry * 0.5;
+    return '<path d="M' + (x + 2) + ' ' + (y - 5) + ' A5 5 0 1 0 ' + (x + 2) + ' ' + (y + 5) + ' A3.8 3.8 0 1 1 ' + (x + 2) + ' ' + (y - 5) + 'Z" fill="#ffe27a"/>' +
+      '<circle cx="' + (G.hx - 12) + '" cy="' + (G.hy - 6) + '" r=".9" fill="#fff"/><circle cx="' + (G.hx + 14) + '" cy="' + (G.hy - 9) + '" r=".7" fill="#fff"/>' + (sl ? '' : '<circle cx="40" cy="70" r=".9" fill="#fff"/><circle cx="62" cy="76" r=".8" fill="#fff"/><circle cx="34" cy="62" r=".7" fill="#fff"/>');
+  }
+  if(acc === 'star'){
+    const x = G.hx, y = G.hy - G.hry * 0.48, r = 5;
+    let d = ''; for(let i=0;i<10;i++){ const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r * 0.45 : r; d += (i ? 'L' : 'M') + (x + Math.cos(a) * q).toFixed(1) + ' ' + (y + Math.sin(a) * q).toFixed(1); }
+    return P(d + 'Z', '#ffc93a') + (sl ? '' : '<path d="M38 66 l1 2.5 2.5 1 -2.5 1 -1 2.5 -1 -2.5 -2.5 -1 2.5 -1z M63 74 l.8 2 2 .8 -2 .8 -.8 2 -.8 -2 -2 -.8 2 -.8z" fill="#ffd54a"/>');
+  }
+  if(acc === 'apron' && !sl){
+    return '<path d="M37 60 Q50 57 63 60 L61 84 Q50 87 39 84Z" fill="#fff" opacity=".95"/><rect x="45" y="69" width="10" height="7" rx="2" fill="#ffb3c6"/><path d="M37 60 L33 50 M63 60 L67 50" stroke="#fff" stroke-width="2"/>';
+  }
+  return '';
+}
+
+/* a customer at a table. seed picks hair, skin and shirt */
+const SKIN = ['#ffdcc2', '#f3c19c', '#d99b6f', '#a8714a', '#7a4e32', '#ffe7d6'];
+const HAIR = ['#3a2a22', '#7a4a2a', '#e8b860', '#c0502a', '#2a2a36', '#d9d0c8', '#ff8fb0', '#6a8fd8'];
+const SHIRT = ['#ff9fb5', '#8fc8ff', '#a8e0b8', '#ffd36a', '#c3a8ff', '#ffb38a', '#f7f7f7'];
+function personSVG(seed, face){
+  const R = seeded(seed + 3), sk = SKIN[Math.floor(R[1] * SKIN.length)], hr = HAIR[Math.floor(R[2] * HAIR.length)], sh = SHIRT[Math.floor(R[3] * SHIRT.length)];
+  const style = Math.floor(R[4] * 4), f = face || 1;
+  let s = '<g transform="translate(20 0) scale(' + f + ' 1) translate(-20 0)">';
+  s += P('M7 60 C7 44 12 38 20 38 C28 38 33 44 33 60Z', sh);
+  if(style === 2) s += P('M8 22 C6 34 10 42 14 44 L26 44 C30 42 34 34 32 22Z', hr);   // long hair
+  s += E(20, 22, 11, 11.5, sk);
+  if(style === 0) s += P('M9 21 C9 10 31 10 31 21 C27 16 16 15 9 21Z', hr);
+  if(style === 1) s += P('M9 22 C8 9 32 9 31 22 C28 18 25 14 20 15 C15 14 12 18 9 22Z', hr) + E(20, 9, 5, 4.5, hr);   // bun
+  if(style === 2) s += P('M9 22 C9 9 31 9 31 22 C26 17 14 17 9 22Z', hr);
+  if(style === 3) s += P('M9 20 C10 8 30 8 31 20 L31 15 C27 12 13 12 9 15Z', hr) + P('M8 19 Q20 13 32 19 L33 17 Q20 9 7 17Z', '#ff8fab');   // cap
+  s += E(24, 22, 1.4, 1.8, '#3a2a30') + E(16, 22, 1.4, 1.8, '#3a2a30');
+  s += '<path d="M17.5 27 q2.5 2.4 5 0" stroke="#a0524a" stroke-width="1.2" fill="none" stroke-linecap="round"/>' + E(13.5, 26, 2, 1.2, '#ff8fa3', ' opacity=".4"') + E(26.5, 26, 2, 1.2, '#ff8fa3', ' opacity=".4"');
+  return s + '</g>';
+}
+/* a café table with its customers (0, 1 or 2) */
+function tableSVG(n, seed, th, outdoor){
+  const top = outdoor ? '#ffffff' : shade(th.trim, 0.15), leg = outdoor ? '#7a8a96' : shade(th.trim, -0.2);
+  let s = '<svg viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">';
+  const chair = x => '<rect x="' + (x - 13) + '" y="38" width="26" height="40" rx="8" fill="' + shade(th.acc, 0.25) + '"/><rect x="' + (x - 11) + '" y="76" width="4" height="14" fill="' + leg + '"/><rect x="' + (x + 7) + '" y="76" width="4" height="14" fill="' + leg + '"/>';
+  s += chair(22) + chair(98);
+  if(n >= 1) s += '<g transform="translate(2 12)">' + personSVG(seed, 1) + '</g>';
+  if(n >= 2) s += '<g transform="translate(78 12)">' + personSVG(seed + 7, -1) + '</g>';
+  // cups (they sip)
+  if(n >= 1) s += '<g class="cup"><rect x="34" y="55" width="11" height="10" rx="3" fill="#fff"/><path d="M45 58 q4 0 4 3 q0 3 -4 3" stroke="#fff" stroke-width="2" fill="none"/><rect x="35" y="56" width="9" height="3" rx="1.5" fill="#b07c55"/></g>';
+  if(n >= 2) s += '<g class="cup" style="animation-delay:1.4s"><rect x="76" y="55" width="11" height="10" rx="3" fill="#ffe1ea"/><path d="M76 58 q-4 0 -4 3 q0 3 4 3" stroke="#ffe1ea" stroke-width="2" fill="none"/></g>';
+  s += '<path d="M58 66 L54 90 M62 66 L66 90" stroke="' + leg + '" stroke-width="4" stroke-linecap="round"/>';
+  s += E(60, 66, 34, 7, shade(top, -0.12)) + E(60, 64, 34, 7, top);
+  if(n >= 1) s += E(60, 61, 6, 3.2, '#fff') + '<path d="M56 59 q4 -6 8 0" fill="#ffb3c6"/>';   // a little cake
+  return s + '</svg>';
+}
+
+/* ---------- café furniture ---------- */
+function windowSVG(th, night, outdoor){
+  if(outdoor) return shedSVG(night);
+  if(S && S.theme === 'starry') night = true;
+  const sky1 = night ? '#2a2f6a' : '#bfe6ff', sky2 = night ? '#4b4f96' : '#e8f7ff', fr = outdoor ? '#8fbf7a' : '#fffaf2', cur = th.acc;
+  let s = '<svg viewBox="0 0 120 110" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ws' + (++svgUid) + '" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="' + sky1 + '"/><stop offset="1" stop-color="' + sky2 + '"/></linearGradient></defs>';
+  s += '<rect x="14" y="6" width="92" height="88" rx="40" ry="40" fill="' + fr + '"/><rect x="20" y="12" width="80" height="82" rx="35" fill="url(#ws' + svgUid + ')"/>';
+  if(night) s += '<circle cx="80" cy="34" r="8" fill="#fff5c4"/><circle cx="84" cy="31" r="7" fill="' + sky1 + '"/><circle cx="40" cy="30" r="1.3" fill="#fff"/><circle cx="56" cy="22" r="1" fill="#fff"/><circle cx="66" cy="48" r="1.2" fill="#fff"/>';
+  else s += '<circle cx="82" cy="30" r="9" fill="#fff3a0"/><path d="M28 60 q10 -10 22 -2 q8 -8 18 0 q10 -4 14 6Z" fill="#fff"/>';
+  if(S && S.theme === 'winter' && !outdoor) s += '<path d="M20 80 Q60 70 100 80 L100 94 L20 94Z" fill="#fff"/>';
+  s += '<path d="M60 12 V94 M20 52 H100" stroke="' + fr + '" stroke-width="4"/>';
+  // curtains
+  s += '<path d="M8 2 Q24 2 30 2 Q26 40 34 84 Q20 88 8 86Z" fill="' + cur + '" opacity=".95"/><path d="M112 2 Q96 2 90 2 Q94 40 86 84 Q100 88 112 86Z" fill="' + cur + '" opacity=".95"/>';
+  s += '<rect x="2" y="0" width="116" height="6" rx="3" fill="' + th.trim + '"/>';
+  // sill (the cat sits here)
+  s += '<rect x="6" y="94" width="108" height="10" rx="4" fill="' + shade(th.trim, 0.1) + '"/><rect x="10" y="103" width="100" height="5" rx="2.5" fill="' + shade(th.trim, -0.15) + '"/>';
+  return s + '</svg>';
+}
+function shelfSVG(th, k){
+  const w = shade(th.trim, 0.05);
+  return '<svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg"><path d="M14 10 L14 34 L30 10Z M86 10 L86 34 L70 10Z" fill="' + shade(w, -0.2) + '"/>' +
+    '<rect x="2" y="2" width="96" height="9" rx="3" fill="' + w + '"/><rect x="2" y="9" width="96" height="3" rx="1.5" fill="' + shade(w, -0.25) + '"/>' +
+    (k % 2 ? '<rect x="80" y="-14" width="5" height="16" rx="1" fill="#8fc8ff"/><rect x="86" y="-11" width="5" height="13" rx="1" fill="#ffb3c6"/><rect x="91" y="-13" width="4" height="15" rx="1" fill="#ffd36a"/>'
+           : '<path d="M6 2 L8 -8 L18 -8 L20 2Z" fill="#d9825a"/><path d="M13 -8 C6 -20 2 -16 4 -22 C10 -18 12 -14 13 -8 C14 -18 20 -24 24 -22 C20 -18 16 -14 13 -8" fill="#5fbf7a"/>') + '</svg>';
+}
+function cushionSVG(th, k){
+  const c = k % 2 ? '#ffb3c6' : shade(th.acc, 0.1);
+  return '<svg viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg">' + E(50, 30, 46, 10, '#00000018') + E(50, 24, 46, 14, shade(c, -0.12)) + E(50, 20, 44, 12, c) +
+    '<circle cx="30" cy="20" r="1.8" fill="' + shade(c, -0.25) + '"/><circle cx="50" cy="17" r="1.8" fill="' + shade(c, -0.25) + '"/><circle cx="70" cy="20" r="1.8" fill="' + shade(c, -0.25) + '"/></svg>';
+}
+function boxBackSVG(){
+  return '<svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg"><path d="M6 20 L94 20 L90 60 L10 60Z" fill="#b8844e"/><path d="M6 20 L-6 6 L40 4 L48 20Z" fill="#d9a46a"/><path d="M94 20 L106 6 L60 4 L52 20Z" fill="#cf9a60"/></svg>';
+}
+function boxFrontSVG(){
+  return '<svg viewBox="0 0 100 46" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6 L96 6 L92 46 L8 46Z" fill="#d9a46a"/><path d="M4 6 L96 6 L95 12 L5 12Z" fill="#c48f56"/><path d="M38 22 h24" stroke="#b07a44" stroke-width="3" stroke-linecap="round"/><path d="M10 40 h20" stroke="#e8bc84" stroke-width="2" stroke-linecap="round" opacity=".7"/></svg>';
+}
+function sunPatchSVG(){
+  return '<svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="sp' + (++svgUid) + '"><stop offset="0" stop-color="#fff3a0" stop-opacity=".95"/><stop offset="1" stop-color="#fff3a0" stop-opacity="0"/></radialGradient></defs>' + E(50, 16, 50, 14, 'url(#sp' + svgUid + ')') + '</svg>';
+}
+function counterSVG(th){
+  const w = th.trim, top = shade(w, 0.35);
+  return '<svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect x="62" y="6" width="34" height="38" rx="5" fill="#c9ced8"/><rect x="66" y="10" width="26" height="10" rx="3" fill="#8f96a6"/><rect x="74" y="26" width="10" height="8" fill="#5a6070"/><rect x="70" y="36" width="14" height="8" rx="2" fill="#fff"/>' +
+    '<path d="M14 44 Q14 18 32 18 Q50 18 50 44Z" fill="#ffffffaa" stroke="#ffffff" stroke-width="2"/><rect x="20" y="34" width="24" height="10" rx="3" fill="#ffb3c6"/><rect x="20" y="31" width="24" height="4" rx="2" fill="#fff"/><circle cx="32" cy="29" r="2.5" fill="#e8455a"/>' +
+    '<rect x="2" y="44" width="116" height="10" rx="4" fill="' + top + '"/><rect x="6" y="54" width="108" height="46" rx="4" fill="' + w + '"/>' +
+    '<rect x="14" y="60" width="40" height="32" rx="4" fill="' + shade(w, -0.12) + '"/><rect x="66" y="60" width="40" height="32" rx="4" fill="' + shade(w, -0.12) + '"/>' +
+    '<path d="M34 70 c-4 -4 -9 1 -5 5 l5 5 5 -5 c4 -4 -1 -9 -5 -5z" fill="' + th.acc + '"/></svg>';
+}
+function itemSVG(k){
+  if(k === 'fishplush') return '<svg viewBox="0 0 70 40" xmlns="http://www.w3.org/2000/svg"><path d="M8 20 C18 4 46 4 56 20 C46 36 18 36 8 20Z" fill="#7fc8ff"/><path d="M54 20 L68 8 L66 20 L68 32Z" fill="#5fb2f0"/><circle cx="20" cy="18" r="3" fill="#30506a"/><path d="M28 12 q4 8 0 16 M36 11 q4 9 0 18" stroke="#fff" stroke-width="2" fill="none" opacity=".7"/></svg>';
+  if(k === 'heatedbed') return '<svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">' + E(50, 34, 46, 14, '#c9605a') + E(50, 30, 38, 10, '#ffb38a') + '<path d="M30 16 q4 -6 0 -12 M50 14 q4 -6 0 -12 M70 16 q4 -6 0 -12" stroke="#ff8a5a" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".8"/></svg>';
+  if(k === 'cattree') return '<svg viewBox="0 0 80 160" xmlns="http://www.w3.org/2000/svg"><rect x="34" y="20" width="12" height="136" fill="#e8d2a8"/><path d="M34 40 h12 M34 52 h12 M34 64 h12 M34 100 h12 M34 112 h12 M34 124 h12" stroke="#c9b080" stroke-width="2"/>' +
+    '<rect x="6" y="12" width="56" height="12" rx="6" fill="#b98157"/><rect x="18" y="80" width="56" height="12" rx="6" fill="#b98157"/><rect x="2" y="148" width="76" height="12" rx="6" fill="#9a6a44"/>' + E(30, 8, 22, 7, '#ffb3c6') + '<circle cx="58" cy="30" r="5" fill="#ffd34d"/><path d="M58 24 v-4" stroke="#999" stroke-width="1.5"/></svg>';
+  return '';
+}
+function lampSVG(night){
+  return '<svg viewBox="0 0 40 70" xmlns="http://www.w3.org/2000/svg"><path d="M20 0 V30" stroke="#6b4a3a" stroke-width="1.5"/>' + (night ? E(20, 52, 18, 14, '#fff2b0', ' opacity=".35"') : '') +
+    '<path d="M6 46 Q6 30 20 30 Q34 30 34 46Z" fill="#ffb3c6"/>' + E(20, 47, 6, 3, night ? '#fff6c4' : '#fff') + '</svg>';
+}
+function signSVG(){
+  return '<svg viewBox="0 0 160 40" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="152" height="32" rx="16" fill="#fff" stroke="#ffb3c6" stroke-width="3"/>' +
+    '<text x="80" y="27" text-anchor="middle" font-family="Nunito,Trebuchet MS,sans-serif" font-weight="900" font-size="19" fill="#ff7fa0">Kitty Café</text>' +
+    '<path d="M18 13 l3 5 l3 -5 v10 h-6z M136 13 l3 5 l3 -5 v10 h-6z" fill="#c58a57"/></svg>';
+}
+function boardSVG(){
+  let s = '<svg viewBox="0 0 70 60" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="66" height="50" rx="5" fill="#3d4a44" stroke="#b98157" stroke-width="4"/><path d="M20 52 L14 60 M50 52 L56 60" stroke="#b98157" stroke-width="3"/>';
+  s += '<text x="35" y="16" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="900" font-size="9" fill="#fff">MENU</text>';
+  let y = 28; MENU_IDS.forEach(k => { if(S && S.menu[k] > 0){ s += '<text x="10" y="' + y + '" font-size="9">' + MENU[k].e + '</text><text x="24" y="' + y + '" font-family="Nunito,sans-serif" font-weight="800" font-size="7" fill="#fffde0">Lv ' + S.menu[k] + '</text>'; y += 10; } });
+  return s + '</svg>';
+}
+function plantSVG(big){
+  return '<svg viewBox="0 0 60 90" xmlns="http://www.w3.org/2000/svg"><path d="M14 66 L18 90 L42 90 L46 66Z" fill="#e8916a"/><rect x="12" y="62" width="36" height="7" rx="3" fill="#d97a52"/>' +
+    '<path d="M30 64 C10 50 2 30 6 14 C18 26 26 42 30 64 C30 40 36 18 48 6 C54 26 44 48 30 64 C40 50 54 44 58 46 C54 58 42 62 30 64" fill="' + (big ? '#3e9f62' : '#5fbf7a') + '"/></svg>';
+}
+function fenceSVG(){
+  let s = '<svg viewBox="0 0 200 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="12" width="200" height="5" fill="#fff6ea"/><rect x="0" y="28" width="200" height="5" fill="#fff6ea"/>';
+  for(let i=0;i<20;i++) s += '<path d="M' + (i * 10 + 2) + ' 40 V6 L' + (i * 10 + 5) + ' 2 L' + (i * 10 + 8) + ' 6 V40Z" fill="#fffaf2" stroke="#e8d6c4" stroke-width=".5"/>';
+  return s + '</svg>';
+}
+function shedSVG(night){
+  const sky1 = night ? '#2a2f6a' : '#bfe6ff';
+  let s = '<svg viewBox="0 0 120 110" xmlns="http://www.w3.org/2000/svg">';
+  s += '<path d="M2 30 L60 0 L118 30Z" fill="#e8916a"/><path d="M2 30 L60 0 L118 30" stroke="#c96f4a" stroke-width="4" fill="none" stroke-linejoin="round"/>';
+  s += '<rect x="10" y="28" width="100" height="70" fill="#b98157"/>';
+  for(let i=0;i<7;i++) s += '<rect x="' + (12 + i * 14) + '" y="28" width="1.5" height="70" fill="#9a6a44"/>';
+  s += '<rect x="30" y="38" width="60" height="46" rx="6" fill="#fffaf2"/><rect x="34" y="42" width="52" height="40" rx="4" fill="' + sky1 + '"/><path d="M60 42 V82 M34 62 H86" stroke="#fffaf2" stroke-width="3"/>';
+  if(night) s += '<circle cx="74" cy="52" r="5" fill="#fff5c4"/>'; else s += '<path d="M38 80 q6 -10 14 -2 q6 -6 12 0 q8 -4 10 2Z" fill="#9fd88a"/>';
+  s += '<rect x="4" y="94" width="112" height="12" rx="4" fill="#9a6a44"/>';
+  [14, 30, 46, 74, 90, 106].forEach((x, i) => s += '<circle cx="' + x + '" cy="93" r="4" fill="' + ['#ff8fb0', '#ffd34d', '#c3a8ff'][i % 3] + '"/><circle cx="' + x + '" cy="93" r="1.5" fill="#fff6c4"/>');
+  return s + '</svg>';
+}
+/* a customer standing at the counter, ordering */
+function standSVG(seed){
+  const R = seeded(seed + 3), sh = SHIRT[Math.floor(R[3] * SHIRT.length)];
+  return '<svg viewBox="0 0 40 80" xmlns="http://www.w3.org/2000/svg"><rect x="11" y="56" width="7" height="22" rx="3" fill="#5a6a8a"/><rect x="22" y="56" width="7" height="22" rx="3" fill="#5a6a8a"/>' +
+    E(14, 78, 5, 2.4, '#3a2a30') + E(26, 78, 5, 2.4, '#3a2a30') + '<g>' + personSVG(seed, -1) + '</g>' + '<rect x="7" y="44" width="26" height="16" rx="5" fill="' + sh + '"/></svg>';
+}
+
+/* =====================================================================
+   7. SOUND — purrs, meows and soft café music (WebAudio, no files)
+===================================================================== */
+let AC = null, musGain = null, sfxGain = null, musTimer = null, musRoom = null, musStep = 0, noiseBuf = null;
+function audio(){
+  if(AC) return AC;
+  try{
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    sfxGain = AC.createGain(); sfxGain.gain.value = 0.5; sfxGain.connect(AC.destination);
+    const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600; lp.connect(AC.destination);
+    musGain = AC.createGain(); musGain.gain.value = 0.15; musGain.connect(lp);
+    noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+    const d = noiseBuf.getChannelData(0); for(let i=0;i<d.length;i++) d[i] = Math.random() * 2 - 1;
+  }catch(e){ AC = null; }
+  return AC;
+}
+function tone(f, dur, type, vol, when, dest, slide){
+  const A = audio(); if(!A) return;
+  const t = (when || A.currentTime);
+  const o = A.createOscillator(), g = A.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(f, t);
+  if(slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.3, t + 0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(dest || sfxGain); o.start(t); o.stop(t + dur + 0.05);
+}
+/* a soft purr: rumbly noise that pulses ~24 times a second */
+function purr(dur){
+  const A = audio(); if(!A || !noiseBuf) return;
+  const t = A.currentTime, n = A.createBufferSource(); n.buffer = noiseBuf; n.loop = true;
+  const lp = A.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 260;
+  const g = A.createGain(); g.gain.value = 0;
+  const lfo = A.createOscillator(), lg = A.createGain(); lfo.frequency.value = 24; lg.gain.value = 0.35; lfo.connect(lg); lg.connect(g.gain);
+  const env = A.createGain(); env.gain.setValueAtTime(0.0001, t); env.gain.exponentialRampToValueAtTime(1, t + 0.12); env.gain.setValueAtTime(1, t + dur - 0.25); env.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  n.connect(lp); lp.connect(g); g.connect(env); env.connect(sfxGain);
+  n.start(t); lfo.start(t); n.stop(t + dur + 0.05); lfo.stop(t + dur + 0.05);
+}
+/* a little "mew": a sliding tone through a soft filter */
+function meow(p){
+  const A = audio(); if(!A) return;
+  p = p || rnd(0.9, 1.25);
+  const t = A.currentTime, o = A.createOscillator(), o2 = A.createOscillator(), g = A.createGain(), bp = A.createBiquadFilter();
+  o.type = 'sawtooth'; o2.type = 'sine'; bp.type = 'bandpass'; bp.Q.value = 3;
+  [o, o2].forEach((x, i) => { const m = i ? 2 : 1; x.frequency.setValueAtTime(520 * p * m, t); x.frequency.linearRampToValueAtTime(820 * p * m, t + 0.14); x.frequency.linearRampToValueAtTime(560 * p * m, t + 0.42); });
+  bp.frequency.setValueAtTime(900, t); bp.frequency.linearRampToValueAtTime(1900, t + 0.15); bp.frequency.linearRampToValueAtTime(1100, t + 0.42);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.46);
+  o.connect(bp); o2.connect(bp); bp.connect(g); g.connect(sfxGain); o.start(t); o2.start(t); o.stop(t + 0.5); o2.stop(t + 0.5);
+}
+function hiss(){
+  const A = audio(); if(!A || !noiseBuf) return;
+  const t = A.currentTime, n = A.createBufferSource(); n.buffer = noiseBuf;
+  const hp = A.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2500;
+  const g = A.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t + 0.04); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4);
+  n.connect(hp); hp.connect(g); g.connect(sfxGain); n.start(t); n.stop(t + 0.45);
+}
+function sfx(k){
+  if(!S || !S.snd || !audio()) return;
+  const t = AC.currentTime;
+  switch(k){
+    case 'tap': tone(700, 0.05, 'triangle', 0.12); break;
+    case 'purr': purr(0.9); tone(1180, 0.08, 'sine', 0.08, t, null, 1500); break;
+    case 'meow': meow(); break;
+    case 'hiss': hiss(); break;
+    case 'eat': [0, 0.11, 0.22].forEach(d => tone(320, 0.06, 'triangle', 0.18, t + d, null, 220)); setTimeout(() => meow(1.3), 380); break;
+    case 'boing': tone(260, 0.22, 'sine', 0.22, t, null, 720); tone(900, 0.06, 'triangle', 0.1, t + 0.2); break;
+    case 'coin': tone(1400, 0.07, 'sine', 0.18); tone(2100, 0.12, 'sine', 0.14, t + 0.06); break;
+    case 'err': tone(240, 0.14, 'triangle', 0.15); tone(190, 0.18, 'triangle', 0.15, t + 0.1); break;
+    case 'level': [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.2, 'triangle', 0.22, t + i * 0.09)); break;
+    case 'new': [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.3, 'triangle', 0.18, t + i * 0.1)); setTimeout(() => meow(1.2), 600); break;
+    case 'chime': tone(1319, 0.4, 'sine', 0.14); tone(1760, 0.5, 'sine', 0.1, t + 0.12); break;
+    case 'bell': tone(1568, 0.6, 'sine', 0.12); tone(2093, 0.5, 'sine', 0.08, t + 0.02); break;
+    case 'win': [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.22, 'triangle', 0.15, t + i * 0.1)); break;
+    case 'whoosh': tone(200, 0.35, 'sine', 0.15, t, null, 700); break;
+  }
+}
+/* soft generative café music: gentle chords + a little melody */
+function musicStart(){
+  if(!S || !S.mus || !audio()){ musicStop(); return; }
+  if(musTimer && musRoom === S.cur) return;
+  musicStop();
+  musRoom = S.cur;
+  const R = ROOM(S.cur) || ROOMS[0];
+  const [scale, bpm, wave] = R.music;
+  const step = 60 / bpm / 2;
+  const root = 262 * Math.pow(2, (ROOMS.indexOf(R) * -3) / 12);
+  const prog = [0, 3, 1, 4];
+  musStep = 0;
+  musTimer = setInterval(() => {
+    if(!AC || AC.state !== 'running') return;
+    const t = AC.currentTime + 0.05;
+    const bar = Math.floor(musStep / 8) % 4, beat = musStep % 8, chord = prog[bar];
+    if(beat === 0) [0, 2, 4].forEach((o, i) => tone(root / 2 * Math.pow(2, scale[(chord + o) % scale.length] / 12), step * 7.5, 'sine', 0.2, t + i * 0.03, musGain));
+    if(beat === 4) tone(root / 4 * Math.pow(2, scale[chord % scale.length] / 12), step * 3, 'sine', 0.22, t, musGain);
+    if(Math.random() < 0.5){
+      const deg = chord + [0, 2, 4, 2, 1, 3, 4, 2][beat];
+      const f = root * Math.pow(2, (scale[deg % scale.length] + 12 * Math.floor(deg / scale.length)) / 12);
+      tone(f, step * 2, wave, 0.26, t, musGain);
+    }
+    musStep++;
+  }, step * 1000);
+}
+function musicStop(){ if(musTimer) clearInterval(musTimer); musTimer = null; musRoom = null; }
+function audioUnlock(){ const A = audio(); if(A && A.state === 'suspended') A.resume(); musicStart(); }
+
+/* =====================================================================
+   8. CAFÉ VIEW — the main screen. Cats walk in, sit, nap and play.
+   Positions are in % of the screen (x 0-100 left→right, y 0-100 top→bottom).
+===================================================================== */
+let actors = {};          // cat id -> actor on screen
+let sel = null;           // selected cat id
+const sceneEl = () => $('scene');
+const sceneScale = () => { const r = sceneEl().getBoundingClientRect(); return clamp(Math.min(r.width / 390, r.height / 640), 0.75, 1.7); };
+const FLOOR = 52;         // where the wall ends and the floor starts (%)
+const curTheme = () => THEMES[S.theme] || THEMES.wood;
+
+/* ---------- background + furniture ---------- */
+let bgKey = '';
+function renderBg(){
+  const R = ROOM(S.cur), th = curTheme(), r = sceneEl().getBoundingClientRect(), sc = sceneScale(), night = isNight();
+  const outdoor = R.id === 'patio';
+  const key = [S.cur, S.theme, night, slotsOwned(S.cur), JSON.stringify(S.items), JSON.stringify(S.menu), Math.round(r.width), Math.round(r.height), catsIn(S.cur).length].join('|');
+  if(key === bgKey) return; bgKey = key;
+  let g = '';
+  if(outdoor){
+    const s1 = night ? '#2a2f6a' : '#bfe6ff', s2 = night ? '#6a5aa8' : '#fff1e0';
+    g += '<defs><linearGradient id="bgs" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="' + s1 + '"/><stop offset="1" stop-color="' + s2 + '"/></linearGradient></defs><rect width="100" height="100" fill="url(#bgs)"/>';
+    g += '<path d="M0 40 Q15 30 30 38 Q45 28 60 37 Q78 28 100 36 V60 H0Z" fill="' + (night ? '#2f5a4a' : '#7cc48a') + '"/>';
+    g += '<rect y="' + FLOOR + '" width="100" height="' + (100 - FLOOR) + '" fill="' + (night ? '#4f7a5a' : '#9fd88a') + '"/>';
+    g += '<path d="M44 100 Q50 80 48 ' + FLOOR + ' L54 ' + FLOOR + ' Q58 80 62 100Z" fill="' + (night ? '#a89a8a' : '#efe0c8') + '"/>';
+    for(let i=0;i<14;i++) g += '<circle cx="' + (i * 7.4 + 3) + '" cy="' + (FLOOR + 2 + (i % 3)) + '" r="1.2" fill="' + ['#ff8fb0', '#ffd34d', '#fff', '#c3a8ff'][i % 4] + '"/>';
+    // string lights
+    g += '<path d="M0 6 Q25 14 50 6 T100 6" stroke="#6b4a3a" stroke-width=".3" fill="none"/>';
+    for(let i=1;i<10;i++){ const x = i * 10, y = 6 + Math.sin(i / 10 * Math.PI * 2) * -4 + 4; g += '<circle cx="' + x + '" cy="' + y.toFixed(1) + '" r=".9" fill="' + (night ? '#fff2a0' : '#ffe9b0') + '"' + (night ? ' opacity="1"' : ' opacity=".7"') + '/>'; }
+  } else {
+    g += '<rect width="100" height="' + FLOOR + '" fill="' + th.wall + '"/>';
+    if(S.theme === 'pastel') for(let i=0;i<10;i++) g += '<rect x="' + (i * 10) + '" width="5" height="' + FLOOR + '" fill="' + th.wall2 + '"/>';
+    else if(S.theme === 'winter') for(let i=0;i<9;i++) g += '<rect y="' + (i * 6.2) + '" width="100" height="5.4" rx="2" fill="' + (i % 2 ? th.wall : th.wall2) + '"/>';
+    else if(S.theme === 'jungle') for(let i=0;i<14;i++) g += '<path d="M' + (i * 7.3) + ' ' + (8 + (i % 3) * 14) + ' q3 -4 6 0 q-3 4 -6 0Z" fill="' + th.wall2 + '"/>';
+    else if(S.theme === 'starry') for(let i=0;i<22;i++){ const R2 = seeded(i + 4); g += '<circle cx="' + (R2[0] * 100).toFixed(1) + '" cy="' + (R2[1] * FLOOR * 0.9).toFixed(1) + '" r=".35" fill="#fff8d0"/>'; }
+    else for(let i=0;i<12;i++) g += '<rect x="' + (i * 8.4 + 2) + '" width=".6" height="' + FLOOR + '" fill="' + th.wall2 + '"/>';
+    if(R.id === 'tower') g += '<rect x="20" y="0" width="5" height="' + FLOOR + '" fill="#e8d2a8"/><rect x="78" y="0" width="5" height="' + FLOOR + '" fill="#e8d2a8"/>';
+    g += '<rect y="' + (FLOOR - 9) + '" width="100" height="9" fill="' + shade(th.wall2, -0.06) + '"/><rect y="' + (FLOOR - 9.6) + '" width="100" height="1.2" fill="' + th.trim + '"/>';
+    g += '<rect y="' + FLOOR + '" width="100" height="' + (100 - FLOOR) + '" fill="' + th.floor + '"/>';
+    for(let i=0;i<7;i++){ const y = FLOOR + 3 + i * 6.5; g += '<rect y="' + y.toFixed(1) + '" width="100" height=".5" fill="' + th.floor2 + '"/>'; for(let k=0;k<4;k++) g += '<rect x="' + ((k * 27 + i * 13) % 100) + '" y="' + (y - 6).toFixed(1) + '" width=".5" height="6" fill="' + th.floor2 + '"/>'; }
+    g += '<ellipse cx="50" cy="' + (FLOOR + 26) + '" rx="34" ry="11" fill="' + th.acc + '" opacity=".28"/>';
+    g += '<rect y="' + FLOOR + '" width="100" height="1.2" fill="' + shade(th.trim, -0.2) + '"/>';
+  }
+  $('sceneBg').innerHTML = g;
+  // furniture + spots
+  const W = r.width, H = r.height;
+  let h = '';
+  const prop = (x, y, w, hh, svg, z, cls) => '<div class="prop ' + (cls || '') + '" style="left:' + x + '%;top:' + y + '%;width:' + (w * sc) + 'px;height:' + (hh * sc) + 'px;z-index:' + (z || 1) + '">' + svg + '</div>';
+  if(!outdoor){
+    if(R.id === 'cafe'){ h += prop(50, 15.5, 160, 40, signSVG(), 1); h += prop(R.counter[0], R.counter[1], 150, 125, counterSVG(th), 3); h += prop(R.board[0], R.board[1], 62, 54, boardSVG(), 2); }
+    if(S.theme === 'jungle' || R.id === 'tower'){ h += prop(5, 70, 60, 90, plantSVG(true), 3); h += prop(95, 74, 50, 76, plantSVG(false), 3); }
+    if(S.theme === 'winter') h += '<div class="prop" style="left:50%;top:' + FLOOR + '%;width:0;height:0"></div>';
+  } else {
+    h += prop(50, FLOOR + 1, W, 34, fenceSVG(), 1);
+    h += prop(8, 64, 50, 76, plantSVG(false), 3) + prop(92, 58, 60, 90, plantSVG(true), 2);
+  }
+  if(R.id === 'cafe'){
+    if(S.items.cattree) h += prop(93, 61, 62, 124, itemSVG('cattree'), 4);
+    if(S.items.fishplush) h += prop(64, 90, 50, 28, itemSVG('fishplush'), 60);
+    if(S.items.heatedbed) h += prop(92, 92, 76, 38, itemSVG('heatedbed'), 60);
+  }
+  if(R.counter && catsIn(S.cur).length >= 3) h += '<div class="cust" style="left:' + (R.counter[0] + 21) + '%;top:' + (R.counter[1] + 7) + '%;width:' + (52 * sc) + 'px;height:' + (104 * sc) + 'px;z-index:' + (6 + R.counter[1]) + '">' + standSVG(17) + '</div>';
+  // tables with customers (one customer per cat, two per table)
+  const nCats = catsIn(S.cur).length;
+  R.tables.forEach(([x, y], i) => {
+    const n = clamp(nCats - i * 2, 0, 2);
+    h += '<div class="cust sip" style="left:' + x + '%;top:' + y + '%;width:' + (108 * sc) + 'px;height:' + (81 * sc) + 'px;z-index:' + (4 + Math.round(y)) + '">' + tableSVG(n, i * 11 + tierOf(S.cur) * 31 + 2, th, outdoor) + '</div>';
+  });
+  // the cat spots
+  R.slots.forEach((sp, i) => {
+    const owned = i < slotsOwned(S.cur);
+    if(!owned){
+      if(i === slotsOwned(S.cur)) h += '<button class="slotAdd" data-slot="' + i + '" style="left:' + sp.x + '%;top:' + sp.y + '%">+<small>' + SPOTS[sp.k].e + ' ' + fmt(spotCost(S.cur)) + '</small></button>';
+      return;
+    }
+    const z = Math.round(sp.y);
+    if(sp.k === 'window') h += prop(sp.x, sp.y + 3.6, 134, 123, windowSVG(th, night, outdoor), 1);
+    if(sp.k === 'shelf'){
+      if(R.id !== 'cafe'){ const top = sp.y + 3, hh = (FLOOR + 3 - top) / 100 * H; h += '<div class="prop" style="left:' + sp.x + '%;top:' + (FLOOR + 3) + '%;width:' + (16 * sc) + 'px;height:' + hh + 'px;z-index:1;background:repeating-linear-gradient(0deg,#e8d2a8 0 6px,#d4bb8c 6px 8px);border-radius:4px"></div>'; }
+      h += prop(sp.x, sp.y + 4.2, 112, 45, shelfSVG(th, i), 2);
+    }
+    if(sp.k === 'cushion') h += prop(sp.x, sp.y + 2.4, 112, 45, cushionSVG(th, i), 2);
+    if(sp.k === 'box') h += prop(sp.x, sp.y + 1, 100, 60, boxBackSVG(), 2);
+    if(sp.k === 'sunbeam') h += prop(sp.x, sp.y + 2.4, 130, 39, sunPatchSVG(), 1);
+  });
+  $('props').innerHTML = h;
+  $('props').querySelectorAll('[data-slot]').forEach(b => b.onclick = e => { e.stopPropagation(); buySpotHere(); });
+  // sun beams from the window
+  R.slots.forEach((sp, i) => {
+    if(sp.k !== 'sunbeam' || i >= slotsOwned(S.cur) || night) return;
+    const w = outdoor ? {x: sp.x + 6, y: 24} : (R.slots.find(q => q.k === 'window') || {x: sp.x, y: 30});
+    const b = document.createElement('div'); b.className = 'beam';
+    const top = Math.max(4, w.y - 24), left = Math.min(w.x, sp.x) - 8, width = Math.abs(sp.x - w.x) + 16;
+    b.style.cssText = 'left:' + left + '%;top:' + top + '%;width:' + width + '%;height:' + (sp.y - top + 2) + '%;z-index:1';
+    $('props').appendChild(b);
+  });
+  // falling snow (winter theme) / stars twinkling (starry)
+  if(S.theme === 'winter' || S.theme === 'starry'){
+    for(let i=0;i<10;i++){
+      const e = document.createElement('div');
+      if(S.theme === 'winter' && !outdoor){ continue; }
+      e.className = S.theme === 'starry' && !outdoor ? 'star' : 'flake';
+      if(e.className === 'star'){ e.style.left = rnd(2, 98) + '%'; e.style.top = rnd(2, FLOOR - 12) + '%'; e.style.animationDelay = rnd(0, 2) + 's'; }
+      else { e.textContent = '❄'; e.style.left = rnd(0, 100) + '%'; e.style.animationDuration = rnd(7, 12) + 's'; e.style.animationDelay = -rnd(0, 10) + 's'; }
+      $('props').appendChild(e);
+    }
+  }
+}
+function applyDark(){
+  const night = isNight(), outdoor = S.cur === 'patio';
+  const d = night ? (outdoor ? 0.38 : 0.2) : 0;
+  $('dark').style.opacity = d;
+  sceneEl().classList.toggle('glowOn', d > 0.15);
+}
+function buySpotHere(){
+  const r = S.cur, R = ROOM(r);
+  if(slotsOwned(r) >= R.slots.length) return;
+  const sp = R.slots[slotsOwned(r)], cost = spotCost(r);
+  openModal(SPOTS[sp.k].e + ' ' + tr('New spot'), '<div class="reward"><div class="big">' + SPOTS[sp.k].e + '</div><p><b>' + L(SPOTS[sp.k]) + '</b> · ' + L(R) + '</p><p class="muted">' + tr('One more cat can visit. Cats who love this kind of spot earn +25%.') + '</p></div>' +
+    '<button class="btn wide gold" id="bsGo">' + fmt(cost) + ' ' + CN + '</button>');
+  $('bsGo').onclick = () => { if(!pay('c', cost)) return; closeModal(); S.rooms[r].spots++; spotBought(); };
+}
+function spotBought(){
+  sfx('coin'); addXP(5); bgKey = ''; S.nextArrive = Math.min(S.nextArrive, now() + 6000);
+  toast('🛋️ ' + tr('New spot! A cat will come soon.'), 'gold'); saveNow(); renderCafe(); refreshTop(); tutEvent('buy');
+}
+
+/* ---------- cats on screen ---------- */
+function catKey(c, a){ return [c.b, a.st === 'nap' ? 1 : 0, c.res ? 1 : 0].join('|'); }
+function makeActorEl(c){
+  const el = document.createElement('div');
+  el.className = 'cat';
+  el.innerHTML = '<div class="flip"><div class="bob"></div></div>';
+  el.addEventListener('pointerdown', e => { e.stopPropagation(); tapCat(c.id); });
+  $('cats').appendChild(el);
+  return el;
+}
+function renderCats(){
+  const list = catsIn(S.cur), seen = {}, sc = sceneScale();
+  list.forEach(c => {
+    seen[c.id] = 1;
+    let a = actors[c.id];
+    const sp = spotOf(c);
+    if(!a){
+      a = actors[c.id] = {id: c.id, x: sp.x, y: sp.y, tx: sp.x, ty: sp.y, st: Math.random() < 0.3 ? 'nap' : 'sit', until: now() + rnd(4000, 14000), face: Math.random() < 0.5 ? 1 : -1, key: ''};
+      a.el = makeActorEl(c);
+    }
+    if(a.leaving) return;
+    const k = catKey(c, a) + '|' + sc + '|' + sp.k;
+    if(a.key !== k){
+      a.key = k;
+      const w = 104 * sc * (sp.k === 'shelf' ? 0.92 : 1);
+      a.el.style.width = w + 'px'; a.el.style.height = (w * 0.9) + 'px';
+      const inBox = sp.k === 'box';
+      a.el.querySelector('.bob').innerHTML = catSVG(c.b, {sleep: a.st === 'nap' && !inBox, closed: a.st === 'nap' && inBox, collar: c.res});
+      const B = BREEDS[c.b];
+      a.el.classList.toggle('glowy', !!B.glow); if(B.glow) a.el.style.setProperty('--gc', B.glow);
+      let fr = a.el.querySelector('.front');
+      const atBox = sp.k === 'box' && a.st !== 'walk' && Math.abs(a.x - sp.x) < 1 && Math.abs(a.y - sp.y) < 1;
+      if(atBox && !fr){ fr = document.createElement('div'); fr.className = 'front'; fr.innerHTML = boxFrontSVG(); a.el.appendChild(fr); }
+      if(!atBox && fr) fr.remove();
+    }
+    // little thought bubble
+    let bub = '';
+    if(a.st !== 'nap' && a.st !== 'walk'){
+      if(canAdopt(c)) bub = '🏠';
+      else if(c.m.food < 25) bub = '🐟';
+      else if(c.m.fun < 25) bub = '🧶';
+      else if(inFav(c) && a.fav) bub = '😻';
+    }
+    let be = a.el.querySelector('.bub');
+    if(bub && !be){ be = document.createElement('div'); be.className = 'bub'; a.el.appendChild(be); }
+    if(be){ if(bub) be.textContent = bub; else be.remove(); }
+    let zz = a.el.querySelector('.zz');
+    if(a.st === 'nap' && !zz){ zz = document.createElement('div'); zz.className = 'zz'; zz.textContent = 'z'; a.el.appendChild(zz); }
+    if(a.st !== 'nap' && zz) zz.remove();
+    a.el.classList.toggle('sel', sel === c.id);
+    a.el.classList.toggle('adoptable', canAdopt(c));
+    placeActor(a);
+  });
+  for(const id in actors) if(!seen[id] && !actors[id].leaving){ actors[id].el.remove(); delete actors[id]; }
+}
+function placeActor(a){
+  a.el.style.left = a.x + '%'; a.el.style.top = a.y + '%'; a.el.style.zIndex = 5 + Math.round(a.y);
+  a.el.firstChild.style.transform = a.face < 0 ? 'scaleX(-1)' : '';
+  a.el.classList.toggle('walk', a.st === 'walk');
+  a.el.classList.toggle('nap', a.st === 'nap');
+  a.el.classList.toggle('sit', a.st === 'sit');
+}
+/* a new cat walks in from the side */
+function actorEnter(c){
+  const sp = spotOf(c); if(!sp) return;
+  const fromLeft = sp.x < 50;
+  const a = actors[c.id] = {id: c.id, x: fromLeft ? -8 : 108, y: Math.max(FLOOR + 22, sp.y), tx: sp.x, ty: sp.y, st: 'walk', until: now() + 30000, face: fromLeft ? 1 : -1, key: ''};
+  a.el = makeActorEl(c);
+  renderCats();
+}
+function actorLeave(c){
+  const a = actors[c.id]; if(!a) return;
+  a.leaving = true; a.st = 'walk'; a.key = '';
+  const sc = sceneScale();
+  a.el.querySelector('.bob').innerHTML = catSVG(c.b, {});
+  const fr = a.el.querySelector('.front'); if(fr) fr.remove();
+  const bb = a.el.querySelector('.bub'); if(bb) bb.remove();
+  const zz = a.el.querySelector('.zz'); if(zz) zz.remove();
+  a.tx = a.x < 50 ? -12 : 112; a.ty = Math.max(FLOOR + 22, a.y);
+  setTimeout(() => { if(a.el){ a.el.classList.add('leave'); } }, 2500);
+  setTimeout(() => { if(a.el) a.el.remove(); if(actors[c.id] === a) delete actors[c.id]; }, 3600);
+}
+/* what does a cat do next? depends on its personality and the time */
+function decide(a, c){
+  const t = now(), night = isNight(t), sp = spotOf(c);
+  if(!sp) return;
+  if(a.st === 'nap'){ a.st = 'sit'; a.until = t + rnd(4000, 9000); a.key = ''; return; }
+  let nap = 0.25 + (c.t === 'sleepy' ? 0.3 : 0) + (night ? 0.2 : 0) + (sp.k === 'sunbeam' ? 0.15 : 0);
+  const atSpot = Math.abs(a.x - sp.x) < 1 && Math.abs(a.y - sp.y) < 1;
+  if(!atSpot){ a.tx = sp.x; a.ty = sp.y; a.st = 'walk'; a.until = t + 30000; return; }
+  const r = Math.random();
+  if(r < nap){ a.st = 'nap'; a.until = t + rnd(12000, 30000) * (c.t === 'sleepy' ? 1.6 : 1); a.key = ''; }
+  else if(r < nap + (c.t === 'playful' ? 0.3 : 0.1) && sp.y > FLOOR){
+    a.tx = clamp(sp.x + rnd(-22, 22), 8, 86); a.ty = clamp(sp.y + rnd(-6, 4), FLOOR + 14, 84); a.st = 'walk'; a.wander = true; a.until = t + 30000; a.key = '';
+  } else {
+    a.st = 'sit'; a.until = t + rnd(5000, 12000); a.fav = Math.random() < 0.3;
+    if(Math.random() < 0.4){ a.face = -a.face; a.el.classList.remove('pop'); void a.el.offsetWidth; a.el.classList.add('pop'); }
+    if(Math.random() < 0.08) sfx('meow');
+  }
+}
+function stepActors(dt){
+  const t = now();
+  for(const id in actors){
+    const a = actors[id], c = catById(+id);
+    if(!a.leaving && (!c || !c.here)) continue;
+    if(!a.leaving && t > a.until && a.st !== 'walk') decide(a, c);
+    if(a.st === 'walk'){
+      const sp = 14 * (c && c.t === 'sleepy' ? 0.75 : 1);
+      // high spots (shelves, windows): jump down first, walk on the floor, then jump up
+      const up = a.ty < FLOOR + 4, onHigh = a.y < FLOOR + 4, floorY = FLOOR + 16;
+      if(onHigh && (Math.abs(a.tx - a.x) > 1 || Math.abs(a.ty - a.y) > 1)){ a.y = floorY; hop(a); }
+      const gx = a.tx, gy = up ? floorY : a.ty;
+      const dx = gx - a.x, dy = gy - a.y, d = Math.hypot(dx, dy);
+      if(d < 0.6){
+        if(a.leaving) continue;
+        if(up) hop(a);
+        a.x = a.tx; a.y = a.ty;
+        if(a.wander){ a.wander = false; a.st = 'sit'; a.until = t + rnd(1500, 4000); const s2 = spotOf(c); a.tx = s2.x; a.ty = s2.y; }
+        else { a.st = 'sit'; a.until = t + rnd(3000, 8000); }
+        a.key = ''; renderCats();
+      } else {
+        a.x += dx / d * sp * dt; a.y += dy / d * sp * dt * 0.9;
+        if(Math.abs(dx) > 0.5) a.face = dx > 0 ? 1 : -1;
+      }
+    }
+    placeActor(a);
+  }
+}
+
+function hop(a){ a.el.classList.remove('pop'); void a.el.offsetWidth; a.el.classList.add('pop'); if(Math.random() < 0.5) sfx('boing'); }
+
+/* ---------- tapping ---------- */
+function tapCat(id){
+  audioUnlock();
+  const c = catById(id), a = actors[id]; if(!c || !a || a.leaving) return;
+  sel = id;
+  if(a.st === 'nap'){ a.st = 'sit'; a.until = now() + 4000; a.key = ''; }
+  const r = petCat(c);
+  if(r === 'hiss'){ fxAt(a.x, a.y - 12, '💢'); fxAt(a.x + 4, a.y - 8, '😾', 120); a.el.classList.remove('pop'); void a.el.offsetWidth; a.el.classList.add('pop'); toast('😾 ' + tr('{n} is grumpy. Try a treat!', {n: esc(c.n)})); }
+  else if(r){
+    fxAt(a.x, a.y - 12, '💗'); fxAt(a.x + 4, a.y - 9, '💕', 150); fxAt(a.x - 3, a.y - 5, '+' + fmt(c.lastBonus) + ' ' + CN, 280);
+    a.el.classList.remove('happy', 'pop'); void a.el.offsetWidth; a.el.classList.add('happy', 'pop');
+    setTimeout(() => a.el && a.el.classList.remove('happy'), 2000);
+  }
+  renderCats(); renderCare(); saveNow();
+}
+function fxAt(x, y, html, delay){
+  setTimeout(() => {
+    const e = document.createElement('div'); e.className = 'fx'; e.innerHTML = html;
+    e.style.left = x + '%'; e.style.top = y + '%'; $('fxL').appendChild(e);
+    setTimeout(() => e.remove(), 1150);
+  }, delay || 0);
+}
+function fxAtCat(c, html, delay){ const a = actors[c.id]; if(a) fxAt(a.x, a.y - 14, html, delay); }
+function steamAt(x, y){
+  const e = document.createElement('div'); e.className = 'steam'; e.style.left = x + '%'; e.style.top = y + '%';
+  $('fxL').appendChild(e); setTimeout(() => e.remove(), 2300);
+}
+function ambient(){
+  const R = ROOM(S.cur);
+  R.tables.forEach(([x, y], i) => { if(catsIn(S.cur).length > i * 2 && Math.random() < 0.5) steamAt(x - 6 + rnd(-1, 1), y - 11); });
+  if(R.counter && Math.random() < 0.4) steamAt(R.counter[0] + 1, R.counter[1] - 16);
+}
+
+/* ---------- top-of-screen room name ---------- */
+function renderRoomName(){
+  const i = ROOM_IDS.indexOf(S.cur), R = ROOM(S.cur);
+  const prev = S.open.filter(id => ROOM_IDS.indexOf(id) < i).pop(), next = S.open.find(id => ROOM_IDS.indexOf(id) > i);
+  const lockedNext = !next && i < ROOMS.length - 1;
+  const h = '<button id="rmPrev"' + (prev ? '' : ' disabled') + '>◀</button><span>' + R.e + ' ' + L(R) + ' · 🐱 ' + catsIn(S.cur).length + '/' + slotsOwned(S.cur) + '</span>' +
+    '<button id="rmNext"' + (next || lockedNext ? '' : ' disabled') + '>' + (lockedNext ? '🔒' : '▶') + '</button>';
+  if($('roomName')._h === h) return;
+  $('roomName')._h = h; $('roomName').innerHTML = h;
+  $('rmPrev').onclick = () => prev && goRoom(prev);
+  $('rmNext').onclick = () => { if(next) goRoom(next); else if(lockedNext){ shopTab = 'rooms'; showView('Shop'); } };
+}
+function goRoom(id){
+  sfx('whoosh'); S.cur = id; sel = null;
+  for(const k in actors) actors[k].el.remove(); actors = {};
+  bgKey = ''; renderCafe(); musicStart(); saveNow();
+}
+
+/* ---------- right-side buttons ---------- */
+function renderSide(){
+  const t = now(), giftReady = S.daily.last !== dayNum(t);
+  let h = '<button class="fab' + (giftReady && S.tut >= 99 ? ' glow' : '') + '" id="sGift">🎁<small>' + tr('Gift') + '</small>' + (giftReady && S.tut >= 99 ? '<span class="bdg">1</span>' : '') + '</button>';
+  h += '<button class="fab" id="sBoost">⚡<small>' + (S.ad2x > t ? '2×' : tr('Boost')) + '</small></button>';
+  if(S.queue.length) h += '<button class="fab glow" id="sWait">🚪<small>' + tr('Waiting') + '</small><span class="bdg">' + S.queue.length + '</span></button>';
+  if($('sideR')._h !== h){
+    $('sideR')._h = h; $('sideR').innerHTML = h;
+    $('sGift').onclick = openGift;
+    $('sBoost').onclick = openBoosts;
+    if($('sWait')) $('sWait').onclick = () => { toast('🚪 ' + tr('A cat is waiting at the door! Buy a new spot in the Shop.')); shopTab = 'spots'; showView('Shop'); };
+  }
+}
+
+/* ---------- bottom care bar ---------- */
+function renderCare(){
+  const c = sel && catById(sel);
+  let h;
+  if(c && c.here && c.here.r === S.cur){
+    const B = BREEDS[c.b];
+    h = '<div class="cb"><div class="who">' + esc(c.n) + ' <span class="tag" style="background:var(--pink)">❤️ ' + hearts(c) + '</span>' + (c.res ? ' 🏠' : '') + '<small>' + PERSONALITIES[c.t].e + ' ' + L(B) +
+      ' · 🐟 ' + Math.round(c.m.food) + '% · 😊 ' + Math.round(c.m.fun) + '%</small></div>' +
+      (canAdopt(c) ? '<button class="cbtn gold" id="cbAdopt"><b>🏠</b>' + tr('Adopt') + '</button>' : '') +
+      '<button class="cbtn" id="cbFeed"><b>🐟</b>' + tr('Feed') + '</button><button class="cbtn" id="cbToy"><b>🧶</b>' + tr('Play') + '</button><button class="cbtn" id="cbInfo"><b>ℹ️</b>' + tr('Info') + '</button></div>';
+  } else {
+    h = '<div class="hint">👆 ' + tr('Tap a cat!') + ' · +' + fmt(roomIncome(S.cur)) + ' ' + CN + '/s</div>';
+  }
+  if($('careBar')._h !== h){
+    $('careBar')._h = h; $('careBar').innerHTML = h;
+    if($('cbFeed')){ $('cbFeed').onclick = () => openFeed(c); $('cbToy').onclick = () => openToy(c); $('cbInfo').onclick = () => openCat(c.id); }
+    if($('cbAdopt')) $('cbAdopt').onclick = () => openAdopt(c);
+  }
+}
+function openFeed(c){
+  sfx('tap');
+  let h = '<div class="center">' + catSVG(c.b, {size: 130, collar: c.res}) + '</div>';
+  FOOD_IDS.forEach(k => { const F = FOODS[k];
+    h += '<div class="card"><div class="art">' + F.e + '</div><div class="info"><div class="nm">' + L(F) + ' × ' + S.inv[k] + '</div><div class="sub">🐟 +' + F.food + (F.fun ? ' · 😊 +' + F.fun : '') + ' · 💗 +' + F.fr_ + (c.res ? '' : ' · ⏳ +' + CONFIG.FEED_STAY_MIN + 'm') + '</div></div>' +
+      '<button class="btn mint sm" data-food="' + k + '"' + (S.inv[k] < 1 ? ' disabled' : '') + '>' + tr('Give') + '</button></div>'; });
+  h += '<button class="btn wide ghost" id="fdShop">🛒 ' + tr('Buy treats') + '</button>';
+  openModal(tr('Feed {n}', {n: esc(c.n)}), h);
+  $('mBody').querySelectorAll('[data-food]').forEach(b => b.onclick = () => {
+    if(feedCat(c, b.dataset.food)){ closeModal(); fxAtCat(c, FOODS[b.dataset.food].e); fxAtCat(c, '😋', 300); const a = actors[c.id]; if(a){ a.st = 'sit'; a.key = ''; a.el.classList.remove('happy'); void a.el.offsetWidth; a.el.classList.add('happy', 'pop'); } renderCare(); renderCats(); }
+  });
+  $('fdShop').onclick = () => { closeModal(); shopTab = 'treats'; showView('Shop'); };
+}
+function openToy(c){
+  sfx('tap');
+  const own = TOY_IDS.filter(k => S.toys[k]);
+  let h = '';
+  own.forEach(k => { const T = TOYS[k]; h += '<div class="card"><div class="art">' + T.e + '</div><div class="info"><div class="nm">' + L(T) + '</div><div class="sub">😊 +' + T.fun + ' · 💗 +' + T.fr_ + (c.t === 'playful' ? ' · ×2 🧶' : '') + '</div></div><button class="btn mint sm" data-toy="' + k + '">' + tr('Play') + '</button></div>'; });
+  h += '<button class="btn wide ghost" id="tyShop">🛒 ' + tr('More toys') + '</button>';
+  openModal(tr('Play with {n}', {n: esc(c.n)}), h);
+  $('mBody').querySelectorAll('[data-toy]').forEach(b => b.onclick = () => {
+    if(toyCat(c, b.dataset.toy)){
+      closeModal(); fxAtCat(c, TOYS[b.dataset.toy].e); fxAtCat(c, '✨', 250);
+      const a = actors[c.id], sp = spotOf(c);
+      if(a && sp){ if(sp.y > FLOOR){ a.tx = clamp(sp.x + rnd(-18, 18), 8, 86); a.ty = clamp(sp.y + rnd(-5, 3), FLOOR + 14, 84); a.st = 'walk'; a.wander = true; }
+        a.key = ''; a.el.classList.remove('happy'); void a.el.offsetWidth; a.el.classList.add('happy', 'pop'); }
+      renderCare();
+    }
+  });
+  $('tyShop').onclick = () => { closeModal(); shopTab = 'treats'; showView('Shop'); };
+}
+function openAdopt(c){
+  sfx('chime');
+  openModal('🏠 ' + tr('Adopt {n}?', {n: esc(c.n)}), '<div class="reward"><div class="big">' + catSVG(c.b, {size: 170, collar: true, halo: true}) + '</div><p>' + tr('{n} loves your café! Adopt it as a Resident cat?', {n: esc(c.n)}) + '</p>' +
+    '<p class="muted">🏠 ' + tr('Stays forever') + ' · ' + CN + ' +50% · 🎀 ' + tr('Gets a cute collar') + '</p></div>' +
+    '<button class="btn wide gold" id="adGo">🏠 ' + tr('Adopt (free)') + '</button><button class="btn wide ghost" id="adNo">' + tr('Not now') + '</button>');
+  $('adGo').onclick = () => { closeModal(); adoptCat(c); };
+  $('adNo').onclick = closeModal;
+}
+function renderCafe(){
+  if(!S) return;
+  renderRoomName(); renderBg(); renderCats(); renderSide(); renderCare(); applyDark();
+}
+/* a lighter refresh after a cat comes or goes */
+function renderCafeLight(){ if(curView !== 'Cafe') { if(curView === 'Cats') renderCatsView(); return; } renderRoomName(); renderBg(); renderCats(); renderSide(); renderCare(); }
+
+/* =====================================================================
+   9. SCREENS — top bar, pop-ups, Cats, Shop, More
+===================================================================== */
+let curView = 'Cafe';
+const NAV = [['Cafe','☕'],['Cats','🐱'],['Shop','🛒'],['Games','🎮'],['More','✨']];
+const NAV_NAME = {Cafe:'Café', Cats:'Cats', Shop:'Shop', Games:'Games', More:'More'};
+function renderNav(){
+  $('nav').innerHTML = NAV.map(([k, e]) => '<button id="nav' + k + '" class="' + (curView === k ? 'on' : '') + '"><span class="e">' + e + '</span>' + tr(NAV_NAME[k]) + '<i class="dot" id="dot' + k + '"></i></button>').join('');
+  NAV.forEach(([k]) => $('nav' + k).onclick = () => { sfx('tap'); showView(k); });
+}
+function showView(k){
+  curView = k;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  $('v' + k).classList.add('on');
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.id === 'nav' + k));
+  if(k === 'Cafe'){ for(const id in actors) actors[id].el.remove(); actors = {}; bgKey = ''; }
+  ({Cafe: renderCafe, Cats: renderCatsView, Shop: renderShop, Games: renderGames, More: renderMore})[k]();
+  $('v' + k).scrollTop = 0;
+  tutEvent('view' + k);
+}
+let shownC = 0;
+function refreshTop(){
+  if(!S) return;
+  $('vGem').textContent = fmt(S.gm);
+  $('vLevel').textContent = S.lv;
+  $('vXp').style.width = (S.xp / xpNeed(S.lv) * 100) + '%';
+  const t = now(); let b = '';
+  if(S.ad2x > t){ const l = (S.ad2x - t) / 1000; b += '<span class="bst">2× ' + (l > 60 ? Math.ceil(l / 60) + 'm' : Math.ceil(l) + 's') + '</span>'; }
+  if(isNight(t)) b += '<span class="bst">🌙</span>';
+  if($('boosts')._h !== b){ $('boosts')._h = b; $('boosts').innerHTML = b; }
+  $('muteBtn').textContent = (S.snd || S.mus) ? '🔊' : '🔇';
+  const av = S.avatar && catById(S.avatar), k = av ? av.b + av.res : 'none';
+  if($('profBtn').dataset.k !== k){ $('profBtn').dataset.k = k; $('profBtn').innerHTML = av ? catSVG(av.b, {collar: av.res}) : catSVG('mocha'); }
+  const dc = $('dotCats'); if(dc) dc.classList.toggle('show', present().some(canAdopt));
+  const dg = $('dotGames'); if(dg) dg.classList.toggle('show', S.tickets >= CONFIG.TICKETS_MAX);
+  const ds = $('dotShop'); if(ds) ds.classList.toggle('show', ROOMS.some((r, i) => canOpenRoom(i) && S.co >= r.cost) || S.queue.length > 0);
+}
+function tickCoinDisplay(){
+  const diff = S.co - shownC;   // the number counts up smoothly instead of jumping
+  shownC = Math.abs(diff) < 1 ? S.co : shownC + diff * 0.25;
+  $('vCoin').textContent = fmt(shownC);
+}
+
+/* ---------- toast + modal ---------- */
+function toast(msg, kind){
+  const t = document.createElement('div'); t.className = 'tst' + (kind ? ' ' + kind : ''); t.innerHTML = msg;
+  const box = $('toast'); box.appendChild(t);
+  while(box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = 0; setTimeout(() => t.remove(), 400); }, 2600);
+}
+let modalOnClose = null, modalQueue = [];
+function openModal(title, html, onClose, noClose){
+  $('mBody').innerHTML = (title ? '<h2>' + title + '</h2>' : '') + html;
+  $('modalBg').classList.add('on');
+  $('mClose').style.display = noClose ? 'none' : '';
+  $('modal').scrollTop = 0;
+  modalOnClose = onClose || null;
+}
+function closeModal(){
+  if(!$('modalBg').classList.contains('on')) return;
+  $('modalBg').classList.remove('on');
+  const f = modalOnClose; modalOnClose = null; if(f) f();
+  refreshTop();
+  if(modalQueue.length) setTimeout(() => { if(!$('modalBg').classList.contains('on') && modalQueue.length) modalQueue.shift()(); }, 250);
+}
+function queueModal(fn){ if($('modalBg').classList.contains('on')) modalQueue.push(fn); else fn(); }
+function showReward(art, title, html, onClose){
+  openModal('', '<div class="reward"><div class="big">' + art + '</div><h2>' + title + '</h2><div>' + (html || '') + '</div><button class="btn wide" id="rwOk">' + tr('Yay!') + '</button></div>', onClose);
+  $('rwOk').onclick = closeModal;
+}
+function confirmBox(title, msg, yes, cb){
+  openModal(title, '<p class="center">' + msg + '</p><button class="btn wide" id="cfY">' + yes + '</button><button class="btn wide ghost" id="cfN">' + tr('Cancel') + '</button>');
+  $('cfY').onclick = () => { closeModal(); cb(); }; $('cfN').onclick = closeModal;
+}
+const moodColor = v => v > 60 ? '#5cd6a5' : v > 30 ? '#ffc83d' : '#ff7a8a';
+function moodBars(c){
+  return [['food', '🐟', tr('Food')], ['fun', '😊', tr('Fun')]].map(([k, e, n]) =>
+    '<div class="mood"><span>' + e + '</span><span style="width:auto;min-width:46px;text-align:left">' + n + '</span><div class="bar"><i style="width:' + c.m[k] + '%;background:' + moodColor(c.m[k]) + '"></i></div></div>').join('');
+}
+function heartsHtml(c){ const h = hearts(c); return '<span class="hearts">' + '❤️'.repeat(h) + '🤍'.repeat(10 - h) + '</span>'; }
+
+/* ---------- CATS tab: in the café, residents, cat book ---------- */
+let catTab = 'here';
+function renderCatsView(){
+  const vis = present().filter(c => !c.res), res = residents();
+  let h = '<div class="tabs">' + [['here', '☕ ' + tr('Visiting') + ' (' + vis.length + ')'], ['res', '🏠 ' + tr('Residents') + ' (' + res.length + ')'], ['book', '📖 ' + tr('Book')]].map(([k, n]) => '<button data-t="' + k + '" class="' + (catTab === k ? 'on' : '') + '">' + n + '</button>').join('') + '</div>';
+  if(catTab === 'here'){
+    h += '<p class="muted">' + tr('Visitors stay a few hours. Make friends (5 ❤️) to adopt them!') + '</p>';
+    h += vis.sort((a, b) => b.f - a.f).map(catCard).join('') || '<p class="muted center">' + tr('No visitors right now. A cat will come soon!') + '</p>';
+    const gone = S.cats.filter(c => !c.here && !c.res && c.visits > 0);
+    if(gone.length) h += '<h3>💭 ' + tr('Cats you know') + ' (' + gone.length + ')</h3><p class="muted">' + tr('They may come back to visit. They remember you!') + '</p>' + gone.sort((a, b) => b.f - a.f).slice(0, 30).map(catCard).join('');
+  }
+  if(catTab === 'res'){
+    h += '<p class="muted">' + tr('Resident cats stay forever and bring +50% coins.') + '</p>';
+    h += res.map(catCard).join('') || '<p class="muted center">' + tr('No residents yet. Pet, feed and play with a visitor until it has 5 ❤️.') + '</p>';
+  }
+  if(catTab === 'book') h += bookHtml();
+  $('iCats').innerHTML = h;
+  $('iCats').querySelectorAll('.tabs [data-t]').forEach(b => b.onclick = () => { sfx('tap'); catTab = b.dataset.t; renderCatsView(); });
+  $('iCats').querySelectorAll('[data-cat]').forEach(b => b.onclick = () => openCat(+b.dataset.cat));
+}
+function catCard(c){
+  const B = BREEDS[c.b];
+  const where = c.here ? ROOM(c.here.r).e + ' ' + SPOTS[spotOf(c).k].e + (inFav(c) ? '😻' : '') : '💭';
+  const time = c.here && !c.res ? ' · ⏳ ' + fmtTime((c.here.until - now()) / 1000) : '';
+  return '<div class="card" data-cat="' + c.id + '"><div class="art r' + B.r + '">' + catSVG(c.b, {collar: c.res, halo: true}) + '</div><div class="info"><div class="nm">' + esc(c.n) + ' ' + (c.res ? '<span class="tag">🏠</span>' : canAdopt(c) ? '<span class="tag" style="background:var(--lemon2)">🏠 ' + tr('Adopt') + '!</span>' : '') + '</div>' +
+    '<div class="sub"><b style="color:' + RARITY[B.r].c + '">' + L(B) + '</b> · ' + PERSONALITIES[c.t].e + ' ' + L(PERSONALITIES[c.t]) + ' · ' + where + '</div>' +
+    '<div class="sub">' + ('❤️'.repeat(hearts(c)) || '🤍') + (c.here ? ' · 🐟 ' + Math.round(c.m.food) + '% · 😊 ' + Math.round(c.m.fun) + '%' : '') + time + '</div></div><span style="font-size:22px">›</span></div>';
+}
+function bookHtml(){
+  const n = BREED_IDS.filter(k => S.book[k]).length;
+  let h = '<h2>📖 ' + tr('Cat book') + ' <span class="muted">' + n + '/' + BREED_IDS.length + '</span></h2><div class="grid">';
+  BREED_IDS.forEach(k => {
+    const B = BREEDS[k], got = S.book[k];
+    let hint = '';
+    if(!got){
+      if(B.paid) hint = '🌙 ' + tr('Starry Night pack');
+      else if(B.season) hint = SEASONS[B.season].e + ' ' + L(SEASONS[B.season]);
+      else if(B.need) hint = ITEMS[B.need].e + ' ' + tr('Needs:') + ' ' + L(ITEMS[B.need]) + (S.items[B.need] ? ' ✔' : '');
+      else hint = L(RARITY[B.r]);
+    }
+    h += '<div class="tile ' + (got ? 'r' + B.r : 'lock') + '"' + (got && B.r === 4 ? ' style="color:#fff"' : '') + '>' + catSVG(k, {halo: !!got}) + (got ? L(B) : '???') + '<div class="' + (got && B.r === 4 ? '' : 'muted') + '" style="font-size:.85em">' + (got ? '<span style="color:' + (B.r === 4 ? '#ffd54a' : RARITY[B.r].c) + '">' + L(RARITY[B.r]) + '</span>' : hint) + '</div></div>';
+  });
+  h += '</div><p class="muted">💡 ' + tr('A cozier café calls rarer cats.') + ' ✨ ' + tr('Coziness') + ': <b>' + coziness() + '</b></p>';
+  return h;
+}
+/* one cat, up close */
+function openCat(id){
+  const c = catById(id); if(!c) return;
+  sfx('tap');
+  const B = BREEDS[c.b], Pe = PERSONALITIES[c.t], nh = nextHeartAt(c);
+  let h = '<div class="center">' + catSVG(c.b, {size: 190, collar: c.res, halo: true}) + '</div>';
+  h += '<div class="center" style="font-size:1.3em;font-weight:900">' + esc(c.n) + ' <button class="btn ghost sm" id="ctRen">✏️</button></div>';
+  h += '<p class="center"><b style="color:' + RARITY[B.r].c + '">' + L(B) + ' · ' + L(RARITY[B.r]) + '</b>' + (c.res ? ' <span class="tag">🏠 ' + tr('Resident') + '</span>' : '') + '</p>';
+  h += '<div class="card" style="display:block"><div><b>' + Pe.e + ' ' + L(Pe) + '</b> — ' + L(Pe.d) + '</div><div style="margin-top:6px">' + tr('Favorite spot:') + ' <b>' + SPOTS[c.fav].e + ' ' + L(SPOTS[c.fav]) + '</b>' + (inFav(c) ? ' 😻' : '') + '</div>' +
+    '<div style="margin-top:6px">' + tr('Friendship') + ': ' + heartsHtml(c) + (nh ? ' <span class="muted">(' + Math.floor(c.f) + '/' + nh + ')</span>' : '') + '</div>' +
+    (c.here ? moodBars(c) + '<div class="muted" style="margin-top:6px">' + CN + ' ' + fmt(catRate(c) * 60) + ' / ' + tr('min') + ' · ' + ROOM(c.here.r).e + ' ' + L(ROOM(c.here.r)) + (c.res ? '' : ' · ⏳ ' + tr('Stays {t} more', {t: fmtTime((c.here.until - now()) / 1000)})) + '</div>'
+            : '<div class="muted" style="margin-top:6px">💭 ' + tr('Went home. It may come back to visit!') + ' · ' + tr('Visits') + ': ' + c.visits + '</div>') + '</div>';
+  if(c.here){
+    if(canAdopt(c)) h += '<button class="btn wide gold" id="ctAdopt">🏠 ' + tr('Adopt (free)') + '</button>';
+    else if(!c.res) h += '<p class="muted center">🏠 ' + tr('Reach {n} ❤️ to adopt this cat.', {n: CONFIG.ADOPT_HEARTS}) + '</p>';
+    h += '<div class="row" style="gap:6px"><button class="btn mint" id="ctFeed" style="flex:1">🐟 ' + tr('Feed') + '</button><button class="btn mint" id="ctToy" style="flex:1">🧶 ' + tr('Play') + '</button></div>';
+    h += '<div class="row" style="gap:6px;margin-top:8px"><button class="btn ghost" id="ctGo" style="flex:1">👀 ' + tr('See') + '</button><button class="btn ghost" id="ctAv" style="flex:1">🖼️ ' + tr('Profile picture') + '</button></div>';
+    if(c.res) h += '<button class="btn wide ghost" id="ctBye" style="color:var(--bad)">👋 ' + tr('Let it go visiting again') + '</button>';
+  }
+  openModal('', h);
+  $('ctRen').onclick = () => renameCat(c);
+  if($('ctAdopt')) $('ctAdopt').onclick = () => { closeModal(); adoptCat(c); if(curView === 'Cats') renderCatsView(); };
+  if($('ctFeed')) $('ctFeed').onclick = () => openFeed(c);
+  if($('ctToy')) $('ctToy').onclick = () => { if(c.here.r !== S.cur) goRoom(c.here.r); showView('Cafe'); sel = c.id; setTimeout(() => openToy(c), 100); };
+  if($('ctGo')) $('ctGo').onclick = () => { closeModal(); if(c.here.r !== S.cur) goRoom(c.here.r); sel = c.id; showView('Cafe'); };
+  if($('ctAv')) $('ctAv').onclick = () => { S.avatar = c.id; saveNow(); refreshTop(); toast('🖼️ ' + tr('New profile picture!')); };
+  if($('ctBye')) $('ctBye').onclick = () => confirmBox('👋 ' + esc(c.n), tr('{n} will free its spot and become a visitor again. It still loves you!', {n: esc(c.n)}), tr('OK'), () => {
+    c.res = false; c.here.until = now(); leave(c); saveNow(); if(curView === 'Cats') renderCatsView(); });
+}
+function renameCat(c){
+  openModal(tr('New name'), '<input id="rnIn" maxlength="14" value="' + esc(c.n) + '" style="width:100%;padding:12px;border-radius:12px;border:2px solid #eddccd;font-size:18px"><button class="btn wide" id="rnOk">' + tr('Save') + '</button>');
+  $('rnOk').onclick = () => { const v = $('rnIn').value.trim(); if(v) c.n = v.slice(0, 14); closeModal(); saveNow(); renderCare(); if(curView === 'Cats') renderCatsView(); };
+}
+
+/* ---------- SHOP tab ---------- */
+let shopTab = 'spots';
+function priceBtn(attr, cur, price, extra){ return '<button class="btn ' + (cur === 'g' ? 'lav' : 'gold') + ' sm" ' + attr + (extra || '') + '>' + fmt(price) + ' ' + (cur === 'g' ? GM : CN) + '</button>'; }
+function renderShop(){
+  let h = '<div class="tabs">' + [['spots', '🛋️ ' + tr('Spots')], ['menu', '☕ ' + tr('Menu')], ['treats', '🐟 ' + tr('Treats & toys')], ['decor', '🎨 ' + tr('Decor')], ['rooms', '🚪 ' + tr('Rooms')], ['paid', '🛍️ ' + tr('Goodies')]]
+    .map(([k, n]) => '<button data-t="' + k + '" class="' + (shopTab === k ? 'on' : '') + '">' + n + '</button>').join('') + '</div>';
+  const card = (art, name, sub, btn) => '<div class="card"><div class="art">' + art + '</div><div class="info"><div class="nm">' + name + '</div><div class="sub">' + sub + '</div></div>' + btn + '</div>';
+  const owned = '<span class="tag" style="background:var(--mint)">✔ ' + tr('Owned') + '</span>';
+  if(shopTab === 'spots'){
+    if(S.queue.length) h += '<div class="card" style="background:var(--lemon)"><div class="art">🚪</div><div class="info nm">' + tr('A cat is waiting at the door! Buy a new spot in the Shop.') + '</div></div>';
+    h += '<p class="muted">' + tr('More spots = more cats = more customers. Cats who love that kind of spot earn +25%.') + '</p>';
+    S.open.forEach(r => {
+      const R = ROOM(r), n = slotsOwned(r), full = n >= R.slots.length;
+      const next = full ? null : R.slots[n];
+      h += card(R.e, L(R) + ' <span class="tag">🐱 ' + n + '/' + R.slots.length + '</span>', full ? tr('All spots bought!') : tr('Next:') + ' ' + SPOTS[next.k].e + ' ' + L(SPOTS[next.k]), full ? '<span class="tag">MAX</span>' : priceBtn('data-spot="' + r + '"', 'c', spotCost(r)));
+    });
+    h += '<h3>✨ ' + tr('Special items') + '</h3><p class="muted">' + tr('Some cats only come if you have their favorite thing. Each item: +5% coins.') + '</p>';
+    ITEM_IDS.forEach(k => { const I = ITEMS[k], B = BREEDS[I.for];
+      h += card('<div style="width:56px;height:52px;display:grid;place-items:center">' + itemSVG(k).replace('<svg ', '<svg style="max-width:52px;max-height:50px" ') + '</div>', I.e + ' ' + L(I), tr('Calls the {b}', {b: '<b style="color:' + RARITY[B.r].c + '">' + L(B) + '</b>'}) + ' · +5% ' + CN, S.items[k] ? owned : priceBtn('data-item="' + k + '"', I.g ? 'g' : 'c', I.g || Math.round(I.p))); });
+  }
+  if(shopTab === 'menu'){
+    h += '<p class="muted">' + tr('A better menu makes every customer pay more.') + ' · ' + CN + ' ×' + menuMult().toFixed(2) + '</p>';
+    MENU_IDS.forEach(k => { const M = MENU[k], lv = S.menu[k];
+      let btn;
+      if(!menuOpen(k)) btn = '<button class="btn ghost sm" disabled>🔒 ' + tr('Lv') + ' ' + M.lvl + '</button>';
+      else if(lv >= MENU_MAX) btn = '<span class="tag">MAX</span>';
+      else btn = priceBtn('data-menu="' + k + '"', 'c', menuCost(k));
+      h += card(M.e, L(M) + ' <span class="tag">' + tr('Lv') + ' ' + lv + '</span>', '+' + Math.round(M.bonus * 100) + '% ' + CN + ' ' + tr('per level'), btn); });
+    h += '<h3>⬆️ ' + tr('Upgrades') + '</h3>';
+    h += card('🫙', tr('Tip jar') + ' <span class="tag">' + S.up.jar + '/4</span>', tr('Keep earning longer while away') + ' (' + offlineCapH() + 'h)', S.up.jar >= 4 ? '<span class="tag">MAX</span>' : priceBtn('id="upJar"', 'c', jarCost()));
+    h += card('🚪', tr('Cat flap') + ' <span class="tag">' + S.up.flap + '/5</span>', tr('Cats walk in more often'), S.up.flap >= 5 ? '<span class="tag">MAX</span>' : priceBtn('id="upFlap"', 'c', flapCost()));
+  }
+  if(shopTab === 'treats'){
+    h += '<h3>🐟 ' + tr('Treats') + ' <span class="muted">(' + tr('pack of 5') + ')</span></h3>';
+    FOOD_IDS.forEach(k => { const F = FOODS[k]; h += card(F.e, L(F) + ' <span class="muted">× ' + S.inv[k] + '</span>', '🐟 +' + F.food + (F.fun ? ' · 😊 +' + F.fun : '') + ' · 💗 +' + F.fr_, priceBtn('data-food="' + k + '"', 'c', foodPrice(k) * 5)); });
+    h += '<h3>🧶 ' + tr('Toys') + '</h3>';
+    TOY_IDS.forEach(k => { const T = TOYS[k]; h += card(T.e, L(T), '😊 +' + T.fun + ' · 💗 +' + T.fr_, S.toys[k] ? owned : priceBtn('data-toy="' + k + '"', 'c', toyPrice(k))); });
+  }
+  if(shopTab === 'decor'){
+    h += '<p class="muted">' + tr('Each theme you own gives coins forever. Pick the look you like in More.') + '</p>';
+    THEME_IDS.forEach(k => { const T = THEMES[k], own = S.themes[k];
+      const sw = '<div style="width:52px;height:52px;border-radius:12px;overflow:hidden;display:flex;flex-direction:column"><div style="flex:1;background:' + T.wall + '"></div><div style="height:6px;background:' + T.trim + '"></div><div style="flex:1;background:' + T.floor + '"></div></div>';
+      let btn = own ? (S.theme === k ? '<span class="tag" style="background:var(--pink)">' + tr('In use') + '</span>' : '<button class="btn mint sm" data-use="' + k + '">' + tr('Use') + '</button>')
+        : T.paid ? '<button class="btn lav sm" data-pack="1">🛍️ ' + tr('Pack') + '</button>' : priceBtn('data-theme="' + k + '"', T.g ? 'g' : 'c', T.g || T.p);
+      h += card(sw, T.e + ' ' + L(T), T.bonus ? '+' + Math.round(T.bonus * 100) + '% ' + CN + ' ' + tr('forever') : tr('Your first café look'), btn); });
+  }
+  if(shopTab === 'rooms'){
+    ROOMS.forEach((R, i) => {
+      const open = S.open.includes(R.id);
+      let btn;
+      if(open) btn = S.cur === R.id ? '<span class="tag">' + tr('You are here') + '</span>' : '<button class="btn mint sm" data-go="' + R.id + '">' + tr('Go') + '</button>';
+      else if(S.open.length < i) btn = '<span class="tag">🔒</span>';
+      else if(S.lv < R.lvl) btn = '<button class="btn ghost sm" disabled>🔒 ' + tr('Lv') + ' ' + R.lvl + '</button>';
+      else btn = priceBtn('data-room="' + i + '"', 'c', R.cost);
+      const d = [tr('Your cozy café. Coffee, cakes and cats.'), tr('Sunny garden with flowers. Cats earn x3 here.'), tr('Tall cat trees and high shelves. Cats earn x9 here.')][i];
+      h += card(R.e, L(R) + ' <span class="tag">🐱 ' + R.slots.length + '</span>', d, btn);
+    });
+  }
+  if(shopTab === 'paid') h += paidShopHtml();
+  $('iShop').innerHTML = h;
+  const I = $('iShop');
+  I.querySelectorAll('.tabs [data-t]').forEach(b => b.onclick = () => { sfx('tap'); shopTab = b.dataset.t; renderShop(); });
+  const bought = () => { sfx('coin'); addXP(3); bgKey = ''; saveNow(); renderShop(); refreshTop(); tutEvent('buy'); };
+  I.querySelectorAll('[data-spot]').forEach(b => b.onclick = () => { const r = b.dataset.spot; if(pay('c', spotCost(r))){ S.rooms[r].spots++; spotBought(); renderShop(); } });
+  I.querySelectorAll('[data-item]').forEach(b => b.onclick = () => { const k = b.dataset.item, it = ITEMS[k]; if(pay(it.g ? 'g' : 'c', it.g || it.p)){ S.items[k] = 1; toast(it.e + ' ' + L(it) + '! ' + tr('A special cat may visit...'), 'gold'); addXP(10); bought(); } });
+  I.querySelectorAll('[data-menu]').forEach(b => b.onclick = () => { const k = b.dataset.menu; if(pay('c', menuCost(k))){ S.menu[k]++; toast(MENU[k].e + ' ' + L(MENU[k]) + ' ' + tr('Lv') + ' ' + S.menu[k]); bought(); } });
+  if($('upJar')) $('upJar').onclick = () => { if(pay('c', jarCost())){ S.up.jar++; toast('🫙 ' + offlineCapH() + 'h'); bought(); } };
+  if($('upFlap')) $('upFlap').onclick = () => { if(pay('c', flapCost())){ S.up.flap++; toast('🚪 ' + tr('Cats walk in more often')); bought(); } };
+  I.querySelectorAll('[data-food]').forEach(b => b.onclick = () => { const k = b.dataset.food; if(pay('c', foodPrice(k) * 5)){ S.inv[k] += 5; toast('+5 ' + FOODS[k].e); bought(); } });
+  I.querySelectorAll('[data-toy]').forEach(b => b.onclick = () => { const k = b.dataset.toy; if(pay('c', toyPrice(k))){ S.toys[k] = 1; toast(TOYS[k].e + ' ' + L(TOYS[k]) + '!'); bought(); } });
+  I.querySelectorAll('[data-theme]').forEach(b => b.onclick = () => { const k = b.dataset.theme, T = THEMES[k]; if(pay(T.g ? 'g' : 'c', T.g || T.p)){ S.themes[k] = 1; S.theme = k; toast(T.e + ' ' + L(T) + '!', 'gold'); addXP(10); bought(); } });
+  I.querySelectorAll('[data-use]').forEach(b => b.onclick = () => { S.theme = b.dataset.use; bgKey = ''; saveNow(); sfx('chime'); renderShop(); });
+  I.querySelectorAll('[data-pack]').forEach(b => b.onclick = () => { shopTab = 'paid'; renderShop(); });
+  I.querySelectorAll('[data-room]').forEach(b => b.onclick = () => openRoom(+b.dataset.room));
+  I.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { goRoom(b.dataset.go); showView('Cafe'); });
+  if(shopTab === 'paid') bindPaidShop();
+}
+function openRoom(i){
+  const R = ROOMS[i];
+  if(!canOpenRoom(i) || !pay('c', R.cost)) return;
+  S.open.push(R.id); S.rooms[R.id] = {spots: R.start}; addXP(30); sfx('new');
+  saveNow();
+  showReward(R.e, tr('{a} is open!', {a: L(R)}), tr('Cats will start visiting soon. Buy more spots to fill it up!'), () => { goRoom(R.id); showView('Cafe'); setTimeout(() => arrive('daily'), 1500); });
+}
+
+/* ---------- daily gift ---------- */
+function openGift(){
+  const t = now(), today = dayNum(t), ready = S.daily.last !== today;
+  const streak = ready ? (S.daily.last === today - 1 ? S.daily.streak + 1 : 1) : S.daily.streak;
+  const day = ((streak - 1) % 7 + 7) % 7, Gd = GIFT_DAYS[day];
+  const pr = Math.round(Math.max(150, incomeFloor() * 60 * Gd.p));
+  let h = '<div class="row" style="justify-content:center;gap:4px;flex-wrap:wrap;margin-bottom:8px">';
+  GIFT_DAYS.forEach((g, i) => h += '<span class="tag" style="font-size:.9em;padding:5px 8px;' + (i === day ? 'background:var(--pink2);color:#fff' : i < day ? 'background:var(--mint)' : '') + '">' + tr('Day') + ' ' + (i + 1) + (g.g ? ' 💎' : '') + '</span>');
+  h += '</div><div class="reward"><div class="big">🎁</div><div class="amt">+' + fmt(pr) + ' ' + CN + (Gd.g ? ' +' + Gd.g + ' ' + GM : '') + FOOD_IDS.filter(k => Gd[k]).map(k => ' +' + Gd[k] + ' ' + FOODS[k].e).join('') + '</div>';
+  h += '<p class="muted">🔥 ' + tr('Streak') + ': ' + streak + '<br>🐾 ' + tr('Plus a special daily cat visitor!') + '</p></div>';
+  h += ready ? '<button class="btn wide gold" id="gfGo">' + tr('Open my gift!') + '</button>' : '<p class="center"><b>' + tr('Come back tomorrow for the next gift!') + '</b></p>';
+  openModal('🎁 ' + tr('Daily gift'), h);
+  if($('gfGo')) $('gfGo').onclick = () => {
+    S.daily = {streak, last: today}; addC(pr); if(Gd.g) addG(Gd.g); FOOD_IDS.forEach(k => { if(Gd[k]) S.inv[k] += Gd[k]; });
+    sfx('win'); closeModal(); toast('🎁 +' + fmt(pr) + ' ' + CN, 'gold'); saveNow(); renderSide(); refreshTop();
+    if(S.dvDay !== today){ S.dvDay = today; setTimeout(() => { const c = arrive('daily'); if(c) toast('🌟 ' + tr('Today’s special visitor: {n}!', {n: esc(c.n)}), 'gold'); }, 1200); }
+  };
+}
+
+/* ---------- boosts + free rewards (all optional ads) ---------- */
+function openBoosts(){
+  sfx('tap');
+  const t = now(), left = Math.max(0, S.ad2x - t), maxMs = CONFIG.AD_2X_MAX_H * 3600000, up = cheapestUpgrade();
+  let h = '<div class="card"><div class="art">⚡</div><div class="info"><div class="nm">2× ' + tr('coins') + '</div><div class="sub">' + (left ? tr('Active') + ': ' + fmtTime(left / 1000) : tr('+30 min each time, up to 4 h')) + '</div></div><button class="btn mint sm" id="bxAd"' + (left + CONFIG.AD_2X_MIN * 60000 > maxMs ? ' disabled' : '') + '>' + adIcon() + ' +30m</button></div>';
+  h += '<div class="card"><div class="art">🌟</div><div class="info"><div class="nm">' + tr('Call a rare cat') + '</div><div class="sub">' + (anyFree() ? tr('A rare cat walks in right now!') : tr('Needs a free spot')) + '</div></div><button class="btn mint sm" id="bxRare"' + (anyFree() ? '' : ' disabled') + '>' + adIcon() + ' ' + tr('Call') + '</button></div>';
+  h += '<div class="card"><div class="art">🎀</div><div class="info"><div class="nm">' + tr('Free upgrade') + '</div><div class="sub">' + (up ? up.n : tr('Nothing to upgrade')) + '</div></div><button class="btn mint sm" id="bxUp"' + (up ? '' : ' disabled') + '>' + adIcon() + ' ' + tr('Get') + '</button></div>';
+  h += '<div class="card"><div class="art">🎟️</div><div class="info"><div class="nm">' + tr('Tickets') + ' ' + S.tickets + '/' + CONFIG.TICKETS_MAX + '</div><div class="sub">' + tr('For mini games') + '</div></div><button class="btn mint sm" id="bxTk">' + adIcon() + ' +' + CONFIG.AD_TICKETS + '</button></div>';
+  h += '<p class="muted center">' + CN + ' ' + fmt(incomePerSec()) + '/s · ' + tr('Ads are always your choice.') + '</p>';
+  if(!S.noAds) h += '<button class="btn wide lav" id="bxNo">🌙 ' + tr('Starry Night pack: no ads needed') + '</button>';
+  openModal('⚡ ' + tr('Boosts & free rewards'), h);
+  $('bxAd').onclick = async () => { closeModal(); if(await rewardAd()){ S.ad2x = Math.min(now() + maxMs, Math.max(now(), S.ad2x) + CONFIG.AD_2X_MIN * 60000); toast('⚡ 2× ' + tr('coins') + '!', 'gold'); refreshTop(); renderSide(); saveNow(); } };
+  $('bxRare').onclick = async () => { closeModal(); if(await rewardAd()){ const c = arrive('rare'); if(c) toast('🌟 ' + tr('{n} came in!', {n: esc(c.n)}), 'gold'); saveNow(); } };
+  $('bxUp').onclick = async () => { closeModal(); if(await rewardAd()){ const u = cheapestUpgrade(); if(u){ u.go(); bgKey = ''; sfx('coin'); toast('🎀 ' + u.n, 'gold'); saveNow(); renderCafe(); refreshTop(); } } };
+  $('bxTk').onclick = async () => { closeModal(); if(await rewardAd()){ S.tickets += CONFIG.AD_TICKETS; saveNow(); toast('+' + CONFIG.AD_TICKETS + ' 🎟️', 'gold'); } };
+  if($('bxNo')) $('bxNo').onclick = () => { closeModal(); shopTab = 'paid'; showView('Shop'); };
+}
+
+/* ---------- MORE tab: profile, settings, help ---------- */
+function renderMore(){
+  const av = S.avatar && catById(S.avatar);
+  let h = '<div class="center">' + catSVG(av ? av.b : 'mocha', {size: 140, collar: av && av.res, halo: true}) + '<div style="font-size:1.4em;font-weight:900">' + esc(S.name || tr('Café Keeper')) + ' <button class="btn ghost sm" id="pfName">✏️</button></div>' +
+    '<div class="tag" style="font-size:.95em;margin-top:4px">⭐ ' + tr('Level') + ' ' + S.lv + ' · ' + L(titleOf(S.lv)) + '</div><p class="muted">' + tr('Pick your profile picture from any cat.') + '</p></div>';
+  const st = S.stats;
+  const rows = [[CN, tr('Coins earned'), fmt(st.coins)], [GM, tr('Fish gems found'), st.gems], ['🐾', tr('Cat visits'), st.visits], ['🏠', tr('Residents'), residents().length], ['📖', tr('Cats in book'), BREED_IDS.filter(k => S.book[k]).length + '/' + BREED_IDS.length],
+    ['🤲', tr('Pets'), st.pets], ['🐟', tr('Treats given'), st.feeds], ['🎮', tr('Games played'), st.games], ['🔥', tr('Streak'), S.daily.streak], ['✨', tr('Coziness'), coziness()], ['⏱️', tr('Time played'), fmtTime(st.play)], [CN, tr('Per second'), fmt(incomePerSec())]];
+  h += '<h3>📊 ' + tr('Stats') + '</h3><div class="card" style="display:block">' + rows.map(r => '<div class="row" style="justify-content:space-between;padding:4px 0"><span>' + r[0] + ' ' + r[1] + '</span><b>' + r[2] + '</b></div>').join('') + '</div>';
+  h += '<h3>⚙️ ' + tr('Settings') + '</h3>';
+  const tg = (id, on, e, n) => '<div class="card"><div class="art">' + e + '</div><div class="info nm">' + n + '</div><button class="btn sm ' + (on ? 'mint' : 'ghost') + '" id="' + id + '">' + (on ? tr('On') : tr('Off')) + '</button></div>';
+  h += tg('stSnd', S.snd, '🔊', tr('Sounds')) + tg('stMus', S.mus, '🎵', tr('Music')) + tg('stEasy', S.easy, '🔤', tr('Easy-read font'));
+  h += '<div class="card"><div class="art">🌐</div><div class="info nm">' + tr('Language') + '</div><div class="seg"><button id="lgEn" class="' + (S.lang === 'en' ? 'on' : '') + '">English</button><button id="lgFr" class="' + (S.lang === 'fr' ? 'on' : '') + '">Français</button></div></div>';
+  h += '<div class="card"><div class="art">🔠</div><div class="info nm">' + tr('Text size') + '</div><div class="seg">' + [[0.9, 'A'], [1, 'A+'], [1.15, 'A++']].map(([v, n]) => '<button data-fs="' + v + '" class="' + (S.fsz === v ? 'on' : '') + '">' + n + '</button>').join('') + '</div></div>';
+  const ownT = THEME_IDS.filter(k => S.themes[k]);
+  if(ownT.length > 1) h += '<div class="card" style="display:block"><div class="nm" style="margin-bottom:6px">🎨 ' + tr('Café look') + '</div><div class="seg" style="flex-wrap:wrap">' + ownT.map(k => '<button data-th="' + k + '" class="' + (S.theme === k ? 'on' : '') + '">' + THEMES[k].e + ' ' + L(THEMES[k]) + '</button>').join('') + '</div></div>';
+  h += '<h3>❓ ' + tr('How to play') + '</h3><div class="card" style="display:block;line-height:1.6">' +
+    ['🐾 ' + tr('Cats walk in by themselves and pick a spot.'), CN + ' ' + tr('Customers pay while cats are in the café, even while the app is closed.'), '💗 ' + tr('Tap a cat to pet it. Feed it and play with it.'),
+     '🏠 ' + tr('At 5 ❤️ you can adopt a cat. Residents stay forever!'), '🛋️ ' + tr('Buy more spots, menu and decor so more (and rarer) cats come.'), '📖 ' + tr('Fill your Cat book!')].map(s => '<div>' + s + '</div>').join('') + '</div>';
+  h += '<button class="btn wide ghost" id="stTut">🧭 ' + tr('Replay tutorial') + '</button>';
+  h += '<button class="btn wide ghost" id="stRestore">💳 ' + tr('Restore purchases') + '</button>';
+  h += '<button class="btn wide ghost" id="stReset" style="color:var(--bad)">🗑️ ' + tr('Reset game') + '</button>';
+  h += '<p class="muted center">' + tr('No account. Everything is saved on this phone.') + '<br>Kitty Café v1.0 · MOS Arcade</p>';
+  $('iMore').innerHTML = h;
+  $('pfName').onclick = () => { openModal(tr('Your name'), '<input id="pnIn" maxlength="16" value="' + esc(S.name) + '" style="width:100%;padding:12px;border-radius:12px;border:2px solid #eddccd;font-size:18px"><button class="btn wide" id="pnOk">' + tr('Save') + '</button>');
+    $('pnOk').onclick = () => { S.name = $('pnIn').value.trim().slice(0, 16); closeModal(); renderMore(); saveNow(); }; };
+  $('stSnd').onclick = () => { S.snd = !S.snd; renderMore(); refreshTop(); saveNow(); sfx('tap'); };
+  $('stMus').onclick = () => { S.mus = !S.mus; if(S.mus) audioUnlock(); else musicStop(); renderMore(); refreshTop(); saveNow(); };
+  $('stEasy').onclick = () => { S.easy = !S.easy; applySettings(); renderMore(); saveNow(); };
+  $('lgEn').onclick = () => { S.lang = 'en'; applySettings(); renderAll(); saveNow(); };
+  $('lgFr').onclick = () => { S.lang = 'fr'; applySettings(); renderAll(); saveNow(); };
+  $('iMore').querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { S.fsz = +b.dataset.fs; applySettings(); renderMore(); saveNow(); });
+  $('iMore').querySelectorAll('[data-th]').forEach(b => b.onclick = () => { S.theme = b.dataset.th; bgKey = ''; sfx('chime'); saveNow(); renderMore(); });
+  $('stTut').onclick = () => { S.tut = 1; showView('Cafe'); tutShow(); };
+  $('stRestore').onclick = restorePurchases;
+  $('stReset').onclick = () => confirmBox('🗑️ ' + tr('Reset game?'), tr('This deletes ALL your progress. It cannot be undone.'), tr('Yes, reset'), () =>
+    confirmBox('⚠️ ' + tr('Are you really sure?'), tr('Last chance! Everything will be gone.'), tr('Reset everything'), () => {
+      try{ localStorage.removeItem(SAVE_KEY); }catch(e){} S = null; location.reload(); }));
+}
+function applySettings(){
+  document.body.classList.toggle('easy', !!S.easy);
+  document.documentElement.style.setProperty('--fs', S.fsz || 1);
+  document.documentElement.lang = S.lang;
+}
+function renderAll(){ renderNav(); refreshTop(); showView(curView); }
+
+/* =====================================================================
+   10. MINI GAMES — Laser Chase, Treat Catch
+   Each game: intro → loop (update + draw) → gameOver(score)
+===================================================================== */
+const GAMES = [
+  {id:'laser', e:'🔴', en:'Laser Chase', fr:'Chasse au laser', d:{en:'Move the laser! Lead your cat to the stars. Watch out for cucumbers!', fr:'Bouge le laser! Guide ton chat vers les étoiles. Attention aux concombres!'}},
+  {id:'catch', e:'🐟', en:'Treat Catch', fr:'Attrape les gâteries', d:{en:'Slide to catch the falling treats. Dodge the water drops!', fr:'Glisse pour attraper les gâteries qui tombent. Évite les gouttes d’eau!'}},
+];
+function renderGames(){
+  const t = now(), next = S.tickets < CONFIG.TICKETS_MAX ? fmtTime((S.tkT + CONFIG.TICKET_MIN * 60000 - t) / 1000) : '';
+  let h = '<div class="card"><div class="art">🎟️</div><div class="info"><div class="nm">' + tr('Tickets') + ': ' + S.tickets + '/' + CONFIG.TICKETS_MAX + '</div><div class="sub">' + (next ? tr('+1 in') + ' ' + next : tr('Full!')) + '</div></div>' +
+    '<button class="btn mint sm" id="tkAd">' + adIcon() + ' +' + CONFIG.AD_TICKETS + '</button></div>';
+  GAMES.forEach(g => {
+    h += '<div class="card"><div class="art" style="font-size:36px">' + g.e + '</div><div class="info"><div class="nm">' + L(g) + '</div><div class="sub">' + L(g.d) + '</div><div class="sub">🏆 ' + tr('Best') + ': ' + (S.stats.best[g.id] || 0) + '</div></div>' +
+      '<button class="btn sm" data-g="' + g.id + '"' + (S.tickets < 1 ? ' disabled' : '') + '>▶ ' + tr('Play') + '</button></div>';
+  });
+  $('iGames').innerHTML = '<h2>🎮 ' + tr('Mini games') + '</h2>' + h;
+  $('iGames').querySelectorAll('[data-g]').forEach(b => b.onclick = () => startGame(b.dataset.g, true));
+  $('tkAd').onclick = async () => { if(await rewardAd()){ S.tickets += CONFIG.AD_TICKETS; saveNow(); toast('+' + CONFIG.AD_TICKETS + ' 🎟️', 'gold'); renderGames(); } };
+}
+
+let G = null;   // the running game
+const cv = () => $('gCanvas');
+function svgImg(svg){ const i = new Image(); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); return i; }
+function playerCat(){ return (S.avatar && catById(S.avatar)) || residents()[0] || present()[0] || {b: 'tabby'}; }
+function startGame(id, intro){
+  if(S.tickets < 1){ toast('🎟️ ' + tr('No tickets left. Watch an ad or wait.'), 'err'); sfx('err'); showView('Games'); return; }
+  audioUnlock();
+  $('game').classList.add('on'); $('gOver').classList.remove('on'); $('gHud').innerHTML = '';
+  const c = cv(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  c.width = innerWidth * dpr; c.height = innerHeight * dpr;
+  const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const pc = playerCat();
+  G = {id, ctx, W: innerWidth, H: innerHeight, t: 0, score: 0, shownScore: 0, shake: 0, parts: [], texts: [], over: false, started: false, last: performance.now(),
+    img: svgImg(catSVG(pc.b, {collar: pc.res})), imgScared: svgImg(catSVG(pc.b, {closed: true, collar: pc.res}))};
+  ({laser: laserInit, catch: catchInit})[id]();
+  const go = () => {
+    if(S.tickets < 1) return;
+    if(S.tickets >= CONFIG.TICKETS_MAX) S.tkT = now();
+    S.tickets--; S.stats.games++; saveNow();
+    $('gIntro').classList.remove('on'); G.started = true; G.last = performance.now();
+    tutEvent('game');
+  };
+  if(intro){
+    const g = GAMES.find(q => q.id === id);
+    $('gIntroBox').innerHTML = '<div style="font-size:56px">' + g.e + '</div><h2 style="margin:6px 0">' + L(g) + '</h2><p style="font-weight:800">' + L(g.d) + '</p>' +
+      '<button class="btn wide" id="giGo">▶ ' + tr('Start') + ' · 🎟️ 1</button><button class="btn wide ghost" id="giBack">' + tr('Back') + '</button>';
+    $('gIntro').classList.add('on');
+    $('giGo').onclick = go; $('giBack').onclick = closeGame;
+  } else go();
+  requestAnimationFrame(gameLoop);
+}
+function gameLoop(ts){
+  if(!G || G.over) return;
+  const dt = Math.min(0.05, (ts - G.last) / 1000); G.last = ts;
+  if(G.started){ G.t += dt; G.update(dt); }
+  G.shownScore += (G.score - G.shownScore) * Math.min(1, dt * 10);
+  const ctx = G.ctx; ctx.save();
+  if(G.shake > 0){ G.shake -= dt; ctx.translate(rnd(-6, 6) * G.shake * 3, rnd(-6, 6) * G.shake * 3); }
+  G.draw(ctx);
+  G.parts = G.parts.filter(p => (p.life -= dt) > 0);
+  G.parts.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); });
+  G.texts = G.texts.filter(q => (q.life -= dt) > 0);
+  G.texts.forEach(q => { q.y -= 40 * dt; ctx.globalAlpha = Math.min(1, q.life * 2); ctx.font = '900 ' + (q.size || 24) + 'px Nunito, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.strokeText(q.s, q.x, q.y); ctx.fillStyle = q.c || '#5b3d2c'; ctx.fillText(q.s, q.x, q.y); });
+  ctx.globalAlpha = 1; ctx.restore();
+  requestAnimationFrame(gameLoop);
+}
+function burst(x, y, c, n){ for(let i=0;i<(n || 10);i++){ const a = Math.random() * 7, s = rnd(60, 200); G.parts.push({x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 60, r: rnd(2, 5), c: c || '#fff', life: 0.7, max: 0.7}); } }
+function floatText(x, y, s, c, size){ G.texts.push({x, y, s, c, size, life: 0.9}); }
+/* the score bar: only the numbers change, the ✕ button stays put so it is easy to tap */
+function hud(html){
+  if(!$('gQuit')){
+    $('gHud').innerHTML = '<div id="gHudIn" style="display:flex;gap:6px;flex-wrap:wrap"></div><button class="pill" id="gQuit" style="padding:8px 14px">✕</button>';
+    $('gQuit').onclick = () => { if(!G) return; if(G.started) gameOver(true); else closeGame(); };
+  }
+  const box = $('gHudIn'); if(box._h !== html){ box._h = html; box.innerHTML = html; }
+}
+function emoji(ctx, e, x, y, size){ ctx.fillStyle = '#000'; ctx.font = size + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(e, x, y); }
+function coinDot(ctx, x, y, r){ const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r); g.addColorStop(0, '#fff6c4'); g.addColorStop(0.4, '#ffd54a'); g.addColorStop(1, '#d99a12'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.strokeStyle = '#c98200'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, r * 0.62, 0, 7); ctx.stroke(); }
+function floorBg(ctx){
+  const th = curTheme();
+  ctx.fillStyle = th.floor; ctx.fillRect(0, 0, G.W, G.H);
+  ctx.fillStyle = th.floor2;
+  for(let y = 0; y < G.H; y += 44){ ctx.fillRect(0, y, G.W, 2); for(let x = (y / 44 % 2) * 60; x < G.W; x += 120) ctx.fillRect(x, y, 2, 44); }
+  ctx.fillStyle = th.acc + '44'; ctx.beginPath(); ctx.ellipse(G.W / 2, G.H * 0.55, G.W * 0.42, G.H * 0.25, 0, 0, 7); ctx.fill();
+}
+function drawCat(ctx, x, y, w, face, sx, sy, scared){
+  const img = scared ? G.imgScared : G.img;
+  if(!img.complete) return;
+  ctx.save(); ctx.translate(x, y); ctx.scale((face || 1) * (sx || 1), sy || 1); ctx.drawImage(img, -w / 2, -w * 0.9, w, w * 0.9); ctx.restore();
+}
+
+/* ---------- LASER CHASE ---------- */
+function laserInit(){
+  Object.assign(G, {lx: G.W / 2, ly: G.H * 0.4, cx: G.W / 2, cy: G.H * 0.7, face: 1, stars: [], cukes: [], lives: 3, left: CONFIG.LASER_TIME, sS: 0.4, sC: 2.5, scared: 0, hop: 0});
+  const c = cv();
+  c.onpointerdown = c.onpointermove = e => { G.lx = clamp(e.clientX, 20, G.W - 20); G.ly = clamp(e.clientY, 90, G.H - 20); };
+  const near = (o, r) => Math.hypot(o.x - G.cx, o.y - (G.cy - 30)) < r;
+  G.update = dt => {
+    G.left -= dt; if(G.left <= 0){ G.left = 0; gameOver(); return; }
+    if(G.scared > 0) G.scared -= dt;
+    else {
+      const dx = G.lx - G.cx, dy = (G.ly + 30) - G.cy, d = Math.hypot(dx, dy), sp = CONFIG.LASER_SPEED + G.t * 4;
+      if(d > 6){ const m = Math.min(d, sp * dt); G.cx += dx / d * m; G.cy += dy / d * m; G.hop += dt * 14; }
+      if(Math.abs(dx) > 4) G.face = dx > 0 ? 1 : -1;
+    }
+    // spawn stars + cucumbers
+    G.sS -= dt; G.sC -= dt;
+    if(G.sS <= 0 && G.stars.length < 4){ G.sS = rnd(0.6, 1.2); G.stars.push({x: rnd(40, G.W - 40), y: rnd(120, G.H - 60), life: 6, k: Math.random() < 0.15 ? 'fish' : 'star'}); }
+    if(G.sC <= 0 && G.cukes.length < 2 + Math.floor(G.t / 10)){ G.sC = Math.max(1.4, 3.2 - G.t * 0.04); let p, tries = 0; do { p = {x: rnd(40, G.W - 40), y: rnd(130, G.H - 60), life: 7}; tries++; } while(tries < 10 && Math.hypot(p.x - G.cx, p.y - G.cy) < 140); G.cukes.push(p); }
+    G.stars = G.stars.filter(s => {
+      s.life -= dt;
+      if(near(s, 46)){ const v = s.k === 'fish' ? 3 : 1; G.score += v; sfx(s.k === 'fish' ? 'coin' : 'tap'); burst(s.x, s.y, s.k === 'fish' ? '#7fd0ff' : '#ffd54a', 12); floatText(s.x, s.y - 20, '+' + v); return false; }
+      return s.life > 0;
+    });
+    G.cukes = G.cukes.filter(k => {
+      k.life -= dt;
+      if(G.scared <= 0 && near(k, 40)){ G.lives--; G.scared = 0.9; G.shake = 0.35; sfx('hiss'); burst(k.x, k.y, '#7fcf6a', 14); floatText(G.cx, G.cy - 90, '😱'); if(G.lives <= 0) setTimeout(() => gameOver(), 400); return false; }
+      return k.life > 0;
+    });
+    hud('<span class="pill">⭐ ' + Math.round(G.shownScore) + '</span><span class="pill">' + '❤️'.repeat(Math.max(0, G.lives)) + '🤍'.repeat(Math.max(0, 3 - G.lives)) + '</span><span class="pill">⏱️ ' + Math.ceil(G.left) + '</span>');
+  };
+  G.draw = ctx => {
+    floorBg(ctx);
+    G.stars.forEach(s => { ctx.globalAlpha = s.life < 1 ? s.life : 1; const b = 1 + Math.sin(G.t * 6 + s.x) * 0.08; emoji(ctx, s.k === 'fish' ? '🐟' : '⭐', s.x, s.y, 34 * b); });
+    G.cukes.forEach(k => { ctx.globalAlpha = k.life < 1 ? k.life : 1; emoji(ctx, '🥒', k.x, k.y, 40); });
+    ctx.globalAlpha = 1;
+    // shadow + cat
+    ctx.fillStyle = '#00000022'; ctx.beginPath(); ctx.ellipse(G.cx, G.cy, 34, 9, 0, 0, 7); ctx.fill();
+    const jump = G.scared > 0 ? Math.sin((0.9 - G.scared) / 0.9 * Math.PI) * 50 : Math.abs(Math.sin(G.hop)) * 5;
+    drawCat(ctx, G.cx, G.cy - jump, 96, G.face, 1, 1, G.scared > 0);
+    // the laser dot
+    const r = 9 + Math.sin(G.t * 20) * 1.5, g = ctx.createRadialGradient(G.lx, G.ly, 0, G.lx, G.ly, r * 2.4);
+    g.addColorStop(0, '#ffffff'); g.addColorStop(0.3, '#ff3a4a'); g.addColorStop(1, 'rgba(255,40,60,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(G.lx, G.ly, r * 2.4, 0, 7); ctx.fill();
+  };
+  hud('<span class="pill">⭐ 0</span>');
+}
+
+/* ---------- TREAT CATCH ---------- */
+function catchInit(){
+  Object.assign(G, {x: G.W / 2, tx: G.W / 2, face: 1, items: [], spawn: 0, lives: 3, pop: 0, speed: CONFIG.CATCH_SPEED});
+  const c = cv();
+  c.onpointerdown = c.onpointermove = e => { G.tx = e.clientX; };
+  G.update = dt => {
+    const old = G.x; G.x += (G.tx - G.x) * Math.min(1, dt * 12);
+    if(Math.abs(G.x - old) > 0.5) G.face = G.x > old ? 1 : -1;
+    G.speed += CONFIG.CATCH_RAMP * dt;
+    G.spawn -= dt;
+    if(G.spawn <= 0){
+      G.spawn = Math.max(0.33, 0.95 - G.t * 0.012);
+      const r = Math.random();
+      G.items.push({x: rnd(30, G.W - 30), y: -30, k: r < 0.07 ? 'sushi' : r < 0.15 ? 'coin' : r < 0.36 + Math.min(0.18, G.t * 0.004) ? 'drop' : 'fish', vy: G.speed * rnd(0.85, 1.2), rot: rnd(-2, 2)});
+    }
+    const py = G.H - 130;
+    G.items = G.items.filter(it => {
+      it.y += it.vy * dt; it.rot += dt;
+      if(Math.abs(it.y - py) < 36 && Math.abs(it.x - G.x) < 50){
+        if(it.k === 'drop'){ G.lives--; G.shake = 0.35; sfx('hiss'); burst(it.x, it.y, '#7fc8ff', 12); if(G.lives <= 0) setTimeout(() => gameOver(), 300); }
+        else { const v = it.k === 'sushi' ? 3 : it.k === 'coin' ? 2 : 1; G.score += v; G.pop = 0.18; sfx(it.k === 'coin' ? 'coin' : 'tap'); burst(it.x, it.y, it.k === 'coin' ? '#ffd54a' : '#ff9fb6', 10); floatText(it.x, it.y - 20, '+' + v); }
+        return false;
+      }
+      return it.y < G.H + 40;
+    });
+    if(G.pop > 0) G.pop -= dt;
+    hud('<span class="pill">🐟 ' + Math.round(G.shownScore) + '</span><span class="pill">' + '❤️'.repeat(Math.max(0, G.lives)) + '🤍'.repeat(Math.max(0, 3 - G.lives)) + '</span>');
+  };
+  G.draw = ctx => {
+    const th = curTheme();
+    ctx.fillStyle = th.wall; ctx.fillRect(0, 0, G.W, G.H);
+    ctx.fillStyle = th.floor; ctx.fillRect(0, G.H - 70, G.W, 70);
+    ctx.fillStyle = th.trim; ctx.fillRect(0, G.H - 72, G.W, 4);
+    G.items.forEach(it => { ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(it.rot * 0.4);
+      if(it.k === 'coin'){ ctx.shadowColor = '#ffd54a'; ctx.shadowBlur = 12; coinDot(ctx, 0, 0, 15); } else emoji(ctx, it.k === 'drop' ? '💧' : it.k === 'sushi' ? '🍣' : '🐟', 0, 0, 40);
+      ctx.restore(); });
+    const s = 1 + (G.pop > 0 ? G.pop * 1.2 : 0);
+    drawCat(ctx, G.x, G.H - 64, 110, G.face, s, 2 - s);
+    emoji(ctx, '🥣', G.x, G.H - 60, 44);
+  };
+  hud('<span class="pill">🐟 0</span>');
+}
+
+/* ---------- game over + prizes ---------- */
+function gameOver(quit){
+  if(!G || G.over) return;
+  G.over = true;
+  const id = G.id, sc = G.score, inc = incomeFloor();
+  let p = sc * inc * ({laser: 8, catch: 6}[id]), gr = 0, best = false;
+  if(sc > (S.stats.best[id] || 0)){ S.stats.best[id] = sc; best = sc > 0; }
+  if(quit) p *= 0.5;
+  p = Math.round(Math.max(sc > 0 ? 25 : 0, p));
+  if(sc >= 8 && Math.random() < 0.18) gr = 1 + Math.floor(sc / 20);
+  addC(p); addG(gr); addXP(Math.min(25, 6 + Math.floor(sc / 2)));
+  const food = sc >= 10 ? pick(FOOD_IDS) : null; if(food) S.inv[food] += 2;
+  saveNow();
+  if(best) sfx('win');
+  const g = GAMES.find(q => q.id === id);
+  $('gOverBox').innerHTML = '<div style="font-size:50px">' + (best ? '🏆' : g.e) + '</div><h2 style="margin:6px 0">' + (best ? tr('New best!') : tr('Nice try!')) + '</h2>' +
+    '<div style="font-size:1.4em;font-weight:900">' + g.e + ' ' + sc + ' <span class="muted">· 🏆 ' + S.stats.best[id] + '</span></div>' +
+    '<div class="reward"><div class="amt">+' + fmt(p) + ' ' + CN + (gr ? ' +' + gr + ' ' + GM : '') + (food ? ' +2 ' + FOODS[food].e : '') + '</div></div>' +
+    '<button class="btn wide" id="goAgain"' + (S.tickets < 1 ? ' disabled' : '') + '>🔁 ' + tr('Play again') + ' · 🎟️ ' + S.tickets + '</button>' +
+    (S.tickets < 1 ? '<button class="btn wide mint" id="goTk">' + adIcon() + ' +' + CONFIG.AD_TICKETS + ' 🎟️</button>' : '') +
+    '<button class="btn wide ghost" id="goBack">' + tr('Back') + '</button>';
+  $('gOver').classList.add('on');
+  $('goAgain').onclick = () => startGame(id, false);
+  if($('goTk')) $('goTk').onclick = async () => { if(await rewardAd()){ S.tickets += CONFIG.AD_TICKETS; saveNow(); startGame(id, false); } };
+  $('goBack').onclick = closeGame;
+}
+function closeGame(){
+  G = null; $('game').classList.remove('on'); $('gIntro').classList.remove('on'); $('gOver').classList.remove('on');
+  const c = cv(); c.onpointerdown = c.onpointermove = null;
+  refreshTop(); if(curView === 'Games') renderGames(); else if(curView === 'Cafe') renderCafe();
+}
+
+/* =====================================================================
+   11. MONEY — rewarded ads (AdMob) + purchases (Google Play Billing)
+   ---------------------------------------------------------------------
+   FAKE FOR NOW: in a browser, ads are a 3-second pretend ad, and
+   purchases are pretend (a "Demo" box gives you the item).
+   Inside the Android app (Capacitor) with the plugins installed, the
+   real ones take over automatically:
+     • @capacitor-community/admob   → rewarded video ads
+     • cordova-plugin-purchase      → Google Play purchases
+   BEFORE RELEASE: put your real AdMob rewarded unit ID below,
+   set MONEY.TESTING to false, and set MONEY.DEMO_BUY to false.
+   Ads are ALWAYS the player's choice. Nothing plays on its own.
+===================================================================== */
+const MONEY = {
+  TESTING: true,
+  DEMO_BUY: true,   // browser only: pretend purchases give the item (for testing)
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917', // Google's TEST rewarded ID — replace with yours
+};
+const PACK = {sku: 'starry_pack', price: '$2.99', gems: 50};
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null;
+let adBusy = false;
+const adIcon = () => S && S.noAds ? '✨' : '▶️';
+
+/* the one function the game calls. Resolves true if the player earned the reward. */
+async function rewardAd(){
+  if(S.noAds){ toast('✨ ' + tr('Starry Night pack: reward given!'), 'gold'); return true; }
+  if(adBusy) return false;
+  adBusy = true;
+  musicStop();
+  let ok = false;
+  try{ ok = AdMobP() ? await nativeAd() : await demoAd(); }catch(e){ ok = false; }
+  adBusy = false;
+  if(S.mus) musicStart();
+  if(!ok) toast(tr('No reward this time'), 'err');
+  return ok;
+}
+function nativeAd(){
+  const A = AdMobP();
+  return new Promise(async res => {
+    let earned = false, finished = false, hs = [];
+    const finish = () => { if(finished) return; finished = true; hs.forEach(h => { try{ h.remove(); }catch(e){} }); res(earned); };
+    try{
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      await A.prepareRewardVideoAd({adId: MONEY.REWARDED_ID, isTesting: MONEY.TESTING});
+      const item = await A.showRewardVideoAd();
+      if(item && item.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    }catch(e){ finish(); }
+  });
+}
+/* browser preview: a 3-second pretend ad */
+function demoAd(){
+  return new Promise(res => {
+    let n = 3;
+    openModal('📺 ' + tr('Ad preview'), '<div class="reward"><div class="big">📺</div><p>' + tr('A real video ad plays here in the app.') + '</p><div class="amt" id="adCd">' + n + '</div>' +
+      '<button class="btn wide ghost" id="adSkip">' + tr('Close (no reward)') + '</button></div>', null, true);
+    const iv = setInterval(() => { n--; const el = $('adCd'); if(el) el.textContent = n; if(n <= 0){ clearInterval(iv); modalOnClose = null; closeModal(); res(true); } }, 1000);
+    $('adSkip').onclick = () => { clearInterval(iv); closeModal(); res(false); };
+  });
+}
+async function adsInit(){ const A = AdMobP(); if(!A) return; try{ await A.initialize({initializeForTesting: MONEY.TESTING}); }catch(e){} }
+
+/* ---------- what the pack gives ---------- */
+function grantSku(sku){
+  if(sku !== PACK.sku || S.pack) return '';
+  S.pack = true; S.noAds = true; addG(PACK.gems); S.themes.starry = 1; S.theme = 'starry'; bgKey = '';
+  const a = newCat('moon', {t: 'sleepy', fav: 'window', n: 'Luna', f: CONFIG.FRIEND_LEVELS[4]});
+  const b = newCat('star', {t: 'playful', fav: 'sunbeam', n: 'Twinkle', f: CONFIG.FRIEND_LEVELS[4]});
+  [a, b].forEach(c => { c.res = true; S.book[c.b] = S.book[c.b] || now(); if(!arrive('pack', now(), false, c)) S.queue.push('cat:' + c.id); });
+  return '🌙 ' + tr('Starry Night café theme') + '<br>' + catSVG('moon', {size: 110, collar: true}) + catSVG('star', {size: 110, collar: true}) + '<br>' + esc(a.n) + ' & ' + esc(b.n) + ' ' + tr('live here now!') +
+    '<br>+' + PACK.gems + ' ' + GM + '<br>✨ ' + tr('Ad rewards without ads');
+}
+const ALL_SKUS = () => [PACK.sku];
+const PRICES = {};   // filled with real local prices by Google Play
+const priceOf = (sku, fallback) => PRICES[sku] || fallback;
+
+/* ---------- Google Play ---------- */
+let iapReady = false;
+function iapStore(){ return window.CdvPurchase && CdvPurchase.store; }
+function iapInit(){
+  const C = window.CdvPurchase; if(!C || iapReady) return;
+  const {store, ProductType, Platform} = C; iapReady = true;
+  store.register(ALL_SKUS().map(id => ({id, type: ProductType.NON_CONSUMABLE, platform: Platform.GOOGLE_PLAY})));
+  store.when()
+    .productUpdated(p => { if(p.pricing && p.pricing.price) PRICES[p.id] = p.pricing.price; })
+    .approved(tx => {
+      if(!S.iapDone) S.iapDone = {};
+      const tid = tx.transactionId || ('t' + now());
+      if(!S.iapDone[tid]){
+        S.iapDone[tid] = now();
+        (tx.products || []).forEach(it => { const msg = grantSku(it.id); if(msg) queueModal(() => showReward('💝', tr('Thank you!'), msg)); });
+        saveNow(); refreshTop(); renderCafe();
+      }
+      tx.finish();
+    });
+  store.error(e => { if(e && e.code !== C.ErrorCode.PAYMENT_CANCELLED) toast(tr('Store error. Please try again.'), 'err'); });
+  store.initialize([Platform.GOOGLE_PLAY]);
+}
+document.addEventListener('deviceready', iapInit, false);
+function buy(sku, label, fallbackPrice){
+  sfx('tap');
+  const st = iapStore();
+  if(st){
+    const p = st.get(sku), offer = p && p.getOffer();
+    if(!offer){ toast(tr('Store is still loading. Try again in a moment.'), 'err'); return; }
+    offer.order(); return;
+  }
+  // browser: pretend purchase
+  openModal('💳 ' + label, '<div class="reward"><div class="big">🛍️</div><p><b>' + fallbackPrice + '</b></p><p class="muted">' + tr('Demo mode: real payments work in the Android app through Google Play.') + '</p></div>' +
+    (MONEY.DEMO_BUY ? '<button class="btn wide gold" id="dmBuy">' + tr('Demo: get it free') + '</button>' : '') + '<button class="btn wide ghost" id="dmNo">' + tr('Close') + '</button>');
+  if($('dmBuy')) $('dmBuy').onclick = () => { closeModal(); const msg = grantSku(sku); saveNow(); refreshTop(); if(curView === 'Shop') renderShop(); if(msg) showReward('💝', tr('Thank you!'), msg); };
+  $('dmNo').onclick = closeModal;
+}
+function restorePurchases(){
+  const st = iapStore();
+  if(st && st.restorePurchases){ st.restorePurchases(); toast(tr('Checking your purchases...')); }
+  else toast(tr('Restore works in the Android app.'));
+}
+function paidShopHtml(){
+  let h = '<div class="card" style="display:block;border:3px solid var(--lav2);text-align:center;background:linear-gradient(#fffdf9,#efe8ff)"><div style="font-size:1.3em;font-weight:900">🌙 ' + tr('Starry Night Café') + '</div>' +
+    '<div>' + catSVG('moon', {size: 120, halo: true, collar: true}) + catSVG('star', {size: 120, halo: true, collar: true}) + '</div>' +
+    '<div style="text-align:left;line-height:1.8;font-weight:800">🌌 ' + tr('Starry Night café theme (night sky + golden lights, +15% coins)') + '<br>🐱 ' + tr('2 exclusive Resident cats: Moon cat + Star cat') + '<br>' + GM + ' +' + PACK.gems + ' ' + tr('fish gems') + '<br>✨ ' + tr('Get every ad reward without watching ads') + '</div>' +
+    (S.pack ? '<span class="tag" style="background:var(--mint);font-size:1em;margin-top:8px">✔ ' + tr('Owned') + '</span>' : '<button class="btn wide gold" id="buyPack">' + priceOf(PACK.sku, PACK.price) + ' · ' + tr('one time') + '</button>') + '</div>';
+  h += '<p class="muted center">' + tr('Totally optional! Everything else can be earned by playing.') + '<br>' + tr('Payments are handled securely by Google Play.') + '</p>';
+  h += '<button class="btn wide ghost" id="shRestore">💳 ' + tr('Restore purchases') + '</button>';
+  return h;
+}
+function bindPaidShop(){
+  if($('buyPack')) $('buyPack').onclick = () => buy(PACK.sku, tr('Starry Night Café'), PACK.price);
+  $('shRestore').onclick = restorePurchases;
+}
+
+/* =====================================================================
+   12. MAIN LOOP — game ticks, away time, tutorial, start-up
+   tick(): once a second — moods, coins, visits, timers
+   frame(): every screen frame — cats walk
+===================================================================== */
+function stepWorld(dt, t, offline, noEarn){
+  const rate = MOOD_RATE();
+  let earned = 0, found = 0;
+  present().forEach(c => {
+    c.m.food = Math.max(0, c.m.food - rate * dt * (c.t === 'greedy' ? 1.5 : 1) * (c.t === 'sleepy' ? 0.8 : 1));
+    c.m.fun = Math.max(0, c.m.fun - rate * dt * (c.t === 'sleepy' ? 0.6 : 1));
+    if(!noEarn){
+      earned += catRate(c, t) * dt;
+      if(Math.random() < CONFIG.GEM_CHANCE * dt / 60){ found++; S.stats.gems++; if(!offline && c.here.r === S.cur && curView === 'Cafe'){ fxAtCat(c, GM); sfx('coin'); } }
+    }
+  });
+  if(!noEarn){ addC(earned); if(found) addG(found); }
+  // visitors go home when their time is up
+  if(S.tut >= 99 || offline) present().forEach(c => { if(!c.res && c.here.until && t > c.here.until) leave(c, offline); });
+  // new cats walk in
+  if(t >= S.nextArrive){
+    if(anyFree()){
+      const q = S.queue.shift();
+      if(q && q.startsWith('cat:')){ const fc = catById(+q.slice(4)); if(fc) arrive('pack', t, offline, fc); }
+      else arrive(q || 'random', t, offline);
+      S.nextArrive = t + arriveGap();
+    } else S.nextArrive = t + 30000;
+  }
+  return {earned, found};
+}
+let tickN = 0;
+function tick(){
+  const t = now();
+  stepWorld(1, t);
+  S.stats.play++; tickN++;
+  while(S.tickets < CONFIG.TICKETS_MAX && t - S.tkT >= CONFIG.TICKET_MIN * 60000){ S.tickets++; S.tkT += CONFIG.TICKET_MIN * 60000; }
+  if(S.tickets >= CONFIG.TICKETS_MAX) S.tkT = t;
+  if(tickN % 10 === 0) saveNow();
+  refreshTop();
+  if(curView === 'Cafe' && !G){
+    renderRoomName(); renderSide();
+    if(tickN % 2 === 0) renderCare();
+    if(tickN % 3 === 0){ renderCats(); ambient(); applyDark(); }
+    if(tickN % 4 === 0){ const list = catsIn(S.cur); if(list.length){ const c = pick(list); fxAtCat(c, '+' + fmt(catRate(c) * 4) + ' ' + CN); } }
+    if(tickN % 60 === 0) bgKey = '', renderBg();
+  }
+  if(curView === 'Games' && tickN % 5 === 0 && !$('modalBg').classList.contains('on')) renderGames();
+}
+let lastFrame = performance.now();
+function frame(ts){
+  const dt = Math.min(0.1, (ts - lastFrame) / 1000); lastFrame = ts;
+  if(S && curView === 'Cafe' && !G) stepActors(dt);
+  if(S) tickCoinDisplay();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- away time (coins while the app is closed) ---------- */
+function catchUp(){
+  const t = now(), away = (t - (S.lastSeen || t)) / 1000;
+  if(away < 60) return;
+  const capped = Math.min(away, offlineCapH() * 3600), all = Math.min(away, 7 * 86400);
+  let earned = 0, found = 0, sim = S.lastSeen;
+  const known = new Set(S.cats.filter(c => c.here).map(c => c.id));
+  const steps = Math.floor(all / 60);
+  for(let i=0;i<steps;i++){ sim += 60000; const r = stepWorld(60, sim, true, i * 60 >= capped); earned += r.earned; found += r.found; }
+  while(S.tickets < CONFIG.TICKETS_MAX && t - S.tkT >= CONFIG.TICKET_MIN * 60000){ S.tickets++; S.tkT += CONFIG.TICKET_MIN * 60000; }
+  S.lastSeen = t;
+  const newcomers = present().filter(c => !known.has(c.id)).length;
+  if(earned >= 1){
+    S.awayLast = Math.round(earned);
+    const capTxt = away > capped ? '<p class="muted">' + tr('Coins stop after {h}h away. Tip jars in the Shop keep them coming longer.', {h: offlineCapH()}) + '</p>' : '';
+    queueModal(() => {
+      openModal('🌅 ' + tr('Welcome back!'), '<div class="reward"><div class="big">' + catSVG((residents()[0] || present()[0] || {b: 'mocha'}).b, {size: 140, collar: true}) + '</div><p>' + tr('You were away for {t}.', {t: fmtTime(away)}) + '</p><p>' + tr('Your customers paid') + '</p><div class="amt">+' + fmt(S.awayLast) + ' ' + CN + (found ? ' +' + found + ' ' + GM : '') + '</div>' +
+        (newcomers ? '<p>🐾 ' + tr('{n} new cats came to visit!', {n: newcomers}) + '</p>' : '') + capTxt + '</div>' +
+        '<button class="btn wide gold" id="wbX2">' + adIcon() + ' ' + tr('Double it!') + ' +' + fmt(S.awayLast) + ' ' + CN + '</button><button class="btn wide ghost" id="wbOk">' + tr('Collect') + '</button>');
+      $('wbOk').onclick = closeModal;
+      $('wbX2').onclick = async () => { closeModal(); if(await rewardAd()){ addC(S.awayLast); toast('+' + fmt(S.awayLast) + ' ' + CN, 'gold'); S.awayLast = 0; saveNow(); } };
+    });
+  }
+  saveNow();
+}
+
+/* ---------- tutorial with Mocha ---------- */
+const TUT = [
+  null,
+  {ev:'pet',  hl:'#cats .cat', en:'Hi! I’m Mocha, I run this café. Tap a cat to pet it! 💗', fr:'Salut! Moi, c’est Moka, je tiens ce café. Touche un chat pour le flatter! 💗'},
+  {ev:'feed', hl:'#cbFeed',    en:'Cats love treats. Tap Feed and give one! 🐟', fr:'Les chats adorent les gâteries. Touche Nourrir et donnes-en une! 🐟'},
+  {ev:'buy',  hl:'.slotAdd',   en:'Customers pay coins while cats are here. Buy a new spot so more cats can come! 🛋️', fr:'Les clients paient des pièces quand les chats sont là. Achète un nouvel endroit pour que plus de chats viennent! 🛋️'},
+  {ev:'game', hl:'#navGames',  en:'Last one! Open Games and play a mini game. 🎮', fr:'Dernière étape! Ouvre Jeux et joue à un mini-jeu. 🎮'},
+];
+function tutShow(){
+  document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl'));
+  const st = TUT[S.tut];
+  if(!st){ $('tut').classList.remove('on'); return; }
+  $('tutCap').innerHTML = catSVG('mocha');
+  $('tutTx').textContent = S.lang === 'fr' ? st.fr : st.en;
+  $('tutBtn').textContent = tr('Skip');
+  $('tutBtn').onclick = () => { S.tut = 99; $('tut').classList.remove('on'); document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl')); saveNow(); checkDaily(); };
+  $('tut').classList.add('on');
+  const cafe = curView === 'Cafe';
+  $('tut').style.top = 'auto'; $('tut').style.bottom = cafe ? 'calc(150px + env(safe-area-inset-bottom))' : 'calc(90px + env(safe-area-inset-bottom))';
+  setTimeout(() => { const el = document.querySelector(st.hl); if(el) el.classList.add('hl'); }, 200);
+}
+function tutEvent(ev){
+  if(!S || S.tut < 1 || S.tut >= 99) return;
+  const st = TUT[S.tut];
+  if(ev.startsWith('view')) setTimeout(tutShow, 50);
+  if(!st || st.ev !== ev) return;
+  S.tut++;
+  sfx('coin');
+  if(!TUT[S.tut]){
+    S.tut = 99; $('tut').classList.remove('on'); document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl'));
+    addG(10); addC(300);
+    queueModal(() => showReward(catSVG('mocha', {size: 150}), tr('You’re a natural!'), tr('Here’s a gift to start:') + '<br>+10 ' + GM + ' +300 ' + CN, () => checkDaily()));
+  } else setTimeout(tutShow, 300);
+  saveNow();
+}
+function checkDaily(){
+  if(S.tut < 99) return;
+  if(S.daily.last !== dayNum(now())) queueModal(openGift);
+}
+function startNewGame(){
+  S = newState();
+  const t = now();
+  const first = newCat('tabby', {t: 'playful', fav: 'cushion', f: CONFIG.FRIEND_LEVELS[4]});
+  first.res = true; first.here = {r: 'cafe', s: 0, until: 0}; first.visits = 1; first.m = {food: 80, fun: 70};
+  const second = newCat('grey', {t: 'sleepy', fav: 'window'});
+  second.here = {r: 'cafe', s: 1, until: t + 3 * 3600000}; second.visits = 1; second.m = {food: 30, fun: 60};
+  S.book.tabby = S.book.grey = t;
+  S.avatar = first.id; S.stats.visits = 2;
+  S.tut = 0;
+  saveNow();
+  startNewGameName(first, first.n);
+}
+function startNewGameName(first, val){
+  openModal('', '<div class="reward"><div class="big">' + catSVG(first.b, {size: 180, collar: true}) + '</div><h2>' + tr('Welcome to Kitty Café!') + '</h2><p>' + tr('This little cat lives in your café. What’s its name?') + '</p>' +
+    '<input id="fnIn" maxlength="14" value="' + esc(val) + '" style="width:80%;padding:12px;border-radius:12px;border:2px solid #eddccd;text-align:center;font-size:18px">' +
+    '<div class="seg" style="margin:12px auto;max-width:240px"><button id="nlEn" class="' + (S.lang === 'en' ? 'on' : '') + '">English</button><button id="nlFr" class="' + (S.lang === 'fr' ? 'on' : '') + '">Français</button></div>' +
+    '<button class="btn wide" id="fnGo">💗 ' + tr('Let’s go!') + '</button></div>', null, true);
+  const relang = l => { S.lang = l; const v = $('fnIn').value; applySettings(); renderAll(); closeModal(); startNewGameName(first, v); };
+  $('nlEn').onclick = () => relang('en'); $('nlFr').onclick = () => relang('fr');
+  $('fnGo').onclick = () => { const v = $('fnIn').value.trim(); if(v) first.n = v.slice(0, 14); closeModal(); S.tut = 1; renderCafe(); tutShow(); sfx('purr'); saveNow(); };
+}
+
+/* ---------- start-up ---------- */
+function boot(){
+  $('loadCat').innerHTML = catSVG('mocha');
+  const lang0 = (load() || {}).lang || ((navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en');
+  $('loadTip').textContent = '💡 ' + pick(TIPS)[lang0];
+  let p = 0; const iv = setInterval(() => { p = Math.min(100, p + rnd(12, 28)); $('loadBar').style.width = p + '%'; }, 140);
+  setTimeout(() => {
+    clearInterval(iv); $('loadBar').style.width = '100%';
+    const saved = load();
+    if(saved){ S = saved; catchUp(); }
+    if(!S) startNewGame();
+    shownC = S.co;
+    applySettings(); renderNav(); showView('Cafe');
+    if(S.tut >= 1 && S.tut < 99) tutShow();
+    else if(S.tut >= 99) checkDaily();
+    $('load').style.opacity = 0; setTimeout(() => $('load').remove(), 600);
+    setInterval(tick, 1000);
+    requestAnimationFrame(frame);
+    adsInit();
+  }, 1300);
+  $('mClose').onclick = closeModal;
+  $('modalBg').addEventListener('pointerdown', e => { if(e.target === $('modalBg') && $('mClose').style.display !== 'none') closeModal(); });
+  $('pCoin').onclick = openBoosts;
+  $('pGem').onclick = () => { shopTab = 'paid'; showView('Shop'); };
+  $('pLevel').onclick = () => showView('More');
+  $('profBtn').onclick = () => showView('More');
+  $('muteBtn').onclick = () => { const on = S.snd || S.mus; S.snd = S.mus = !on; if(!on) audioUnlock(); else musicStop(); refreshTop(); saveNow(); if(curView === 'More') renderMore(); };
+  $('scene').addEventListener('pointerdown', () => { if(sel){ sel = null; renderCats(); renderCare(); } });
+  document.addEventListener('pointerdown', audioUnlock, {once: true});
+  document.addEventListener('visibilitychange', () => {
+    if(!S) return;
+    if(document.hidden){ saveNow(); musicStop(); }
+    else { catchUp(); if(S.mus) musicStart(); if(curView === 'Cafe') renderCafe(); }
+  });
+  document.addEventListener('pause', () => { if(S){ saveNow(); musicStop(); } }, false);
+  window.addEventListener('resize', () => { if(S && curView === 'Cafe'){ bgKey = ''; for(const k in actors) actors[k].key = ''; renderCafe(); } });
+}
+window.addEventListener('load', boot);
+
+/* =====================================================================
+   FRENCH WORDS — English on the left, French on the right.
+   To fix a French word, change the right side only.
+===================================================================== */
+const FR = {
+"Café": "Café",
+"Cats": "Chats",
+"Shop": "Boutique",
+"Games": "Jeux",
+"More": "Plus",
+"+1 in": "+1 dans",
+"+30 min each time, up to 4 h": "+30 min à chaque fois, jusqu’à 4 h",
+"2 exclusive Resident cats: Moon cat + Star cat": "2 chats résidents exclusifs : Chat lune + Chat étoile",
+"A better menu makes every customer pay more.": "Un meilleur menu fait payer plus chaque client.",
+"A cat is waiting at the door! Buy a new spot in the Shop.": "Un chat attend à la porte! Achète un nouvel endroit à la Boutique.",
+"A cozier café calls rarer cats.": "Un café plus douillet attire des chats plus rares.",
+"A rare cat walks in right now!": "Un chat rare entre tout de suite!",
+"A real video ad plays here in the app.": "Une vraie pub vidéo joue ici dans l’app.",
+"A special cat may visit...": "Un chat spécial pourrait venir...",
+"Active": "Actif",
+"Ad preview": "Aperçu de pub",
+"Ad rewards without ads": "Récompenses de pub sans pub",
+"Adopt": "Adopter",
+"Adopt (free)": "Adopter (gratuit)",
+"Adopt {n}?": "Adopter {n}?",
+"Ads are always your choice.": "Les pubs sont toujours ton choix.",
+"All spots bought!": "Tous les endroits sont achetés!",
+"Are you really sure?": "Es-tu vraiment sûr?",
+"At 5 ❤️ you can adopt a cat. Residents stay forever!": "À 5 ❤️, tu peux adopter un chat. Les résidents restent pour toujours!",
+"Back": "Retour",
+"Best": "Record",
+"Boost": "Boost",
+"Boosts & free rewards": "Boosts et cadeaux gratuits",
+"Buy more spots, menu and decor so more (and rarer) cats come.": "Achète des endroits, du menu et de la déco pour attirer plus de chats (et des plus rares).",
+"Buy treats": "Acheter des gâteries",
+"Café Keeper": "Gardien du café",
+"Café look": "Look du café",
+"Call": "Appeler",
+"Call a rare cat": "Appeler un chat rare",
+"Calls the {b}": "Attire le {b}",
+"Cancel": "Annuler",
+"Cat book": "Livre des chats",
+"Book": "Livre",
+"Cat flap": "Chatière",
+"Cat visits": "Visites de chats",
+"Cats in book": "Chats dans le livre",
+"Cats walk in by themselves and pick a spot.": "Les chats entrent tout seuls et choisissent un endroit.",
+"Cats walk in more often": "Les chats entrent plus souvent",
+"Cats will start visiting soon. Buy more spots to fill it up!": "Les chats vont bientôt venir. Achète plus d’endroits pour la remplir!",
+"Cats you know": "Chats que tu connais",
+"Checking your purchases...": "Vérification de tes achats...",
+"Close": "Fermer",
+"Close (no reward)": "Fermer (pas de récompense)",
+"Coins earned": "Pièces gagnées",
+"Coins stop after {h}h away. Tip jars in the Shop keep them coming longer.": "Les pièces arrêtent après {h} h d’absence. Les pots à pourboires de la Boutique les font durer plus longtemps.",
+"Collect": "Récupérer",
+"Come back tomorrow for the next gift!": "Reviens demain pour le prochain cadeau!",
+"Coziness": "Confort",
+"Customers pay while cats are in the café, even while the app is closed.": "Les clients paient quand les chats sont au café, même quand l’app est fermée.",
+"Daily gift": "Cadeau du jour",
+"Day": "Jour",
+"Decor": "Déco",
+"Demo mode: real payments work in the Android app through Google Play.": "Mode démo : les vrais paiements marchent dans l’app Android avec Google Play.",
+"Demo: get it free": "Démo : l’avoir gratuitement",
+"Double it!": "Double-le!",
+"Each theme you own gives coins forever. Pick the look you like in More.": "Chaque thème que tu possèdes donne des pièces pour toujours. Choisis ton look dans Plus.",
+"Easy-read font": "Police facile à lire",
+"English text": "English text",
+"Favorite spot:": "Endroit préféré :",
+"Feed": "Nourrir",
+"Feed {n}": "Nourrir {n}",
+"Fill your Cat book!": "Remplis ton Livre des chats!",
+"Fish gems found": "Gemmes poisson trouvées",
+"Food": "Faim",
+"For mini games": "Pour les mini-jeux",
+"Free upgrade": "Amélioration gratuite",
+"Friendship": "Amitié",
+"Full!": "Plein!",
+"Fun": "Plaisir",
+"Games played": "Parties jouées",
+"Get": "Prendre",
+"Get every ad reward without watching ads": "Toutes les récompenses de pub sans regarder de pub",
+"Gets a cute collar": "Reçoit un joli collier",
+"Gift": "Cadeau",
+"Give": "Donner",
+"Go": "Y aller",
+"Goodies": "Petits plus",
+"Here’s a gift to start:": "Voici un cadeau pour commencer :",
+"How to play": "Comment jouer",
+"In use": "Utilisé",
+"Info": "Infos",
+"Keep earning longer while away": "Gagne plus longtemps quand tu es absent",
+"Language": "Langue",
+"Last chance! Everything will be gone.": "Dernière chance! Tout va disparaître.",
+"Let it go visiting again": "Le laisser redevenir visiteur",
+"Let it rest a moment": "Laisse-le se reposer un peu",
+"Let’s go!": "C’est parti!",
+"Level": "Niveau",
+"Level {n}!": "Niveau {n}!",
+"Lv": "Niv.",
+"Make friends to adopt it!": "Deviens son ami pour l’adopter!",
+"Menu": "Menu",
+"Mini games": "Mini-jeux",
+"More spots = more cats = more customers. Cats who love that kind of spot earn +25%.": "Plus d’endroits = plus de chats = plus de clients. Les chats qui adorent ce genre d’endroit rapportent +25%.",
+"More toys": "Plus de jouets",
+"Music": "Musique",
+"Needs a free spot": "Il faut un endroit libre",
+"Needs:": "Il faut :",
+"New best!": "Nouveau record!",
+"New cat in your book!": "Nouveau chat dans ton livre!",
+"New name": "Nouveau nom",
+"New profile picture!": "Nouvelle photo de profil!",
+"New spot": "Nouvel endroit",
+"New spot! A cat will come soon.": "Nouvel endroit! Un chat va bientôt venir.",
+"Next:": "Prochain :",
+"Nice try!": "Bien essayé!",
+"No account. Everything is saved on this phone.": "Pas de compte. Tout est sauvegardé sur ce téléphone.",
+"No residents yet. Pet, feed and play with a visitor until it has 5 ❤️.": "Pas encore de résidents. Flatte, nourris et joue avec un visiteur jusqu’à 5 ❤️.",
+"No reward this time": "Pas de récompense cette fois",
+"No tickets left. Watch an ad or wait.": "Plus de billets. Regarde une pub ou attends.",
+"No visitors right now. A cat will come soon!": "Pas de visiteurs pour l’instant. Un chat va bientôt venir!",
+"Not enough coins": "Pas assez de pièces",
+"Not enough fish gems": "Pas assez de gemmes poisson",
+"Not now": "Pas maintenant",
+"Nothing to upgrade": "Rien à améliorer",
+"OK": "OK",
+"Off": "Non",
+"On": "Oui",
+"One more cat can visit. Cats who love this kind of spot earn +25%.": "Un chat de plus peut venir. Les chats qui adorent ce genre d’endroit rapportent +25%.",
+"Open my gift!": "Ouvrir mon cadeau!",
+"Owned": "Acquis",
+"Pack": "Pack",
+"Payments are handled securely by Google Play.": "Les paiements sont gérés de façon sécuritaire par Google Play.",
+"Per second": "Par seconde",
+"Pets": "Caresses",
+"Pick your profile picture from any cat.": "Choisis ta photo de profil parmi tes chats.",
+"Play": "Jouer",
+"Play again": "Rejouer",
+"Play with {n}": "Jouer avec {n}",
+"Plus a special daily cat visitor!": "En plus, un chat visiteur spécial du jour!",
+"Profile picture": "Photo de profil",
+"Reach {n} ❤️ to adopt this cat.": "Atteins {n} ❤️ pour adopter ce chat.",
+"Replay tutorial": "Revoir le tutoriel",
+"Reset everything": "Tout effacer",
+"Reset game": "Recommencer le jeu",
+"Reset game?": "Recommencer le jeu?",
+"Resident": "Résident",
+"Resident cats stay forever and bring +50% coins.": "Les chats résidents restent pour toujours et rapportent +50% de pièces.",
+"Residents": "Résidents",
+"Restore purchases": "Restaurer les achats",
+"Restore works in the Android app.": "La restauration marche dans l’app Android.",
+"Rooms": "Salles",
+"Save": "Enregistrer",
+"See": "Voir",
+"Settings": "Réglages",
+"Skip": "Passer",
+"Some cats only come if you have their favorite thing. Each item: +5% coins.": "Certains chats viennent seulement si tu as leur objet préféré. Chaque objet : +5% de pièces.",
+"Sounds": "Sons",
+"Special items": "Objets spéciaux",
+"Spots": "Endroits",
+"Starry Night Café": "Café Nuit étoilée",
+"Starry Night café theme": "Thème Café Nuit étoilée",
+"Starry Night café theme (night sky + golden lights, +15% coins)": "Thème Café Nuit étoilée (ciel de nuit + lumières dorées, +15% de pièces)",
+"Starry Night pack": "Pack Nuit étoilée",
+"Starry Night pack: no ads needed": "Pack Nuit étoilée : plus besoin de pubs",
+"Starry Night pack: reward given!": "Pack Nuit étoilée : récompense donnée!",
+"Start": "Commencer",
+"Stats": "Statistiques",
+"Stays forever": "Reste pour toujours",
+"Stays {t} more": "Reste encore {t}",
+"Store error. Please try again.": "Erreur de la boutique. Réessaie s’il te plaît.",
+"Store is still loading. Try again in a moment.": "La boutique charge encore. Réessaie dans un instant.",
+"Streak": "Série",
+"Sunny garden with flowers. Cats earn x3 here.": "Jardin ensoleillé et fleuri. Les chats rapportent x3 ici.",
+"Tall cat trees and high shelves. Cats earn x9 here.": "Grands arbres à chat et étagères en hauteur. Les chats rapportent x9 ici.",
+"Tap a cat to pet it. Feed it and play with it.": "Touche un chat pour le flatter. Nourris-le et joue avec lui.",
+"Tap a cat!": "Touche un chat!",
+"Text size": "Taille du texte",
+"Thank you!": "Merci!",
+"They may come back to visit. They remember you!": "Ils pourraient revenir te voir. Ils se souviennent de toi!",
+"This deletes ALL your progress. It cannot be undone.": "Ça efface TOUTE ta progression. Impossible d’annuler.",
+"This little cat lives in your café. What’s its name?": "Ce petit chat vit dans ton café. Comment s’appelle-t-il?",
+"Tickets": "Billets",
+"Time played": "Temps de jeu",
+"Tip jar": "Pot à pourboires",
+"Today’s special visitor: {n}!": "Visiteur spécial du jour : {n}!",
+"Totally optional! Everything else can be earned by playing.": "Totalement optionnel! Tout le reste se gagne en jouant.",
+"Toys": "Jouets",
+"Treats": "Gâteries",
+"Treats & toys": "Gâteries et jouets",
+"Treats given": "Gâteries données",
+"Upgrades": "Améliorations",
+"Use": "Utiliser",
+"Visiting": "En visite",
+"Visitors stay a few hours. Make friends (5 ❤️) to adopt them!": "Les visiteurs restent quelques heures. Deviens leur ami (5 ❤️) pour les adopter!",
+"Visits": "Visites",
+"Waiting": "En attente",
+"Welcome back!": "Bon retour!",
+"Welcome to Kitty Café!": "Bienvenue au Kitty Café!",
+"Went home. It may come back to visit!": "Rentré chez lui. Il pourrait revenir te voir!",
+"Yay!": "Youpi!",
+"Yes, reset": "Oui, recommencer",
+"You are here": "Tu es ici",
+"You have none. Buy some in the Shop.": "Tu n’en as plus. Achètes-en à la Boutique.",
+"You were away for {t}.": "Tu étais absent pendant {t}.",
+"Your cozy café. Coffee, cakes and cats.": "Ton café douillet. Café, gâteaux et chats.",
+"Your customers paid": "Tes clients ont payé",
+"Your first café look": "Le premier look de ton café",
+"Your name": "Ton nom",
+"You’re a natural!": "Tu es doué!",
+"can be opened in the Shop!": "peut être ouverte à la Boutique!",
+"coins": "pièces",
+"fish gems": "gemmes poisson",
+"forever": "pour toujours",
+"is on the menu now!": "est au menu maintenant!",
+"likes you more!": "t’aime encore plus!",
+"live here now!": "vivent ici maintenant!",
+"min": "min",
+"one time": "une seule fois",
+"pack of 5": "paquet de 5",
+"per level": "par niveau",
+"{a} is open!": "{a} est ouverte!",
+"{n} came back to visit!": "{n} est revenu te voir!",
+"{n} came in!": "{n} est entré!",
+"{n} can be adopted now!": "{n} peut être adopté maintenant!",
+"{n} is grumpy. Try a treat!": "{n} est grognon. Essaie une gâterie!",
+"{n} lives here now!": "{n} vit ici maintenant!",
+"{n} loves your café! Adopt it as a Resident cat?": "{n} adore ton café! L’adopter comme chat résident?",
+"{n} new cats came to visit!": "{n} nouveaux chats sont venus!",
+"{n} went home. See you soon!": "{n} est rentré chez lui. À bientôt!",
+"{n} will free its spot and become a visitor again. It still loves you!": "{n} va libérer son endroit et redevenir visiteur. Il t’aime encore!",
+};
+</script>
+</body>
+</html>

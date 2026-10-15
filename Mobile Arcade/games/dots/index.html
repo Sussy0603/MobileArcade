@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0B0B14">
+<title>Dots Connect</title>
+<script>
+  // In the Android app the game draws under the phone's status bar,
+  // so we flag it and the CSS adds safe space at the top and bottom.
+  if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
+    document.documentElement.classList.add("native");
+  }
+</script>
+<!--
+════════════════════════════════════════════════════════════════════════
+  STeamWorkS · Dots Connect · v1.0.0 · single self-contained file
+════════════════════════════════════════════════════════════════════════
+  MOS INTEGRATION
+  ───────────────
+    <iframe src="dots.html?embed=1&prefix=PLAYER_ID"
+            style="width:100%;height:100%;border:0" allow="autoplay"></iframe>
+
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.source === 'stws-puzzle') {
+        // e.data = {source:'stws-puzzle', game:'dots', event, ...payload}
+        // events: ready · newPuzzle · start · win · gameover
+        // win/gameover payloads carry the run's stats (moves, time, score…)
+      }
+    });
+
+  URL params:
+    ?embed=1       hide footer chrome
+    ?prefix=<id>   namespace localStorage per player  (stws-dots-v1:<id>)
+    ?mute=1        start muted
+    ?seed=<any>    deterministic puzzles (same seed = same sequence)
+    ?daily=1       seed from today's date — everyone gets the same puzzle
+    ?diff=<id>     start on a specific difficulty (where the game has them)
+
+  Same-page API: STWGame.newGame() · STWGame.on(evt,cb) · STWGame.config
+════════════════════════════════════════════════════════════════════════
+-->
+<style>
+:root{
+  --night:#0B0B14; --panel:#15152A; --panel-2:#1A1F38;
+  --milk:#F2EFFF; --faded:#8B87A8; --line:rgba(242,239,255,.08);
+  --acc:#FF5C8A;
+  --round:18px;
+  --font:"SF Pro Rounded",ui-rounded,"Nunito","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--night);color:var(--milk);font-family:var(--font);overflow:hidden;
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;
+  user-select:none;-webkit-user-select:none;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(55% 38% at 25% -5%, color-mix(in srgb,var(--acc) 9%,transparent), transparent 60%);
+}
+#app{
+  position:relative;height:100dvh;max-width:520px;margin:0 auto;
+  display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+#top{display:flex;align-items:center;gap:12px;padding:14px 16px 10px}
+#top .ico{font-size:30px;line-height:1;filter:drop-shadow(0 4px 14px color-mix(in srgb,var(--acc) 55%,transparent))}
+#top h1{font-size:19px;font-weight:900;letter-spacing:.02em;line-height:1.1}
+#top .sub{font-size:10px;font-weight:800;letter-spacing:.3em;color:var(--faded);text-transform:uppercase;margin-top:2px}
+#top .grow{flex:1}
+.iconbtn{
+  width:40px;height:40px;border-radius:13px;border:1px solid var(--line);
+  background:var(--panel);color:var(--milk);font-size:16px;font-family:var(--font);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  transition:transform .12s ease;
+}
+.iconbtn:active{transform:scale(.92)}
+.iconbtn:focus-visible{outline:2px solid var(--milk);outline-offset:2px}
+#status{display:flex;gap:8px;justify-content:center;padding:2px 16px 8px;flex-wrap:wrap}
+.chip{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:6px 13px;text-align:center;min-width:66px;
+}
+.chip .l{font-size:9px;font-weight:800;letter-spacing:.22em;color:var(--faded);text-transform:uppercase}
+.chip .v{font-size:17px;font-weight:900;color:var(--acc);font-variant-numeric:tabular-nums;margin-top:1px}
+#toolrow{display:flex;gap:8px;justify-content:center;padding:0 16px 8px}
+#toolrow:empty{display:none}
+.pill{
+  border:1px solid var(--line);background:var(--panel);color:var(--faded);
+  font-family:var(--font);font-size:12px;font-weight:800;letter-spacing:.06em;
+  padding:8px 16px;border-radius:999px;cursor:pointer;transition:transform .12s ease;
+}
+.pill:active{transform:scale(.94)}
+.pill.on{background:var(--acc);color:#10101C;border-color:transparent}
+#stage{flex:1;position:relative;min-height:0;margin:0 10px}
+#board{position:absolute;inset:0;touch-action:none}
+#ovl{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(11,11,20,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  border-radius:var(--round);z-index:5;
+}
+#ovl[hidden]{display:none}
+.ov-in{text-align:center;padding:26px 28px;max-width:330px;animation:rise .3s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1}}
+.ov-ico{
+  width:86px;height:86px;margin:0 auto 14px;border-radius:26px;
+  background:var(--panel-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:42px;
+  box-shadow:0 10px 40px -8px var(--acc);
+}
+.ov-in h2{font-size:25px;font-weight:900;letter-spacing:.02em}
+.ov-in .tip{margin-top:10px;font-size:14px;line-height:1.55;color:var(--faded);font-weight:600}
+.ov-in .chips{display:flex;gap:8px;justify-content:center;margin-top:16px}
+.cta{margin-top:22px;font-size:12px;font-weight:900;letter-spacing:.3em;color:var(--milk)}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.btn{
+  margin-top:16px;display:inline-block;padding:12px 22px;border-radius:14px;
+  background:var(--acc);border:0;color:#10101C;
+  font-family:var(--font);font-size:13px;font-weight:900;letter-spacing:.06em;cursor:pointer;
+  transition:transform .12s ease;
+}
+.btn.ghost{background:var(--panel-2);border:1px solid var(--line);color:var(--milk)}
+.btn:active{transform:scale(.94)}
+.btn:focus-visible{outline:2px solid var(--milk);outline-offset:2px}
+#foot{
+  padding:10px 16px calc(12px + env(safe-area-inset-bottom));
+  font-size:10.5px;color:var(--faded);text-align:center;font-weight:600;letter-spacing:.05em;
+}
+body.embed #foot{display:none}
+/* ── app (Android) ── */
+html.native #app{
+  padding-top:max(env(safe-area-inset-top,0px),36px);
+  padding-bottom:max(env(safe-area-inset-bottom,0px),12px);
+}
+html.native #foot{padding-bottom:12px}
+.btn.wide{display:block;width:100%;margin-top:12px}
+.btn.ad{background:linear-gradient(180deg,#FFD449,#FFB03A);color:#10101C}
+.adtag{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;background:rgba(16,16,28,.18);font-size:10px;letter-spacing:.1em}
+.pill.ad{color:var(--milk)}
+.pill.ad .adtag{background:rgba(242,239,255,.12)}
+#adm{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(11,11,20,.86)}
+#adm[hidden]{display:none}
+#adm .num{font-size:46px;font-weight:900;color:var(--acc);margin-top:10px}
+#toast{
+  position:fixed;left:50%;bottom:calc(40px + env(safe-area-inset-bottom));transform:translate(-50%,20px);
+  background:var(--panel-2);border:1px solid var(--line);color:var(--milk);
+  padding:11px 18px;border-radius:14px;font-size:14px;font-weight:700;max-width:88vw;text-align:center;
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:30;
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){.pulse,.ov-in{animation:none}}
+@media (min-width:560px){#app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <span class="ico">🟣</span>
+    <div><h1>Dots Connect</h1><div class="sub">STeamWorkS</div></div>
+    <div class="grow"></div>
+    <button class="iconbtn" id="btnNew" aria-label="New puzzle">↻</button>
+    <button class="iconbtn" id="btnSnd" aria-label="Toggle sound">🔊</button>
+  </header>
+  <div id="status"></div>
+  <div id="toolrow"></div>
+  <div id="stage">
+    <div id="board"></div>
+    <div id="ovl" hidden></div>
+  </div>
+  <footer id="foot">STeamWorkS · saves on this device</footer>
+</div>
+<div id="adm" hidden></div>
+<div id="toast"></div>
+<script>
+(() => {
+'use strict';
+
+/* ══ shell: helpers ════════════════════════════════════ */
+const GAME_ID = 'dots', GAME_TITLE = 'Dots Connect', GAME_ICON = '🟣', ACCENT = '#FF5C8A';
+const GAME_TIP = 'Drag through touching dots of one color to clear them. Close a loop to wipe that whole color at double points.';
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const $ = s => document.querySelector(s);
+const FONT = '"SF Pro Rounded",ui-rounded,"Nunito","Segoe UI",system-ui,sans-serif';
+
+/* ══ shell: config + seeded rng ════════════════════════ */
+const QS = new URLSearchParams(location.search);
+const CFG = {
+  embed: QS.get('embed') === '1',
+  mute: QS.get('mute') === '1',
+  prefix: QS.get('prefix') || '',
+  seed: QS.get('seed') || '',
+  daily: QS.get('daily') === '1',
+  diff: QS.get('diff') || ''
+};
+if (CFG.daily && !CFG.seed) {
+  const d = new Date();
+  CFG.seed = '' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+}
+if (CFG.embed) document.body.classList.add('embed');
+
+function strHash(s) {
+  let h = 1779033703;
+  for (let i = 0; i < s.length; i++) { h = Math.imul(h ^ s.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  return h >>> 0;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const seedBase = CFG.seed ? strHash(CFG.seed) : null;
+let gameN = 0;
+let rng = Math.random;
+function freshRng() { gameN++; rng = seedBase !== null ? mulberry32(seedBase + gameN * 7919) : Math.random; }
+const RF = (a = 1, b) => b === undefined ? rng() * a : a + rng() * (b - a);
+const RI = (a, b) => Math.floor(RF(a, b + 1));
+const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+
+/* ══ shell: storage ════════════════════════════════════ */
+const STORE_KEY = 'stws-' + GAME_ID + '-v1' + (CFG.prefix ? ':' + CFG.prefix : '');
+const DATA = (() => {
+  try { return Object.assign({ sound: true, seen: false, best: {}, diff: '', save: null }, JSON.parse(localStorage.getItem(STORE_KEY) || '{}')); }
+  catch (e) { return { sound: true, seen: false, best: {}, diff: '', save: null }; }
+})();
+if (CFG.mute) DATA.sound = false;
+const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); } catch (e) {} };
+
+/* ══ shell: audio synth ════════════════════════════════ */
+const AU = {
+  ctx: null,
+  ensure() {
+    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(f, d, type = 'sine', g = 0.15, slide = 0, at = 0) {
+    if (!DATA.sound || !this.ctx) return;
+    const t = this.ctx.currentTime + at;
+    const o = this.ctx.createOscillator(), ga = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+    ga.gain.setValueAtTime(g, t);
+    ga.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(ga).connect(this.ctx.destination);
+    o.start(t); o.stop(t + d + 0.02);
+  },
+  noise(d = 0.15, g = 0.18, fq = 1000) {
+    if (!DATA.sound || !this.ctx) return;
+    const t = this.ctx.currentTime, n = Math.floor(this.ctx.sampleRate * d);
+    const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = fq;
+    const ga = this.ctx.createGain(); ga.gain.value = g;
+    src.connect(f).connect(ga).connect(this.ctx.destination);
+    src.start(t);
+  },
+  play(name, p = 1) {
+    switch (name) {
+      case 'ui':    this.tone(520, 0.07, 'triangle', 0.10); break;
+      case 'tap':   this.tone(300, 0.05, 'square', 0.06); break;
+      case 'tick':  this.tone(230, 0.04, 'square', 0.05); break;
+      case 'slide': this.noise(0.07, 0.08, 1400); break;
+      case 'ok':    this.tone(540 * p, 0.09, 'triangle', 0.14); this.tone(810 * p, 0.11, 'triangle', 0.10, 0, 0.05); break;
+      case 'good':  this.tone(660, 0.10, 'triangle', 0.14); this.tone(990, 0.14, 'triangle', 0.11, 0, 0.07); break;
+      case 'pour':  this.tone(300, 0.16, 'sine', 0.12, 160); this.noise(0.10, 0.06, 900); break;
+      case 'pop':   this.noise(0.10, 0.20, 1600); this.tone(200 * p, 0.07, 'square', 0.10); break;
+      case 'bad':   this.tone(220, 0.16, 'sawtooth', 0.10, -80); break;
+      case 'fail':  this.tone(300, 0.38, 'sawtooth', 0.13, -210); this.noise(0.2, 0.10, 500); break;
+      case 'level': [440, 550, 660, 880].forEach((f, i) => this.tone(f, 0.10, 'triangle', 0.12, 0, i * 0.07)); break;
+      case 'win':   [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, 0.13, 'triangle', 0.13, 0, i * 0.085)); break;
+    }
+  }
+};
+const snd = (n, p) => AU.play(n, p);
+
+// quiet the game when the app is in the background
+document.addEventListener('visibilitychange', () => {
+  if (!AU.ctx) return;
+  if (document.hidden) AU.ctx.suspend(); else if (!adBusy) AU.ctx.resume();
+});
+
+/* ══ ads (optional rewarded videos) ════════════════════
+   The player CHOOSES to watch an ad — never forced:
+     • Out of moves → "+5 moves" (once per game)
+     • Any time     → "Shuffle" mixes up all the dot colors
+   In a browser a 3-second fake ad plays. In the Android app
+   the real AdMob plugin (@capacitor-community/admob) is used.
+   BEFORE RELEASE: put your real rewarded ad unit ID below
+   and set TESTING to false.                              */
+const ADS = {
+  TESTING: true,
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917' // Google TEST id — replace with yours
+};
+const toastEl = $('#toast'), admEl = $('#adm');
+let toastT = null;
+function toast(msg) {
+  toastEl.textContent = msg; toastEl.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('show'), 2600);
+}
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => (isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null);
+let adBusy = false;
+async function adsInit() {
+  const A = AdMobP(); if (!A) return;
+  try { await A.initialize({ initializeForTesting: ADS.TESTING }); } catch (e) {}
+}
+// Shows one rewarded ad. Resolves true only if the player earned the reward.
+function showRewardedAd() {
+  if (adBusy) return Promise.resolve(false);
+  adBusy = true;
+  if (AU.ctx) AU.ctx.suspend();
+  const done = r => { adBusy = false; if (AU.ctx) AU.ctx.resume(); return r; };
+  const A = AdMobP();
+  if (!A) return demoAd().then(done);
+  return new Promise(async res => {
+    let earned = false, finished = false;
+    const hs = [];
+    const finish = () => {
+      if (finished) return; finished = true;
+      hs.forEach(h => { try { h.remove(); } catch (e) {} });
+      res(earned);
+    };
+    try {
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      await A.prepareRewardVideoAd({ adId: ADS.REWARDED_ID, isTesting: ADS.TESTING });
+      const item = await A.showRewardVideoAd();
+      if (item && item.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    } catch (e) { finish(); }
+  }).then(r => {
+    if (!r) toast('No ad available right now — try again in a minute');
+    return done(r);
+  });
+}
+// Browser preview: a short fake ad so the flow can be tested.
+function demoAd() {
+  return new Promise(res => {
+    let n = 3;
+    admEl.innerHTML = '<div class="ov-in"><div class="ov-ico">📺</div><h2>Ad preview</h2>' +
+      '<p class="tip">A real video ad plays here in the app.</p>' +
+      '<div class="num" id="adN">' + n + '</div>' +
+      '<button class="btn ghost" id="adSkip">Close (no reward)</button></div>';
+    admEl.hidden = false;
+    const iv = setInterval(() => {
+      n--; const c = $('#adN'); if (c) c.textContent = n;
+      if (n <= 0) { clearInterval(iv); admEl.hidden = true; res(true); }
+    }, 1000);
+    $('#adSkip').onclick = () => { clearInterval(iv); admEl.hidden = true; res(false); };
+  });
+}
+
+/* ══ shell: events (postMessage for MOS) ═══════════════ */
+const listeners = {};
+function on(ev, cb) { (listeners[ev] = listeners[ev] || []).push(cb); }
+function emit(ev, payload = {}) {
+  (listeners[ev] || []).forEach(cb => { try { cb(payload); } catch (e) {} });
+  if (window.parent !== window) {
+    try { window.parent.postMessage(Object.assign({ source: 'stws-puzzle', game: GAME_ID, event: ev }, payload), '*'); } catch (e) {}
+  }
+}
+
+/* ══ shell: status chips + toolbar pills ═══════════════ */
+const boardEl = $('#board'), ovl = $('#ovl'), statusEl = $('#status'), toolEl = $('#toolrow');
+function setChips(pairs) {
+  statusEl.innerHTML = pairs.map(p =>
+    '<div class="chip"><div class="l">' + p[0] + '</div><div class="v">' + p[1] + '</div></div>').join('');
+}
+function setPills(list, cur, cb) {
+  toolEl.innerHTML = '';
+  for (const d of list) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (d.id === cur ? ' on' : '');
+    b.textContent = d.label;
+    b.addEventListener('click', () => { snd('ui'); cb(d.id); });
+    toolEl.appendChild(b);
+  }
+}
+
+/* ══ shell: overlays ═══════════════════════════════════ */
+let ovlAction = null;
+function overlay(html, tapAction) {
+  ovl.innerHTML = html; ovl.hidden = false; ovlAction = tapAction || null;
+}
+function hideOverlay() { ovl.hidden = true; ovlAction = null; }
+function chipsHtml(pairs) {
+  return '<div class="chips">' + pairs.map(p =>
+    '<div class="chip"><div class="l">' + p[0] + '</div><div class="v">' + p[1] + '</div></div>').join('') + '</div>';
+}
+function winOverlay(pairs, payload) {
+  snd('win');
+  emit('win', payload || {});
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>Solved!</h2>' +
+      chipsHtml(pairs) +
+      '<div><button class="btn" id="ovNew">New puzzle</button></div>' +
+    '</div>');
+}
+function overOverlay(title, pairs, payload, canContinue) {
+  snd('fail');
+  if (!canContinue) emit('gameover', payload || {});
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>' + title + '</h2>' +
+      chipsHtml(pairs) +
+      (canContinue
+        ? '<button class="btn ad wide" id="ovAd">▶ +5 moves<span class="adtag">AD</span></button>' +
+          '<p class="tip" style="font-size:12px;margin-top:6px">Watch a short video to keep your score going</p>' +
+          '<button class="btn ghost wide" id="ovNew">Play again</button>'
+        : '<div><button class="btn" id="ovNew">Play again</button></div>') +
+    '</div>');
+}
+function helpOverlay() {
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>' + GAME_TITLE + '</h2>' +
+      '<p class="tip">' + GAME_TIP + '</p>' +
+      '<div class="cta pulse">TAP TO PLAY</div>' +
+    '</div>', 'close');
+  DATA.seen = true; save();
+}
+ovl.addEventListener('click', e => {
+  if (e.target.closest('#ovNew')) {
+    AU.ensure(); snd('ui');
+    if (dOver && !usedContinue) emit('gameover', { score: dScore, best: DATA.best.score || 0 });
+    hideOverlay(); game.newGame(); return;
+  }
+  if (e.target.closest('#ovAd')) {
+    AU.ensure(); snd('ui');
+    showRewardedAd().then(ok => { if (ok) { hideOverlay(); continueGame(); } });
+    return;
+  }
+  if (e.target.closest('.btn')) return;
+  if (ovlAction === 'close') { AU.ensure(); hideOverlay(); }
+});
+
+/* ══ shell: timer ══════════════════════════════════════ */
+const T = {
+  t0: 0, acc: 0, run: false,
+  reset() { this.t0 = 0; this.acc = 0; this.run = false; },
+  start() { if (!this.run) { this.run = true; this.t0 = Date.now(); } },
+  stop() { if (this.run) { this.acc += Date.now() - this.t0; this.run = false; } },
+  sec() { return Math.floor((this.acc + (this.run ? Date.now() - this.t0 : 0)) / 1000); }
+};
+const fmtT = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+setInterval(() => { if (game.tick) game.tick(); }, 500);
+
+/* ══ shell: canvas helper ══════════════════════════════ */
+let CW = 0, CH = 0;
+function initCanvas() {
+  const cvs = document.createElement('canvas');
+  cvs.style.cssText = 'position:absolute;inset:0;display:block;touch-action:none';
+  boardEl.appendChild(cvs);
+  const g = cvs.getContext('2d');
+  function fit() {
+    const r = boardEl.getBoundingClientRect();
+    CW = Math.max(1, Math.round(r.width)); CH = Math.max(1, Math.round(r.height));
+    const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    cvs.width = CW * dpr; cvs.height = CH * dpr;
+    cvs.style.width = CW + 'px'; cvs.style.height = CH + 'px';
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (game.onResize) game.onResize();
+  }
+  fit();
+  window.addEventListener('resize', fit);
+  const pos = e => { const r = cvs.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  cvs.addEventListener('contextmenu', e => e.preventDefault());
+  return { cvs, g, pos, fit };
+}
+function startLoop() {
+  let last = performance.now();
+  (function raf(now) {
+    requestAnimationFrame(raf);
+    const dt = Math.min(0.033, (now - (last || now)) / 1000); last = now;
+    if (game.frame) game.frame(dt);
+  })(performance.now());
+}
+
+/* ══ shell: top buttons ════════════════════════════════ */
+function syncSnd() { $('#btnSnd').textContent = DATA.sound ? '🔊' : '🔇'; }
+$('#btnSnd').addEventListener('click', () => { DATA.sound = !DATA.sound; save(); syncSnd(); AU.ensure(); snd('ui'); });
+$('#btnNew').addEventListener('click', () => { AU.ensure(); snd('ui'); hideOverlay(); game.newGame(); });
+
+window.addEventListener('pointerdown', () => AU.ensure(), { once: true, capture: true });
+
+/* ══ game ══════════════════════════════════════════════ */
+/* Dots Connect — drag same-color chains, close loops to clear the color */
+const DN = 6, DCOLS = ['#FF5C8A','#FFB03A','#2BD9C7','#8A6BFF','#A6F548'];
+const MOVES0 = 30;
+let dGrid = [], path = [], loop = false, dScore = 0, dLeft = MOVES0, dOver = false;
+let dragging = false, falls = [], pops = [], usedContinue = false;
+let C, GG, POS;
+
+function gen() {
+  dGrid = [];
+  for (let i = 0; i < DN * DN; i++) dGrid.push(RI(0, DCOLS.length - 1));
+}
+function geom() {
+  const s = Math.min(CW, CH, 440) - 16;
+  return { cell: s / DN, ox: (CW - s) / 2, oy: (CH - s) / 2, s };
+}
+function dotAt(x, y) {
+  const { cell, ox, oy } = geom();
+  const c = Math.round((x - ox - cell / 2) / cell), r = Math.round((y - oy - cell / 2) / cell);
+  if (c < 0 || c >= DN || r < 0 || r >= DN) return -1;
+  const cx = ox + c * cell + cell / 2, cy = oy + r * cell + cell / 2;
+  if ((x - cx) * (x - cx) + (y - cy) * (y - cy) > (cell * 0.42) * (cell * 0.42)) return -1;
+  return r * DN + c;
+}
+function adjacent(a, b) {
+  const ar = Math.floor(a / DN), ac = a % DN, br = Math.floor(b / DN), bc = b % DN;
+  return Math.abs(ar - br) + Math.abs(ac - bc) === 1;
+}
+function tryAdd(i) {
+  if (i < 0) return;
+  const last = path[path.length - 1];
+  if (i === last) return;
+  if (path.length >= 2 && i === path[path.length - 2]) {
+    path.pop();
+    loop = new Set(path).size !== path.length;
+    snd('tick', 0.9);
+    return;
+  }
+  if (!adjacent(i, last) || dGrid[i] !== dGrid[last]) return;
+  if (path.includes(i)) {
+    if (!loop) { loop = true; path.push(i); snd('good'); }
+    return;
+  }
+  path.push(i);
+  snd('ok', 1 + path.length * 0.05);
+}
+function endPath() {
+  if (!dragging) return;
+  dragging = false;
+  if (path.length < 2) { path = []; loop = false; return; }
+  const color = dGrid[path[0]];
+  let clear;
+  if (loop) {
+    clear = new Set();
+    dGrid.forEach((v, i) => { if (v === color) clear.add(i); });
+  } else clear = new Set(path);
+  const { cell, ox, oy } = geom();
+  for (const i of clear) {
+    const r = Math.floor(i / DN), c = i % DN;
+    pops.push({ x: ox + c * cell + cell / 2, y: oy + r * cell + cell / 2, col: DCOLS[dGrid[i]], t: 0.3 });
+  }
+  dScore += clear.size * (loop ? 2 : 1);
+  snd(loop ? 'level' : 'pop', 1 + clear.size * 0.03);
+  // gravity per column
+  for (let c = 0; c < DN; c++) {
+    const col = [];
+    for (let r = DN - 1; r >= 0; r--) if (!clear.has(r * DN + c)) col.push(dGrid[r * DN + c]);
+    for (let r = DN - 1, k = 0; r >= 0; r--, k++) {
+      if (k < col.length) {
+        const nv = col[k];
+        const idx = r * DN + c;
+        if (dGrid[idx] !== nv || clear.has(idx)) {
+          const old = falls.findIndex(f => f.i === idx);
+          if (old >= 0) falls.splice(old, 1);
+          falls.push({ i: idx, off: -cell * 1.2 });
+        }
+        dGrid[idx] = nv;
+      } else {
+        const idx = r * DN + c;
+        dGrid[idx] = RI(0, DCOLS.length - 1);
+        const old = falls.findIndex(f => f.i === idx);
+        if (old >= 0) falls.splice(old, 1);
+        falls.push({ i: idx, off: -cell * (1.5 + k * 0.4) });
+      }
+    }
+  }
+  path = []; loop = false;
+  dLeft--;
+  refresh();
+  if (dLeft <= 0) {
+    dOver = true;
+    const best = Math.max(DATA.best.score || 0, dScore);
+    DATA.best.score = best; save();
+    setTimeout(() => overOverlay('Out of moves', [['SCORE', dScore], ['BEST', best]], { score: dScore, best }, !usedContinue), 600);
+  }
+}
+// Reward for watching an ad when out of moves: +5 moves, once per game.
+function continueGame() {
+  usedContinue = true;
+  dLeft += 5; dOver = false;
+  snd('level');
+  refresh();
+  toast('+5 moves! 💪');
+}
+// Reward for watching an ad any time: shuffle every dot color.
+function shuffleDots() {
+  if (dOver || !ovl.hidden || adBusy || dragging) return;
+  showRewardedAd().then(ok => {
+    if (!ok || dOver) return;
+    const { cell } = geom();
+    for (let i = 0; i < DN * DN; i++) {
+      dGrid[i] = RI(0, DCOLS.length - 1);
+      const old = falls.findIndex(f => f.i === i);
+      if (old >= 0) falls.splice(old, 1);
+      falls.push({ i, off: -cell * (0.6 + Math.floor(i / DN) * 0.15) });
+    }
+    snd('good');
+    toast('Shuffled! 🔀');
+  });
+}
+function setAdPill() {
+  toolEl.innerHTML = '';
+  const b = document.createElement('button');
+  b.className = 'pill ad';
+  b.innerHTML = '🔀 Shuffle<span class="adtag">AD</span>';
+  b.addEventListener('click', () => { AU.ensure(); snd('ui'); shuffleDots(); });
+  toolEl.appendChild(b);
+}
+function refresh() {
+  setChips([['SCORE', dScore], ['MOVES LEFT', dLeft], ['BEST', DATA.best.score || 0]]);
+}
+
+const game = {
+  init() {
+    const cn = initCanvas(); C = cn; GG = cn.g; POS = cn.pos;
+    C.cvs.addEventListener('pointerdown', e => {
+      if (dOver || !ovl.hidden) return;
+      e.preventDefault();
+      const p = POS(e);
+      const i = dotAt(p.x, p.y);
+      if (i >= 0) { T.start(); dragging = true; path = [i]; loop = false; snd('ok', 1); }
+    });
+    C.cvs.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const p = POS(e);
+      tryAdd(dotAt(p.x, p.y));
+    });
+    C.cvs.addEventListener('pointerup', endPath);
+    C.cvs.addEventListener('pointercancel', endPath);
+    this.newGame(true);
+    startLoop();
+  },
+  newGame(silent) {
+    freshRng();
+    dScore = 0; dLeft = MOVES0; dOver = false; path = []; loop = false; falls = []; pops = []; usedContinue = false;
+    T.reset();
+    gen();
+    refresh();
+    if (!silent) emit('newPuzzle', {});
+  },
+  frame(dt) {
+    const g = GG;
+    g.clearRect(0, 0, CW, CH);
+    const { cell, ox, oy, s } = geom();
+    // loop tint
+    if (loop && path.length) {
+      g.fillStyle = DCOLS[dGrid[path[0]]] + '18';
+      g.fillRect(0, 0, CW, CH);
+    }
+    // path lines
+    if (path.length > 1) {
+      g.strokeStyle = DCOLS[dGrid[path[0]]];
+      g.lineWidth = cell * 0.14; g.lineCap = 'round'; g.lineJoin = 'round';
+      g.beginPath();
+      path.forEach((i, k) => {
+        const r = Math.floor(i / DN), c = i % DN;
+        const x = ox + c * cell + cell / 2, y = oy + r * cell + cell / 2;
+        k ? g.lineTo(x, y) : g.moveTo(x, y);
+      });
+      g.stroke();
+    }
+    // dots
+    for (let i = 0; i < DN * DN; i++) {
+      const r = Math.floor(i / DN), c = i % DN;
+      const f = falls.find(fl => fl.i === i);
+      let off = 0;
+      if (f) { f.off = Math.min(0, f.off + dt * cell * 14); off = f.off; if (f.off >= 0) falls.splice(falls.indexOf(f), 1); }
+      const x = ox + c * cell + cell / 2, y = oy + r * cell + cell / 2 + off;
+      const inPath = path.includes(i);
+      g.fillStyle = DCOLS[dGrid[i]];
+      if (inPath) { g.shadowColor = DCOLS[dGrid[i]]; g.shadowBlur = 12; }
+      g.beginPath(); g.arc(x, y, cell * (inPath ? 0.26 : 0.21), 0, TAU); g.fill();
+      g.shadowBlur = 0;
+    }
+    // pops
+    for (let i = pops.length - 1; i >= 0; i--) {
+      const p = pops[i];
+      p.t -= dt;
+      if (p.t <= 0) { pops.splice(i, 1); continue; }
+      const u = 1 - p.t / 0.3;
+      g.globalAlpha = 1 - u;
+      g.strokeStyle = p.col; g.lineWidth = 3;
+      g.beginPath(); g.arc(p.x, p.y, cell * 0.22 + u * cell * 0.3, 0, TAU); g.stroke();
+    }
+    g.globalAlpha = 1;
+  },
+  tick() {},
+  debug() { return { grid: dGrid.slice(), score: dScore, left: dLeft }; }
+};
+
+
+/* ══ public API + boot ═════════════════════════════════ */
+window.STWGame = {
+  id: GAME_ID, version: '1.0.0', config: CFG,
+  newGame: () => { hideOverlay(); game.newGame(); },
+  on,
+  getBest: () => JSON.parse(JSON.stringify(DATA.best)),
+  mute: v => { DATA.sound = !v; save(); syncSnd(); },
+  _debug: () => (game.debug ? game.debug() : null)
+};
+setAdPill();
+game.init();
+adsInit();
+syncSnd();
+if (!DATA.seen) helpOverlay();
+emit('ready', {});
+})();
+</script>
+</body>
+</html>

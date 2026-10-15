@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0B0B14">
+<title>Unblock — STeamWorkS</title>
+<!--
+════════════════════════════════════════════════════════════════════════
+  STeamWorkS · Unblock · v1.0.0 · single self-contained file
+════════════════════════════════════════════════════════════════════════
+  MOS INTEGRATION
+  ───────────────
+    <iframe src="unblock.html?embed=1&prefix=PLAYER_ID"
+            style="width:100%;height:100%;border:0" allow="autoplay"></iframe>
+
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.source === 'stws-puzzle') {
+        // e.data = {source:'stws-puzzle', game:'unblock', event, ...payload}
+        // events: ready · newPuzzle · start · win · gameover
+        // win/gameover payloads carry the run's stats (moves, time, score…)
+      }
+    });
+
+  URL params:
+    ?embed=1       hide footer chrome
+    ?prefix=<id>   namespace localStorage per player  (stws-unblock-v1:<id>)
+    ?mute=1        start muted
+    ?seed=<any>    deterministic puzzles (same seed = same sequence)
+    ?daily=1       seed from today's date — everyone gets the same puzzle
+    ?diff=<id>     start on a specific difficulty (where the game has them)
+
+  Same-page API: STWGame.newGame() · STWGame.on(evt,cb) · STWGame.config
+════════════════════════════════════════════════════════════════════════
+-->
+<style>
+:root{
+  --night:#0B0B14; --panel:#15152A; --panel-2:#1A1F38;
+  --milk:#F2EFFF; --faded:#8B87A8; --line:rgba(242,239,255,.08);
+  --acc:#FF6B4A;
+  --round:18px;
+  --font:"SF Pro Rounded",ui-rounded,"Nunito","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--night);color:var(--milk);font-family:var(--font);overflow:hidden;
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;
+  user-select:none;-webkit-user-select:none;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(55% 38% at 25% -5%, color-mix(in srgb,var(--acc) 9%,transparent), transparent 60%);
+}
+#app{
+  position:relative;height:100dvh;max-width:520px;margin:0 auto;
+  display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+#top{display:flex;align-items:center;gap:12px;padding:14px 16px 10px}
+#top .ico{font-size:30px;line-height:1;filter:drop-shadow(0 4px 14px color-mix(in srgb,var(--acc) 55%,transparent))}
+#top h1{font-size:19px;font-weight:900;letter-spacing:.02em;line-height:1.1}
+#top .sub{font-size:10px;font-weight:800;letter-spacing:.3em;color:var(--faded);text-transform:uppercase;margin-top:2px}
+#top .grow{flex:1}
+.iconbtn{
+  width:40px;height:40px;border-radius:13px;border:1px solid var(--line);
+  background:var(--panel);color:var(--milk);font-size:16px;font-family:var(--font);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  transition:transform .12s ease;
+}
+.iconbtn:active{transform:scale(.92)}
+.iconbtn:focus-visible{outline:2px solid var(--milk);outline-offset:2px}
+#status{display:flex;gap:8px;justify-content:center;padding:2px 16px 8px;flex-wrap:wrap}
+.chip{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:6px 13px;text-align:center;min-width:66px;
+}
+.chip .l{font-size:9px;font-weight:800;letter-spacing:.22em;color:var(--faded);text-transform:uppercase}
+.chip .v{font-size:17px;font-weight:900;color:var(--acc);font-variant-numeric:tabular-nums;margin-top:1px}
+#toolrow{display:flex;gap:8px;justify-content:center;padding:0 16px 8px}
+#toolrow:empty{display:none}
+.pill{
+  border:1px solid var(--line);background:var(--panel);color:var(--faded);
+  font-family:var(--font);font-size:12px;font-weight:800;letter-spacing:.06em;
+  padding:8px 16px;border-radius:999px;cursor:pointer;transition:transform .12s ease;
+}
+.pill:active{transform:scale(.94)}
+.pill.on{background:var(--acc);color:#10101C;border-color:transparent}
+#stage{flex:1;position:relative;min-height:0;margin:0 10px}
+#board{position:absolute;inset:0;touch-action:none}
+#ovl{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(11,11,20,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  border-radius:var(--round);z-index:5;
+}
+#ovl[hidden]{display:none}
+.ov-in{text-align:center;padding:26px 28px;max-width:330px;animation:rise .3s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1}}
+.ov-ico{
+  width:86px;height:86px;margin:0 auto 14px;border-radius:26px;
+  background:var(--panel-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:42px;
+  box-shadow:0 10px 40px -8px var(--acc);
+}
+.ov-in h2{font-size:25px;font-weight:900;letter-spacing:.02em}
+.ov-in .tip{margin-top:10px;font-size:14px;line-height:1.55;color:var(--faded);font-weight:600}
+.ov-in .chips{display:flex;gap:8px;justify-content:center;margin-top:16px}
+.cta{margin-top:22px;font-size:12px;font-weight:900;letter-spacing:.3em;color:var(--milk)}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.btn{
+  margin-top:16px;display:inline-block;padding:12px 22px;border-radius:14px;
+  background:var(--acc);border:0;color:#10101C;
+  font-family:var(--font);font-size:13px;font-weight:900;letter-spacing:.06em;cursor:pointer;
+  transition:transform .12s ease;
+}
+.btn.ghost{background:var(--panel-2);border:1px solid var(--line);color:var(--milk)}
+.btn:active{transform:scale(.94)}
+.btn:focus-visible{outline:2px solid var(--milk);outline-offset:2px}
+#foot{
+  padding:10px 16px calc(12px + env(safe-area-inset-bottom));
+  font-size:10.5px;color:var(--faded);text-align:center;font-weight:600;letter-spacing:.05em;
+}
+body.embed #foot{display:none}
+.btn-row{display:flex;flex-direction:column;align-items:center;gap:0}
+.btn.ad{background:#FFD25A}
+.ub-toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  background:var(--panel-2);border:1px solid var(--line);color:var(--milk);padding:10px 16px;border-radius:14px;
+  font-size:13px;font-weight:800;z-index:50;transition:opacity .4s;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center}
+.ub-toast.out{opacity:0}
+.ub-ad{position:fixed;inset:0;background:rgba(5,5,12,.9);z-index:60;display:flex;align-items:center;justify-content:center}
+.ub-ad-in{text-align:center;padding:24px;max-width:300px}
+.ub-ad-in h3{font-size:22px;margin-top:8px}.ub-ad-in p{color:var(--faded);margin-top:8px;font-weight:600}
+html.native #foot{display:none}
+@media (max-width:400px){
+  #top{gap:8px;padding:12px 12px 8px}
+  #top .ico{font-size:26px}
+  .iconbtn{width:36px;height:36px;border-radius:12px;font-size:15px}
+  .chip{min-width:54px;padding:5px 9px}
+  .chip .v{font-size:15px}
+}
+@media (prefers-reduced-motion:reduce){.pulse,.ov-in{animation:none}}
+@media (min-width:560px){#app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <span class="ico">🚗</span>
+    <div><h1>Unblock</h1><div class="sub">STeamWorkS</div></div>
+    <div class="grow"></div>
+    <button class="iconbtn" id="btnHint" aria-label="Hint">💡</button>
+    <button class="iconbtn" id="btnRetry" aria-label="Restart this puzzle">⟲</button>
+    <button class="iconbtn" id="btnNew" aria-label="New puzzle">↻</button>
+    <button class="iconbtn" id="btnSnd" aria-label="Toggle sound">🔊</button>
+  </header>
+  <div id="status"></div>
+  <div id="toolrow"></div>
+  <div id="stage">
+    <div id="board"></div>
+    <div id="ovl" hidden></div>
+  </div>
+  <footer id="foot">STeamWorkS · saves on this device</footer>
+</div>
+<script>
+(() => {
+'use strict';
+
+/* ══ shell: helpers ════════════════════════════════════ */
+const GAME_ID = 'unblock', GAME_TITLE = 'Unblock', GAME_ICON = '🚗', ACCENT = '#FF6B4A';
+const GAME_TIP = 'Drag blocks along their tracks to clear a path. Slide the glowing block out the right-side exit.';
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const $ = s => document.querySelector(s);
+const FONT = '"SF Pro Rounded",ui-rounded,"Nunito","Segoe UI",system-ui,sans-serif';
+
+/* ══ shell: config + seeded rng ════════════════════════ */
+const QS = new URLSearchParams(location.search);
+const CFG = {
+  embed: QS.get('embed') === '1',
+  mute: QS.get('mute') === '1',
+  prefix: QS.get('prefix') || '',
+  seed: QS.get('seed') || '',
+  daily: QS.get('daily') === '1',
+  diff: QS.get('diff') || ''
+};
+if (CFG.daily && !CFG.seed) {
+  const d = new Date();
+  CFG.seed = '' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+}
+if (CFG.embed) document.body.classList.add('embed');
+
+function strHash(s) {
+  let h = 1779033703;
+  for (let i = 0; i < s.length; i++) { h = Math.imul(h ^ s.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  return h >>> 0;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const seedBase = CFG.seed ? strHash(CFG.seed) : null;
+let gameN = 0;
+let rng = Math.random;
+function freshRng() { gameN++; rng = seedBase !== null ? mulberry32(seedBase + gameN * 7919) : Math.random; }
+const RF = (a = 1, b) => b === undefined ? rng() * a : a + rng() * (b - a);
+const RI = (a, b) => Math.floor(RF(a, b + 1));
+const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+
+/* ══ shell: storage ════════════════════════════════════ */
+const STORE_KEY = 'stws-' + GAME_ID + '-v1' + (CFG.prefix ? ':' + CFG.prefix : '');
+const DATA = (() => {
+  try { return Object.assign({ sound: true, seen: false, best: {}, diff: '', save: null }, JSON.parse(localStorage.getItem(STORE_KEY) || '{}')); }
+  catch (e) { return { sound: true, seen: false, best: {}, diff: '', save: null }; }
+})();
+if (CFG.mute) DATA.sound = false;
+const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); } catch (e) {} };
+
+/* ══ shell: audio synth ════════════════════════════════ */
+const AU = {
+  ctx: null,
+  ensure() {
+    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (this.ctx && this.ctx.state === 'suspended' && !adMuted) this.ctx.resume();
+  },
+  tone(f, d, type = 'sine', g = 0.15, slide = 0, at = 0) {
+    if (!DATA.sound || !this.ctx) return;
+    const t = this.ctx.currentTime + at;
+    const o = this.ctx.createOscillator(), ga = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+    ga.gain.setValueAtTime(g, t);
+    ga.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(ga).connect(this.ctx.destination);
+    o.start(t); o.stop(t + d + 0.02);
+  },
+  noise(d = 0.15, g = 0.18, fq = 1000) {
+    if (!DATA.sound || !this.ctx) return;
+    const t = this.ctx.currentTime, n = Math.floor(this.ctx.sampleRate * d);
+    const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = fq;
+    const ga = this.ctx.createGain(); ga.gain.value = g;
+    src.connect(f).connect(ga).connect(this.ctx.destination);
+    src.start(t);
+  },
+  play(name, p = 1) {
+    switch (name) {
+      case 'ui':    this.tone(520, 0.07, 'triangle', 0.10); break;
+      case 'tap':   this.tone(300, 0.05, 'square', 0.06); break;
+      case 'tick':  this.tone(230, 0.04, 'square', 0.05); break;
+      case 'slide': this.noise(0.07, 0.08, 1400); break;
+      case 'ok':    this.tone(540 * p, 0.09, 'triangle', 0.14); this.tone(810 * p, 0.11, 'triangle', 0.10, 0, 0.05); break;
+      case 'good':  this.tone(660, 0.10, 'triangle', 0.14); this.tone(990, 0.14, 'triangle', 0.11, 0, 0.07); break;
+      case 'pour':  this.tone(300, 0.16, 'sine', 0.12, 160); this.noise(0.10, 0.06, 900); break;
+      case 'pop':   this.noise(0.10, 0.20, 1600); this.tone(200 * p, 0.07, 'square', 0.10); break;
+      case 'bad':   this.tone(220, 0.16, 'sawtooth', 0.10, -80); break;
+      case 'fail':  this.tone(300, 0.38, 'sawtooth', 0.13, -210); this.noise(0.2, 0.10, 500); break;
+      case 'level': [440, 550, 660, 880].forEach((f, i) => this.tone(f, 0.10, 'triangle', 0.12, 0, i * 0.07)); break;
+      case 'win':   [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, 0.13, 'triangle', 0.13, 0, i * 0.085)); break;
+    }
+  }
+};
+const snd = (n, p) => AU.play(n, p);
+let adMuted = false;
+window.addEventListener('unblock:pause', () => { adMuted = true; if (AU.ctx) try { AU.ctx.suspend(); } catch (e) {} });
+window.addEventListener('unblock:resume', () => { adMuted = false; if (AU.ctx) try { AU.ctx.resume(); } catch (e) {} });
+document.addEventListener('visibilitychange', () => {
+  if (!AU.ctx) return;
+  try { if (document.hidden) AU.ctx.suspend(); else if (!adMuted) AU.ctx.resume(); } catch (e) {}
+});
+
+/* ══ shell: events (postMessage for MOS) ═══════════════ */
+const listeners = {};
+function on(ev, cb) { (listeners[ev] = listeners[ev] || []).push(cb); }
+function emit(ev, payload = {}) {
+  (listeners[ev] || []).forEach(cb => { try { cb(payload); } catch (e) {} });
+  if (window.parent !== window) {
+    try { window.parent.postMessage(Object.assign({ source: 'stws-puzzle', game: GAME_ID, event: ev }, payload), '*'); } catch (e) {}
+  }
+}
+
+/* ══ shell: status chips + toolbar pills ═══════════════ */
+const boardEl = $('#board'), ovl = $('#ovl'), statusEl = $('#status'), toolEl = $('#toolrow');
+function setChips(pairs) {
+  statusEl.innerHTML = pairs.map(p =>
+    '<div class="chip"><div class="l">' + p[0] + '</div><div class="v">' + p[1] + '</div></div>').join('');
+}
+function setPills(list, cur, cb) {
+  toolEl.innerHTML = '';
+  for (const d of list) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (d.id === cur ? ' on' : '');
+    b.textContent = d.label;
+    b.addEventListener('click', () => { snd('ui'); cb(d.id); });
+    toolEl.appendChild(b);
+  }
+}
+
+/* ══ shell: overlays ═══════════════════════════════════ */
+let ovlAction = null;
+function overlay(html, tapAction) {
+  ovl.innerHTML = html; ovl.hidden = false; ovlAction = tapAction || null;
+}
+function hideOverlay() { ovl.hidden = true; ovlAction = null; }
+function chipsHtml(pairs) {
+  return '<div class="chips">' + pairs.map(p =>
+    '<div class="chip"><div class="l">' + p[0] + '</div><div class="v">' + p[1] + '</div></div>').join('') + '</div>';
+}
+function winOverlay(pairs, payload) {
+  snd('win');
+  emit('win', payload || {});
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>Solved!</h2>' +
+      chipsHtml(pairs) +
+      '<div><button class="btn" id="ovNew">New puzzle</button></div>' +
+    '</div>');
+}
+function overOverlay(title, pairs, payload) {
+  snd('fail');
+  emit('gameover', payload || {});
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>' + title + '</h2>' +
+      chipsHtml(pairs) +
+      '<div><button class="btn" id="ovNew">Play again</button></div>' +
+    '</div>');
+}
+function helpOverlay() {
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>' + GAME_TITLE + '</h2>' +
+      '<p class="tip">' + GAME_TIP + '</p>' +
+      '<div class="cta pulse">TAP TO PLAY</div>' +
+    '</div>', 'close');
+  DATA.seen = true; save();
+}
+ovl.addEventListener('click', e => {
+  if (e.target.closest('#ovNew')) { AU.ensure(); snd('ui'); hideOverlay(); game.newGame(); return; }
+  if (e.target.closest('#ovRetry')) { AU.ensure(); snd('ui'); hideOverlay(); game.retry(); return; }
+  if (e.target.closest('#ovHint')) { AU.ensure(); snd('ui'); game.showHint(); return; }
+  if (e.target.closest('#ovClose')) { snd('ui'); hideOverlay(); return; }
+  if (e.target.closest('#ovAd')) { AU.ensure(); snd('ui'); game.adMoves(); return; }
+  if (e.target.closest('.btn')) return;
+  if (ovlAction === 'close') { AU.ensure(); hideOverlay(); }
+});
+
+/* ══ shell: timer ══════════════════════════════════════ */
+const T = {
+  t0: 0, acc: 0, run: false,
+  reset() { this.t0 = 0; this.acc = 0; this.run = false; },
+  start() { if (!this.run) { this.run = true; this.t0 = Date.now(); } },
+  stop() { if (this.run) { this.acc += Date.now() - this.t0; this.run = false; } },
+  sec() { return Math.floor((this.acc + (this.run ? Date.now() - this.t0 : 0)) / 1000); }
+};
+const fmtT = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+setInterval(() => { if (game.tick) game.tick(); }, 500);
+
+/* ══ shell: canvas helper ══════════════════════════════ */
+let CW = 0, CH = 0;
+function initCanvas() {
+  const cvs = document.createElement('canvas');
+  cvs.style.cssText = 'position:absolute;inset:0;display:block;touch-action:none';
+  boardEl.appendChild(cvs);
+  const g = cvs.getContext('2d');
+  function fit() {
+    const r = boardEl.getBoundingClientRect();
+    CW = Math.max(1, Math.round(r.width)); CH = Math.max(1, Math.round(r.height));
+    const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    cvs.width = CW * dpr; cvs.height = CH * dpr;
+    cvs.style.width = CW + 'px'; cvs.style.height = CH + 'px';
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (game.onResize) game.onResize();
+  }
+  fit();
+  window.addEventListener('resize', fit);
+  const pos = e => { const r = cvs.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  cvs.addEventListener('contextmenu', e => e.preventDefault());
+  return { cvs, g, pos, fit };
+}
+function startLoop() {
+  let last = performance.now();
+  (function raf(now) {
+    requestAnimationFrame(raf);
+    const dt = Math.min(0.033, (now - (last || now)) / 1000); last = now;
+    if (game.frame) game.frame(dt);
+  })(performance.now());
+}
+
+/* ══ shell: top buttons ════════════════════════════════ */
+function syncSnd() { $('#btnSnd').textContent = DATA.sound ? '🔊' : '🔇'; }
+$('#btnSnd').addEventListener('click', () => { DATA.sound = !DATA.sound; save(); syncSnd(); AU.ensure(); snd('ui'); });
+$('#btnNew').addEventListener('click', () => { AU.ensure(); snd('ui'); hideOverlay(); game.newGame(); });
+$('#btnRetry').addEventListener('click', () => { AU.ensure(); snd('ui'); hideOverlay(); game.retry(); });
+$('#btnHint').addEventListener('click', () => { AU.ensure(); snd('ui'); game.askHint(); });
+window.addEventListener('pointerdown', () => AU.ensure(), { once: true, capture: true });
+
+/* ══ game ══════════════════════════════════════════════ */
+/* Unblock — slide the red block to the exit · BFS-graded generation */
+const UN = 6, EXIT_ROW = 2;
+let pieces = [], uMoves = 0, uPar = 0, uSolved = false, drag = null, exitAnim = 0;
+let startPieces = [], uLimit = 0, uOut = false, adsUsed = 0, hint = null;
+const EXTRA_MOVES = 10, MAX_AD_REFILLS = 2;
+const limitFor = par => par * 2 + 8;
+let C, GG, POS;
+const DIFFS = [{ id: 'e', label: 'Easy' }, { id: 'm', label: 'Medium' }, { id: 'h', label: 'Hard' }];
+const BUCKET = { e: [4, 8], m: [9, 15], h: [16, 99] };
+let diff = 'm';
+
+function occGrid(list, skip) {
+  const g = Array(UN * UN).fill(-1);
+  list.forEach((p, i) => {
+    if (i === skip) return;
+    for (let k = 0; k < p.len; k++) {
+      const r = p.h ? p.r : p.r + k, c = p.h ? p.c + k : p.c;
+      g[r * UN + c] = i;
+    }
+  });
+  return g;
+}
+function encode(list) { return list.map(p => p.h ? p.c : p.r).join(','); }
+function bfsSolve(start) {
+  const q = [start.map(p => ({ ...p }))];
+  const seen = new Set([encode(start)]);
+  let dist = 0;
+  while (q.length) {
+    const nq = [];
+    for (const st of q) {
+      if (st[0].c === UN - st[0].len) return dist;
+      for (let i = 0; i < st.length; i++) {
+        const p = st[i];
+        const occ = occGrid(st, i);
+        for (const dir of [-1, 1]) {
+          for (let step = 1; ; step++) {
+            const nr = p.h ? p.r : p.r + dir * step;
+            const nc = p.h ? p.c + dir * step : p.c;
+            if (nr < 0 || nc < 0) break;
+            if (p.h && nc + p.len > UN) break;
+            if (!p.h && nr + p.len > UN) break;
+            let blocked = false;
+            for (let k = 0; k < p.len; k++) {
+              const rr = p.h ? nr : nr + k, cc = p.h ? nc + k : nc;
+              if (occ[rr * UN + cc] !== -1) { blocked = true; break; }
+            }
+            if (blocked) break;
+            const ns = st.map((x, j) => j === i ? { ...x, r: nr, c: nc } : x);
+            const key = encode(ns);
+            if (!seen.has(key)) { seen.add(key); nq.push(ns); }
+          }
+        }
+      }
+    }
+    q.length = 0; q.push(...nq);
+    dist++;
+    if (dist > 60 || seen.size > 250000) return -1;
+  }
+  return -1;
+}
+// Finds the first move of a shortest solution: { i, to } or null.
+function nextMove(start) {
+  const s0 = start.map(p => ({ ...p }));
+  if (s0[0].c === UN - s0[0].len) return null;
+  const first = new Map([[encode(s0), null]]);
+  let q = [s0];
+  for (let depth = 0; q.length && depth < 60 && first.size < 250000; depth++) {
+    const nq = [];
+    for (const st of q) {
+      const fm = first.get(encode(st));
+      for (let i = 0; i < st.length; i++) {
+        const p = st[i], occ = occGrid(st, i);
+        for (const dir of [-1, 1]) {
+          for (let step = 1; ; step++) {
+            const nr = p.h ? p.r : p.r + dir * step, nc = p.h ? p.c + dir * step : p.c;
+            if (nr < 0 || nc < 0) break;
+            if (p.h && nc + p.len > UN) break;
+            if (!p.h && nr + p.len > UN) break;
+            let blocked = false;
+            for (let k = 0; k < p.len; k++) {
+              const rr = p.h ? nr : nr + k, cc = p.h ? nc + k : nc;
+              if (occ[rr * UN + cc] !== -1) { blocked = true; break; }
+            }
+            if (blocked) break;
+            const ns = st.map((x, j) => j === i ? { ...x, r: nr, c: nc } : x);
+            const key = encode(ns);
+            if (first.has(key)) continue;
+            const mv = fm || { i, to: p.h ? nc : nr };
+            if (i === 0 && nc === UN - p.len) return mv;
+            first.set(key, mv); nq.push(ns);
+          }
+        }
+      }
+    }
+    q = nq;
+  }
+  return null;
+}
+function gen() {
+  const [lo, hi] = BUCKET[diff];
+  let best = null, bestScore = -Infinity;
+  const t0 = Date.now();
+  for (let attempt = 0; attempt < 400 && Date.now() - t0 < 900; attempt++) {
+    const list = [{ r: EXIT_ROW, c: RI(0, 2), len: 2, h: true }];
+    const occ = () => occGrid(list, -1);
+    const nP = RI(7, 11);
+    for (let k = 0; k < nP; k++) {
+      for (let tr = 0; tr < 24; tr++) {
+        const h = RF() < 0.45, len = RF() < 0.7 ? 2 : 3;
+        const r = RI(0, h ? UN - 1 : UN - len);
+        const c = RI(0, h ? UN - len : UN - 1);
+        if (h && r === EXIT_ROW) continue;
+        const o = occ();
+        let free = true;
+        for (let j = 0; j < len; j++) {
+          const rr = h ? r : r + j, cc = h ? c + j : c;
+          if (o[rr * UN + cc] !== -1) { free = false; break; }
+        }
+        if (free) { list.push({ r, c, len, h }); break; }
+      }
+    }
+    const d = bfsSolve(list);
+    if (d < 2) continue;
+    if (d >= lo && d <= hi) { pieces = list; uPar = d; return; }
+    const sc = -Math.min(Math.abs(d - lo), Math.abs(d - hi));
+    if (sc > bestScore) { bestScore = sc; best = { list, d }; }
+  }
+  if (best) { pieces = best.list; uPar = best.d; }
+  else { pieces = [{ r: EXIT_ROW, c: 0, len: 2, h: true }, { r: 0, c: 4, len: 3, h: false }]; uPar = 1; }
+}
+function geom() {
+  const s = Math.min(CW, CH, 440) - 20;
+  return { cell: s / UN, ox: (CW - s) / 2, oy: (CH - s) / 2, s };
+}
+function pieceRect(p, cell) {
+  const w = (p.h ? p.len : 1) * cell, h = (p.h ? 1 : p.len) * cell;
+  return { x: p.c * cell, y: p.r * cell, w, h };
+}
+function slideRange(i) {
+  const p = pieces[i], occ = occGrid(pieces, i);
+  let min = p.h ? p.c : p.r, max = min;
+  for (const dir of [-1, 1]) {
+    let cur = p.h ? p.c : p.r;
+    while (true) {
+      const nv = cur + dir;
+      const nr = p.h ? p.r : nv, nc = p.h ? nv : p.c;
+      if (nv < 0) break;
+      if (p.h && nc + p.len > UN) break;
+      if (!p.h && nr + p.len > UN) break;
+      let blocked = false;
+      for (let k = 0; k < p.len; k++) {
+        const rr = p.h ? nr : nr + k, cc = p.h ? nc + k : nc;
+        if (occ[rr * UN + cc] !== -1) { blocked = true; break; }
+      }
+      if (blocked) break;
+      cur = nv;
+      if (dir < 0) min = cur; else max = cur;
+    }
+  }
+  return { min, max };
+}
+function refresh() {
+  setChips([['MOVES', uMoves], ['LEFT', Math.max(0, uLimit - uMoves)], ['PAR', uPar], ['TIME', fmtT(T.sec())], ['BEST', DATA.best['m' + diff] || '—']]);
+}
+function outOverlay() {
+  snd('fail');
+  emit('gameover', { diff, moves: uMoves, par: uPar, reason: 'moves' });
+  const canAd = adsUsed < MAX_AD_REFILLS;
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>Out of moves</h2>' +
+      '<p class="tip">So close! Keep going, or try this puzzle again.</p>' +
+      '<div class="btn-row">' +
+        (canAd ? '<button class="btn ad" id="ovAd">▶ Watch an ad: +' + EXTRA_MOVES + ' moves</button>' : '') +
+        '<button class="btn' + (canAd ? ' ghost' : '') + '" id="ovRetry">⟲ Try again</button>' +
+        '<button class="btn ghost" id="ovNew">New puzzle</button>' +
+      '</div>' +
+    '</div>');
+}
+function onWin() {
+  uSolved = true; T.stop();
+  const t = T.sec();
+  const key = 'm' + diff;
+  if (!DATA.best[key] || uMoves < DATA.best[key]) DATA.best[key] = uMoves;
+  save();
+  snd('level');
+  setTimeout(() => winOverlay(
+    [['MOVES', uMoves], ['PAR', uPar], ['TIME', fmtT(t)], ['BEST', DATA.best[key]]],
+    { diff, moves: uMoves, par: uPar, timeSec: t }), 700);
+}
+
+const game = {
+  init() {
+    diff = ['e', 'm', 'h'].includes(CFG.diff || DATA.diff) ? (CFG.diff || DATA.diff) : 'm';
+    const cn = initCanvas(); C = cn; GG = cn.g; POS = cn.pos;
+    C.cvs.addEventListener('pointerdown', e => {
+      if (uSolved || uOut || !ovl.hidden) return;
+      e.preventDefault();
+      const { cell, ox, oy } = geom();
+      const p = POS(e);
+      const c = Math.floor((p.x - ox) / cell), r = Math.floor((p.y - oy) / cell);
+      if (c < 0 || c >= UN || r < 0 || r >= UN) return;
+      const i = occGrid(pieces, -1)[r * UN + c];
+      if (i === -1) return;
+      const pc = pieces[i];
+      const range = slideRange(i);
+      drag = { i, start: pc.h ? pc.c : pc.r, px: p.x, py: p.y, range, float: pc.h ? pc.c : pc.r };
+      snd('tap');
+    });
+    C.cvs.addEventListener('pointermove', e => {
+      if (!drag) return;
+      const { cell } = geom();
+      const p = POS(e);
+      const d = (pieces[drag.i].h ? p.x - drag.px : p.y - drag.py) / cell;
+      drag.float = clamp(drag.start + d, drag.range.min, drag.range.max);
+    });
+    const up = () => {
+      if (!drag) return;
+      const p = pieces[drag.i];
+      const v = Math.round(drag.float);
+      const before = p.h ? p.c : p.r;
+      if (p.h) p.c = v; else p.r = v;
+      if (v !== before) {
+        T.start();
+        uMoves++; snd('slide');
+        refresh();
+        hint = null;
+        if (drag.i === 0 && p.c === UN - p.len) { exitAnim = 1; onWin(); }
+        else if (uMoves >= uLimit) { uOut = true; T.stop(); setTimeout(outOverlay, 350); }
+      }
+      drag = null;
+    };
+    C.cvs.addEventListener('pointerup', up);
+    C.cvs.addEventListener('pointercancel', up);
+    setPills(DIFFS, diff, id => { diff = id; DATA.diff = id; save(); setPills(DIFFS, id, () => {}); game.newGame(); });
+    this.newGame(true);
+    startLoop();
+  },
+  newGame(silent) {
+    freshRng();
+    uMoves = 0; uSolved = false; drag = null; exitAnim = 0;
+    T.reset();
+    gen();
+    startPieces = pieces.map(p => ({ ...p }));
+    uLimit = limitFor(uPar); uOut = false; adsUsed = 0; hint = null;
+    refresh();
+    if (!silent) emit('newPuzzle', { diff, par: uPar });
+  },
+  retry() {
+    pieces = startPieces.map(p => ({ ...p }));
+    uMoves = 0; uSolved = false; uOut = false; drag = null; exitAnim = 0; hint = null;
+    uLimit = limitFor(uPar); adsUsed = 0;
+    T.reset(); refresh();
+  },
+  adMoves() {
+    if (!window.UB_MONEY) return;
+    UB_MONEY.showRewardedAd().then(ok => {
+      if (!ok) return;
+      adsUsed++; uLimit += EXTRA_MOVES; uOut = false;
+      hideOverlay(); snd('good'); refresh();
+      UB_MONEY.toast('+' + EXTRA_MOVES + ' moves — keep going!');
+    });
+  },
+  askHint() {
+    if (uSolved || uOut || !ovl.hidden || !window.UB_MONEY) return;
+    overlay(
+      '<div class="ov-in">' +
+        '<div class="ov-ico">💡</div>' +
+        '<h2>Need a hint?</h2>' +
+        '<p class="tip">Watch a short ad to see the best next move.</p>' +
+        '<div class="btn-row">' +
+          '<button class="btn ad" id="ovHint">▶ Watch an ad</button>' +
+          '<button class="btn ghost" id="ovClose">Not now</button>' +
+        '</div>' +
+      '</div>');
+  },
+  showHint() {
+    UB_MONEY.showRewardedAd().then(ok => {
+      if (!ok) return;
+      hideOverlay();
+      const mv = nextMove(pieces);
+      if (!mv) { UB_MONEY.toast('Try ⟲ to restart this puzzle'); return; }
+      hint = { ...mv, t: 0 };
+      snd('ok');
+    });
+  },
+  tick() { if (!uSolved) refresh(); },
+  frame(dt) {
+    const g = GG;
+    g.clearRect(0, 0, CW, CH);
+    const { cell, ox, oy, s } = geom();
+    if (exitAnim > 0 && exitAnim < 3) exitAnim += dt * 4;
+    // board
+    g.fillStyle = '#15152A';
+    g.beginPath(); g.roundRect(ox - 8, oy - 8, s + 16, s + 16, 18); g.fill();
+    g.strokeStyle = 'rgba(242,239,255,.08)'; g.lineWidth = 1; g.stroke();
+    // cells
+    g.fillStyle = 'rgba(242,239,255,.04)';
+    for (let r = 0; r < UN; r++) for (let c = 0; c < UN; c++) {
+      g.beginPath(); g.roundRect(ox + c * cell + 3, oy + r * cell + 3, cell - 6, cell - 6, 8); g.fill();
+    }
+    // exit notch
+    g.fillStyle = ACCENT;
+    g.beginPath();
+    g.roundRect(ox + s + 2, oy + EXIT_ROW * cell + cell * 0.2, 8, cell * 0.6, 4);
+    g.fill();
+    // hint target ghost
+    if (hint) {
+      hint.t += dt;
+      const hp = pieces[hint.i];
+      const tr = pieceRect({ ...hp, c: hp.h ? hint.to : hp.c, r: hp.h ? hp.r : hint.to }, cell);
+      const a = 0.35 + 0.25 * Math.sin(hint.t * 6);
+      g.save(); g.setLineDash([7, 6]);
+      g.strokeStyle = 'rgba(255,210,90,' + a + ')'; g.lineWidth = 3;
+      g.beginPath(); g.roundRect(ox + tr.x + 5, oy + tr.y + 5, tr.w - 10, tr.h - 10, 10); g.stroke();
+      g.restore();
+    }
+    // pieces
+    for (let i = pieces.length - 1; i >= 0; i--) {
+      const p = pieces[i];
+      let v = p.h ? p.c : p.r;
+      if (drag && drag.i === i) v = drag.float;
+      const rc = pieceRect({ ...p, c: p.h ? v : p.c, r: p.h ? p.r : v }, cell);
+      let x = ox + (p.h ? v * cell : p.c * cell), y = oy + (p.h ? p.r * cell : v * cell);
+      if (i === 0 && exitAnim > 0) x += exitAnim * exitAnim * 120;
+      const red = i === 0;
+      g.fillStyle = red ? ACCENT : '#3D3B72';
+      if (red) { g.shadowColor = ACCENT; g.shadowBlur = 14; }
+      g.beginPath(); g.roundRect(x + 4, y + 4, rc.w - 8, rc.h - 8, 10); g.fill();
+      g.shadowBlur = 0;
+      g.fillStyle = 'rgba(255,255,255,.14)';
+      g.beginPath(); g.roundRect(x + 4, y + 4, rc.w - 8, 6, [10, 10, 0, 0]); g.fill();
+      if (hint && hint.i === i) {
+        const a = 0.55 + 0.45 * Math.sin(hint.t * 6);
+        g.strokeStyle = 'rgba(255,210,90,' + a + ')'; g.lineWidth = 4;
+        g.beginPath(); g.roundRect(x + 2, y + 2, rc.w - 4, rc.h - 4, 12); g.stroke();
+      }
+      // grip dots
+      g.fillStyle = red ? 'rgba(16,16,28,.4)' : 'rgba(242,239,255,.22)';
+      const cx = x + rc.w / 2, cy = y + rc.h / 2;
+      if (p.h) { g.beginPath(); g.arc(cx - 7, cy, 2.4, 0, TAU); g.arc(cx + 7, cy, 2.4, 0, TAU); g.fill(); }
+      else { g.beginPath(); g.arc(cx, cy - 7, 2.4, 0, TAU); g.arc(cx, cy + 7, 2.4, 0, TAU); g.fill(); }
+    }
+  },
+  debug() { return { pieces: pieces.map(p => ({ ...p })), par: uPar, bfs: bfsSolve(pieces) }; }
+};
+
+
+/* ══ public API + boot ═════════════════════════════════ */
+window.STWGame = {
+  id: GAME_ID, version: '1.0.0', config: CFG,
+  newGame: () => { hideOverlay(); game.newGame(); },
+  on,
+  getBest: () => JSON.parse(JSON.stringify(DATA.best)),
+  mute: v => { DATA.sound = !v; save(); syncSnd(); },
+  _debug: () => (game.debug ? game.debug() : null)
+};
+game.init();
+syncSnd();
+if (!DATA.seen) helpOverlay();
+emit('ready', {});
+})();
+</script>
+<script src="money.js"></script>
+</body>
+</html>

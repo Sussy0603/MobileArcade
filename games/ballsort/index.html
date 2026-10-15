@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#070818">
+<title>Ball Sort — STeamWorkS</title>
+<!--
+════════════════════════════════════════════════════════════════════════
+  STeamWorkS · Ball Sort: Planet Blast · v1.0.0 · single self-contained file
+════════════════════════════════════════════════════════════════════════
+  MOS INTEGRATION
+  ───────────────
+    <iframe src="ballsort.html?embed=1&prefix=PLAYER_ID"
+            style="width:100%;height:100%;border:0" allow="autoplay"></iframe>
+
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.source === 'stws-puzzle') {
+        // e.data = {source:'stws-puzzle', game:'ballsort', event, ...payload}
+        // events: ready · newPuzzle · start · win · gameover
+        // win/gameover payloads carry the run's stats (moves, time, score…)
+      }
+    });
+
+  URL params:
+    ?embed=1       hide footer chrome
+    ?prefix=<id>   namespace localStorage per player  (stws-ballsort-v1:<id>)
+    ?mute=1        start muted
+    ?seed=<any>    deterministic puzzles (same seed = same sequence)
+    ?daily=1       seed from today's date — everyone gets the same puzzle
+    ?diff=<id>     start on a specific difficulty (where the game has them)
+
+  Same-page API: STWGame.newGame() · STWGame.on(evt,cb) · STWGame.config
+════════════════════════════════════════════════════════════════════════
+-->
+<style>
+:root{
+  --night:#070818; --panel:#131535; --panel-2:#1B1E48;
+  --milk:#F2EFFF; --faded:#8B87A8; --line:rgba(242,239,255,.08);
+  --acc:#A98BFF;
+  --round:18px;
+  --font:"SF Pro Rounded",ui-rounded,"Nunito","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--night);color:var(--milk);font-family:var(--font);overflow:hidden;
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;
+  user-select:none;-webkit-user-select:none;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;
+  background:
+    radial-gradient(45% 30% at 85% 8%, rgba(255,110,200,.14), transparent 70%),
+    radial-gradient(55% 38% at 10% 0%, rgba(120,110,255,.18), transparent 65%),
+    radial-gradient(60% 40% at 50% 105%, rgba(60,200,255,.12), transparent 70%);
+}
+#app{
+  position:relative;height:100dvh;max-width:520px;margin:0 auto;
+  display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+#top{display:flex;align-items:center;gap:12px;padding:14px 16px 10px}
+#top .ico{font-size:30px;line-height:1;filter:drop-shadow(0 4px 14px color-mix(in srgb,var(--acc) 55%,transparent))}
+#top h1{font-size:19px;font-weight:900;letter-spacing:.02em;line-height:1.1}
+#top .sub{font-size:10px;font-weight:800;letter-spacing:.3em;color:var(--faded);text-transform:uppercase;margin-top:2px}
+#top .grow{flex:1}
+.iconbtn{
+  width:40px;height:40px;border-radius:13px;border:1px solid var(--line);
+  background:var(--panel);color:var(--milk);font-size:16px;font-family:var(--font);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  transition:transform .12s ease;
+}
+.iconbtn:active{transform:scale(.92)}
+.iconbtn:focus-visible{outline:2px solid var(--milk);outline-offset:2px}
+#status{display:flex;gap:8px;justify-content:center;padding:2px 16px 8px;flex-wrap:wrap}
+.chip{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:6px 13px;text-align:center;min-width:66px;
+}
+.chip .l{font-size:9px;font-weight:800;letter-spacing:.22em;color:var(--faded);text-transform:uppercase}
+.chip .v{font-size:17px;font-weight:900;color:var(--acc);font-variant-numeric:tabular-nums;margin-top:1px}
+#toolrow{display:flex;gap:8px;justify-content:center;padding:0 16px 8px}
+#toolrow:empty{display:none}
+.pill{
+  border:1px solid var(--line);background:var(--panel);color:var(--faded);
+  font-family:var(--font);font-size:12px;font-weight:800;letter-spacing:.06em;
+  padding:8px 16px;border-radius:999px;cursor:pointer;transition:transform .12s ease;
+}
+.pill:active{transform:scale(.94)}
+.pill.on{background:var(--acc);color:#10101C;border-color:transparent}
+#stage{flex:1;position:relative;min-height:0;margin:0 10px}
+#board{position:absolute;inset:0;touch-action:none}
+#ovl{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(11,11,20,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  border-radius:var(--round);z-index:5;
+}
+#ovl[hidden]{display:none}
+.ov-in{text-align:center;padding:26px 28px;max-width:330px;animation:rise .3s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1}}
+.ov-ico{
+  width:86px;height:86px;margin:0 auto 14px;border-radius:26px;
+  background:var(--panel-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:42px;
+  box-shadow:0 10px 40px -8px var(--acc);
+}
+.ov-in h2{font-size:25px;font-weight:900;letter-spacing:.02em}
+.ov-in .tip{margin-top:10px;font-size:14px;line-height:1.55;color:var(--faded);font-weight:600}
+.ov-in .chips{display:flex;gap:8px;justify-content:center;margin-top:16px}
+.cta{margin-top:22px;font-size:12px;font-weight:900;letter-spacing:.3em;color:var(--milk)}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.btn{
+  margin-top:16px;display:inline-block;padding:12px 22px;border-radius:14px;
+  background:var(--acc);border:0;color:#10101C;
+  font-family:var(--font);font-size:13px;font-weight:900;letter-spacing:.06em;cursor:pointer;
+  transition:transform .12s ease;
+}
+.btn.ghost{background:var(--panel-2);border:1px solid var(--line);color:var(--milk)}
+.btn:active{transform:scale(.94)}
+.btn:focus-visible{outline:2px solid var(--milk);outline-offset:2px}
+#foot{
+  padding:10px 16px calc(12px + env(safe-area-inset-bottom));
+  font-size:10.5px;color:var(--faded);text-align:center;font-weight:600;letter-spacing:.05em;
+}
+body.embed #foot{display:none}
+/* ── app: action bar (undo · hint · extra tube) ── */
+#actions{display:flex;gap:10px;justify-content:center;padding:8px 16px 4px}
+.act{
+  position:relative;flex:1;max-width:112px;padding:10px 6px 9px;border-radius:16px;
+  background:var(--panel);border:1px solid var(--line);color:var(--milk);
+  font-family:var(--font);cursor:pointer;transition:transform .12s ease,opacity .2s;
+}
+.act:active{transform:scale(.93)}
+.act[disabled]{opacity:.35;pointer-events:none}
+.act .e{font-size:22px;line-height:1}
+.act .n{font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--faded);margin-top:4px}
+.act .b{
+  position:absolute;top:-7px;right:-5px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;
+  background:var(--acc);color:#10101C;font-size:11px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+}
+.act .b.ad{background:#FFD449}
+.act.pop{animation:actpop .35s ease}
+@keyframes actpop{40%{transform:scale(1.14)}}
+.btnrow{display:flex;flex-direction:column;align-items:center;gap:0}
+.btn.ad{background:#FFD449}
+/* toast */
+#toast{
+  position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translate(-50%,20px);
+  background:var(--panel-2);border:1px solid var(--line);color:var(--milk);
+  padding:10px 16px;border-radius:14px;font-size:13px;font-weight:700;max-width:88vw;text-align:center;
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:30;
+}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+/* browser-only fake ad */
+#adDemo{position:fixed;inset:0;background:rgba(5,5,12,.92);z-index:40;display:flex;align-items:center;justify-content:center}
+#adDemo[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){.pulse,.ov-in{animation:none}}
+@media (min-width:560px){#app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <span class="ico">🪐</span>
+    <div><h1>Ball Sort</h1><div class="sub">STeamWorkS</div></div>
+    <div class="grow"></div>
+    <button class="iconbtn" id="btnNew" aria-label="Restart this level" title="Restart this level">↻</button>
+    <button class="iconbtn" id="btnSnd" aria-label="Toggle sound">🔊</button>
+  </header>
+  <div id="status"></div>
+  <div id="toolrow"></div>
+  <div id="stage">
+    <div id="board"></div>
+    <div id="ovl" hidden></div>
+  </div>
+  <div id="actions">
+    <button class="act" id="btnUndo" aria-label="Undo"><div class="e">↩</div><div class="n">Undo</div><span class="b" id="bUndo"></span></button>
+    <button class="act" id="btnHint" aria-label="Hint"><div class="e">💡</div><div class="n">Hint</div><span class="b" id="bHint"></span></button>
+    <button class="act" id="btnTube" aria-label="Extra tube"><div class="e">➕</div><div class="n">Tube</div><span class="b" id="bTube"></span></button>
+  </div>
+  <footer id="foot">Saves on this device · v1.0.0</footer>
+</div>
+<div id="toast"></div>
+<div id="adDemo" hidden></div>
+<script>
+(() => {
+'use strict';
+
+/* ══ shell: helpers ════════════════════════════════════ */
+const GAME_ID = 'ballsort', GAME_TITLE = 'Ball Sort', GAME_ICON = '🪐', ACCENT = '#A98BFF';
+const GAME_TIP = 'Tap a tube to lift its top planet, then tap where it goes. A planet can land on the same kind or in an empty tube. Fill every tube with one kind to win.<br><br>💣 Bomb planets count down each move. Move them out of their tube before they hit 0!';
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const $ = s => document.querySelector(s);
+const FONT = '"SF Pro Rounded",ui-rounded,"Nunito","Segoe UI",system-ui,sans-serif';
+
+/* ══ CONFIG — tune the app here ════════════════════════
+   Free help per puzzle. When it runs out, the button
+   shows a yellow 📺 badge: tap = watch an ad to get more.
+   Set a number to 99 to make that help basically free. */
+const HELP = {
+  FREE_UNDOS: 5,      // undos per puzzle before an ad is needed
+  AD_UNDOS: 5,        // undos an ad gives back
+  FREE_HINTS: 1,      // hints per puzzle before an ad is needed
+  MAX_EXTRA_TUBES: 1, // extra empty tubes per puzzle (each one = 1 ad)
+  HINT_SHOW_MS: 2200  // how long the hint glow stays on
+};
+
+/* ══ MONEY — rewarded ads (AdMob) ══════════════════════
+   In a normal browser: DEMO mode, a 3-second fake ad.
+   Inside the Android app (Capacitor + @capacitor-community/admob)
+   the real ads play.
+   BEFORE RELEASE: put your real AdMob rewarded unit ID
+   below and set TESTING to false. */
+const MONEY = {
+  TESTING: true,
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917' // Google's TEST rewarded ID — replace with yours
+};
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null;
+let adBusy = false;
+
+let toastT = 0;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 2600);
+}
+/* show one rewarded ad → resolves true if the player earned the reward */
+function showRewardedAd() {
+  if (adBusy) return Promise.resolve(false);
+  adBusy = true;
+  const done = r => { adBusy = false; return r; };
+  const A = AdMobP();
+  if (!A) return demoAd().then(done);
+  return new Promise(async res => {
+    let earned = false, finished = false; const hs = [];
+    const finish = () => { if (finished) return; finished = true; hs.forEach(h => { try { h.remove(); } catch (e) {} }); res(earned); };
+    try {
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      await A.prepareRewardVideoAd({ adId: MONEY.REWARDED_ID, isTesting: MONEY.TESTING });
+      const item = await A.showRewardVideoAd();
+      if (item && item.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    } catch (e) { finish(); }
+  }).then(r => {
+    if (!r) toast('No ad right now — try again in a minute');
+    return done(r);
+  });
+}
+/* browser preview: fake 3-second ad so the flow can be tested */
+function demoAd() {
+  return new Promise(res => {
+    const box = document.getElementById('adDemo');
+    let n = 3;
+    box.innerHTML = '<div class="ov-in"><div class="ov-ico">📺</div><h2>Ad preview</h2>' +
+      '<p class="tip">A real video ad plays here in the app.</p>' +
+      '<div style="font-size:40px;font-weight:900;margin-top:10px;color:#FFD449" id="adCd">3</div>' +
+      '<button class="btn ghost" id="adSkip">Close (no reward)</button></div>';
+    box.hidden = false;
+    const end = r => { clearInterval(iv); box.hidden = true; res(r); };
+    const iv = setInterval(() => { n--; const el = document.getElementById('adCd'); if (el) el.textContent = n; if (n <= 0) end(true); }, 1000);
+    document.getElementById('adSkip').onclick = () => end(false);
+  });
+}
+async function adsInit() {
+  const A = AdMobP(); if (!A) return;
+  try { await A.initialize({ initializeForTesting: MONEY.TESTING }); } catch (e) {}
+}
+
+/* ══ shell: config + seeded rng ════════════════════════ */
+const QS = new URLSearchParams(location.search);
+const CFG = {
+  embed: QS.get('embed') === '1',
+  mute: QS.get('mute') === '1',
+  prefix: QS.get('prefix') || '',
+  seed: QS.get('seed') || '',
+  daily: QS.get('daily') === '1',
+  diff: QS.get('diff') || ''
+};
+if (CFG.daily && !CFG.seed) {
+  const d = new Date();
+  CFG.seed = '' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+}
+if (CFG.embed) document.body.classList.add('embed');
+
+function strHash(s) {
+  let h = 1779033703;
+  for (let i = 0; i < s.length; i++) { h = Math.imul(h ^ s.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  return h >>> 0;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const seedBase = CFG.seed ? strHash(CFG.seed) : null;
+let gameN = 0;
+let rng = Math.random;
+function freshRng() { gameN++; rng = seedBase !== null ? mulberry32(seedBase + gameN * 7919) : Math.random; }
+const RF = (a = 1, b) => b === undefined ? rng() * a : a + rng() * (b - a);
+const RI = (a, b) => Math.floor(RF(a, b + 1));
+const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+
+/* ══ shell: storage ════════════════════════════════════ */
+const STORE_KEY = 'stws-' + GAME_ID + '-v1' + (CFG.prefix ? ':' + CFG.prefix : '');
+const DATA = (() => {
+  try { return Object.assign({ sound: true, seen: false, best: {}, level: 1 }, JSON.parse(localStorage.getItem(STORE_KEY) || '{}')); }
+  catch (e) { return { sound: true, seen: false, best: {}, diff: '', save: null }; }
+})();
+if (CFG.mute) DATA.sound = false;
+const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); } catch (e) {} };
+
+/* ══ shell: audio synth ════════════════════════════════ */
+const AU = {
+  ctx: null,
+  ensure() {
+    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(f, d, type = 'sine', g = 0.15, slide = 0, at = 0) {
+    if (!DATA.sound || !this.ctx) return;
+    const t = this.ctx.currentTime + at;
+    const o = this.ctx.createOscillator(), ga = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+    ga.gain.setValueAtTime(g, t);
+    ga.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(ga).connect(this.ctx.destination);
+    o.start(t); o.stop(t + d + 0.02);
+  },
+  noise(d = 0.15, g = 0.18, fq = 1000) {
+    if (!DATA.sound || !this.ctx) return;
+    const t = this.ctx.currentTime, n = Math.floor(this.ctx.sampleRate * d);
+    const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = fq;
+    const ga = this.ctx.createGain(); ga.gain.value = g;
+    src.connect(f).connect(ga).connect(this.ctx.destination);
+    src.start(t);
+  },
+  play(name, p = 1) {
+    switch (name) {
+      case 'ui':    this.tone(520, 0.07, 'triangle', 0.10); break;
+      case 'tap':   this.tone(300, 0.05, 'square', 0.06); break;
+      case 'tick':  this.tone(230, 0.04, 'square', 0.05); break;
+      case 'slide': this.noise(0.07, 0.08, 1400); break;
+      case 'ok':    this.tone(540 * p, 0.09, 'triangle', 0.14); this.tone(810 * p, 0.11, 'triangle', 0.10, 0, 0.05); break;
+      case 'good':  this.tone(660, 0.10, 'triangle', 0.14); this.tone(990, 0.14, 'triangle', 0.11, 0, 0.07); break;
+      case 'pour':  this.tone(300, 0.16, 'sine', 0.12, 160); this.noise(0.10, 0.06, 900); break;
+      case 'pop':   this.noise(0.10, 0.20, 1600); this.tone(200 * p, 0.07, 'square', 0.10); break;
+      case 'bad':   this.tone(220, 0.16, 'sawtooth', 0.10, -80); break;
+      case 'fail':  this.tone(300, 0.38, 'sawtooth', 0.13, -210); this.noise(0.2, 0.10, 500); break;
+      case 'level': [440, 550, 660, 880].forEach((f, i) => this.tone(f, 0.10, 'triangle', 0.12, 0, i * 0.07)); break;
+      case 'win':   [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, 0.13, 'triangle', 0.13, 0, i * 0.085)); break;
+    }
+  }
+};
+const snd = (n, p) => AU.play(n, p);
+
+/* ══ shell: events (postMessage for MOS) ═══════════════ */
+const listeners = {};
+function on(ev, cb) { (listeners[ev] = listeners[ev] || []).push(cb); }
+function emit(ev, payload = {}) {
+  (listeners[ev] || []).forEach(cb => { try { cb(payload); } catch (e) {} });
+  if (window.parent !== window) {
+    try { window.parent.postMessage(Object.assign({ source: 'stws-puzzle', game: GAME_ID, event: ev }, payload), '*'); } catch (e) {}
+  }
+}
+
+/* ══ shell: status chips + toolbar pills ═══════════════ */
+const boardEl = $('#board'), ovl = $('#ovl'), statusEl = $('#status'), toolEl = $('#toolrow');
+function setChips(pairs) {
+  statusEl.innerHTML = pairs.map(p =>
+    '<div class="chip"><div class="l">' + p[0] + '</div><div class="v">' + p[1] + '</div></div>').join('');
+}
+function setPills(list, cur, cb) {
+  toolEl.innerHTML = '';
+  for (const d of list) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (d.id === cur ? ' on' : '');
+    b.textContent = d.label;
+    b.addEventListener('click', () => { snd('ui'); cb(d.id); });
+    toolEl.appendChild(b);
+  }
+}
+
+/* ══ shell: overlays ═══════════════════════════════════ */
+let ovlAction = null;
+function overlay(html, tapAction) {
+  ovl.innerHTML = html; ovl.hidden = false; ovlAction = tapAction || null;
+}
+function hideOverlay() { ovl.hidden = true; ovlAction = null; }
+function chipsHtml(pairs) {
+  return '<div class="chips">' + pairs.map(p =>
+    '<div class="chip"><div class="l">' + p[0] + '</div><div class="v">' + p[1] + '</div></div>').join('') + '</div>';
+}
+function winOverlay(pairs, payload) {
+  snd('win');
+  emit('win', payload || {});
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>Solved!</h2>' +
+      chipsHtml(pairs) +
+      '<div><button class="btn" id="ovNew">New puzzle</button></div>' +
+    '</div>');
+}
+function overOverlay(title, pairs, payload) {
+  snd('fail');
+  emit('gameover', payload || {});
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>' + title + '</h2>' +
+      chipsHtml(pairs) +
+      '<div><button class="btn" id="ovNew">Play again</button></div>' +
+    '</div>');
+}
+function helpOverlay() {
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>' + GAME_TITLE + '</h2>' +
+      '<p class="tip">' + GAME_TIP + '</p>' +
+      '<div class="cta pulse">TAP TO PLAY</div>' +
+    '</div>', 'close');
+  DATA.seen = true; save();
+}
+ovl.addEventListener('click', e => {
+  if (e.target.closest('#ovNew')) { AU.ensure(); snd('ui'); hideOverlay(); game.newGame(); return; }
+  if (e.target.closest('#ovTube')) { AU.ensure(); hideOverlay(); helpTube(); return; }
+  if (e.target.closest('#ovUndo')) { AU.ensure(); hideOverlay(); helpUndo(); return; }
+  if (e.target.closest('#ovRestart')) { AU.ensure(); snd('ui'); hideOverlay(); game.restart(); return; }
+  if (e.target.closest('#ovNext')) { AU.ensure(); snd('ui'); hideOverlay(); game.newGame(); return; }
+  if (e.target.closest('#ovFuse')) { AU.ensure(); hideOverlay(); helpFuse(); return; }
+  if (e.target.closest('.btn')) return;
+  if (ovlAction === 'close') { AU.ensure(); hideOverlay(); introTwists(); }
+});
+
+/* ══ shell: timer ══════════════════════════════════════ */
+const T = {
+  t0: 0, acc: 0, run: false,
+  reset() { this.t0 = 0; this.acc = 0; this.run = false; },
+  start() { if (!this.run) { this.run = true; this.t0 = Date.now(); } },
+  stop() { if (this.run) { this.acc += Date.now() - this.t0; this.run = false; } },
+  sec() { return Math.floor((this.acc + (this.run ? Date.now() - this.t0 : 0)) / 1000); }
+};
+const fmtT = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+setInterval(() => { if (game.tick) game.tick(); }, 500);
+
+/* ══ shell: canvas helper ══════════════════════════════ */
+let CW = 0, CH = 0;
+function initCanvas() {
+  const cvs = document.createElement('canvas');
+  cvs.style.cssText = 'position:absolute;inset:0;display:block;touch-action:none';
+  boardEl.appendChild(cvs);
+  const g = cvs.getContext('2d');
+  function fit() {
+    const r = boardEl.getBoundingClientRect();
+    CW = Math.max(1, Math.round(r.width)); CH = Math.max(1, Math.round(r.height));
+    const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    cvs.width = CW * dpr; cvs.height = CH * dpr;
+    cvs.style.width = CW + 'px'; cvs.style.height = CH + 'px';
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (game.onResize) game.onResize();
+  }
+  fit();
+  window.addEventListener('resize', fit);
+  // the header chips fill in after the canvas is made, so re-measure when the board changes size
+  if (window.ResizeObserver) new ResizeObserver(() => { const r = boardEl.getBoundingClientRect(); if (Math.round(r.width) !== CW || Math.round(r.height) !== CH) fit(); }).observe(boardEl);
+  const pos = e => { const r = cvs.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  cvs.addEventListener('contextmenu', e => e.preventDefault());
+  return { cvs, g, pos, fit };
+}
+function startLoop() {
+  let last = performance.now();
+  (function raf(now) {
+    requestAnimationFrame(raf);
+    const dt = Math.min(0.033, (now - (last || now)) / 1000); last = now;
+    if (game.frame) game.frame(dt);
+  })(performance.now());
+}
+
+/* ══ shell: top buttons ════════════════════════════════ */
+function syncSnd() { $('#btnSnd').textContent = DATA.sound ? '🔊' : '🔇'; }
+$('#btnSnd').addEventListener('click', () => { DATA.sound = !DATA.sound; save(); syncSnd(); AU.ensure(); snd('ui'); });
+$('#btnNew').addEventListener('click', () => { AU.ensure(); snd('ui'); hideOverlay(); game.restart(); });
+$('#btnUndo').addEventListener('click', () => { AU.ensure(); helpUndo(); });
+$('#btnHint').addEventListener('click', () => { AU.ensure(); helpHint(); });
+$('#btnTube').addEventListener('click', () => { AU.ensure(); helpTube(); });
+window.addEventListener('pointerdown', () => AU.ensure(), { once: true, capture: true });
+
+/* ══ game ══════════════════════════════════════════════ */
+/* Ball Sort — Planet Blast
+   Move ONE planet at a time onto the same color or an empty tube.
+   Fill every tube with 4 planets of one kind to clear the level.
+   💣 BOMB PLANETS  count down with every move. Move a bomb out of its
+                    tube before it reaches 0 and it's safe. If it hits 0 → boom.
+   Levels are fixed (seeded by level number) and get harder as you go.
+   Every level is checked by a solver before you see it, and bomb
+   timers are set from a real solution, so every level can be won. */
+const CAP = 4;
+const PLANETS = [
+  { base: '#FF5E62', dark: '#A8233A', kind: 'craters' },
+  { base: '#FFB341', dark: '#B9600F', kind: 'bands' },
+  { base: '#FFE15C', dark: '#B8920F', kind: 'spots' },
+  { base: '#5CE08A', dark: '#1B8A4A', kind: 'swirl' },
+  { base: '#4FC3FF', dark: '#1A62B8', kind: 'earth' },
+  { base: '#A98BFF', dark: '#5534C0', kind: 'ring' },
+  { base: '#FF7FD1', dark: '#B5307F', kind: 'bands' },
+  { base: '#EEF1FA', dark: '#8C95AD', kind: 'craters' },
+  { base: '#35E0D0', dark: '#0C847C', kind: 'ring' },
+  { base: '#D0925C', dark: '#74431F', kind: 'spots' }
+];
+let tubes = [], sel = -1, wMoves = 0, wSolved = false, history = [], parts = [];
+let bombs = [];      // [{t, i, at, def}] — planet at tube t slot i; must be moved before move #at
+let undosLeft = 0, hintsLeft = 0, extraUsed = 0, hint = null;
+let startTubes = null, startBombs = [];
+let anim = null, shake = 0, boomed = false;
+let C, GG, POS;
+let level = 1;
+const clock = () => history.length;
+
+/* ── level recipe ── */
+function recipe(L) {
+  return {
+    nc: Math.min(9, 4 + Math.floor((L - 1) / 2)),
+    nb: L < 2 ? 0 : L < 5 ? 1 : L < 9 ? 2 : 3,
+    slack: Math.max(4, 11 - Math.floor(L / 2))
+  };
+}
+
+/* ── rules ── */
+const isLive = (b, clk) => b.def == null || b.def > clk;
+function liveBombAt(bl, clk, t, i) {
+  for (const b of bl) if (b.t === t && b.i === i && isLive(b, clk)) return b;
+  return null;
+}
+function canMove(ts, i, j) {
+  const a = ts[i], b = ts[j];
+  if (i === j || !a.length || b.length >= CAP) return false;
+  return !b.length || b[b.length - 1] === a[a.length - 1];
+}
+const strict = t => t.every(c => c === t[0]);
+const doneTube = t => t.length === CAP && strict(t);
+const isSolvedState = ts => ts.every(t => !t.length || doneTube(t));
+const keyOf = ts => ts.map(t => t.join(',')).sort().join('|');
+
+function movesOf(t) {
+  const out = [];
+  for (let i = 0; i < t.length; i++) {
+    if (!t[i].length || doneTube(t[i])) continue;
+    for (let j = 0; j < t.length; j++) {
+      if (!canMove(t, i, j)) continue;
+      if (strict(t[i]) && !t[j].length) continue;        // pointless
+      out.push([i, j]);
+    }
+  }
+  // onto a matching planet first, empty tubes last
+  return out.sort((a, b) => (t[a[1]].length ? 0 : 1) - (t[b[1]].length ? 0 : 1));
+}
+/* DFS that respects bomb timers. Returns {ok, path}. */
+function search(t0, bl, clk0, limit) {
+  const start = t0.map(x => x.slice());
+  let mask0 = 0;
+  bl.forEach((b, k) => { if (isLive(b, clk0)) mask0 |= 1 << k; });
+  const deadline = (mask, clk) => bl.some((b, k) => (mask >> k & 1) && clk >= b.at);
+  if (deadline(mask0, clk0)) return { ok: false };
+  if (isSolvedState(start)) return { ok: true, path: [] };
+  const kf = (t, mask, clk) => mask ? t.map(x => x.join(',')).join('|') + '#' + mask + '@' + clk : keyOf(t);
+  const seen = new Set([kf(start, mask0, clk0)]);
+  const st = [{ t: start, mask: mask0, clk: clk0, prev: null, mv: null }];
+  let steps = 0;
+  while (st.length) {
+    if (++steps > limit) return { ok: false, gaveUp: true };
+    const cur = st.pop();
+    if (isSolvedState(cur.t)) {
+      const path = [];
+      for (let q = cur; q && q.mv; q = q.prev) path.unshift(q.mv);
+      return { ok: true, path };
+    }
+    const mv = movesOf(cur.t);
+    for (let k = mv.length - 1; k >= 0; k--) {
+      const [i, j] = mv[k];
+      let mask = cur.mask;
+      const top = cur.t[i].length - 1;
+      bl.forEach((b, q) => { if ((mask >> q & 1) && b.t === i && b.i === top) mask &= ~(1 << q); });
+      const clk = cur.clk + 1;
+      if (deadline(mask, clk)) continue;
+      const nt = cur.t.map(x => x.slice());
+      nt[j].push(nt[i].pop());
+      const kk = kf(nt, mask, clk);
+      if (!seen.has(kk)) { seen.add(kk); st.push({ t: nt, mask, clk, prev: cur, mv: { from: i, to: j } }); }
+    }
+  }
+  return { ok: false };
+}
+
+/* ── making a level ── */
+function gen() {
+  const R = recipe(level);
+  for (let attempt = 0; attempt < 40; attempt++) {
+    rng = mulberry32(strHash('ballsort-L' + level + '-' + attempt));
+    const pool = [];
+    for (let c = 0; c < R.nc; c++) for (let k = 0; k < CAP; k++) pool.push(c);
+    shuffle(pool);
+    const ts = [];
+    for (let t = 0; t < R.nc; t++) ts.push(pool.slice(t * CAP, t * CAP + CAP));
+    ts.push([], []);
+    if (ts.some(doneTube)) continue;
+    const r = search(ts, [], 0, 60000);
+    if (!r.ok) continue;
+    // follow the solution and note when each starting planet first moves
+    const ids = ts.map((t, ti) => t.map((c, i) => ti * CAP + i));
+    const first = {};
+    r.path.forEach((m, n) => {
+      const id = ids[m.from].pop(); ids[m.to].push(id);
+      if (first[id] === undefined) first[id] = n;
+    });
+    const cand = [];
+    for (let ti = 0; ti < R.nc; ti++) for (let i = 0; i < CAP - 1; i++) {   // never the top planet
+      const id = ti * CAP + i;
+      if (first[id] !== undefined) cand.push({ t: ti, i, f: first[id] });
+    }
+    shuffle(cand);
+    const bl = [];
+    const usedT = new Set();
+    for (const c of cand) {
+      if (bl.length >= R.nb) break;
+      if (usedT.has(c.t)) continue;
+      usedT.add(c.t);
+      bl.push({ t: c.t, i: c.i, at: Math.max(6, c.f + 1 + R.slack), def: null });
+    }
+    if (bl.length < R.nb) continue;
+    tubes = ts; bombs = bl;
+    return;
+  }
+  // fallback (never expected): plain level
+  bombs = [];
+}
+
+/* ── layout ── */
+function geom() {
+  const n = tubes.length;
+  const rows = n <= 5 ? 1 : 2;
+  const perRow = Math.ceil(n / rows);
+  const rFit = ((CH - 16 - 18 * (rows - 1)) / rows - 26) / (2.6 + CAP * 2);   // keep tubes inside the board
+  const tw = Math.min(60, (CW - 20) / perRow - 10, 2 * rFit + 10);
+  const r = (tw - 10) / 2;
+  const gap = 3;
+  const th = CAP * (2 * r + gap) + 12;
+  const hover = r * 2.6;
+  const rowH = hover + th;
+  const totalH = rows * rowH + (rows - 1) * 18;
+  const oy = Math.max(6, (CH - totalH) / 2);
+  const pos = [];
+  for (let i = 0; i < n; i++) {
+    const row = i < perRow ? 0 : 1;
+    const col = row === 0 ? i : i - perRow;
+    const inRow = row === 0 ? Math.min(perRow, n) : n - perRow;
+    const gx = (CW - inRow * tw) / (inRow + 1);
+    pos.push({ x: gx + col * (tw + gx), y: oy + row * (rowH + 18) + hover, w: tw, h: th, r, gap });
+  }
+  return pos;
+}
+const slotY = (p, k) => p.y + p.h - 6 - p.r - k * (2 * p.r + p.gap);
+const hoverY = p => p.y - p.r * 1.35;
+function tubeAt(x, y) {
+  const pos = geom();
+  for (let i = 0; i < pos.length; i++) {
+    const p = pos[i];
+    if (x >= p.x - 8 && x <= p.x + p.w + 8 && y >= p.y - p.r * 2.6 && y <= p.y + p.h + 8) return i;
+  }
+  return -1;
+}
+
+/* ── playing ── */
+function tap(i) {
+  if (wSolved || boomed || !ovl.hidden || anim) return;
+  if (sel === -1) {
+    if (!tubes[i].length || doneTube(tubes[i])) { snd('tick'); return; }
+    sel = i; snd('tap');
+    return;
+  }
+  if (sel === i) { sel = -1; snd('tap', 0.8); return; }
+  if (!canMove(tubes, sel, i)) {
+    if (tubes[i].length && !doneTube(tubes[i])) { sel = i; snd('tap'); }
+    else { snd('bad'); sel = -1; }
+    return;
+  }
+  move(sel, i);
+}
+function move(from, to) {
+  T.start();
+  const clk = clock();
+  const P = geom();
+  const pf = P[from], pt = P[to];
+  const c = tubes[from][tubes[from].length - 1];
+  const bomb = liveBombAt(bombs, clk, from, tubes[from].length - 1);
+  tubes[from].pop(); tubes[to].push(c);
+  history.push({ from, to });
+  if (bomb) {
+    bomb.def = clock();
+    setTimeout(() => { snd('good'); toast('💣 Bomb defused!'); }, 180);
+    burst(pf.x + pf.w / 2, hoverY(pf), '#9CF7FF', 14);
+  }
+  anim = {
+    c, bomb: !!bomb, toTube: to, toIdx: tubes[to].length - 1, t: 0, dur: 0.3,
+    x0: pf.x + pf.w / 2, y0: sel === from ? hoverY(pf) : slotY(pf, tubes[from].length),
+    x1: pt.x + pt.w / 2, y1: slotY(pt, tubes[to].length - 1), yTop: Math.min(hoverY(pf), hoverY(pt)) - pf.r
+  };
+  sel = -1; hint = null;
+  wMoves++;
+  snd('pop', 1 + (c % 5) * 0.08);
+  refresh();
+  setTimeout(afterMove, 320);
+}
+function afterMove() {
+  if (isSolvedState(tubes)) {
+    wSolved = true; T.stop();
+    const t = T.sec(), key = 'L' + level;
+    if (!DATA.best[key] || wMoves < DATA.best[key]) DATA.best[key] = wMoves;
+    DATA.level = Math.max(DATA.level || 1, level + 1);
+    save(); refresh();
+    for (let k = 0; k < 5; k++) setTimeout(() => burst(RF(30, CW - 30), RF(40, CH * 0.6), PLANETS[RI(0, 8)].base, 18), k * 160);
+    setTimeout(() => levelWinOverlay(t), 650);
+    return;
+  }
+  const clk = clock();
+  const hot = bombs.find(b => isLive(b, clk) && clk >= b.at);
+  if (hot) { explode(hot); return; }
+  const warn = bombs.find(b => isLive(b, clk) && b.at - clk === 3);
+  if (warn) snd('tick');
+  if (!movesOf(tubes).length) setTimeout(stuckOverlay, 300);
+}
+function explode(b) {
+  boomed = true;
+  const p = geom()[b.t];
+  if (p) { burst(p.x + p.w / 2, slotY(p, b.i), '#FF8A3D', 40); burst(p.x + p.w / 2, slotY(p, b.i), '#FFE15C', 24); }
+  shake = 0.5;
+  snd('fail'); AU.noise(0.5, 0.3, 700);
+  setTimeout(boomOverlay, 700);
+}
+function boomOverlay() {
+  emit('gameover', { level, moves: wMoves });
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">💥</div>' +
+      '<h2>Boom!</h2>' +
+      '<p class="tip">A bomb planet went off. Want another chance?</p>' +
+      '<div class="btnrow">' +
+        '<button class="btn ad" id="ovFuse">📺 Watch ad · +5 moves</button>' +
+        '<button class="btn ghost" id="ovUndo">↩ Undo' + (undosLeft > 0 ? ' (' + undosLeft + ' left)' : ' · 📺 ad') + '</button>' +
+        '<button class="btn ghost" id="ovRestart">↻ Restart level</button>' +
+      '</div>' +
+    '</div>');
+}
+async function helpFuse() {
+  if (!await showRewardedAd()) { boomOverlay(); return; }
+  const clk = clock();
+  bombs.forEach(b => { if (isLive(b, clk)) b.at += 5; });
+  boomed = false; plan = null;
+  snd('level'); toast('+5 moves on every bomb!');
+  refresh();
+}
+function levelWinOverlay(t) {
+  snd('win');
+  emit('win', { level, moves: wMoves, timeSec: t });
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">🪐</div>' +
+      '<h2>Level ' + level + ' cleared!</h2>' +
+      chipsHtml([['MOVES', wMoves], ['TIME', fmtT(t)], ['BEST', DATA.best['L' + level]]]) +
+      '<div><button class="btn" id="ovNext">Next level ▶</button></div>' +
+    '</div>');
+}
+function refresh() {
+  setChips([['LEVEL', level], ['MOVES', wMoves], ['BEST', DATA.best['L' + level] || '—']]);
+  syncActions();
+}
+
+/* ══ app: help buttons (undo · hint · extra tube) ══════ */
+function badge(id, n) {
+  const b = $(id);
+  if (n > 0) { b.textContent = n; b.className = 'b'; }
+  else { b.textContent = '📺'; b.className = 'b ad'; }
+}
+function syncActions() {
+  badge('#bUndo', undosLeft);
+  badge('#bHint', hintsLeft);
+  $('#bTube').textContent = '📺'; $('#bTube').className = 'b ad';
+  $('#btnUndo').disabled = wSolved || !history.length;
+  $('#btnHint').disabled = wSolved || boomed;
+  $('#btnTube').disabled = wSolved || boomed || extraUsed >= HELP.MAX_EXTRA_TUBES;
+}
+function popBtn(id) { const b = $(id); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
+
+async function helpUndo() {
+  if (wSolved || !history.length) return;
+  if (undosLeft <= 0) {
+    snd('ui');
+    if (!await showRewardedAd()) { if (boomed) boomOverlay(); return; }
+    undosLeft += HELP.AD_UNDOS; snd('good'); popBtn('#btnUndo');
+    toast('+' + HELP.AD_UNDOS + ' undos — thanks for watching!');
+  }
+  undosLeft--;
+  game.undo();
+}
+/* Hints follow ONE full solution, so pressing Hint again always makes progress. */
+let plan = null;
+const stateStr = () => tubes.map(x => x.join(',')).join('|') + '#' + clock() + '#' + bombs.map(b => isLive(b, clock()) ? 1 : 0).join('');
+function nextMove() {
+  const k = stateStr();
+  if (plan && plan.has(k)) return plan.get(k);
+  const r = search(tubes, bombs, clock(), 80000);
+  if (!r.ok || !r.path || !r.path.length) { plan = null; return null; }
+  plan = new Map();
+  // replay the path on a copy to key each step
+  const saveT = tubes.map(x => x.slice()), saveH = history.slice(), saveD = bombs.map(b => b.def);
+  for (const m of r.path) {
+    plan.set(stateStr(), m);
+    const top = tubes[m.from].length - 1;
+    const b = liveBombAt(bombs, clock(), m.from, top);
+    tubes[m.to].push(tubes[m.from].pop()); history.push(m);
+    if (b) b.def = clock();
+  }
+  tubes = saveT; history = saveH; bombs.forEach((b, q) => b.def = saveD[q]);
+  return plan.get(k);
+}
+async function helpHint() {
+  if (wSolved || boomed) return;
+  const mv = nextMove();
+  if (!mv) {
+    snd('bad');
+    toast(history.length ? 'No way out from here — undo or add a tube' : 'Try adding a tube');
+    return;
+  }
+  if (hintsLeft <= 0) {
+    snd('ui');
+    if (!await showRewardedAd()) return;
+    snd('good');
+  } else hintsLeft--;
+  sel = -1;
+  hint = { from: mv.from, to: mv.to, until: performance.now() + HELP.HINT_SHOW_MS };
+  popBtn('#btnHint'); snd('ok');
+  refresh();
+}
+async function helpTube() {
+  if (wSolved || boomed || extraUsed >= HELP.MAX_EXTRA_TUBES) return;
+  snd('ui');
+  if (!await showRewardedAd()) return;
+  extraUsed++;
+  tubes.push([]);
+  hint = null; sel = -1; plan = null;
+  snd('level'); popBtn('#btnTube');
+  toast('Extra tube added!');
+  refresh();
+}
+function stuckOverlay() {
+  if (wSolved || boomed || !ovl.hidden || movesOf(tubes).length) return;
+  snd('fail');
+  const canTube = extraUsed < HELP.MAX_EXTRA_TUBES;
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">😵</div>' +
+      '<h2>Stuck!</h2>' +
+      '<p class="tip">No moves left. Want some help?</p>' +
+      '<div class="btnrow">' +
+        (canTube ? '<button class="btn ad" id="ovTube">📺 Watch ad · extra tube</button>' : '') +
+        (history.length ? '<button class="btn ghost" id="ovUndo">↩ Undo' + (undosLeft > 0 ? ' (' + undosLeft + ' left)' : ' · 📺 ad') + '</button>' : '') +
+        '<button class="btn ghost" id="ovRestart">↻ Restart level</button>' +
+      '</div>' +
+    '</div>');
+}
+function introTwists() {
+  if (bombs.length && !DATA.seenBomb) {
+    DATA.seenBomb = true; save();
+    setTimeout(() => toast('💣 Bomb planet! Move it out of its tube before the number hits 0.'), 400);
+  }
+}
+
+/* ── drawing ── */
+let stars = [], shoot = null;
+function makeStars() {
+  stars = [];
+  const n = Math.round(CW * CH / 2600);
+  for (let k = 0; k < n; k++) stars.push({ x: Math.random() * CW, y: Math.random() * CH, r: Math.random() * 1.3 + 0.3, ph: Math.random() * TAU, sp: 0.6 + Math.random() * 1.8 });
+}
+function burst(x, y, col, n) {
+  for (let k = 0; k < n; k++) {
+    const a = RF(0, TAU), v = RF(60, 260);
+    parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: RF(0.4, 0.9), c: col, r: RF(1.5, 3.5) });
+  }
+}
+function shade(hex, f) {
+  const n = parseInt(hex.slice(1), 16);
+  let r = n >> 16, g = n >> 8 & 255, b = n & 255;
+  if (f > 0) { r += (255 - r) * f; g += (255 - g) * f; b += (255 - b) * f; }
+  else { r *= 1 + f; g *= 1 + f; b *= 1 + f; }
+  return 'rgb(' + (r | 0) + ',' + (g | 0) + ',' + (b | 0) + ')';
+}
+function drawPlanet(g, x, y, r, c, bomb, left) {
+  const p = PLANETS[c];
+  g.save();
+  const ring = p.kind === 'ring';
+  const ringPath = front => {
+    g.beginPath();
+    g.ellipse(x, y, r * 1.32, r * 0.36, -0.32, front ? 0 : Math.PI, front ? Math.PI : TAU);
+    g.strokeStyle = shade(p.base, 0.35); g.lineWidth = r * 0.16; g.stroke();
+  };
+  if (ring) ringPath(false);
+  const gr = g.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r);
+  gr.addColorStop(0, shade(p.base, 0.45)); gr.addColorStop(0.55, p.base); gr.addColorStop(1, p.dark);
+  g.fillStyle = gr;
+  g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+  g.save();
+  g.beginPath(); g.arc(x, y, r, 0, TAU); g.clip();
+  g.fillStyle = p.dark; g.strokeStyle = p.dark;
+  switch (p.kind) {
+    case 'bands':
+      g.globalAlpha = 0.38;
+      [[-0.5, 0.16], [-0.05, 0.2], [0.42, 0.14]].forEach(([o, h]) => g.fillRect(x - r, y + o * r, 2 * r, h * r));
+      break;
+    case 'craters':
+      g.globalAlpha = 0.35;
+      [[-0.32, -0.2, 0.24], [0.36, 0.18, 0.18], [-0.05, 0.5, 0.14], [0.3, -0.45, 0.1]].forEach(([dx, dy, s]) => { g.beginPath(); g.arc(x + dx * r, y + dy * r, s * r, 0, TAU); g.fill(); });
+      break;
+    case 'spots':
+      g.globalAlpha = 0.42;
+      g.beginPath(); g.ellipse(x + 0.25 * r, y + 0.22 * r, 0.32 * r, 0.2 * r, 0.2, 0, TAU); g.fill();
+      g.beginPath(); g.ellipse(x - 0.35 * r, y - 0.3 * r, 0.16 * r, 0.11 * r, 0, 0, TAU); g.fill();
+      break;
+    case 'swirl':
+      g.globalAlpha = 0.4; g.lineWidth = r * 0.14;
+      g.beginPath(); g.arc(x + 0.1 * r, y + 0.1 * r, r * 0.55, 0.4, 3.6); g.stroke();
+      g.beginPath(); g.arc(x - 0.1 * r, y - 0.05 * r, r * 0.25, 3.5, 6.5); g.stroke();
+      break;
+    case 'earth':
+      g.globalAlpha = 0.9; g.fillStyle = '#3FD47F';
+      g.beginPath(); g.ellipse(x - 0.3 * r, y - 0.15 * r, 0.32 * r, 0.42 * r, 0.5, 0, TAU); g.fill();
+      g.beginPath(); g.ellipse(x + 0.42 * r, y + 0.35 * r, 0.26 * r, 0.2 * r, -0.3, 0, TAU); g.fill();
+      break;
+    case 'ring':
+      g.globalAlpha = 0.25;
+      g.fillRect(x - r, y - 0.1 * r, 2 * r, 0.18 * r);
+      break;
+  }
+  // night side
+  g.globalAlpha = 1;
+  const sh = g.createLinearGradient(x - r, y - r, x + r, y + r);
+  sh.addColorStop(0.45, 'rgba(0,0,20,0)'); sh.addColorStop(1, 'rgba(0,0,20,.42)');
+  g.fillStyle = sh; g.fillRect(x - r, y - r, 2 * r, 2 * r);
+  g.restore();
+  // shine
+  g.fillStyle = 'rgba(255,255,255,.5)';
+  g.beginPath(); g.ellipse(x - r * 0.38, y - r * 0.42, r * 0.22, r * 0.13, -0.6, 0, TAU); g.fill();
+  if (ring) ringPath(true);
+  if (bomb) {
+    const now = performance.now() / 1000;
+    const urgent = left <= 3;
+    const pulse = 0.5 + 0.5 * Math.sin(now * (urgent ? 12 : 5));
+    g.strokeStyle = urgent ? '#FF3B3B' : '#FF8A3D';
+    g.lineWidth = 2.5 + pulse * 2;
+    g.shadowColor = '#FF3B3B'; g.shadowBlur = 8 + pulse * 10;
+    g.beginPath(); g.arc(x, y, r + 1.5, 0, TAU); g.stroke();
+    g.shadowBlur = 0;
+    // fuse spark
+    g.fillStyle = '#FFE15C';
+    g.beginPath(); g.arc(x + r * 0.62, y - r * 0.78, 2 + pulse * 2.2, 0, TAU); g.fill();
+    // countdown
+    g.fillStyle = 'rgba(10,8,24,.78)';
+    g.beginPath(); g.arc(x, y, r * 0.58, 0, TAU); g.fill();
+    g.fillStyle = urgent ? '#FF6B6B' : '#FFFFFF';
+    g.font = '900 ' + Math.round(r * 0.82) + 'px ' + FONT;
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(String(left), x, y + 1);
+    g.textBaseline = 'alphabetic';
+  }
+  g.restore();
+}
+
+const game = {
+  init() {
+    level = Math.max(1, DATA.level || 1);
+    const cn = initCanvas(); C = cn; GG = cn.g; POS = cn.pos;
+    C.cvs.addEventListener('pointerdown', e => { e.preventDefault(); const p = POS(e); const i = tubeAt(p.x, p.y); if (i >= 0) tap(i); else sel = -1; });
+    this.newGame(true);
+    startLoop();
+  },
+  onResize() { makeStars(); },
+  newGame(silent) {
+    level = Math.max(1, DATA.level || 1);
+    wMoves = 0; wSolved = false; boomed = false; sel = -1; history = []; parts = []; hint = null; anim = null; plan = null;
+    undosLeft = HELP.FREE_UNDOS; hintsLeft = HELP.FREE_HINTS; extraUsed = 0;
+    T.reset();
+    gen();
+    startTubes = tubes.map(t => t.slice());
+    startBombs = bombs.map(b => Object.assign({}, b));
+    refresh();
+    if (DATA.seen) introTwists();
+    if (!silent) emit('newPuzzle', { level });
+  },
+  restart() {
+    if (!startTubes) return;
+    tubes = startTubes.map(t => t.slice());
+    bombs = startBombs.map(b => Object.assign({}, b));
+    for (let k = 0; k < extraUsed; k++) tubes.push([]);
+    wMoves = 0; wSolved = false; boomed = false; sel = -1; history = []; parts = []; hint = null; anim = null; plan = null;
+    undosLeft = Math.max(undosLeft, HELP.FREE_UNDOS);
+    T.reset();
+    refresh();
+  },
+  undo() {
+    if (!history.length || wSolved) return;
+    const m = history.pop();
+    tubes[m.from].push(tubes[m.to].pop());
+    const clk = clock();
+    bombs.forEach(b => { if (b.def != null && b.def > clk) b.def = null; });
+    wMoves++; sel = -1; hint = null; anim = null;
+    boomed = false;
+    snd('ui');
+    refresh();
+  },
+  tick() { if (!wSolved) refresh(); },
+  frame(dt) {
+    const g = GG;
+    g.clearRect(0, 0, CW, CH);
+    const now = performance.now() / 1000;
+    // stars
+    for (const s of stars) {
+      g.globalAlpha = 0.25 + 0.6 * (0.5 + 0.5 * Math.sin(now * s.sp + s.ph));
+      g.fillStyle = '#DCE3FF';
+      g.beginPath(); g.arc(s.x, s.y, s.r, 0, TAU); g.fill();
+    }
+    g.globalAlpha = 1;
+    if (!shoot && Math.random() < dt / 7) shoot = { x: RF(0, CW), y: RF(0, CH * 0.4), t: 0 };
+    if (shoot) {
+      shoot.t += dt;
+      const L = shoot.t * 420;
+      const grd = g.createLinearGradient(shoot.x + L - 60, shoot.y + L * 0.45 - 27, shoot.x + L, shoot.y + L * 0.45);
+      grd.addColorStop(0, 'rgba(255,255,255,0)'); grd.addColorStop(1, 'rgba(255,255,255,.8)');
+      g.strokeStyle = grd; g.lineWidth = 1.6;
+      g.beginPath(); g.moveTo(shoot.x + L - 60, shoot.y + L * 0.45 - 27); g.lineTo(shoot.x + L, shoot.y + L * 0.45); g.stroke();
+      if (shoot.t > 0.8) shoot = null;
+    }
+    g.save();
+    if (shake > 0) { shake -= dt; const m = shake * 18; g.translate(RF(-m, m), RF(-m, m)); }
+    if (hint && performance.now() > hint.until) hint = null;
+    const pos = geom();
+    const clk = clock();
+    if (anim) { anim.t += dt; if (anim.t >= anim.dur) anim = null; }
+    for (let i = 0; i < tubes.length; i++) {
+      const p = pos[i];
+      if (!p) continue;
+      const x = p.x, y = p.y, w = p.w, h = p.h;
+      const isHint = hint && (hint.from === i || hint.to === i);
+      // glass
+      g.fillStyle = 'rgba(180,200,255,.06)';
+      g.beginPath(); g.roundRect(x, y, w, h, [6, 6, w / 2, w / 2]); g.fill();
+      if (isHint) {
+        const pulse = 0.55 + 0.45 * Math.sin(performance.now() / 140);
+        g.shadowColor = '#FFD449'; g.shadowBlur = 18 * pulse;
+        g.fillStyle = '#FFD449'; g.font = '900 15px ' + FONT; g.textAlign = 'center';
+        g.fillText(hint.from === i ? '①' : '②', x + w / 2, y - p.r * 2.1);
+      }
+      g.strokeStyle = isHint ? '#FFD449' : sel === i ? ACCENT : doneTube(tubes[i]) ? 'rgba(156,247,255,.7)' : 'rgba(220,228,255,.38)';
+      g.lineWidth = sel === i || isHint ? 3 : 2.2;
+      g.beginPath(); g.roundRect(x, y, w, h, [6, 6, w / 2, w / 2]); g.stroke();
+      g.shadowBlur = 0;
+      // planets
+      for (let k = 0; k < tubes[i].length; k++) {
+        if (anim && anim.toTube === i && anim.toIdx === k) continue;
+        const lifted = sel === i && k === tubes[i].length - 1;
+        const py = lifted ? hoverY(p) + Math.sin(now * 5) * 2 : slotY(p, k);
+        const b = liveBombAt(bombs, clk, i, k);
+        drawPlanet(g, x + w / 2, py, p.r, tubes[i][k], !!b, b ? b.at - clk : 0);
+      }
+      if (doneTube(tubes[i])) {
+        g.fillStyle = '#9CF7FF'; g.font = '900 13px ' + FONT; g.textAlign = 'center';
+        g.fillText('✓', x + w / 2, y - 8);
+      }
+    }
+    // flying planet
+    if (anim) {
+      const t = clamp(anim.t / anim.dur, 0, 1), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      const mx = (anim.x0 + anim.x1) / 2;
+      const bx = (1 - e) * (1 - e) * anim.x0 + 2 * (1 - e) * e * mx + e * e * anim.x1;
+      const by = (1 - e) * (1 - e) * anim.y0 + 2 * (1 - e) * e * anim.yTop + e * e * anim.y1;
+      drawPlanet(g, bx, by, pos[0].r, anim.c, false, 0);
+    }
+    // particles
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const s = parts[i];
+      s.x += s.vx * dt; s.y += s.vy * dt; s.vx *= 0.96; s.vy = s.vy * 0.96 + 140 * dt; s.life -= dt;
+      if (s.life <= 0) { parts.splice(i, 1); continue; }
+      g.globalAlpha = clamp(s.life * 2, 0, 1);
+      g.fillStyle = s.c;
+      g.beginPath(); g.arc(s.x, s.y, s.r, 0, TAU); g.fill();
+    }
+    g.globalAlpha = 1;
+    g.restore();
+  },
+  debug() {
+    return { level, tubes: tubes.map(t => t.slice()), bombs: bombs.map(b => Object.assign({}, b)), clock: clock(), solved: isSolvedState(tubes), boomed };
+  }
+};
+
+
+/* ══ public API + boot ═════════════════════════════════ */
+window.STWGame = {
+  id: GAME_ID, version: '1.0.0', config: CFG,
+  newGame: () => { hideOverlay(); game.newGame(); },
+  restart: () => { hideOverlay(); game.restart(); },
+  on,
+  getBest: () => JSON.parse(JSON.stringify(DATA.best)),
+  mute: v => { DATA.sound = !v; save(); syncSnd(); },
+  _debug: () => (game.debug ? game.debug() : null),
+  _tap: i => tap(i),
+  _next: () => nextMove()
+};
+game.init();
+syncSnd();
+adsInit();
+if (!DATA.seen) helpOverlay();
+emit('ready', {});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+[
+  {
+    "id": "fishies",
+    "name": "Fishies",
+    "description": "A cozy aquarium. Collect, feed and grow 80+ cute fish.",
+    "url": "games/fishies/index.html",
+    "category": "Chill",
+    "addedAt": 1792106054602.748
+  },
+  {
+    "id": "axolotllagoon",
+    "name": "Axolotl Lagoon",
+    "description": "Raise happy axolotls in a calm, glowing lagoon.",
+    "url": "games/axolotllagoon/index.html",
+    "category": "Chill",
+    "addedAt": 1792102454602.748
+  },
+  {
+    "id": "ballsort",
+    "name": "Ball Sort",
+    "description": "Sort the space balls by color. Watch out for bombs!",
+    "url": "games/ballsort/index.html",
+    "category": "Puzzle",
+    "addedAt": 1792098854602.748
+  },
+  {
+    "id": "boxydots",
+    "name": "Boxy Dots",
+    "description": "Classic dots and boxes. Close the most squares to win.",
+    "url": "games/boxydots/index.html",
+    "category": "Puzzle",
+    "addedAt": 1792095254602.748
+  },
+  {
+    "id": "buggies",
+    "name": "Buggies",
+    "description": "An idle bug sanctuary full of butterflies and beetles.",
+    "url": "games/buggies/index.html",
+    "category": "Chill",
+    "addedAt": 1792091654602.748
+  },
+  {
+    "id": "capybaraspa",
+    "name": "Capybara Spa",
+    "description": "Run a relaxing hot spring for sleepy capybaras.",
+    "url": "games/capybaraspa/index.html",
+    "category": "Chill",
+    "addedAt": 1792088054602.748
+  },
+  {
+    "id": "color-gate",
+    "name": "Color Gate",
+    "description": "Match your color and fly through the gates.",
+    "url": "games/color-gate/index.html",
+    "category": "Arcade",
+    "addedAt": 1792084454602.748
+  },
+  {
+    "id": "cozysudoku",
+    "name": "Cozy Sudoku",
+    "description": "Calm sudoku puzzles with a cozy look.",
+    "url": "games/cozysudoku/index.html",
+    "category": "Puzzle",
+    "addedAt": 1792080854602.748
+  },
+  {
+    "id": "deepfin",
+    "name": "Deep Fin",
+    "description": "Tap to swim and dodge the reef. How far can you go?",
+    "url": "games/deepfin/index.html",
+    "category": "Arcade",
+    "addedAt": 1792077254602.748
+  },
+  {
+    "id": "dots",
+    "name": "Dots Connect",
+    "description": "Link the matching dots and fill the whole board.",
+    "url": "games/dots/index.html",
+    "category": "Puzzle",
+    "addedAt": 1792073654602.748
+  },
+  {
+    "id": "doublet",
+    "name": "Doublet",
+    "description": "Slide and merge tiles to reach the big number.",
+    "url": "games/doublet/index.html",
+    "category": "Puzzle",
+    "addedAt": 1792070054602.748
+  },
+  {
+    "id": "frogpond",
+    "name": "Frog Pond",
+    "description": "Grow a peaceful pond full of cute frogs.",
+    "url": "games/frogpond/index.html",
+    "category": "Chill",
+    "addedAt": 1792066454602.748
+  },
+  {
+    "id": "hexfit",
+    "name": "Hex Fit",
+    "description": "Fit the hex pieces together to clear the board.",
+    "url": "games/hexfit/index.html",
+    "category": "Puzzle",
+    "addedAt": 1792062854602.748
+  },
+  {
+    "id": "higherlower",
+    "name": "Higher or Lower",
+    "description": "Guess if the next card is higher or lower.",
+    "url": "games/higherlower/index.html",
+    "category": "Arcade",
+    "addedAt": 1792059254602.748
+  },
+  {
+    "id": "hoppington",
+    "name": "Hoppington",
+    "description": "An idle bunny village full of fluffy friends.",
+    "url": "games/hoppington/index.html",
+    "category": "Chill",
+    "addedAt": 1792055654602.748
+  },
+  {
+    "id": "kittycafe",
+    "name": "Kitty Café",
+    "description": "Run a cozy café full of cats.",
+    "url": "games/kittycafe/index.html",
+    "category": "Chill",
+    "addedAt": 1792052054602.748
+  },
+  {
+    "id": "otterbay",
+    "name": "Otter Bay",
+    "description": "Look after a playful bay of otters.",
+    "url": "games/otterbay/index.html",
+    "category": "Chill",
+    "addedAt": 1792048454602.748
+  },
+  {
+    "id": "pipeflow",
+    "name": "Pipe Flow",
+    "description": "Turn the pipes so the water flows all the way.",
+    "url": "games/pipeflow/index.html",
+    "category": "Puzzle",
+    "addedAt": 1792044854602.748
+  },
+  {
+    "id": "quackipelago",
+    "name": "Quackipelago",
+    "description": "Build an island paradise for ducks.",
+    "url": "games/quackipelago/index.html",
+    "category": "Chill",
+    "addedAt": 1792041254602.748
+  },
+  {
+    "id": "sheephills",
+    "name": "Sheep Hills",
+    "description": "Raise fluffy sheep and knit cozy things.",
+    "url": "games/sheephills/index.html",
+    "category": "Chill",
+    "addedAt": 1792037654602.748
+  },
+  {
+    "id": "sidespin",
+    "name": "Sidespin",
+    "description": "A relaxing game of pool. Line it up and sink them all.",
+    "url": "games/sidespin/index.html",
+    "category": "Arcade",
+    "addedAt": 1792034054602.748
+  },
+  {
+    "id": "stackslice",
+    "name": "Stack Slice",
+    "description": "Stack the blocks as high as you can.",
+    "url": "games/stackslice/index.html",
+    "category": "Arcade",
+    "addedAt": 1792030454602.748
+  },
+  {
+    "id": "unblock",
+    "name": "Unblock",
+    "description": "Slide the blocks to free the red one.",
+    "url": "games/unblock/index.html",
+    "category": "Puzzle",
+    "addedAt": 1792026854602.748
+  },
+  {
+    "id": "watersort",
+    "name": "Water Sort",
+    "description": "Pour the colors until each tube has one.",
+    "url": "games/watersort/index.html",
+    "category": "Puzzle",
+    "addedAt": 1792023254602.748
+  }
+]

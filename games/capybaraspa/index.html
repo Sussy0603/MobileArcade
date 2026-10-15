@@ -1,0 +1,2694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#ffe6cf">
+<title>Capybara Spa</title>
+<style>
+/* =====================================================================
+   CAPYBARA SPA — styles
+   Warm onsen colors: peach, cream, wood and teal water.
+   Change the colors here to restyle the game.
+===================================================================== */
+:root{
+  --peach:#ffe2c8; --peach2:#ff9f6e; --cream:#fff7ec; --wood:#e7b783; --wood2:#b9784a;
+  --teal:#d3f1ec; --teal2:#3fb5a8; --pink:#ffdce6; --pink2:#ff8fae; --lav:#ebe2ff; --lav2:#9f86f0;
+  --lemon:#fff1b3; --lemon2:#ffcf3d; --sky:#dff0ff; --sky2:#5aa9e8;
+  --ink:#4b3527; --ink2:#8a6f5c; --card:#fffdf8; --line:#f1dcc6;
+  --gold:#ffc53d; --good:#45b98a; --bad:#ff6b6b;
+  --r:18px; --font:"Nunito","Trebuchet MS","Segoe UI",system-ui,sans-serif;
+  --fs:1;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#fff3e6;color:var(--ink);font-family:var(--font);font-size:calc(15px * var(--fs))}
+body.easy{--font:Verdana,"Segoe UI",Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.12em;line-height:1.5}
+button{font-family:inherit;font-size:inherit;color:inherit;border:0;cursor:pointer;background:none}
+input{font-family:inherit;font-size:16px}
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+/* coin icon (drawn with CSS, no image) */
+.cn{display:inline-block;width:.95em;height:.95em;border-radius:50%;vertical-align:-.13em;position:relative;
+  background:radial-gradient(circle at 35% 30%,#fff7c2 0 14%,#ffd54a 32%,#f4b322 72%,#d48c12);box-shadow:0 1px 0 #0002,inset 0 0 0 1.5px #ffe58a}
+.cn::after{content:"";position:absolute;inset:28%;border-radius:50%;border:1.5px solid #e39d1c;opacity:.7}
+/* ---------- top bar ---------- */
+#top{display:flex;align-items:center;gap:6px;padding:calc(6px + env(safe-area-inset-top)) 8px 6px;background:linear-gradient(#fffaf3,#ffe9d4);border-bottom:2px solid #f3cfaa;z-index:20}
+.pill{display:flex;align-items:center;gap:4px;background:#fff;border-radius:99px;padding:5px 10px 5px 7px;font-weight:900;box-shadow:0 2px 0 #efcfae;white-space:nowrap;min-width:0;font-size:1em}
+.pill .ic{font-size:18px;line-height:1}
+.pill .cn{width:18px;height:18px}
+.pill.lv{flex:1;max-width:200px;min-width:70px}
+.xpbar{flex:1;height:9px;background:#f7e8d8;border-radius:9px;overflow:hidden;min-width:30px}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--peach2),var(--pink2));border-radius:9px;transition:width .4s}
+#boosts{display:flex;gap:3px;overflow:hidden;flex-wrap:nowrap}
+.bst{font-size:11px;font-weight:900;background:var(--lemon);border-radius:99px;padding:3px 7px;white-space:nowrap}
+.roundBtn{width:40px;height:40px;border-radius:50%;background:#fff;box-shadow:0 2px 0 #efcfae;display:grid;place-items:center;flex:none;font-size:20px;overflow:hidden}
+#muteBtn{margin-left:auto}
+#profBtn svg{width:40px;height:30px}
+@media (max-width:420px){#boosts .bst:nth-child(n+2){display:none}.pill{padding:4px 8px 4px 5px}}
+/* ---------- body / nav ---------- */
+#body{flex:1;display:flex;flex-direction:column;min-height:0;position:relative}
+#main{flex:1;position:relative;min-width:0;overflow:hidden}
+#nav{display:flex;justify-content:space-around;background:#fff;border-top:2px solid #f3cfaa;padding:4px 2px calc(4px + env(safe-area-inset-bottom));z-index:20}
+#nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 0;border-radius:14px;font-size:12px;font-weight:900;color:var(--ink2);position:relative;min-height:56px}
+#nav button .e{font-size:25px;line-height:1.1;height:28px;display:grid;place-items:center}
+#nav button .e svg{width:38px;height:28px}
+#nav button.on{background:var(--peach);color:var(--ink)}
+.dot{position:absolute;top:3px;right:22%;width:11px;height:11px;border-radius:50%;background:var(--bad);border:2px solid #fff;display:none}
+.dot.show{display:block}
+@media (min-width:820px){
+  #body{flex-direction:row-reverse}
+  #nav{flex-direction:column;justify-content:flex-start;gap:6px;border-top:0;border-right:2px solid #f3cfaa;padding:10px 8px;width:96px}
+  #nav button{flex:none;padding:10px 0}
+  .view .inner{max-width:760px;margin:0 auto}
+}
+/* ---------- views ---------- */
+.view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;padding:12px 12px 30px;-webkit-overflow-scrolling:touch;background:#fff6ec}
+.view.on{display:block}
+#vSpa{padding:0;overflow:hidden;background:#ffd9b8}
+h2{margin:4px 0 10px;font-size:1.35em}
+h3{margin:14px 0 8px;font-size:1.08em}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;padding:9px 14px;border-radius:99px;background:#fff;font-weight:900;box-shadow:0 2px 0 var(--line)}
+.tabs button.on{background:var(--peach);box-shadow:0 2px 0 #f2b991}
+.card{background:var(--card);border-radius:var(--r);padding:10px;display:flex;align-items:center;gap:10px;margin-bottom:8px;box-shadow:0 3px 0 var(--line);position:relative}
+.card .art{width:62px;height:62px;flex:none;border-radius:14px;background:var(--peach);display:grid;place-items:center;font-size:32px;overflow:hidden}
+.card .art svg{width:60px;height:46px;overflow:visible}
+.card .info{flex:1;min-width:0}
+.nm{font-weight:900}
+.sub{font-size:.86em;color:var(--ink2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.tile{background:var(--card);border-radius:16px;padding:14px 4px 6px;text-align:center;box-shadow:0 3px 0 var(--line);position:relative;font-size:.84em;font-weight:900}
+.tile svg{width:84px;height:60px;display:block;margin:0 auto}
+.tile.lock{background:#f5ede4}
+.tile.lock svg{filter:brightness(0) opacity(.16)}
+.btn{background:var(--peach2);color:#fff;font-weight:900;padding:10px 15px;border-radius:14px;box-shadow:0 3px 0 #dc7a4c;white-space:nowrap;min-height:42px}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #dc7a4c}
+.btn.mint{background:var(--teal2);box-shadow:0 3px 0 #2b8c81}
+.btn.lav{background:var(--lav2);box-shadow:0 3px 0 #7a62d0}
+.btn.gold{background:var(--gold);color:#5a3b00;box-shadow:0 3px 0 #d79d12}
+.btn.pink{background:var(--pink2);box-shadow:0 3px 0 #dd6f8e}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--line)}
+.btn.wide{display:block;width:100%;margin-top:8px;padding:13px}
+.btn[disabled],.btn.off{opacity:.45;pointer-events:none}
+.btn.sm{padding:7px 11px;font-size:.88em;min-height:38px}
+.tag{display:inline-block;font-size:.74em;font-weight:900;padding:2px 7px;border-radius:99px;background:var(--lemon);vertical-align:middle}
+.r0{background:#f3ebe2}.r1{background:#dcefff}.r2{background:#fff0bf}.r3{background:linear-gradient(90deg,#ffe0ea,#ffefd6,#e1f6ff)}.r4{background:linear-gradient(90deg,#ece2ff,#ffe0f0)}
+.bar{height:11px;border-radius:9px;background:#f4e7da;overflow:hidden;flex:1}
+.bar i{display:block;height:100%;border-radius:9px}
+.mood{display:flex;align-items:center;gap:6px;margin:5px 0;font-size:.92em;font-weight:900}
+.mood span{width:26px;text-align:center}
+.row{display:flex;align-items:center;gap:8px}
+.muted{color:var(--ink2);font-size:.86em}
+.center{text-align:center}
+.hearts{letter-spacing:-1px}
+.seg{display:flex;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 0 var(--line)}
+.seg button{flex:1;padding:9px 6px;font-weight:900}
+.seg button.on{background:var(--peach)}
+.prog{height:14px;border-radius:9px;background:#f4e7da;overflow:hidden;margin:6px 0}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--peach2))}
+/* ---------- spa scene ---------- */
+#scene{position:absolute;inset:0;overflow:hidden;touch-action:none}
+#sceneBg{position:absolute;inset:0;width:100%;height:100%}
+#props,#pools,#wx{position:absolute;inset:0;pointer-events:none}
+#pools .pool{pointer-events:auto}
+.prop{position:absolute;transform:translate(-50%,-100%)}
+.prop svg{width:100%;height:100%;display:block;overflow:visible}
+.pool{position:absolute;transform:translate(-50%,-50%)}
+.pool svg{width:100%;height:100%;display:block;overflow:visible}
+.poolF{pointer-events:none}
+.pool.empty{border:3px dashed #ffffffcc;border-radius:50%;display:grid;place-items:center;font-size:30px;color:#fff;font-weight:900;background:#ffffff26}
+.pool.empty small{display:block;font-size:12px}
+.steam{position:absolute;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle,#ffffffcc 0,#ffffff55 45%,transparent 70%);pointer-events:none;animation:steam 4s ease-out forwards;z-index:200}
+@keyframes steam{from{transform:translate(-50%,0) scale(.5);opacity:0}20%{opacity:.55}to{transform:translate(calc(-50% + var(--dx)),-90px) scale(2.4);opacity:0}}
+.flake{position:absolute;top:-20px;pointer-events:none;animation:fall linear infinite}
+@keyframes fall{to{transform:translate(var(--dx,30px),110vh) rotate(var(--rot,0deg))}}
+.drop{position:absolute;top:-30px;width:2px;height:16px;background:linear-gradient(#ffffff00,#cfe9ffdd);pointer-events:none;animation:rain linear infinite}
+@keyframes rain{to{transform:translate(-30px,110vh)}}
+#dark{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 30%,#2c2550,#100c26);opacity:0;transition:opacity 1.2s;z-index:300}
+#lampL{position:absolute;inset:0;pointer-events:none;z-index:301}
+.halo{position:absolute;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,#ffd27a 0,transparent 68%);opacity:.5;animation:halo 3s ease-in-out infinite alternate;mix-blend-mode:screen}
+@keyframes halo{from{opacity:.35}to{opacity:.6}}
+#capys,#fxL{position:absolute;inset:0}
+#fxL{pointer-events:none;z-index:400}
+.capy{position:absolute;will-change:left,top,transform;touch-action:none}
+.capy .flip{width:100%;height:100%;transition:transform .35s}
+.capy svg{width:100%;height:100%;overflow:visible;display:block}
+.capy .bob{width:100%;height:100%;transform-origin:50% 80%;animation:idle 3.4s ease-in-out infinite}
+.capy.walk .bob{animation:walk .5s ease-in-out infinite}
+.capy.soak .bob{animation:soak 3s ease-in-out infinite}
+.capy.nap .bob{animation:breathe 3.8s ease-in-out infinite}
+.capy.pop .bob{animation:pop .45s ease}
+.capy .zz{position:absolute;top:-6px;right:8%;font-size:15px;font-weight:900;color:#7a6ac9;animation:zz 2s infinite}
+.capy .bub{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font-size:18px;background:#fff;border-radius:12px;padding:0 5px;box-shadow:0 2px 0 #0002;white-space:nowrap;z-index:2}
+.capy.sel::after{content:"";position:absolute;left:18%;right:18%;bottom:-4px;height:8px;border-radius:50%;background:#fff9;box-shadow:0 0 10px #fff}
+.capy.guest .bob{filter:drop-shadow(0 0 6px #fff)}
+@keyframes idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px) scale(1.01,.99)}}
+@keyframes walk{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
+@keyframes soak{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(3px) rotate(1deg)}}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.03,.96)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.18,.84)}70%{transform:scale(.94,1.1)}100%{transform:scale(1)}}
+@keyframes zz{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(8px,-14px)}}
+.fx{position:absolute;pointer-events:none;font-size:21px;font-weight:900;z-index:9;animation:fxup 1.1s ease-out forwards;white-space:nowrap;text-shadow:0 2px 0 #fff}
+@keyframes fxup{from{opacity:1;transform:translate(-50%,0) scale(.7)}30%{transform:translate(-50%,-14px) scale(1.15)}to{opacity:0;transform:translate(-50%,-56px) scale(1)}}
+.splash{position:absolute;width:8px;height:8px;border-radius:50%;background:#e9fbff;pointer-events:none;animation:spl .6s ease-out forwards}
+@keyframes spl{to{transform:translate(var(--dx),var(--dy));opacity:0}}
+#areaName{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#fffd;border-radius:99px;padding:3px 6px;font-weight:900;z-index:450;white-space:nowrap;display:flex;gap:4px;align-items:center;box-shadow:0 2px 0 #0001}
+#areaName button{font-size:20px;width:38px;height:38px;border-radius:50%}
+#areaName button[disabled]{opacity:.25}
+#sideL{position:absolute;top:58px;left:8px;display:flex;flex-direction:column;gap:8px;z-index:450}
+#sideR{position:absolute;top:58px;right:8px;display:flex;flex-direction:column;gap:8px;z-index:450}
+.fab{width:56px;height:56px;border-radius:50%;background:#fff;box-shadow:0 3px 0 #0002;font-size:26px;display:grid;place-items:center;position:relative}
+.fab small{position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:900;background:#fff;border-radius:6px;padding:0 4px;white-space:nowrap}
+.fab .bdg{position:absolute;top:-3px;right:-3px;background:var(--bad);color:#fff;font-size:11px;font-weight:900;border-radius:99px;min-width:19px;height:19px;display:grid;place-items:center;padding:0 4px}
+.fab.glow{animation:wob .6s ease-in-out infinite alternate}
+@keyframes wob{from{transform:rotate(-6deg)}to{transform:rotate(6deg)}}
+#careBar{position:absolute;left:8px;right:8px;bottom:10px;z-index:450;display:flex;justify-content:center}
+#careBar .cb{background:#fffe;border-radius:20px;padding:8px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 0 #0002;max-width:540px;width:100%}
+#careBar .cb .who{flex:1;min-width:0;font-weight:900;line-height:1.2;overflow:hidden}
+#careBar .cb .who small{display:block;font-weight:700;color:var(--ink2);font-size:.8em}
+#careBar .cbtn{display:flex;flex-direction:column;align-items:center;font-size:11px;font-weight:900;background:var(--peach);border-radius:14px;padding:5px 4px;min-width:52px;min-height:54px;justify-content:center}
+#careBar .cbtn b{font-size:22px;line-height:1}
+#careBar .hint{background:#fffd;border-radius:99px;padding:8px 14px;font-weight:900;box-shadow:0 3px 0 #0002}
+/* ---------- modal ---------- */
+#modalBg{position:fixed;inset:0;background:#4b352766;display:none;z-index:500;align-items:center;justify-content:center;padding:14px}
+#modalBg.on{display:flex}
+#modal{background:#fff;border-radius:24px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto;padding:16px;box-shadow:0 10px 40px #0003;animation:mIn .25s ease;position:relative}
+@keyframes mIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+#modal h2{text-align:center;margin-top:0;padding:0 30px}
+#mClose{position:absolute;top:8px;right:10px;font-size:22px;width:40px;height:40px;border-radius:50%;background:#fbefe3}
+.reward{text-align:center}
+.reward .big{font-size:60px;line-height:1.1}
+.reward .big svg{width:180px;height:126px;overflow:visible}
+.reward .amt{font-size:1.5em;font-weight:900;margin:6px 0}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:800;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:92%}
+.tst{background:#fff;border-radius:14px;padding:10px 15px;font-weight:900;box-shadow:0 4px 14px #0002;animation:tIn .3s ease;max-width:100%;text-align:center}
+.tst.gold{background:var(--lemon)}.tst.err{background:#ffe0e0}
+@keyframes tIn{from{transform:translateY(-12px);opacity:0}to{transform:none;opacity:1}}
+.pickGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;max-height:44vh;overflow-y:auto;padding:2px}
+.pickGrid button{background:#fff5ea;border-radius:14px;padding:6px 4px;font-weight:900;font-size:.85em;border:3px solid transparent}
+.pickGrid button .big{font-size:34px;display:block;line-height:1.2}
+.pickGrid button.on{border-color:var(--peach2);background:var(--peach)}
+.pickGrid button[disabled]{opacity:.35}
+.bigCapy svg{width:200px;height:140px;overflow:visible}
+.duo{display:flex;justify-content:center;gap:4px}
+.duo svg{width:48%;height:auto;max-width:170px;overflow:visible}
+/* ---------- mini games ---------- */
+#game{position:fixed;inset:0;z-index:600;background:#ffe2c8;display:none;touch-action:none}
+#game.on{display:block}
+#gCanvas{position:absolute;inset:0;width:100%;height:100%}
+#gHud{position:absolute;top:calc(8px + env(safe-area-inset-top));left:8px;right:8px;display:flex;justify-content:space-between;align-items:center;z-index:2;font-weight:900;font-size:1.1em;gap:6px}
+#gOver,#gIntro{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#4b352755;z-index:3;padding:16px}
+#gOver.on,#gIntro.on{display:flex}
+#gOver .box,#gIntro .box{background:#fff;border-radius:24px;padding:18px;width:100%;max-width:360px;text-align:center}
+/* ---------- loading ---------- */
+#load{position:fixed;inset:0;z-index:1000;background:linear-gradient(#fff3e2,#ffd8bd);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .6s}
+#load .logo{font-size:2.4em;font-weight:900;color:#d9774a;text-shadow:0 3px 0 #fff;text-align:center;line-height:1.05}
+#load .wd{width:170px;height:120px;animation:idle 1.4s ease-in-out infinite}
+#load .wd svg{width:100%;height:100%;overflow:visible}
+#load .tip{max-width:300px;text-align:center;font-weight:800;color:var(--ink2);padding:0 20px}
+#load .lbar{width:200px;height:11px;background:#fff;border-radius:9px;overflow:hidden}
+#load .lbar i{display:block;height:100%;width:0;background:var(--peach2);transition:width .3s}
+/* ---------- tutorial ---------- */
+#tut{position:fixed;left:8px;right:8px;z-index:470;display:none;pointer-events:none}
+#tut.on{display:flex;justify-content:center}
+#tut .box{pointer-events:auto;background:#fff;border-radius:20px;padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 6px 24px #0003;max-width:460px;width:100%;border:3px solid var(--lemon2)}
+#tut #tutCap svg{width:64px;height:45px;flex:none;overflow:visible}
+#tut .tx{flex:1;font-weight:900;font-size:.95em}
+.hl{outline:4px solid var(--lemon2)!important;outline-offset:2px;animation:hlp 1s infinite alternate}
+@keyframes hlp{from{outline-color:var(--lemon2)}to{outline-color:var(--pink2)}}
+</style>
+</head>
+<body>
+<div id="load">
+  <div class="logo">Capybara<br>Spa</div>
+  <div class="wd" id="loadCapy"></div>
+  <div class="lbar"><i id="loadBar"></i></div>
+  <div class="tip" id="loadTip"></div>
+</div>
+<div id="app">
+  <div id="top">
+    <button class="pill" id="pCoin"><i class="cn"></i><span id="vCoin">0</span></button>
+    <button class="pill" id="pGem"><span class="ic">💎</span><span id="vGem">0</span></button>
+    <button class="pill lv" id="pLevel"><span class="ic">⭐</span><span id="vLevel">1</span><span class="xpbar"><i id="vXp"></i></span></button>
+    <div id="boosts"></div>
+    <button class="roundBtn" id="muteBtn" aria-label="Sound">🔊</button>
+    <button class="roundBtn" id="profBtn" aria-label="Profile"></button>
+  </div>
+  <div id="body">
+    <div id="main">
+      <div class="view on" id="vSpa">
+        <div id="scene">
+          <svg id="sceneBg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+          <div id="props"></div>
+          <div id="pools"></div>
+          <div id="capys"></div>
+          <div id="wx"></div>
+          <div id="dark"></div>
+          <div id="lampL"></div>
+          <div id="fxL"></div>
+        </div>
+        <div id="areaName"></div>
+        <div id="sideL"></div>
+        <div id="sideR"></div>
+        <div id="careBar"></div>
+      </div>
+      <div class="view" id="vCapys"><div class="inner" id="iCapys"></div></div>
+      <div class="view" id="vBuild"><div class="inner" id="iBuild"></div></div>
+      <div class="view" id="vShop"><div class="inner" id="iShop"></div></div>
+      <div class="view" id="vGames"><div class="inner" id="iGames"></div></div>
+      <div class="view" id="vMore"><div class="inner" id="iMore"></div></div>
+    </div>
+    <div id="nav"></div>
+  </div>
+</div>
+<div id="modalBg"><div id="modal"><button id="mClose" aria-label="Close">✕</button><div id="mBody"></div></div></div>
+<div id="toast"></div>
+<div id="tut"><div class="box"><div id="tutCap"></div><div class="tx" id="tutTx"></div><button class="btn sm" id="tutBtn">OK</button></div></div>
+<div id="game">
+  <canvas id="gCanvas"></canvas>
+  <div id="gHud"></div>
+  <div id="gIntro"><div class="box" id="gIntroBox"></div></div>
+  <div id="gOver"><div class="box" id="gOverBox"></div></div>
+</div>
+<script>
+/* =====================================================================
+   CAPYBARA SPA  —  a cozy capybara hot spring idle game  (MOS Arcade)
+   ---------------------------------------------------------------------
+   HOW THIS FILE IS ORGANISED
+     1. CONFIG        ← all the tuning numbers. Change feel here.
+     2. DATA          ← capybaras, pools, areas, decor, snacks, fruits, friends
+     3. LANGUAGE      ← English / French words
+     4. STATE + SAVE  ← what the game remembers (on the phone only)
+     5. ECONOMY       ← how coins are made, guests, babies, care
+     6. ART           ← capybaras + spa drawn in code (SVG)
+     7. SOUND         ← water, squeaks + soft music made in code
+     8. SPA VIEW      ← capybaras walking, soaking, napping, petting
+     9. SCREENS       ← Capys, Build, Shop, Games, More
+    10. MINI GAMES    ← Fruit Stack, Fruit Catch
+    11. MONEY         ← ads + Spa Pack purchase (demo in browser)
+    12. MAIN LOOP     ← ticks, away time, tutorial, start-up
+===================================================================== */
+
+/* =====================================================================
+   1. CONFIG — tune the game here. Numbers only, no code knowledge needed.
+===================================================================== */
+const CONFIG = {
+  /* ---- start ---- */
+  START_COINS: 150,
+  START_GEMS: 10,
+
+  /* ---- coins (idle money) ---- */
+  BASE_RATE: 1,               // coins per second for one relaxed common grown-up capybara
+  RARITY_MULT: [1, 2, 4, 6, 6],   // Common, Rare, Epic, Seasonal, Exclusive
+  AREA_MULT: 3,               // each new area makes its capybaras earn x3 more
+  BABY_EARN: 0.3,             // babies earn 30% of a grown-up
+  SAD_MIN: 0.4,               // a grumpy-hungry capybara still makes 40% (it never leaves)
+  FAV_POOL_BONUS: 0.5,        // +50% coins when soaking in its favorite pool type
+  OFFLINE_HOURS: 8,           // coins keep coming while the app is closed, up to this many hours
+  OFFLINE_UP_HOURS: 2,        // each "Coin jar" upgrade adds this many hours
+
+  /* ---- care ---- */
+  MOOD_EMPTY_HOURS: 5,        // full -> empty in about 5 hours
+  PET_CALM: 8, PET_FRIEND: 3, PET_COOLDOWN_MS: 1500,
+  FRIEND_LEVELS: [0, 15, 45, 90, 150, 230, 330, 450, 600, 800],  // friendship points for 1..10 hearts
+  FRIEND_BONUS: 0.06,         // +6% coins per heart
+
+  /* ---- fruit stack on the head ---- */
+  STACK_MAX: 5,
+  STACK_BONUS: [0, 0.10, 0.25, 0.45, 0.70, 1.00],   // bonus for 0,1,2,3,4,5 fruits. Taller = bigger!
+  STACK_HOURS: 3,             // a stack stays this long, then the capybara eats it
+
+  /* ---- animal friends ---- */
+  PAL_BONUS: 0.15,            // a friend sitting on a capybara: +15% coins
+  PAL_COMBO: 2,               // the right friend for its personality: bonus x2
+
+  /* ---- babies ---- */
+  GROW_SEC: 1200,             // baby -> grown-up in 20 min (relaxed babies grow faster)
+  BABY_MIN: [25, 50],         // a baby may arrive every 25-50 minutes
+  BABY_HEARTS: 3,             // parents need this many hearts
+  BABIES_PER_PARENT: 2,
+
+  /* ---- spa ---- */
+  POOL_SEATS: 3,              // capybaras per pool
+  POOLS_MAX: 4,               // pools per area
+  AREA_COST: [0, 5000, 70000, 1000000, 15000000],
+  AREA_LEVEL: [1, 4, 8, 12, 16],
+  DECOR_BONUS: 0.10,          // each decor piece: +10% coins in its area
+  SNACK_UP_BONUS: 0.25,       // each "Better snacks" level: +25% coins everywhere
+  SNACK_UP_MAX: 25,
+  WEATHER_BONUS: 0.05,        // each weather charm you own: +5% coins everywhere
+
+  /* ---- day + night (real clock) ---- */
+  NIGHT_START: 20, NIGHT_END: 7,
+
+  /* ---- guests at the gate ---- */
+  GUEST_MIN: [10, 20],        // a guest walks in every 10-20 minutes
+  GUEST_STAY_MIN: 8,
+  RARE_GUEST_GEMS: 30,        // gems to call a rare guest right away
+
+  /* ---- player ---- */
+  XP_BASE: 40, XP_POW: 1.5,
+
+  /* ---- optional ads ---- */
+  AD_2X_MIN: 30, AD_2X_MAX_H: 4,
+  AD_GEMS: 5, AD_GEMS_PER_DAY: 5,     // +5 gems per ad, up to 5 times a day
+  AD_UPGRADE_HOURS: 3,                // free upgrade boost: once every 3 hours
+  TICKETS_MAX: 5, TICKET_MIN: 15, AD_TICKETS: 3,
+
+  /* ---- mini games ---- */
+  STACK_SWING: 2.2,            // how fast the fruit swings (Fruit Stack)
+  CATCH_SPEED: 170, CATCH_RAMP: 5,
+};
+
+/* =====================================================================
+   2. DATA — everything that exists in the spa
+===================================================================== */
+const RARITY = [
+  {en:'Common', fr:'Commun', c:'#9a7b62'},
+  {en:'Rare', fr:'Rare', c:'#3f86d0'},
+  {en:'Epic', fr:'Épique', c:'#d08a12'},
+  {en:'Seasonal', fr:'Saisonnier', c:'#e0679a'},
+  {en:'Exclusive', fr:'Exclusif', c:'#8a5fe0'},
+];
+const SEASONS = {
+  spring:{e:'🌸', en:'Spring', fr:'Printemps'}, summer:{e:'☀️', en:'Summer', fr:'Été'},
+  autumn:{e:'🍂', en:'Autumn', fr:'Automne'}, winter:{e:'❄️', en:'Winter', fr:'Hiver'},
+};
+function seasonNow(t){ const m = new Date(t || now()).getMonth(); return m >= 2 && m <= 4 ? 'spring' : m >= 5 && m <= 7 ? 'summer' : m >= 8 && m <= 10 ? 'autumn' : 'winter'; }
+/* capybara kinds. body / belly / snout colors. pat = fur pattern, acc = little accessory.
+   home = only visits in that area.  season = only visits in that season.
+   paid = comes with the Spa Pack. */
+const KINDS = {
+  classic:  {en:'Classic brown', fr:'Brun classique', r:0, body:'#a9754b', belly:'#c99a6d', snout:'#7d5434'},
+  cocoa:    {en:'Cocoa',         fr:'Cacao',          r:0, body:'#7c5136', belly:'#9c6f50', snout:'#593621'},
+  sandy:    {en:'Sandy',         fr:'Sable',          r:0, body:'#d3a774', belly:'#e8c79a', snout:'#a57a4c'},
+  fluffy:   {en:'Fluffy',        fr:'Touffu',         r:1, body:'#e6c9a0', belly:'#f6e4c8', snout:'#b9926a', pat:'fluffy'},
+  spotted:  {en:'Spotted',       fr:'Tacheté',        r:1, body:'#b8835a', belly:'#d8ad84', snout:'#8a5d3c', pat:'spots', pc:'#f2dcc0'},
+  misty:    {en:'Misty grey',    fr:'Gris brume',     r:1, body:'#9c9aa8', belly:'#bdbcc6', snout:'#76747f'},
+  golden:   {en:'Golden',        fr:'Doré',           r:2, body:'#f2c14e', belly:'#ffe39a', snout:'#c99428', pat:'shine'},
+  snowy:    {en:'Snowy',         fr:'Neigeux',        r:2, body:'#f3f5fb', belly:'#ffffff', snout:'#c9cede', pat:'sparkle', home:'snow'},
+  mossy:    {en:'Mossy',         fr:'Mousse',         r:2, body:'#90ad6a', belly:'#b4cc8e', snout:'#6b8649', acc:'leaf', home:'jungle'},
+  sakura:   {en:'Sakura',        fr:'Sakura',         r:3, body:'#f4c6d4', belly:'#ffe3ec', snout:'#d897ab', pat:'petals', pc:'#ff8fb7', acc:'flowers', season:'spring'},
+  sunny:    {en:'Sunny',         fr:'Soleil',         r:3, body:'#f0ad5a', belly:'#ffd59a', snout:'#c47f34', acc:'shades', season:'summer'},
+  pumpkin:  {en:'Pumpkin',       fr:'Citrouille',     r:3, body:'#c8743a', belly:'#e59d62', snout:'#94501f', acc:'pumpkin', season:'autumn'},
+  frosty:   {en:'Frosty',        fr:'Givré',          r:3, body:'#dfe9f5', belly:'#f7fbff', snout:'#aebfd4', acc:'scarf', season:'winter'},
+  moonlight:{en:'Moonlight',     fr:'Clair de lune',  r:4, body:'#c9bdf2', belly:'#ece6ff', snout:'#9a8ad6', pat:'stars', paid:true},
+  rainbow:  {en:'Rainbow',       fr:'Arc-en-ciel',    r:4, body:'#ffb3c6', belly:'#fff4e2', snout:'#d9879d', pat:'rainbow', paid:true},
+};
+const KIND_IDS = Object.keys(KINDS);
+
+const PERSONALITIES = {
+  sleepy: {e:'😴', en:'Sleepy', fr:'Dormeur', d:{en:'Naps a lot. Stays calm longer.', fr:'Fait plein de siestes. Reste calme plus longtemps.'}},
+  snacky: {e:'😋', en:'Snacky', fr:'Gourmand', d:{en:'Earns +20% coins, but gets hungry fast.', fr:'Gagne +20% de pièces, mais a vite faim.'}},
+  social: {e:'🥰', en:'Social', fr:'Sociable', d:{en:'Makes friends fast. Loves visitors.', fr:'Se fait vite des amis. Adore les visiteurs.'}},
+  fancy:  {e:'💅', en:'Fancy', fr:'Chic', d:{en:'Fruit stacks give 50% more bonus.', fr:'Les piles de fruits donnent 50% de bonus en plus.'}},
+  grumpy: {e:'😤', en:'Grumpy', fr:'Grognon', d:{en:'Slow to make friends, but each heart gives more.', fr:'Lent à devenir ami, mais chaque cœur rapporte plus.'}},
+};
+const PERS_IDS = Object.keys(PERSONALITIES);
+
+/* pool types. Unlock once in Build, then pick a type for each pool.
+   bonus = extra coins for everyone soaking in it. g = costs gems. */
+const POOLS = {
+  hot:   {e:'♨️', en:'Hot spring',       fr:'Source chaude',     water:'#7fd3c9', deep:'#4fb3a7', bonus:0,    p:0},
+  yuzu:  {e:'🍋', en:'Yuzu bath',        fr:'Bain au yuzu',      water:'#ffe07a', deep:'#f2bf3c', bonus:0.15, p:800},
+  petal: {e:'🌸', en:'Flower petal bath', fr:'Bain de pétales',  water:'#ffc2d8', deep:'#f590b4', bonus:0.25, p:4000},
+  mud:   {e:'🟤', en:'Mud bath',         fr:'Bain de boue',      water:'#b08560', deep:'#8a6040', bonus:0.35, p:15000},
+  milk:  {e:'🥛', en:'Milk bath',        fr:'Bain de lait',      water:'#fbf6ee', deep:'#e8dcc8', bonus:0.50, g:15},
+  cold:  {e:'🧊', en:'Cold plunge',      fr:'Bain froid',        water:'#bfe6ff', deep:'#86c6f0', bonus:0.60, g:25},
+};
+const POOL_IDS = Object.keys(POOLS);
+/* where pools sit in the spa (in % of the screen) */
+const POOL_POS = [[27, 47], [73, 47], [27, 71], [73, 71]];
+
+const AREAS = [
+  {id:'onsen',  e:'♨️', en:'Cozy Onsen',            fr:'Onsen douillet',          sky:['#ffe7cf','#ffc7a6'], hill:'#d9b39a', floor:'#e5b27c', floor2:'#cf9763', weather:['clear','petals','rain','leaves','snow'], music:[[0,2,4,7,9], 70, 'triangle']},
+  {id:'snow',   e:'🏔️', en:'Snowy Mountain Spring', fr:'Source de la montagne',   sky:['#dcecff','#b8d4f2'], hill:'#ffffff', floor:'#f2f6fb', floor2:'#d9e4f0', weather:['snow'], music:[[0,2,4,7,9], 62, 'sine']},
+  {id:'jungle', e:'🌴', en:'Jungle Pool',           fr:'Piscine de la jungle',    sky:['#d9f5d0','#9fd8a0'], hill:'#5fa86a', floor:'#b9a77c', floor2:'#9a8a61', weather:['clear','rain'], music:[[0,3,5,7,10], 76, 'triangle']},
+  {id:'sakura', e:'🌸', en:'Sakura Garden',         fr:'Jardin Sakura',           sky:['#ffe6ef','#ffc9dc'], hill:'#f6b3cb', floor:'#e7c3a2', floor2:'#d3a985', weather:['petals'], music:[[0,2,5,7,9], 66, 'sine']},
+  {id:'sauna',  e:'🧖', en:'Cozy Sauna',            fr:'Sauna douillet',          sky:['#c98f5f','#a8703f'], hill:'#8e5a30', floor:'#b47a48', floor2:'#9a6334', weather:['clear'], indoor:true, music:[[0,3,5,7,10], 58, 'sine']},
+];
+const AREA_IDS = AREAS.map(a => a.id);
+const AREA = id => AREAS.find(a => a.id === id);
+
+/* decor: bought once per area. g = also costs gems (special decor) */
+const DECOR = {
+  lantern:  {e:'🏮', en:'Lanterns',       fr:'Lanternes',         p:300},
+  bamboo:   {e:'🎋', en:'Bamboo',         fr:'Bambous',           p:900},
+  rocks:    {e:'🪨', en:'Zen rocks',      fr:'Pierres zen',       p:1800},
+  cherry:   {e:'🌸', en:'Cherry tree',    fr:'Cerisier',          p:3500},
+  waterfall:{e:'💧', en:'Little waterfall', fr:'Petite cascade',  p:7000},
+  torii:    {e:'⛩️', en:'Torii gate',     fr:'Portail torii',     p:5000, g:15},
+  umbrella: {e:'⛱️', en:'Paper umbrella', fr:'Ombrelle en papier', p:2500, g:10},
+};
+const DECOR_IDS = Object.keys(DECOR);
+const DECOR_POS = {lantern:[[5,58],[95,58]], bamboo:[[95,33]], rocks:[[92,84]], cherry:[[24,32]], waterfall:[[50,32]], torii:[[76,32]], umbrella:[[8,85]]};
+
+/* snacks you feed (Shop) */
+const SNACKS = {
+  grass:      {e:'🌿', en:'Grass',      fr:'Herbe',     food:30, calm:0,  fr_:3, p:25},
+  corn:       {e:'🌽', en:'Corn',       fr:'Maïs',      food:50, calm:5,  fr_:5, p:70},
+  orange:     {e:'🍊', en:'Oranges',    fr:'Oranges',   food:70, calm:10, fr_:7, p:160},
+  watermelon: {e:'🍉', en:'Watermelon', fr:'Melon d’eau', food:100, calm:20, fr_:10, p:380},
+};
+const SNACK_IDS = Object.keys(SNACKS);
+/* fruits for the head stack (Shop) */
+const FRUITS = {
+  yuzu:       {e:'🍋', en:'Yuzu',       fr:'Yuzu',      p:40},
+  orange:     {e:'🍊', en:'Mandarin',   fr:'Mandarine', p:60},
+  apple:      {e:'🍎', en:'Apple',      fr:'Pomme',     p:90},
+  strawberry: {e:'🍓', en:'Strawberry', fr:'Fraise',    p:130},
+  peach:      {e:'🍑', en:'Peach',      fr:'Pêche',     p:180},
+};
+const FRUIT_IDS = Object.keys(FRUITS);
+/* animal friends that sit on capybaras. likes = the personality that makes a combo */
+const PALS = {
+  duck:   {e:'🐤', en:'Duckling', fr:'Caneton', likes:'social', p:600},
+  bird:   {e:'🐦', en:'Little bird', fr:'Petit oiseau', likes:'snacky', p:1500},
+  turtle: {e:'🐢', en:'Turtle', fr:'Tortue', likes:'sleepy', p:4000},
+  cat:    {e:'🐱', en:'Cat', fr:'Chat', likes:'grumpy', p:10000},
+  monkey: {e:'🐒', en:'Snow monkey', fr:'Macaque', likes:'fancy', p:25000},
+};
+const PAL_IDS = Object.keys(PALS);
+/* weather charms (Build). Own one to choose that weather. */
+const WEATHER = {
+  clear:  {e:'☀️', en:'Clear sky', fr:'Ciel clair', p:0},
+  petals: {e:'🌸', en:'Cherry blossoms', fr:'Fleurs de cerisier', p:2000},
+  rain:   {e:'🌧️', en:'Soft rain', fr:'Pluie douce', p:6000},
+  leaves: {e:'🍂', en:'Autumn leaves', fr:'Feuilles d’automne', p:15000},
+  snow:   {e:'❄️', en:'Snowfall', fr:'Neige', p:40000},
+};
+const WEATHER_IDS = Object.keys(WEATHER);
+
+const TITLES = [
+  [1,  {en:'Bath Helper', fr:'Aide aux bains'}],
+  [4,  {en:'Towel Folder', fr:'Plieur de serviettes'}],
+  [8,  {en:'Spa Keeper', fr:'Gardien du spa'}],
+  [12, {en:'Onsen Master', fr:'Maître de l’onsen'}],
+  [16, {en:'Steam Sage', fr:'Sage de la vapeur'}],
+  [25, {en:'Capybara Legend', fr:'Légende capybara'}],
+];
+/* collection book milestones: [kinds found, gems] */
+const BOOK_MILES = [[4, 5], [7, 10], [10, 15], [13, 25], [15, 40]];
+const GIFT_DAYS = [   // daily gift, day 1..7 then repeats. p = minutes of coins
+  {p:20, grass:4}, {p:30, yuzu:2}, {p:40, corn:3}, {p:50, orange:2}, {p:60, strawberry:2}, {p:80, watermelon:2}, {p:120, peach:3},
+];
+const NAMES = ['Mochi','Yuzu','Momo','Kiki','Biscuit','Toffee','Nori','Miso','Tofu','Dango','Peach','Bean','Cocoa','Maple','Pudding','Pebble',
+  'Waffle','Hazel','Sesame','Kinako','Taro','Luna','Olive','Pickles','Clover','Daisy','Honey','Latte','Muffin','Noodle','Oolong','Pumpkin',
+  'Sprout','Sushi','Truffle','Udon','Walnut','Ziggy','Basil','Caramel','Ginger','Juniper','Lychee','Mango','Nutmeg','Plum','Ramen','Snickers'];
+const TIPS = [
+  {en:'Relaxed capybaras give more coins. Pet them and feed them!', fr:'Les capybaras détendus donnent plus de pièces. Flatte-les et nourris-les!'},
+  {en:'Stack fruits on a capybara’s head. The taller the stack, the bigger the bonus!', fr:'Empile des fruits sur la tête d’un capybara. Plus la pile est haute, plus le bonus est gros!'},
+  {en:'Each capybara has a favorite pool. Soaking there gives +50% coins.', fr:'Chaque capybara a un bain préféré. S’y baigner donne +50% de pièces.'},
+  {en:'Put the right animal friend on a capybara for a combo bonus!', fr:'Mets le bon ami animal sur un capybara pour un bonus combo!'},
+  {en:'Your capybaras keep earning coins while the app is closed.', fr:'Tes capybaras gagnent des pièces même quand l’app est fermée.'},
+  {en:'Happy friends sometimes get a baby that follows them around.', fr:'Les amis heureux ont parfois un bébé qui les suit partout.'},
+  {en:'Ads are always your choice. Nothing plays on its own.', fr:'Les pubs sont toujours ton choix. Rien ne joue tout seul.'},
+];
+
+/* =====================================================================
+   4. STATE + SAVE — and small helpers
+   Everything is saved on this phone only (no account, no internet).
+===================================================================== */
+const $ = id => document.getElementById(id);
+const now = () => Date.now();
+const rnd = (a, b) => a + Math.random() * (b - a);
+const rint = (a, b) => Math.floor(rnd(a, b + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CN = '<i class="cn"></i>';
+function weighted(odds){ let s = odds.reduce((a, b) => a + b, 0), r = Math.random() * s; for(let i=0;i<odds.length;i++){ r -= odds[i]; if(r < 0) return i; } return odds.length - 1; }
+function fmt(n){
+  n = Math.floor(n || 0); if(n < 1000) return String(n);
+  const u = ['K','M','B','T','Qa','Qi','Sx','Sp']; let i = -1;
+  while(n >= 1000 && i < u.length - 1){ n /= 1000; i++; }
+  return (n >= 100 ? Math.floor(n) : n >= 10 ? (Math.floor(n * 10) / 10) : (Math.floor(n * 100) / 100)) + u[i];
+}
+function fmtTime(sec){
+  sec = Math.max(0, Math.ceil(sec));
+  if(sec < 60) return sec + 's';
+  const m = Math.floor(sec / 60), s = sec % 60;
+  if(m < 60) return m + 'm' + (s ? ' ' + s + 's' : '');
+  const h = Math.floor(m / 60); if(h < 48) return h + 'h ' + (m % 60) + 'm';
+  return Math.floor(h / 24) + 'd ' + (h % 24) + 'h';
+}
+function dayNum(t){ const d = new Date(t); return Math.floor((t - d.getTimezoneOffset() * 60000) / 86400000); }
+function isNight(t){ const h = new Date(t || now()).getHours(); return h >= CONFIG.NIGHT_START || h < CONFIG.NIGHT_END; }
+
+const SAVE_KEY = 'capybaraspa_v1';
+let S = null;
+
+function newArea(){ return {pools:['hot'], decor:{}}; }
+function newState(){
+  const t = now();
+  return {
+    v:1, created:t, lastSeen:t, name:'', avatar:null,
+    lang:(navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en',
+    snd:true, mus:true, easy:false, fsz:1,
+    co:CONFIG.START_COINS, g:CONFIG.START_GEMS, xp:0, lv:1,
+    cur:'onsen', open:['onsen'], ar:{onsen:newArea()},
+    capys:[], nextId:1,
+    snacks:{grass:6, corn:2, orange:0, watermelon:0}, fruit:{yuzu:3, orange:1, apple:0, strawberry:0, peach:0},
+    pals:{}, poolTypes:{hot:1}, wx:{clear:1}, weather:null,
+    up:{snack:0, jar:0, towel:0},
+    book:{}, miles:0, daily:{streak:0, last:null}, dvDay:null,
+    guest:null, guestAt:t + 4 * 60000, babyAt:t + 15 * 60000,
+    ad2x:0, adGems:{day:0, n:0}, adUpAt:0, tickets:CONFIG.TICKETS_MAX, tkT:t, theme:'classic',
+    stats:{coins:0, play:0, babies:0, games:0, pets:0, feeds:0, stacks:0, guests:0, best:{stack:0, catch:0}},
+    tut:0, noAds:false, pack:false, iapDone:{}, awayLast:0,
+  };
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){ const o = JSON.parse(raw); if(o && o.v) return fixState(o); }
+  }catch(e){}
+  return null;
+}
+/* fills in anything missing from an older save */
+function fixState(o){
+  const d = newState();
+  for(const k in d) if(o[k] === undefined) o[k] = d[k];
+  for(const k in d.stats) if(o.stats[k] === undefined) o.stats[k] = d.stats[k];
+  for(const k in d.snacks) if(o.snacks[k] === undefined) o.snacks[k] = 0;
+  for(const k in d.fruit) if(o.fruit[k] === undefined) o.fruit[k] = 0;
+  for(const k in d.up) if(o.up[k] === undefined) o.up[k] = 0;
+  o.open.forEach(id => { if(!o.ar[id]) o.ar[id] = newArea(); });
+  return o;
+}
+function saveNow(){
+  if(!S) return;
+  S.lastSeen = now();
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
+}
+
+/* =====================================================================
+   3. LANGUAGE — tr('English text') gives French when French is chosen.
+   To fix a French word, change it in FR (near the end of the file).
+===================================================================== */
+function L(o){ if(!o) return ''; return (S && S.lang === 'fr' && o.fr) ? o.fr : (o.en || ''); }
+function tr(s, vars){
+  let out = (S && S.lang === 'fr' && FR[s]) ? FR[s] : s;
+  if(vars) for(const k in vars) out = out.split('{' + k + '}').join(vars[k]);
+  return out;
+}
+
+/* =====================================================================
+   5. ECONOMY — coins, gems, levels, guests, babies, care
+===================================================================== */
+const MOOD_RATE = () => 100 / (CONFIG.MOOD_EMPTY_HOURS * 3600);
+const capyById = id => S.capys.find(x => x.id === id);
+const capysIn = a => S.capys.filter(x => x.a === a);
+const isAdult = x => x.grow >= CONFIG.GROW_SEC;
+const moodAvg = x => (x.m.food + x.m.calm) / 2;
+const tierOf = a => AREA_IDS.indexOf(a);
+const poolsIn = a => S.ar[a] ? S.ar[a].pools : [];
+const seatsIn = a => poolsIn(a).length * CONFIG.POOL_SEATS;
+const hasRoom = a => capysIn(a).length < seatsIn(a);
+const decorCount = a => S.ar[a] ? Object.keys(S.ar[a].decor).length : 0;
+const poolType = x => (poolsIn(x.a)[x.pool] || 'hot');
+const inFavPool = x => poolType(x) === x.fp;
+const babiesOf = x => S.capys.filter(q => q.parent === x.id && !isAdult(q));
+const wxCount = () => WEATHER_IDS.filter(k => k !== 'clear' && S.wx[k]).length;
+const palsFree = k => (S.pals[k] || 0) - S.capys.filter(x => x.pal === k).length;
+function areaMult(a){ return Math.pow(CONFIG.AREA_MULT, tierOf(a)) * (1 + CONFIG.DECOR_BONUS * decorCount(a)); }
+function hearts(x){ let h = 0; CONFIG.FRIEND_LEVELS.forEach(v => { if(x.f >= v) h++; }); return h; }
+function nextHeartAt(x){ return CONFIG.FRIEND_LEVELS.find(v => v > x.f); }
+function globalMult(t){ return (1 + CONFIG.SNACK_UP_BONUS * S.up.snack) * (1 + CONFIG.WEATHER_BONUS * wxCount()) * (S.ad2x > (t || now()) ? 2 : 1); }
+function stackOk(x, t){ return x.stack && x.stack.length && (x.stackT || 0) > (t || now()); }
+function stackBonus(x, t){ return stackOk(x, t) ? CONFIG.STACK_BONUS[x.stack.length] * (x.t === 'fancy' ? 1.5 : 1) : 0; }
+const isCombo = x => x.pal && PALS[x.pal].likes === x.t;
+function palBonus(x){ return x.pal ? CONFIG.PAL_BONUS * (isCombo(x) ? CONFIG.PAL_COMBO : 1) : 0; }
+function poolBonus(x){ return POOLS[poolType(x)].bonus + (inFavPool(x) ? CONFIG.FAV_POOL_BONUS : 0); }
+function capyRate(x, t){
+  const K = KINDS[x.k] || KINDS.classic, h = hearts(x);
+  const mood = CONFIG.SAD_MIN + (1 - CONFIG.SAD_MIN) * moodAvg(x) / 100;
+  const friend = 1 + h * (CONFIG.FRIEND_BONUS + (x.t === 'grumpy' ? 0.03 : 0));
+  return CONFIG.BASE_RATE * CONFIG.RARITY_MULT[K.r] * areaMult(x.a) * (isAdult(x) ? 1 : CONFIG.BABY_EARN) * mood * friend *
+    (x.t === 'snacky' ? 1.2 : 1) * (1 + poolBonus(x)) * (1 + stackBonus(x, t)) * (1 + palBonus(x)) * globalMult(t);
+}
+function incomePerSec(){ return S.capys.reduce((s, x) => s + capyRate(x), 0); }
+function areaIncome(a){ return capysIn(a).reduce((s, x) => s + capyRate(x), 0); }
+const incomeFloor = () => Math.max(2, incomePerSec());
+const priceScale = () => Math.pow(3, S.open.length - 1);
+
+function addCo(n){ S.co += n; if(n > 0) S.stats.coins += n; }
+function canPay(cur, n){ return cur === 'g' ? S.g >= n : S.co >= n; }
+function pay(cur, n){
+  if(!canPay(cur, n)){ toast((cur === 'g' ? '💎 ' + tr('Not enough gems') : CN + ' ' + tr('Not enough coins')), 'err'); sfx('err'); return false; }
+  if(cur === 'g') S.g -= n; else S.co -= n;
+  return true;
+}
+const xpNeed = lv => Math.round(CONFIG.XP_BASE * Math.pow(lv, CONFIG.XP_POW));
+function titleOf(lv){ let t = TITLES[0][1]; TITLES.forEach(([l, n]) => { if(lv >= l) t = n; }); return t; }
+function addXP(n){
+  S.xp += n;
+  while(S.xp >= xpNeed(S.lv)){
+    S.xp -= xpNeed(S.lv); S.lv++;
+    const pr = Math.round(Math.max(200, incomeFloor() * 300));
+    addCo(pr); S.fruit.yuzu += 2; sfx('level');
+    const opens = AREAS.filter((a, i) => CONFIG.AREA_LEVEL[i] === S.lv && i > 0);
+    queueModal(() => showReward('⭐', tr('Level {n}!', {n: S.lv}), '+' + fmt(pr) + ' ' + CN + ' +2 🍋<br>' + L(titleOf(S.lv)) +
+      opens.map(a => '<br>🔓 ' + a.e + ' ' + L(a) + ' ' + tr('can be opened in Build!')).join('')));
+  }
+}
+
+/* ---------- making capybaras ---------- */
+function randName(){ const used = new Set(S.capys.map(x => x.n)); const free = NAMES.filter(n => !used.has(n)); return pick(free.length ? free : NAMES); }
+function assignPool(x){
+  if(x.parent){ const p = capyById(x.parent); if(p && p.a === x.a){ x.pool = p.pool; return; } }
+  const P = poolsIn(x.a); let best = 0, bestN = 99;
+  P.forEach((_, i) => { const n = S.capys.filter(q => q !== x && q.a === x.a && q.pool === i && isAdult(q)).length; if(n < bestN){ bestN = n; best = i; } });
+  // prefer a free seat in its favorite pool type
+  const fav = P.findIndex((tp, i) => tp === x.fp && S.capys.filter(q => q !== x && q.a === x.a && q.pool === i && isAdult(q)).length < CONFIG.POOL_SEATS);
+  x.pool = fav >= 0 ? fav : best;
+}
+function makeCapy(o){
+  const x = {id: S.nextId++, n: o.n || randName(), k: o.k || 'classic', t: o.t || pick(PERS_IDS), fp: o.fp || pick(POOL_IDS),
+    a: o.a || S.cur, pool: 0, grow: o.adult ? CONFIG.GROW_SEC : 0, m: {food: 80, calm: 80}, f: 0, pet: 0, stack: [], stackT: 0, pal: null, parent: o.parent || null, born: now()};
+  S.capys.push(x);
+  assignPool(x);
+  addToBook(x.k);
+  return x;
+}
+/* first time a kind is seen = goes in the book. Milestones give gems. */
+function addToBook(k){
+  if(S.book[k]) return false;
+  S.book[k] = now();
+  if(S.tut === 0) return true;   // the starting capybaras
+  const K = KINDS[k];
+  addXP(20 + K.r * 15);
+  queueModal(() => {
+    sfx('new');
+    showReward(capySVG(k, {size: 180}), '✨ ' + tr('New capybara in your book!'),
+      '<b style="color:' + RARITY[K.r].c + '">' + L(K) + ' · ' + L(RARITY[K.r]) + '</b><br><span class="muted">' + tr('It’s now in your Collection book.') + '</span>');
+  });
+  checkMiles();
+  return true;
+}
+const bookCount = () => KIND_IDS.filter(k => S.book[k]).length;
+function checkMiles(){
+  while(S.miles < BOOK_MILES.length && bookCount() >= BOOK_MILES[S.miles][0]){
+    const [n, gm] = BOOK_MILES[S.miles]; S.miles++; S.g += gm;
+    queueModal(() => showReward('📖', tr('Book milestone!'), tr('{n} kinds found!', {n}) + '<br><div class="amt">+' + gm + ' 💎</div>'));
+  }
+}
+
+/* ---------- guests at the gate ---------- */
+function rollGuestKind(kind, area){
+  const odds = kind === 'rare' ? [0, 55, 35, 10] : kind === 'daily' ? [45, 40, 12, 3] : [68, 25, 6, 1];
+  const r = weighted(odds), season = seasonNow();
+  let pool = KIND_IDS.filter(k => { const K = KINDS[k]; return K.r === r && !K.paid && (!K.home || K.home === area) && (!K.season || K.season === season); });
+  if(r === 2 && Math.random() < 0.5){ const home = KIND_IDS.filter(k => KINDS[k].home === area); if(home.length) pool = home; }
+  if(!pool.length) pool = KIND_IDS.filter(k => KINDS[k].r === 1);
+  return pick(pool);
+}
+function spawnGuest(kind){
+  const a = S.cur, k = rollGuestKind(kind, a);
+  const cost = kind === 'random' ? Math.round(Math.max(250, incomeFloor() * 150) * (1 + KINDS[k].r)) : 0;
+  S.guest = {k, t: pick(PERS_IDS), fp: pick(POOL_IDS), a, kind, cost, n: randName(), until: now() + (kind === 'random' ? CONFIG.GUEST_STAY_MIN : 30) * 60000};
+  sfx('chime'); squeak(); if(curView === 'Spa') renderSpa(); saveNow();
+  toast('👋 ' + tr('A guest is at the gate!'), 'gold');
+}
+function welcomeGuest(){
+  const v = S.guest; if(!v) return;
+  const area = hasRoom(v.a) ? v.a : S.open.find(a => hasRoom(a));
+  if(!area){ toast('♨️ ' + tr('No room! Build more pools.'), 'err'); sfx('err'); return; }
+  if(v.cost && !pay('c', v.cost)) return;
+  const x = makeCapy({k: v.k, t: v.t, fp: v.fp, a: area, adult: true, n: v.n});
+  S.guest = null; S.guestAt = now() + rnd(...CONFIG.GUEST_MIN) * 60000; S.stats.guests++;
+  addXP(10); sfx('hatch'); squeak(1.2); saveNow(); renderSpa();
+  toast('💗 ' + esc(x.n) + ' ' + tr('is staying at your spa!'), 'gold');
+  tutEvent('guest');
+}
+
+/* ---------- babies ---------- */
+function tryBaby(){
+  const parents = S.capys.filter(x => isAdult(x) && hearts(x) >= CONFIG.BABY_HEARTS && babiesOf(x).length < CONFIG.BABIES_PER_PARENT && hasRoom(x.a));
+  if(!parents.length) return null;
+  const p = pick(parents);
+  const k = Math.random() < 0.85 ? p.k : rollGuestKind('random', p.a);
+  const b = makeCapy({k, a: p.a, parent: p.id, t: pick(PERS_IDS)});
+  S.stats.babies++; addXP(15); sfx('hatch'); squeak(1.5);
+  toast('🍼 ' + tr('A baby arrived! {b} follows {p}.', {b: esc(b.n), p: esc(p.n)}), 'gold');
+  if(curView === 'Spa') renderSpa();
+  return b;
+}
+const babyTime = () => CONFIG.GROW_SEC * Math.pow(0.85, S.up.towel);
+const rushGems = x => Math.max(1, Math.ceil((babyTime() - x.grow) / 120));
+
+/* ---------- care ---------- */
+function petCapy(x, silent){
+  const t = now();
+  if(t - (x.pet || 0) < CONFIG.PET_COOLDOWN_MS) return false;
+  x.pet = t;
+  x.m.calm = Math.min(100, x.m.calm + CONFIG.PET_CALM);
+  addFriend(x, CONFIG.PET_FRIEND);
+  S.stats.pets++; addXP(1);
+  if(!silent){ sfx('pet'); squeak(); }
+  tutEvent('pet');
+  return true;
+}
+function addFriend(x, n){
+  const h0 = hearts(x);
+  x.f += n * (x.t === 'grumpy' ? 0.7 : x.t === 'social' ? 1.3 : 1);
+  if(hearts(x) > h0){ toast('💗 ' + esc(x.n) + ' ' + tr('likes you more!') + ' ' + '❤️'.repeat(hearts(x)), 'gold'); sfx('level'); }
+}
+function feedCapy(x, k){
+  if(S.snacks[k] < 1){ toast(SNACKS[k].e + ' ' + tr('You have none. Buy some in the Shop.'), 'err'); sfx('err'); return false; }
+  const F = SNACKS[k];
+  S.snacks[k]--; x.m.food = Math.min(100, x.m.food + F.food); x.m.calm = Math.min(100, x.m.calm + F.calm);
+  addFriend(x, F.fr_); S.stats.feeds++; addXP(2); sfx('eat');
+  tutEvent('feed'); saveNow();
+  return true;
+}
+function stackFruit(x, k){
+  if(S.fruit[k] < 1){ toast(FRUITS[k].e + ' ' + tr('You have none. Buy some in the Shop.'), 'err'); sfx('err'); return false; }
+  if(!stackOk(x)) x.stack = [];
+  if(x.stack.length >= CONFIG.STACK_MAX){ toast('🗼 ' + tr('The stack is as tall as it can be!'), 'err'); return false; }
+  S.fruit[k]--; x.stack.push(k); x.stackT = now() + CONFIG.STACK_HOURS * 3600000;
+  addFriend(x, 2); S.stats.stacks++; addXP(2); sfx('stack');
+  tutEvent('stack'); saveNow();
+  return true;
+}
+function placePal(x, k){
+  if(x.pal === k) return false;
+  if(k && palsFree(k) < 1){ toast(tr('That friend is busy. Invite more in the Shop.'), 'err'); return false; }
+  x.pal = k || null; if(k){ sfx('chirp'); addFriend(x, 3); }
+  saveNow();
+  return true;
+}
+
+/* ---------- costs ---------- */
+const snackPrice = k => Math.round(SNACKS[k].p * priceScale());
+const fruitPrice = k => Math.round(FRUITS[k].p * priceScale());
+const palPrice = k => Math.round(PALS[k].p * Math.pow(1.8, S.pals[k] || 0));
+const snackUpCost = () => Math.round(300 * Math.pow(1.9, S.up.snack));
+const poolCost = a => Math.round(1500 * Math.pow(3.2, poolsIn(a).length - 1) * Math.pow(CONFIG.AREA_MULT, tierOf(a)));
+const poolTypeCost = k => Math.round((POOLS[k].p || 0) * priceScale());
+const jarCost = () => Math.round(2000 * Math.pow(4, S.up.jar));
+const towelCost = () => Math.round(1200 * Math.pow(3, S.up.towel));
+const decorCost = (k, a) => Math.round(DECOR[k].p * Math.pow(CONFIG.AREA_MULT, tierOf(a)));
+const wxCost = k => WEATHER[k].p;
+const offlineCapH = () => CONFIG.OFFLINE_HOURS + CONFIG.OFFLINE_UP_HOURS * S.up.jar;
+function areaCost(i){ return CONFIG.AREA_COST[i]; }
+function canOpenArea(i){ return !S.open.includes(AREAS[i].id) && S.open.length === i && S.lv >= CONFIG.AREA_LEVEL[i]; }
+
+/* =====================================================================
+   6. ART — every capybara and every spa thing is drawn in code (SVG).
+   No image files needed. Fruits and animal friends are emoji.
+===================================================================== */
+function shade(hex, amt){ // amt -1..1 (darker..lighter)
+  let c = hex.replace('#', ''); if(c.length === 3) c = c.split('').map(x => x + x).join('');
+  let r = parseInt(c.substr(0, 2), 16), g = parseInt(c.substr(2, 2), 16), b = parseInt(c.substr(4, 2), 16);
+  const f = v => Math.round(amt < 0 ? v * (1 + amt) : v + (255 - v) * amt);
+  return '#' + [f(r), f(g), f(b)].map(v => clamp(v, 0, 255).toString(16).padStart(2, '0')).join('');
+}
+let svgUid = 0;
+/* stable pseudo-random numbers, so patterns look the same every time */
+function seeded(n){ const out = []; let s = n * 9301 + 49297; for(let i=0;i<60;i++){ s = (s * 9301 + 49297) % 233280; out.push(s / 233280); } return out; }
+const emo = (e, x, y, s) => '<text x="' + x + '" y="' + y + '" font-size="' + s + '" text-anchor="middle" dominant-baseline="central" style="font-family:\'Noto Color Emoji\',\'Apple Color Emoji\',\'Segoe UI Emoji\',sans-serif">' + e + '</text>';
+
+/* the capybara. k = kind id.
+   opt: baby, sleep, size (px), stack (fruit ids), pal (friend id), towel, halo */
+function capySVG(k, opt){
+  opt = opt || {};
+  const K = KINDS[k] || KINDS.classic, b = !!opt.baby, u = 'cp' + (++svgUid);
+  const body = K.pat === 'rainbow' ? 'url(#' + u + 'rb)' : K.body;
+  const dark = shade(K.body, -0.2), dark2 = shade(K.body, -0.32);
+  const sz = opt.size ? ' width="' + opt.size + '" height="' + Math.round(opt.size * 0.7) + '"' : '';
+  const glow = opt.halo && K.r >= 3 ? ' style="filter:drop-shadow(0 0 6px ' + (K.r === 4 ? '#c9b6ff' : '#ffd1e0') + ')"' : '';
+  // sizes: babies have a smaller body and a bigger head
+  const bx = b ? 50 : 52, by = b ? 56 : 52, brx = b ? 30 : 39, bry = b ? 19 : 24;
+  const hx = b ? 66 : 70, hy = b ? 26 : 20, hw = b ? 44 : 46, hh = b ? 36 : 36;
+  let s = '<svg viewBox="0 0 120 84"' + sz + glow + ' xmlns="http://www.w3.org/2000/svg"><defs>';
+  if(K.pat === 'rainbow') s += '<linearGradient id="' + u + 'rb" x1="0" x2="1" y1="0" y2="0.3"><stop offset="0" stop-color="#ffa0b4"/><stop offset=".25" stop-color="#ffd27a"/><stop offset=".45" stop-color="#fff28c"/><stop offset=".62" stop-color="#a6eebc"/><stop offset=".8" stop-color="#9ad3ff"/><stop offset="1" stop-color="#cba6ff"/></linearGradient>';
+  s += '<clipPath id="' + u + 'c"><ellipse cx="' + bx + '" cy="' + by + '" rx="' + brx + '" ry="' + bry + '"/><rect x="' + hx + '" y="' + hy + '" width="' + hw + '" height="' + hh + '" rx="16"/></clipPath></defs>';
+  // shadow + far legs
+  s += '<ellipse cx="' + (bx + 4) + '" cy="' + (by + bry + 3) + '" rx="' + (brx + 2) + '" ry="3.5" fill="#000" opacity=".12"/>';
+  s += '<rect x="' + (bx - brx * 0.62) + '" y="' + (by + bry * 0.4) + '" width="9" height="' + (bry * 0.75 + 4) + '" rx="4" fill="' + dark2 + '"/>';
+  s += '<rect x="' + (bx + brx * 0.5) + '" y="' + (by + bry * 0.4) + '" width="9" height="' + (bry * 0.75 + 4) + '" rx="4" fill="' + dark2 + '"/>';
+  // body
+  s += '<ellipse cx="' + bx + '" cy="' + by + '" rx="' + brx + '" ry="' + bry + '" fill="' + body + '"/>';
+  // head (a soft rounded box) + snout
+  s += '<rect x="' + hx + '" y="' + hy + '" width="' + hw + '" height="' + hh + '" rx="16" fill="' + body + '"/>';
+  // pattern (clipped to body + head)
+  s += '<g clip-path="url(#' + u + 'c)">' + patSVG(K, k, bx, by, brx, bry) + '</g>';
+  // belly + back light
+  s += '<ellipse cx="' + (bx + 2) + '" cy="' + (by + bry * 0.55) + '" rx="' + (brx * 0.72) + '" ry="' + (bry * 0.33) + '" fill="' + K.belly + '" opacity=".75"/>';
+  s += '<ellipse cx="' + (bx - 6) + '" cy="' + (by - bry * 0.62) + '" rx="' + (brx * 0.5) + '" ry="4" fill="#fff" opacity=".22"/>';
+  const sx = hx + hw - 20;
+  s += '<rect x="' + sx + '" y="' + (hy + 9) + '" width="21" height="' + (hh - 9) + '" rx="10" fill="' + K.snout + '" opacity=".55"/>';
+  // ears
+  s += '<ellipse cx="' + (hx + 9) + '" cy="' + (hy + 2) + '" rx="5.5" ry="4.5" fill="' + dark + '"/><ellipse cx="' + (hx + 9.5) + '" cy="' + (hy + 2.6) + '" rx="2.6" ry="2.1" fill="' + shade(K.snout, -0.3) + '"/>';
+  // face
+  const ex = hx + (b ? 24 : 25), ey = hy + (b ? 13 : 12), er = b ? 3.1 : 2.6;
+  if(opt.sleep){
+    s += '<path d="M' + (ex - er - 1) + ' ' + ey + ' Q' + ex + ' ' + (ey + er + 1) + ' ' + (ex + er + 1) + ' ' + ey + '" stroke="#3a2a20" stroke-width="1.7" fill="none" stroke-linecap="round"/>';
+  } else {
+    s += '<circle cx="' + ex + '" cy="' + ey + '" r="' + er + '" fill="#2e2018"/><circle cx="' + (ex + er * 0.35) + '" cy="' + (ey - er * 0.4) + '" r="' + (er * 0.38) + '" fill="#fff"/>';
+  }
+  const nx = hx + hw - 5, ny = hy + 13;
+  s += '<ellipse cx="' + nx + '" cy="' + ny + '" rx="4.6" ry="3.4" fill="#3a2a20" opacity=".85"/><ellipse cx="' + (nx - 1) + '" cy="' + (ny - 1.2) + '" rx="1.5" ry=".8" fill="#fff" opacity=".4"/>';
+  s += '<path d="M' + (nx - 5) + ' ' + (ny + 9) + ' Q' + (nx - 2) + ' ' + (ny + 12) + ' ' + (nx + 1) + ' ' + (ny + 9) + '" stroke="#3a2a20" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".7"/>';
+  s += '<ellipse cx="' + (ex + 2) + '" cy="' + (ey + 9) + '" rx="4" ry="2.2" fill="#ff7f8f" opacity=".35"/>';
+  // near legs
+  s += '<rect x="' + (bx - brx * 0.38) + '" y="' + (by + bry * 0.45) + '" width="10" height="' + (bry * 0.7 + 4) + '" rx="4.5" fill="' + dark + '"/>';
+  s += '<rect x="' + (bx + brx * 0.72) + '" y="' + (by + bry * 0.45) + '" width="10" height="' + (bry * 0.7 + 4) + '" rx="4.5" fill="' + dark + '"/>';
+  // accessories
+  let top = hy;   // where the head top is (stack sits above)
+  const acc = K.acc, hcx = hx + 18;
+  if(acc === 'leaf'){ s += '<path d="M' + hcx + ' ' + (hy + 1) + ' C' + (hcx - 4) + ' ' + (hy - 10) + ' ' + (hcx + 8) + ' ' + (hy - 14) + ' ' + (hcx + 12) + ' ' + (hy - 8) + ' C' + (hcx + 8) + ' ' + (hy - 3) + ' ' + (hcx + 4) + ' ' + hy + ' ' + hcx + ' ' + (hy + 1) + 'Z" fill="#5bbf6a"/><path d="M' + hcx + ' ' + hy + ' L' + (hcx + 10) + ' ' + (hy - 8) + '" stroke="#3f9a4f" stroke-width="1"/>'; top -= 6; }
+  if(acc === 'flowers'){ [[hcx - 7, hy + 1], [hcx + 2, hy - 2], [hcx + 11, hy + 1]].forEach(([fx, fy]) => { for(let i=0;i<5;i++){ const a = i * 1.2566; s += '<circle cx="' + (fx + Math.cos(a) * 2.6).toFixed(1) + '" cy="' + (fy + Math.sin(a) * 2.6).toFixed(1) + '" r="2.2" fill="#ffb3cf"/>'; } s += '<circle cx="' + fx + '" cy="' + fy + '" r="1.4" fill="#ffe27a"/>'; }); top -= 4; }
+  if(acc === 'shades'){ s += '<rect x="' + (ex - 6) + '" y="' + (ey - 4) + '" width="12" height="7" rx="3" fill="#2a2a3a"/><rect x="' + (ex + 6) + '" y="' + (ey - 2) + '" width="9" height="2" fill="#2a2a3a"/><rect x="' + (ex - 4) + '" y="' + (ey - 3) + '" width="3" height="2" rx="1" fill="#fff" opacity=".5"/>'; }
+  if(acc === 'pumpkin'){ s += '<ellipse cx="' + (hcx + 2) + '" cy="' + (hy - 4) + '" rx="10" ry="7" fill="#ff9a2e"/><path d="M' + (hcx + 2) + ' ' + (hy - 11) + ' v-4" stroke="#5a7a2a" stroke-width="2.4" stroke-linecap="round"/><path d="M' + (hcx - 3) + ' ' + (hy - 9) + ' q-2 5 0 10 M' + (hcx + 7) + ' ' + (hy - 9) + ' q2 5 0 10" stroke="#e07a12" stroke-width="1.2" fill="none"/>'; top -= 12; }
+  if(acc === 'scarf'){ s += '<path d="M' + (hx - 2) + ' ' + (hy + 18) + ' Q' + (hx + 6) + ' ' + (hy + 30) + ' ' + (hx + 14) + ' ' + (hy + hh - 2) + ' L' + (hx + 6) + ' ' + (hy + hh + 2) + ' Q' + (hx - 4) + ' ' + (hy + 30) + ' ' + (hx - 8) + ' ' + (hy + 20) + 'Z" fill="#e8505b"/><rect x="' + (hx + 2) + '" y="' + (hy + hh - 4) + '" width="7" height="14" rx="2" fill="#e8505b" transform="rotate(-15 ' + (hx + 5) + ' ' + (hy + hh) + ')"/><path d="M' + (hx - 4) + ' ' + (hy + 22) + ' L' + (hx + 10) + ' ' + (hy + hh - 4) + '" stroke="#fff" stroke-width="1.6" stroke-dasharray="2 3" opacity=".7"/>'; }
+  if(opt.towel){ s += '<rect x="' + (hcx - 9) + '" y="' + (hy - 7) + '" width="22" height="9" rx="3.5" fill="#fff"/><rect x="' + (hcx - 9) + '" y="' + (hy - 4) + '" width="22" height="2" fill="#7fd3c9"/>'; top -= 7; }
+  // animal friend on its back
+  if(opt.pal && PALS[opt.pal]) s += emo(PALS[opt.pal].e, bx - 6, by - bry - 7, b ? 17 : 22);
+  // fruit stack on its head (taller = bigger bonus!)
+  if(opt.stack && opt.stack.length){
+    opt.stack.forEach((f, i) => { s += emo(FRUITS[f] ? FRUITS[f].e : '🍊', hcx + (i % 2 ? 1.6 : -1.2), top - 6 - i * 12.5, 15); });
+  }
+  return s + '</svg>';
+}
+/* fur patterns */
+function patSVG(K, k, bx, by, brx, bry){
+  const R = seeded(k.length * 7 + k.charCodeAt(0)), pc = K.pc || '#fff';
+  let s = '';
+  if(K.pat === 'fluffy'){ for(let i=0;i<14;i++){ const a = Math.PI * (1.05 + i * 0.07); s += '<circle cx="' + (bx + Math.cos(a) * brx * 0.98).toFixed(1) + '" cy="' + (by + Math.sin(a) * bry * 0.98).toFixed(1) + '" r="4.2" fill="' + shade(K.body, 0.25) + '"/>'; } for(let i=0;i<10;i++) s += '<circle cx="' + (bx - brx * 0.6 + R[i] * brx * 1.3).toFixed(1) + '" cy="' + (by - bry * 0.3 + R[i + 12] * bry * 0.8).toFixed(1) + '" r="3" fill="' + shade(K.body, 0.18) + '" opacity=".7"/>'; }
+  if(K.pat === 'spots'){ for(let i=0;i<9;i++) s += '<ellipse cx="' + (bx - brx * 0.7 + R[i] * brx * 1.5).toFixed(1) + '" cy="' + (by - bry * 0.6 + R[i + 20] * bry * 1.1).toFixed(1) + '" rx="' + (3 + R[i + 40] * 3).toFixed(1) + '" ry="' + (2.4 + R[i + 30] * 2).toFixed(1) + '" fill="' + pc + '" opacity=".8"/>'; }
+  if(K.pat === 'shine'){ s += '<ellipse cx="' + (bx - 8) + '" cy="' + (by - bry * 0.4) + '" rx="' + (brx * 0.55) + '" ry="' + (bry * 0.35) + '" fill="#fff6c8" opacity=".55"/>'; for(let i=0;i<5;i++){ const x = bx - brx * 0.6 + R[i] * brx * 1.6, y = by - bry * 0.5 + R[i + 9] * bry; s += '<path d="M' + x.toFixed(1) + ' ' + (y - 3.5).toFixed(1) + ' l1 2.5 2.5 1 -2.5 1 -1 2.5 -1 -2.5 -2.5 -1 2.5 -1z" fill="#fff"/>'; } }
+  if(K.pat === 'sparkle'){ for(let i=0;i<8;i++){ const x = bx - brx * 0.7 + R[i] * brx * 1.7, y = by - bry * 0.6 + R[i + 9] * bry * 1.2; s += '<path d="M' + x.toFixed(1) + ' ' + (y - 3).toFixed(1) + ' l.8 2.2 2.2 .8 -2.2 .8 -.8 2.2 -.8 -2.2 -2.2 -.8 2.2 -.8z" fill="#9fd0ff"/>'; } }
+  if(K.pat === 'petals'){ for(let j=0;j<5;j++){ const x = bx - brx * 0.6 + R[j] * brx * 1.4, y = by - bry * 0.5 + R[j + 7] * bry; for(let i=0;i<5;i++){ const a = i * 1.2566 + j; s += '<circle cx="' + (x + Math.cos(a) * 2.2).toFixed(1) + '" cy="' + (y + Math.sin(a) * 2.2).toFixed(1) + '" r="1.8" fill="' + pc + '"/>'; } s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="1" fill="#ffe27a"/>'; } }
+  if(K.pat === 'stars'){ for(let i=0;i<10;i++){ const x = bx - brx * 0.7 + R[i] * brx * 1.7, y = by - bry * 0.6 + R[i + 12] * bry * 1.2, r = 1.2 + R[i + 24] * 1.1;
+    s += '<path d="M' + x.toFixed(1) + ' ' + (y - r * 1.8).toFixed(1) + ' L' + (x + r * 0.5).toFixed(1) + ' ' + (y - r * 0.5).toFixed(1) + ' L' + (x + r * 1.8).toFixed(1) + ' ' + y.toFixed(1) + ' L' + (x + r * 0.5).toFixed(1) + ' ' + (y + r * 0.5).toFixed(1) + ' L' + x.toFixed(1) + ' ' + (y + r * 1.8).toFixed(1) + ' L' + (x - r * 0.5).toFixed(1) + ' ' + (y + r * 0.5).toFixed(1) + ' L' + (x - r * 1.8).toFixed(1) + ' ' + y.toFixed(1) + ' L' + (x - r * 0.5).toFixed(1) + ' ' + (y - r * 0.5).toFixed(1) + 'Z" fill="#fff" opacity=".9"/>'; } }
+  return s;
+}
+
+/* ---------- pools: a back part (rim + water) and a front part (water that hides the capybaras' legs) ---------- */
+function rimStones(half, seed){
+  const R = seeded(seed), cols = ['#b7aea6', '#a39a92', '#c6beb6', '#9a918a'];
+  let s = '';
+  for(let i=0;i<26;i++){
+    const a = i / 26 * Math.PI * 2, x = 100 + Math.cos(a) * 94, y = 46 + Math.sin(a) * 39;
+    if(half === 'back' && Math.sin(a) > 0.05) continue;
+    if(half === 'front' && Math.sin(a) <= 0.05) continue;
+    s += '<ellipse cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" rx="' + (11 + R[i] * 5).toFixed(1) + '" ry="' + (7 + R[i + 26] * 3).toFixed(1) + '" fill="' + cols[i % 4] + '"/>';
+  }
+  return s;
+}
+function poolBackSVG(tp, seed){
+  const P = POOLS[tp], u = 'pb' + (++svgUid);
+  return '<svg viewBox="0 0 200 92"><defs><linearGradient id="' + u + '" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="' + P.deep + '"/><stop offset="1" stop-color="' + P.water + '"/></linearGradient></defs>' +
+    '<ellipse cx="100" cy="50" rx="96" ry="40" fill="#0002"/>' + rimStones('back', seed) +
+    '<ellipse cx="100" cy="46" rx="88" ry="34" fill="url(#' + u + ')"/>' +
+    '<ellipse cx="100" cy="40" rx="70" ry="20" fill="#fff" opacity=".12"/></svg>';
+}
+function poolFrontSVG(tp, seed){
+  const P = POOLS[tp], R = seeded(seed + 3);
+  let s = '<svg viewBox="0 0 200 92"><path d="M12 46 A88 34 0 0 0 188 46 Z" fill="' + P.water + '" opacity=".93"/>';
+  s += '<path d="M14 46 Q57 42 100 46 T186 46" stroke="#fff" stroke-width="2.5" fill="none" opacity=".75"/>';
+  s += '<path d="M40 60 q12 -4 24 0 M118 66 q12 -4 24 0 M78 74 q10 -3 20 0" stroke="#fff" stroke-width="2" fill="none" opacity=".45" stroke-linecap="round"/>';
+  // floating things
+  for(let i=0;i<5;i++){
+    const x = 34 + R[i] * 132, y = 52 + R[i + 10] * 16;
+    if(tp === 'yuzu') s += '<circle cx="' + x.toFixed(0) + '" cy="' + y.toFixed(0) + '" r="6" fill="#ffd23a"/><circle cx="' + (x - 2).toFixed(0) + '" cy="' + (y - 2).toFixed(0) + '" r="2" fill="#fff6b0"/>';
+    if(tp === 'petal') s += '<ellipse cx="' + x.toFixed(0) + '" cy="' + y.toFixed(0) + '" rx="5" ry="3" fill="#ff8fb7" transform="rotate(' + (R[i + 20] * 180).toFixed(0) + ' ' + x.toFixed(0) + ' ' + y.toFixed(0) + ')"/>';
+    if(tp === 'mud') s += '<circle cx="' + x.toFixed(0) + '" cy="' + y.toFixed(0) + '" r="3" fill="none" stroke="#6f4a2e" stroke-width="1.5"/>';
+    if(tp === 'cold' && i < 3) s += '<rect x="' + (x - 5).toFixed(0) + '" y="' + (y - 5).toFixed(0) + '" width="10" height="9" rx="2" fill="#fff" opacity=".85" transform="rotate(' + (R[i + 20] * 40).toFixed(0) + ' ' + x.toFixed(0) + ' ' + y.toFixed(0) + ')"/>';
+    if(tp === 'milk' && i < 3) s += '<ellipse cx="' + x.toFixed(0) + '" cy="' + y.toFixed(0) + '" rx="7" ry="2.5" fill="#fff" opacity=".9"/>';
+  }
+  return s + rimStones('front', seed) + '</svg>';
+}
+
+/* ---------- spa props (decor + the gate) ---------- */
+function propSVG(k, A){
+  switch(k){
+    case 'gate':
+      return {w:70, h:84, svg:'<svg viewBox="0 0 70 84"><rect x="6" y="14" width="8" height="70" rx="2" fill="#9a6a3e"/><rect x="56" y="14" width="8" height="70" rx="2" fill="#9a6a3e"/>' +
+        '<path d="M0 16 Q35 2 70 16 L70 22 Q35 9 0 22Z" fill="#7b4f2a"/><rect x="18" y="24" width="34" height="14" rx="3" fill="#fff4e2" stroke="#9a6a3e" stroke-width="2"/>' +
+        '<text x="35" y="34" font-size="9" text-anchor="middle" font-weight="900" fill="#c0563a">♨</text><path d="M14 50 H56 M14 62 H56" stroke="#b9844f" stroke-width="3"/></svg>'};
+    case 'bucket':
+      return {w:58, h:44, svg:'<svg viewBox="0 0 58 44"><rect x="30" y="8" width="26" height="34" rx="4" fill="#f6f1e6"/><rect x="30" y="16" width="26" height="3" fill="#7fd3c9"/><rect x="30" y="27" width="26" height="3" fill="#ffb3c6"/><path d="M30 18 h26 M30 29 h26" stroke="#e6ddd0" stroke-width="1"/>' +
+        '<path d="M3 20 L7 42 H25 L29 20Z" fill="#d9a46a"/><path d="M3 20 H29" stroke="#a8743f" stroke-width="2.5"/><path d="M5 28 H27 M6 36 H26" stroke="#a8743f" stroke-width="2"/><ellipse cx="16" cy="20" rx="12" ry="3" fill="#8fe0d6"/></svg>'};
+    case 'lantern':
+      return {w:34, h:74, svg:'<svg viewBox="0 0 34 74"><rect x="15" y="30" width="4" height="44" fill="#6b4a30"/><rect x="5" y="4" width="24" height="4" rx="2" fill="#3a2a20"/>' +
+        '<ellipse cx="17" cy="18" rx="13" ry="12" fill="#ff6a4d"/><path d="M6 14 H28 M5 19 H29 M6 24 H28" stroke="#d94a33" stroke-width="1.2"/><rect x="11" y="28" width="12" height="4" rx="2" fill="#3a2a20"/>' +
+        '<ellipse cx="13" cy="14" rx="3" ry="4" fill="#fff" opacity=".35"/></svg>', lamp:true};
+    case 'bamboo':
+      return {w:70, h:140, svg:'<svg viewBox="0 0 70 140">' + [[14, 0, '#6fbf5a'], [32, 16, '#5aaa48'], [50, 6, '#7fcf68']].map(([x, y, c]) =>
+        '<rect x="' + (x - 4) + '" y="' + y + '" width="8" height="' + (140 - y) + '" rx="3" fill="' + c + '"/>' + [30, 60, 90, 118].filter(q => q > y + 8).map(q => '<rect x="' + (x - 5) + '" y="' + q + '" width="10" height="3" rx="1.5" fill="' + shade(c, -0.25) + '"/>').join('') +
+        '<path d="M' + x + ' ' + (y + 20) + ' q12 -6 20 -2 q-10 4 -20 2Z" fill="' + shade(c, 0.1) + '"/>').join('') + '</svg>'};
+    case 'rocks':
+      return {w:62, h:58, svg:'<svg viewBox="0 0 62 58"><ellipse cx="31" cy="50" rx="28" ry="8" fill="#9c948c"/><ellipse cx="31" cy="38" rx="21" ry="8" fill="#b4aca4"/><ellipse cx="31" cy="27" rx="15" ry="6.5" fill="#a39b93"/><ellipse cx="31" cy="17" rx="10" ry="5" fill="#bfb8b0"/><ellipse cx="27" cy="15" rx="4" ry="1.6" fill="#fff" opacity=".4"/></svg>'};
+    case 'cherry':
+      return {w:130, h:130, svg:'<svg viewBox="0 0 130 130"><path d="M62 130 C60 100 58 86 46 70 M62 100 C70 86 84 80 92 66" stroke="#7a4a32" stroke-width="9" fill="none" stroke-linecap="round"/>' +
+        [[40, 52, 30], [78, 46, 32], [60, 30, 30], [98, 62, 22], [24, 70, 20]].map(([x, y, r]) => '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#ffc3d6"/>').join('') +
+        [[30, 40], [70, 26], [90, 52], [50, 58], [100, 40], [20, 64]].map(([x, y]) => '<circle cx="' + x + '" cy="' + y + '" r="5" fill="#ff9dbd"/>').join('') + '</svg>'};
+    case 'waterfall':
+      return {w:120, h:96, svg:'<svg viewBox="0 0 120 96"><path d="M4 96 C0 60 10 20 34 10 C50 2 76 4 90 12 C110 24 120 60 116 96Z" fill="#a89e95"/><path d="M14 40 C24 26 40 20 56 22" stroke="#c9c1b9" stroke-width="4" fill="none" stroke-linecap="round"/>' +
+        '<path d="M48 14 C46 40 44 70 40 96 L78 96 C74 70 72 40 70 14Z" fill="#9fe2f0"/><path d="M54 20 V92 M62 18 V94" stroke="#fff" stroke-width="2.5" opacity=".7" stroke-dasharray="10 6"><animate attributeName="stroke-dashoffset" from="32" to="0" dur="0.8s" repeatCount="indefinite"/></path>' +
+        '<ellipse cx="59" cy="94" rx="26" ry="5" fill="#fff" opacity=".8"/><path d="M22 30 q10 -10 20 -4 q-10 2 -20 4Z M84 24 q12 -6 18 2 q-10 0 -18 -2Z" fill="#7fc66a"/></svg>'};
+    case 'torii':
+      return {w:110, h:100, svg:'<svg viewBox="0 0 110 100"><rect x="20" y="22" width="9" height="78" fill="#e0443a"/><rect x="81" y="22" width="9" height="78" fill="#e0443a"/>' +
+        '<path d="M0 8 Q55 18 110 8 L106 18 Q55 26 4 18Z" fill="#2e2a2a"/><rect x="6" y="16" width="98" height="8" fill="#e0443a"/><rect x="12" y="34" width="86" height="7" fill="#e0443a"/><rect x="50" y="24" width="10" height="10" fill="#e0443a"/>' +
+        '<rect x="17" y="92" width="15" height="8" fill="#2e2a2a"/><rect x="78" y="92" width="15" height="8" fill="#2e2a2a"/></svg>'};
+    case 'umbrella':
+      return {w:80, h:96, svg:'<svg viewBox="0 0 80 96"><path d="M40 30 V96" stroke="#7a4a32" stroke-width="3"/><path d="M2 34 Q40 -12 78 34 Q60 28 40 34 Q20 28 2 34Z" fill="#ff8a5a"/>' +
+        '<path d="M40 6 L14 31 M40 6 L28 32 M40 6 L52 32 M40 6 L66 31" stroke="#ffd2b8" stroke-width="1.6"/><circle cx="40" cy="6" r="3" fill="#7a4a32"/></svg>'};
+  }
+  return {w:10, h:10, svg:''};
+}
+
+/* =====================================================================
+   7. SOUND — water, little capybara squeaks and soft music
+   (WebAudio, made in code, no sound files)
+===================================================================== */
+let AC = null, musGain = null, sfxGain = null, musTimer = null, musArea = null, musStep = 0, waterNode = null, waterGain = null;
+function audio(){
+  if(AC) return AC;
+  try{
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    sfxGain = AC.createGain(); sfxGain.gain.value = 0.5; sfxGain.connect(AC.destination);
+    const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600; lp.connect(AC.destination);
+    musGain = AC.createGain(); musGain.gain.value = 0.15; musGain.connect(lp);
+  }catch(e){ AC = null; }
+  return AC;
+}
+function tone(f, dur, type, vol, when, dest, slide){
+  const A = audio(); if(!A) return;
+  const t = (when || A.currentTime);
+  const o = A.createOscillator(), g = A.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(f, t);
+  if(slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.3, t + 0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(dest || sfxGain); o.start(t); o.stop(t + dur + 0.05);
+}
+function bloop(p){ if(!S || !S.snd || !audio()) return; const t = AC.currentTime, f = rnd(260, 420) * (p || 1); tone(f, 0.1, 'sine', 0.2, t, null, f * 2.2); }
+/* the little capybara "eep!" */
+function squeak(p){
+  if(!S || !S.snd || !audio()) return;
+  const t = AC.currentTime, f = rnd(1050, 1300) * (p || 1);
+  tone(f, 0.07, 'triangle', 0.13, t, null, f * 1.25); tone(f * 1.08, 0.08, 'triangle', 0.11, t + 0.1, null, f * 1.4);
+}
+function sfx(k){
+  if(!S || !S.snd || !audio()) return;
+  const t = AC.currentTime;
+  switch(k){
+    case 'tap': tone(700, 0.05, 'triangle', 0.12); break;
+    case 'pet': tone(880, 0.09, 'sine', 0.2, t, null, 1320); tone(1180, 0.1, 'sine', 0.16, t + 0.1, null, 1560); break;
+    case 'eat': [0, 0.11, 0.22].forEach(d => tone(300, 0.06, 'triangle', 0.18, t + d, null, 210)); break;
+    case 'stack': tone(520, 0.08, 'triangle', 0.2, t, null, 780); tone(780, 0.1, 'triangle', 0.16, t + 0.08); break;
+    case 'chirp': [0, 0.08, 0.16].forEach(d => tone(2200, 0.05, 'sine', 0.12, t + d, null, 2900)); break;
+    case 'splash': bloop(0.8); setTimeout(() => bloop(1.2), 90); break;
+    case 'coin': tone(1400, 0.07, 'sine', 0.18); tone(2100, 0.12, 'sine', 0.14, t + 0.06); break;
+    case 'err': tone(240, 0.14, 'triangle', 0.15); tone(190, 0.18, 'triangle', 0.15, t + 0.1); break;
+    case 'level': [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.2, 'triangle', 0.22, t + i * 0.09)); break;
+    case 'hatch': [784, 988, 1175, 1568].forEach((f, i) => tone(f, 0.16, 'sine', 0.2, t + i * 0.07)); break;
+    case 'new': [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.3, 'triangle', 0.18, t + i * 0.1)); break;
+    case 'chime': tone(1319, 0.4, 'sine', 0.14); tone(1760, 0.5, 'sine', 0.1, t + 0.12); break;
+    case 'win': [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.22, 'triangle', 0.15, t + i * 0.1)); break;
+    case 'whoosh': tone(200, 0.35, 'sine', 0.15, t, null, 700); break;
+  }
+}
+/* soft running water in the background (part of "Sounds") */
+function waterStart(){
+  if(!S || !S.snd || !audio() || waterNode) return;
+  try{
+    const len = AC.sampleRate * 2, buf = AC.createBuffer(1, len, AC.sampleRate), d = buf.getChannelData(0);
+    let last = 0; for(let i=0;i<len;i++){ last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.2; }
+    waterNode = AC.createBufferSource(); waterNode.buffer = buf; waterNode.loop = true;
+    const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700;
+    waterGain = AC.createGain(); waterGain.gain.value = 0.18;
+    waterNode.connect(lp); lp.connect(waterGain); waterGain.connect(AC.destination); waterNode.start();
+  }catch(e){ waterNode = null; }
+}
+function waterStop(){ if(waterNode){ try{ waterNode.stop(); }catch(e){} waterNode = null; } }
+/* soft generative music: each area has its own scale and speed */
+function musicStart(){
+  if(!S || !S.mus || !audio()){ musicStop(); return; }
+  if(musTimer && musArea === S.cur) return;
+  musicStop();
+  musArea = S.cur;
+  const A = AREA(S.cur) || AREAS[0];
+  const [scale, bpm, wave] = A.music;
+  const step = 60 / bpm / 2;
+  const root = 294 * Math.pow(2, (AREAS.indexOf(A) * -2) / 12);
+  const prog = [0, 3, 4, 2];
+  musStep = 0;
+  musTimer = setInterval(() => {
+    if(!AC || AC.state !== 'running') return;
+    const t = AC.currentTime + 0.05;
+    const bar = Math.floor(musStep / 8) % 4, beat = musStep % 8, chord = prog[bar];
+    if(beat === 0) [0, 2, 4].forEach(o => tone(root / 2 * Math.pow(2, scale[(chord + o) % scale.length] / 12), step * 7.5, 'sine', 0.2, t, musGain));
+    if(Math.random() < 0.5){
+      const deg = chord + [0, 2, 4, 2, 1, 3, 4, 2][beat];
+      const f = root * Math.pow(2, (scale[deg % scale.length] + 12 * Math.floor(deg / scale.length)) / 12);
+      tone(f, step * 1.6, wave, 0.28, t, musGain);          // a soft pluck, like a koto
+      tone(f * 2, step * 0.6, 'sine', 0.06, t, musGain);
+    }
+    musStep++;
+  }, step * 1000);
+}
+function musicStop(){ if(musTimer) clearInterval(musTimer); musTimer = null; musArea = null; }
+function audioUnlock(){ const A = audio(); if(A && A.state === 'suspended') A.resume(); musicStart(); if(S && S.snd) waterStart(); }
+
+/* =====================================================================
+   8. SPA VIEW — the main screen. Capybaras walk, soak and nap.
+   Positions are in % of the screen (x 0-100 left→right, y 0-100 top→bottom).
+===================================================================== */
+const DECK = {x0:12, x1:88, lanes:[35, 59, 84]};   // where capybaras walk (between the pools)
+const GATE = [9, 36];
+let actors = {};          // capybara id -> actor
+let sel = null;           // selected capybara id
+const sceneEl = () => $('scene');
+function geo(){
+  const r = sceneEl().getBoundingClientRect(), W = r.width || 360, H = r.height || 600;
+  const pw = clamp(W * 0.47, 140, 320);
+  return {W, H, pw, ph: pw * 0.46, cw: pw * 0.54, bw: pw * 0.34};
+}
+function seatPos(a, pi, si, baby){
+  const g = geo(), [px, py] = POOL_POS[pi], off = (si - 1) * 0.29 * g.pw + (baby ? -0.15 * g.pw : 0);
+  return {x: px + off / g.W * 100, y: py + (baby ? 1.2 : 0)};
+}
+/* z order: things lower on the screen are in front */
+const zOf = y => 10 + Math.round(y * 2);
+
+/* ---------- weather ---------- */
+function currentWeather(){
+  const A = AREA(S.cur);
+  if(A.weather.length === 1) return A.weather[0];
+  if(S.weather && S.wx[S.weather] && A.weather.includes(S.weather)) return S.weather;
+  const auto = {spring: 'petals', summer: 'clear', autumn: 'leaves', winter: 'snow'}[seasonNow()];
+  return A.weather.includes(auto) ? auto : 'clear';
+}
+let wxKey = '';
+function renderWx(){
+  const w = currentWeather(), k = S.cur + w;
+  if(k === wxKey) return; wxKey = k;
+  let h = '';
+  if(w === 'snow') for(let i=0;i<26;i++) h += '<div class="flake" style="left:' + rnd(0, 100) + '%;width:' + rnd(4, 8) + 'px;height:' + rnd(4, 8) + 'px;border-radius:50%;background:#fff;opacity:' + rnd(.6, 1).toFixed(2) + ';--dx:' + rnd(-30, 30) + 'px;animation-duration:' + rnd(7, 14) + 's;animation-delay:-' + rnd(0, 14) + 's"></div>';
+  if(w === 'petals' || w === 'leaves') for(let i=0;i<12;i++) h += '<div class="flake" style="left:' + rnd(0, 95) + '%;font-size:' + rnd(12, 18) + 'px;--dx:' + rnd(20, 70) + 'px;--rot:' + rnd(180, 540) + 'deg;animation-duration:' + rnd(9, 16) + 's;animation-delay:-' + rnd(0, 14) + 's">' + (w === 'petals' ? '🌸' : pick(['🍂', '🍁'])) + '</div>';
+  if(w === 'rain') for(let i=0;i<40;i++) h += '<div class="drop" style="left:' + rnd(0, 110) + '%;animation-duration:' + rnd(0.7, 1.1).toFixed(2) + 's;animation-delay:-' + rnd(0, 1).toFixed(2) + 's"></div>';
+  $('wx').innerHTML = h;
+}
+
+/* ---------- background + props ---------- */
+let bgKey = '';
+function renderBg(){
+  const A = AREA(S.cur), g = geo(), moon = S.theme === 'moon' && !A.indoor;
+  const key = [S.cur, JSON.stringify(S.ar[S.cur].decor), S.theme, Math.round(g.W), Math.round(g.H)].join('|');
+  if(key === bgKey) return; bgKey = key;
+  const sky = moon ? ['#2c3270', '#6a5a9a'] : A.sky;
+  let s = '<defs><linearGradient id="skyg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="' + sky[0] + '"/><stop offset="1" stop-color="' + sky[1] + '"/></linearGradient></defs>';
+  s += '<rect width="100" height="100" fill="url(#skyg)"/><g transform="scale(1,0.72)">';
+  if(A.indoor){
+    for(let x=0;x<=100;x+=7) s += '<rect x="' + x + '" y="0" width="6.4" height="44" fill="' + shade(A.hill, (x / 7) % 2 ? 0.08 : 0.14) + '"/>';
+    s += '<rect x="0" y="30" width="100" height="5" fill="' + shade(A.hill, -0.2) + '"/><rect x="0" y="36" width="100" height="3" fill="' + shade(A.hill, -0.1) + '"/>';
+  } else {
+    if(moon) for(let i=0;i<20;i++) s += '<circle cx="' + rnd(2, 98).toFixed(1) + '" cy="' + rnd(2, 30).toFixed(1) + '" r=".35" fill="#fff" opacity="' + rnd(.4, 1).toFixed(2) + '"/>';
+    const hill = moon ? '#4a4a86' : A.hill;
+    s += '<path d="M0 30 L14 18 L26 27 L42 12 L58 26 L72 16 L86 25 L100 17 V44 H0Z" fill="' + shade(hill, 0.25) + '" opacity=".75"/>';
+    if(S.cur === 'snow') s += '<path d="M42 12 L37 17 L40 16 L42 18 L45 16 L47 17Z M72 16 L68 20 L71 19 L73 21 L75 19Z" fill="#fff"/>';
+    s += '<path d="M0 36 Q20 28 40 34 T80 32 T100 33 V44 H0Z" fill="' + hill + '"/>';
+    if(S.cur === 'jungle') s += '<path d="M0 44 C2 30 8 22 0 10Z M100 44 C98 30 92 22 100 12Z" fill="#3f8a4a"/>';
+    if(S.cur === 'onsen' || S.cur === 'sakura'){   // a little wooden fence
+      for(let x=1;x<100;x+=4) s += '<rect x="' + x + '" y="35" width="2.6" height="8" rx=".6" fill="' + (moon ? '#6a5a7a' : '#b98250') + '"/>';
+      s += '<rect x="0" y="37" width="100" height="1.3" fill="' + (moon ? '#5a4a6a' : '#9a6a3e') + '"/>';
+    }
+  }
+  s += '</g>';
+  // the deck (wood planks / snow / stone)
+  s += '<rect x="0" y="31" width="100" height="69" fill="' + A.floor + '"/>';
+  for(let y=36;y<100;y+=6) s += '<rect x="0" y="' + y + '" width="100" height=".5" fill="' + A.floor2 + '" opacity=".7"/>';
+  s += '<rect x="0" y="31" width="100" height="1.2" fill="' + A.floor2 + '"/>';
+  $('sceneBg').innerHTML = s;
+  // props: gate + decor, back to front
+  const items = [{k: 'gate', x: GATE[0], y: GATE[1]}, {k: 'bucket', x: 50, y: 59}];
+  DECOR_IDS.forEach(k => { if(S.ar[S.cur].decor[k]) DECOR_POS[k].forEach(([x, y]) => items.push({k, x, y})); });
+  items.sort((a, b) => a.y - b.y);
+  const sc = clamp(g.pw / 160, 0.75, 1.7);
+  let h = items.map(it => { const P = propSVG(it.k, A); return '<div class="prop" style="left:' + it.x + '%;top:' + it.y + '%;width:' + (P.w * sc) + 'px;height:' + (P.h * sc) + 'px;z-index:' + zOf(it.y) + '">' + P.svg + '</div>'; }).join('');
+  if(moon) h += '<div class="prop" style="left:82%;top:16%;width:' + (46 * sc) + 'px;height:' + (46 * sc) + 'px;border-radius:50%;background:radial-gradient(circle at 40% 40%,#fffbe6,#ffe9a8);box-shadow:0 0 30px #fff6c0"></div>';
+  $('props').innerHTML = h;
+  // warm lantern light at night
+  let lh = '';
+  if(S.ar[S.cur].decor.lantern) DECOR_POS.lantern.forEach(([x, y]) => lh += '<div class="halo" style="left:' + x + '%;top:' + (y - 7) + '%;width:' + (170 * sc) + 'px;height:' + (170 * sc) + 'px"></div>');
+  $('lampL').innerHTML = lh;
+  wxKey = '';
+}
+function darkness(){
+  let d = isNight() ? 0.42 : 0;
+  if(S.theme === 'moon' && !AREA(S.cur).indoor) d = Math.max(d, 0.18);
+  if(AREA(S.cur).indoor) d *= 0.5;
+  return d;
+}
+function applyDark(){
+  const d = darkness();
+  $('dark').style.opacity = d;
+  $('lampL').style.opacity = d > 0.1 ? 1 : 0;
+}
+
+/* ---------- pools ---------- */
+let poolKey = '';
+function renderPools(){
+  const g = geo(), P = poolsIn(S.cur);
+  const key = S.cur + '|' + P.join(',') + '|' + Math.round(g.W) + 'x' + Math.round(g.H);
+  if(key === poolKey) return; poolKey = key;
+  let h = '';
+  POOL_POS.forEach(([x, y], i) => {
+    const tp = P[i], st = 'left:' + x + '%;top:' + y + '%;width:' + g.pw + 'px;height:' + g.ph + 'px;';
+    if(tp){
+      h += '<div class="pool" data-pool="' + i + '" style="' + st + 'z-index:' + (zOf(y) - 1) + '">' + poolBackSVG(tp, i * 7 + 3) + '</div>';
+      h += '<div class="pool poolF" style="' + st + 'z-index:' + (zOf(y) + 1) + '">' + poolFrontSVG(tp, i * 7 + 3) + '</div>';
+    } else if(i === P.length){
+      h += '<div class="pool empty" id="poolAdd" style="' + st + 'z-index:' + zOf(y) + '"><div class="center">＋<small>' + tr('New pool') + '</small></div></div>';
+    }
+  });
+  $('pools').innerHTML = h;
+  $('pools').querySelectorAll('[data-pool]').forEach(b => b.onclick = () => openPool(+b.dataset.pool));
+  if($('poolAdd')) $('poolAdd').onclick = () => { buildTab = 'pools'; showView('Build'); };
+}
+function steamPuffs(){
+  if(isNight() && Math.random() < 0.3) return;
+  const g = geo();
+  poolsIn(S.cur).forEach((tp, i) => {
+    if(tp === 'cold' || Math.random() < 0.35) return;
+    const [x, y] = POOL_POS[i], e = document.createElement('div');
+    e.className = 'steam'; e.style.left = (x + rnd(-0.17, 0.17) * g.pw / g.W * 100) + '%'; e.style.top = (y - 2) + '%';
+    e.style.setProperty('--dx', rnd(-25, 25) + 'px'); e.style.width = e.style.height = rnd(20, 34) * g.pw / 160 + 'px';
+    $('fxL').appendChild(e); setTimeout(() => e.remove(), 4100);
+  });
+  if(AREA(S.cur).indoor) for(let i=0;i<2;i++){ const e = document.createElement('div'); e.className = 'steam'; e.style.left = rnd(5, 95) + '%'; e.style.top = rnd(50, 95) + '%'; e.style.setProperty('--dx', rnd(-30, 30) + 'px'); $('fxL').appendChild(e); setTimeout(() => e.remove(), 4100); }
+}
+
+/* ---------- capybaras ---------- */
+function sceneList(){
+  const list = capysIn(S.cur).slice();
+  if(S.guest && S.guest.a === S.cur) list.push(Object.assign({id: 'guest', grow: CONFIG.GROW_SEC, m: {food: 100, calm: 100}, stack: [], vis: true}, S.guest));
+  return list;
+}
+function capyKey(x, a){ return [x.k, isAdult(x) ? 1 : 0, a.st === 'nap' ? 1 : 0, stackOk(x) ? x.stack.join('.') : '', x.pal || '', x.vis ? 'v' : ''].join('|'); }
+function sizeActor(a, x){
+  const g = geo(), w = isAdult(x) ? g.cw : g.bw, h = w * 0.7, inPool = a.st === 'soak' || a.st === 'nap';
+  a.el.style.width = w + 'px'; a.el.style.height = h + 'px';
+  a.el.style.marginLeft = (-w / 2) + 'px'; a.el.style.marginTop = (inPool ? -0.74 * h : -0.92 * h) + 'px';
+}
+function renderCapys(){
+  const box = $('capys'), list = sceneList(), seen = {};
+  list.forEach(x => {
+    seen[x.id] = 1;
+    let a = actors[x.id];
+    if(!a){
+      a = actors[x.id] = {id: x.id, x: 50, y: 50, tx: 0, ty: 0, st: 'soak', until: now() + rnd(4000, 15000), face: 1, key: '', seat: 0};
+      if(x.vis){ a.x = -6; a.y = GATE[1] + 1; a.st = 'walk'; a.tx = GATE[0] + 6; a.ty = GATE[1] + 1; a.until = now() + 60000; a.guest = true; }
+      else { a.seat = seatIndex(x); const p = seatPos(x.a, x.pool, a.seat, !isAdult(x)); a.x = p.x; a.y = p.y; if(Math.random() < 0.25){ a.st = 'nap'; } }
+      if(!isAdult(x) && x.parent) a.follow = true;
+      a.el = document.createElement('div');
+      a.el.className = 'capy';
+      a.el.innerHTML = '<div class="flip"><div class="bob"></div></div>';
+      a.el.addEventListener('pointerdown', e => { e.stopPropagation(); tapCapy(x.id); });
+      box.appendChild(a.el);
+    }
+    const k = capyKey(x, a) + '|' + Math.round(geo().pw);
+    if(a.key !== k){
+      a.key = k;
+      sizeActor(a, x);
+      a.el.querySelector('.bob').innerHTML = capySVG(x.k, {baby: !isAdult(x), sleep: a.st === 'nap', stack: stackOk(x) ? x.stack : null, pal: x.pal});
+      a.el.classList.toggle('guest', !!x.vis);
+    }
+    // little thought bubble
+    let bub = '';
+    if(x.vis) bub = '👋';
+    else if(a.st !== 'nap'){ if(x.m.food < 25) bub = '🍉'; else if(x.m.calm < 25) bub = '💭'; }
+    let be = a.el.querySelector('.bub');
+    if(bub && !be){ be = document.createElement('div'); be.className = 'bub'; a.el.appendChild(be); }
+    if(be){ if(bub) be.textContent = bub; else be.remove(); }
+    let zz = a.el.querySelector('.zz');
+    if(a.st === 'nap' && !zz){ zz = document.createElement('div'); zz.className = 'zz'; zz.textContent = 'z'; a.el.appendChild(zz); }
+    if(a.st !== 'nap' && zz) zz.remove();
+    a.el.classList.toggle('sel', sel === x.id);
+    placeActor(a, x);
+  });
+  for(const id in actors) if(!seen[id]){ actors[id].el.remove(); delete actors[id]; }
+}
+/* which seat in its pool (0, 1, 2) */
+function seatIndex(x){
+  if(!isAdult(x) && x.parent){ const p = capyById(x.parent); if(p && actors[p.id]) return actors[p.id].seat; }
+  const mates = S.capys.filter(q => q.a === x.a && q.pool === x.pool && isAdult(q));
+  const i = mates.indexOf(x);
+  return i < 0 ? 1 : [1, 0, 2, 1, 0, 2][i % 6];
+}
+function placeActor(a, x){
+  const inPool = a.st === 'soak' || a.st === 'nap';
+  a.el.style.left = a.x + '%'; a.el.style.top = a.y + '%';
+  a.el.style.zIndex = inPool ? zOf(POOL_POS[x.pool] ? POOL_POS[x.pool][1] : a.y) : zOf(a.y) + 2;
+  a.el.firstChild.style.transform = a.face < 0 ? 'scaleX(-1)' : '';
+  a.el.classList.toggle('walk', a.st === 'walk' || a.st === 'go');
+  a.el.classList.toggle('soak', a.st === 'soak');
+  a.el.classList.toggle('nap', a.st === 'nap');
+}
+function setSt(a, x, st){
+  const was = a.st; a.st = st;
+  if((was === 'soak' || was === 'nap') !== (st === 'soak' || st === 'nap')) sizeActor(a, x);
+  if((was === 'nap') !== (st === 'nap')) a.key = '';
+}
+/* what does a capybara do next? depends on its personality and the time */
+function decide(a, x){
+  const t = now(), night = isNight(t);
+  if(x.vis) return;
+  // babies follow their parent
+  if(!isAdult(x) && x.parent){
+    const pa = actors[x.parent];
+    if(pa){ a.follow = true; a.until = t + 1500; return; }
+  }
+  if(a.st === 'nap'){ setSt(a, x, 'soak'); a.until = t + rnd(5000, 12000); renderCapys(); return; }
+  if(a.st === 'soak'){
+    let nap = 0.22 + (x.t === 'sleepy' ? 0.3 : 0) + (night ? 0.25 : 0);
+    let walk = x.t === 'social' ? 0.35 : x.t === 'sleepy' ? 0.08 : 0.2;
+    const r = Math.random();
+    if(r < nap){ setSt(a, x, 'nap'); a.until = t + rnd(15000, 40000) * (x.t === 'sleepy' ? 1.5 : 1); renderCapys(); }
+    else if(r < nap + walk){ setSt(a, x, 'walk'); a.tx = rnd(DECK.x0, DECK.x1); a.ty = pick(DECK.lanes); a.until = t + 30000; sfx('splash'); splashAt(a.x, a.y); }
+    else a.until = t + rnd(5000, 12000);
+    return;
+  }
+  if(a.st === 'stand'){
+    if(Math.random() < 0.55){ goToPool(a, x); }
+    else { setSt(a, x, 'walk'); a.tx = rnd(DECK.x0, DECK.x1); a.ty = pick(DECK.lanes); a.until = t + 30000; }
+  }
+}
+function goToPool(a, x){
+  a.seat = seatIndex(x);
+  const p = seatPos(x.a, x.pool, a.seat, !isAdult(x));
+  setSt(a, x, 'go'); a.tx = p.x; a.ty = p.y; a.until = now() + 30000;
+}
+function stepActors(dt){
+  const t = now(), list = sceneList();
+  list.forEach(x => {
+    const a = actors[x.id]; if(!a) return;
+    // babies: line up behind the parent
+    if(a.follow && x.parent && !isAdult(x)){
+      const pa = actors[x.parent], p = capyById(x.parent);
+      if(pa && p){
+        const idx = babiesOf(p).indexOf(x) + 1;
+        if(pa.st === 'soak' || pa.st === 'nap'){
+          const sp = seatPos(p.a, p.pool, pa.seat, true);
+          a.tx = sp.x - (idx - 1) * 4; a.ty = sp.y;
+          if(Math.hypot(a.tx - a.x, a.ty - a.y) < 1.2){ if(a.st !== pa.st){ setSt(a, x, pa.st === 'nap' ? 'nap' : 'soak'); if(pa.st === 'nap') renderCapys(); } }
+          else if(a.st !== 'go') setSt(a, x, 'go');
+        } else {
+          a.tx = pa.x - pa.face * (geo().cw * 0.45 + idx * geo().bw * 0.7) / geo().W * 100; a.ty = pa.y + 0.5;
+          if(a.st === 'soak' || a.st === 'nap') setSt(a, x, 'walk');
+          if(Math.hypot(a.tx - a.x, a.ty - a.y) < 1) { if(a.st !== 'stand') setSt(a, x, 'stand'); a.face = pa.face; }
+          else if(a.st !== 'walk') setSt(a, x, 'walk');
+        }
+      } else a.follow = false;
+    } else if(t > a.until) decide(a, x);
+    if(a.st === 'walk' || a.st === 'go'){
+      const sp = (isAdult(x) ? 7 : 8.5) * (x.t === 'sleepy' ? 0.75 : 1);
+      const dx = a.tx - a.x, dy = a.ty - a.y, d = Math.hypot(dx, dy);
+      if(d < 0.8){
+        if(a.follow){ /* handled above */ }
+        else if(x.vis){ setSt(a, x, 'stand'); a.face = 1; a.until = t + 999999; }
+        else if(a.st === 'go'){ setSt(a, x, 'soak'); a.until = t + rnd(8000, 20000); sfx('splash'); splashAt(a.x, a.y); renderCapys(); }
+        else { setSt(a, x, 'stand'); a.until = t + rnd(1500, 4000); if(x.t === 'social' || Math.random() < 0.3) setTimeout(() => squeak(), rnd(0, 800)); }
+      } else {
+        const v = Math.min(d, sp * dt * (a.follow ? 1.4 : 1));
+        a.x += dx / d * v; a.y += dy / d * v * 0.8;
+        if(Math.abs(dx) > 0.6) a.face = dx > 0 ? 1 : -1;
+      }
+    }
+    placeActor(a, x);
+  });
+}
+
+/* ---------- tapping ---------- */
+function tapCapy(id){
+  audioUnlock();
+  if(id === 'guest'){ openGuest(); return; }
+  const x = capyById(id), a = actors[id]; if(!x || !a) return;
+  sel = id;
+  if(a.st === 'nap'){ setSt(a, x, 'soak'); a.until = now() + 5000; }
+  if(petCapy(x)){
+    fxAt(a.x, a.y - 9, '💗'); fxAt(a.x + 3, a.y - 6, '💕', 150);
+    a.el.classList.remove('pop'); void a.el.offsetWidth; a.el.classList.add('pop');
+  }
+  renderCapys(); renderCare(); saveNow();
+}
+function fxAt(x, y, html, delay){
+  setTimeout(() => {
+    const e = document.createElement('div'); e.className = 'fx'; e.innerHTML = html;
+    e.style.left = x + '%'; e.style.top = y + '%'; $('fxL').appendChild(e);
+    setTimeout(() => e.remove(), 1150);
+  }, delay || 0);
+}
+function fxAtCapy(x, html, delay){ const a = actors[x.id]; if(a) fxAt(a.x, a.y - 10, html, delay); }
+function splashAt(x, y){
+  for(let i=0;i<7;i++){ const e = document.createElement('div'); e.className = 'splash'; e.style.left = x + '%'; e.style.top = y + '%';
+    const ang = rnd(-Math.PI, 0); e.style.setProperty('--dx', Math.cos(ang) * rnd(15, 35) + 'px'); e.style.setProperty('--dy', Math.sin(ang) * rnd(15, 30) + 'px');
+    $('fxL').appendChild(e); setTimeout(() => e.remove(), 650); }
+}
+
+/* ---------- top-of-screen area name ---------- */
+function renderAreaName(){
+  const i = AREA_IDS.indexOf(S.cur), A = AREA(S.cur);
+  const prev = S.open.filter(id => AREA_IDS.indexOf(id) < i).pop(), next = S.open.find(id => AREA_IDS.indexOf(id) > i);
+  const lockedNext = !next && i < AREAS.length - 1;
+  const h = '<button id="arPrev"' + (prev ? '' : ' disabled') + '>◀</button><span>' + A.e + ' ' + L(A) + '</span>' +
+    '<button id="arNext"' + (next || lockedNext ? '' : ' disabled') + '>' + (lockedNext ? '🔒' : '▶') + '</button>';
+  if($('areaName')._h === h) return; $('areaName')._h = h;
+  $('areaName').innerHTML = h;
+  $('arPrev').onclick = () => prev && goArea(prev);
+  $('arNext').onclick = () => { if(next) goArea(next); else if(lockedNext){ buildTab = 'areas'; showView('Build'); } };
+}
+function goArea(id){
+  sfx('whoosh'); S.cur = id; sel = null;
+  for(const k in actors) actors[k].el.remove(); actors = {};
+  renderSpa(); musicStart(); saveNow();
+}
+
+/* ---------- side buttons ---------- */
+function renderSide(){
+  const t = now(), giftReady = S.daily.last !== dayNum(t) && S.tut >= 99;
+  let h = '<button class="fab' + (giftReady ? ' glow' : '') + '" id="sGift">🎁<small>' + tr('Gift') + '</small>' + (giftReady ? '<span class="bdg">1</span>' : '') + '</button>';
+  h += '<button class="fab" id="sBoost">⚡<small>' + (S.ad2x > t ? '2×' : tr('Boost')) + '</small></button>';
+  if(AREA(S.cur).weather.length > 1) h += '<button class="fab" id="sWx">' + WEATHER[currentWeather()].e + '<small>' + tr('Weather') + '</small></button>';
+  if($('sideR')._h !== h){
+    $('sideR')._h = h; $('sideR').innerHTML = h;
+    $('sGift').onclick = openGift;
+    $('sBoost').onclick = openBoosts;
+    if($('sWx')) $('sWx').onclick = openWeather;
+  }
+  let l = '';
+  if(S.guest && S.guest.a !== S.cur) l += '<button class="fab glow" id="sGuest">👋<small>' + tr('Guest') + '</small></button>';
+  if($('sideL')._h !== l){ $('sideL')._h = l; $('sideL').innerHTML = l; if($('sGuest')) $('sGuest').onclick = () => goArea(S.guest.a); }
+}
+
+/* ---------- bottom care bar ---------- */
+function renderCare(){
+  const x = sel && capyById(sel);
+  let h;
+  if(x && x.a === S.cur){
+    h = '<div class="cb"><div class="who">' + esc(x.n) + ' <span class="hearts">' + '❤️'.repeat(Math.min(5, hearts(x))) + (hearts(x) > 5 ? '+' : '') + '</span><small>' + PERSONALITIES[x.t].e + ' ' + L(PERSONALITIES[x.t]) +
+      ' · 🍉 ' + Math.round(x.m.food) + '% · 😌 ' + Math.round(x.m.calm) + '%</small></div>' +
+      '<button class="cbtn" id="cbFeed"><b>🍉</b>' + tr('Feed') + '</button><button class="cbtn" id="cbFruit"><b>🍊</b>' + tr('Stack') + '</button><button class="cbtn" id="cbPal"><b>🐤</b>' + tr('Friend') + '</button><button class="cbtn" id="cbInfo"><b>ℹ️</b>' + tr('Info') + '</button></div>';
+  } else {
+    h = '<div class="hint">👆 ' + tr('Tap a capybara!') + ' · +' + fmt(areaIncome(S.cur)) + ' ' + CN + '/s</div>';
+  }
+  if($('careBar')._h !== h){
+    $('careBar')._h = h; $('careBar').innerHTML = h;
+    if($('cbFeed')){ $('cbFeed').onclick = () => openFeed(x); $('cbFruit').onclick = () => openStack(x); $('cbPal').onclick = () => openPal(x); $('cbInfo').onclick = () => openCapy(x.id); }
+  }
+}
+function capyBig(x, size){ return '<div class="center bigCapy">' + capySVG(x.k, {size: size || 190, baby: !isAdult(x), stack: stackOk(x) ? x.stack : null, pal: x.pal, halo: true}) + '</div>'; }
+function afterCare(x, e1, e2){
+  fxAtCapy(x, e1); if(e2) fxAtCapy(x, e2, 300);
+  const a = actors[x.id]; if(a){ a.key = ''; a.el.classList.remove('pop'); void a.el.offsetWidth; a.el.classList.add('pop'); }
+  renderCare(); renderCapys(); if(curView === 'Capys') renderCapysView();
+}
+function openFeed(x){
+  sfx('tap');
+  let h = capyBig(x, 150);
+  SNACK_IDS.forEach(k => { const F = SNACKS[k];
+    h += '<div class="card"><div class="art">' + F.e + '</div><div class="info"><div class="nm">' + L(F) + ' × ' + S.snacks[k] + '</div><div class="sub">🍉 +' + F.food + (F.calm ? ' · 😌 +' + F.calm : '') + ' · 💗 +' + F.fr_ + '</div></div>' +
+      '<button class="btn mint sm" data-food="' + k + '"' + (S.snacks[k] < 1 ? ' disabled' : '') + '>' + tr('Give') + '</button></div>'; });
+  h += '<button class="btn wide ghost" id="fdShop">🛒 ' + tr('Buy snacks') + '</button>';
+  openModal(tr('Feed {n}', {n: esc(x.n)}), h);
+  $('mBody').querySelectorAll('[data-food]').forEach(b => b.onclick = () => { if(feedCapy(x, b.dataset.food)){ closeModal(); afterCare(x, SNACKS[b.dataset.food].e, '😋'); squeak(); } });
+  $('fdShop').onclick = () => { closeModal(); shopTab = 'snacks'; showView('Shop'); };
+}
+function openStack(x){
+  sfx('tap');
+  const cur = stackOk(x) ? x.stack.length : 0, b = CONFIG.STACK_BONUS;
+  let h = capyBig(x, 150);
+  h += '<p class="center"><b>🗼 ' + tr('Stack') + ': ' + cur + '/' + CONFIG.STACK_MAX + '</b> · +' + Math.round(stackBonus(x) * 100) + '% ' + CN + (cur ? '<br><span class="muted">⏳ ' + fmtTime((x.stackT - now()) / 1000) + '</span>' : '') + '</p>';
+  h += '<div class="row" style="justify-content:center;gap:4px;flex-wrap:wrap;margin-bottom:8px">' + b.slice(1).map((v, i) => '<span class="tag" style="' + (i < cur ? 'background:var(--peach2);color:#fff' : '') + '">' + (i + 1) + ' = +' + Math.round(v * 100 * (x.t === 'fancy' ? 1.5 : 1)) + '%</span>').join('') + '</div>';
+  h += '<div class="pickGrid">' + FRUIT_IDS.map(k => '<button data-fr="' + k + '"' + (S.fruit[k] < 1 || cur >= CONFIG.STACK_MAX ? ' disabled' : '') + '><span class="big">' + FRUITS[k].e + '</span>' + L(FRUITS[k]) + '<br><span class="muted">× ' + S.fruit[k] + '</span></button>').join('') + '</div>';
+  h += '<p class="muted center">' + tr('The taller the stack, the bigger the bonus! After {h}h your capybara eats it.', {h: CONFIG.STACK_HOURS}) + '</p>';
+  h += '<button class="btn wide ghost" id="stShop">🛒 ' + tr('Buy fruits') + '</button>';
+  openModal('🍊 ' + tr('Fruit on the head'), h);
+  $('mBody').querySelectorAll('[data-fr]').forEach(bt => bt.onclick = () => { if(stackFruit(x, bt.dataset.fr)){ afterCare(x, FRUITS[bt.dataset.fr].e, '✨'); openStack(x); } });
+  $('stShop').onclick = () => { closeModal(); shopTab = 'fruits'; showView('Shop'); };
+}
+function openPal(x){
+  sfx('tap');
+  let h = capyBig(x, 150);
+  h += '<p class="center muted">' + tr('Animal friends sit on your capybara. The right friend for its personality makes a combo!') + '</p><div class="pickGrid">';
+  PAL_IDS.forEach(k => { const P = PALS[k], on = x.pal === k, free = palsFree(k) + (on ? 1 : 0), combo = P.likes === x.t;
+    h += '<button data-pl="' + k + '" class="' + (on ? 'on' : '') + '"' + (free < 1 ? ' disabled' : '') + '><span class="big">' + P.e + '</span>' + L(P) + '<br><span class="muted">' + (S.pals[k] ? free + '/' + S.pals[k] : '🔒') + '</span>' + (combo ? '<br><span class="tag">' + tr('Combo!') + '</span>' : '') + '</button>'; });
+  h += '</div>';
+  if(x.pal) h += '<button class="btn wide ghost" id="plOff">✋ ' + tr('Friend hops off') + '</button>';
+  h += '<button class="btn wide ghost" id="plShop">🛒 ' + tr('Invite friends') + '</button>';
+  openModal('🐤 ' + tr('Animal friend'), h);
+  $('mBody').querySelectorAll('[data-pl]').forEach(b => b.onclick = () => { if(placePal(x, b.dataset.pl)){ closeModal(); afterCare(x, PALS[b.dataset.pl].e, isCombo(x) ? '💥 ' + tr('Combo!') : '💗'); if(isCombo(x)) toast('💥 ' + tr('Combo!') + ' ' + PALS[x.pal].e + ' + ' + PERSONALITIES[x.t].e + ' = +' + Math.round(palBonus(x) * 100) + '%', 'gold'); } });
+  if($('plOff')) $('plOff').onclick = () => { placePal(x, null); closeModal(); afterCare(x, '👋'); };
+  $('plShop').onclick = () => { closeModal(); shopTab = 'friends'; showView('Shop'); };
+}
+function openGuest(){
+  const v = S.guest; if(!v) return;
+  const K = KINDS[v.k];
+  sfx('chime'); squeak();
+  openModal('👋 ' + tr('A guest!'), '<div class="reward"><div class="big">' + capySVG(v.k, {size: 190, halo: true}) + '</div><h2 style="margin:4px 0">' + esc(v.n) + '</h2>' +
+    '<p><b style="color:' + RARITY[K.r].c + '">' + L(K) + ' · ' + L(RARITY[K.r]) + '</b><br>' + PERSONALITIES[v.t].e + ' ' + L(PERSONALITIES[v.t]) + ' · ' + tr('Loves:') + ' ' + POOLS[v.fp].e + ' ' + L(POOLS[v.fp]) + '</p>' +
+    '<p class="muted">' + (v.kind === 'daily' ? tr('Today’s visiting capybara wants to stay!') : v.kind === 'rare' ? tr('A rare guest came to see you!') : tr('It would love to stay at your spa.')) + '</p></div>' +
+    '<button class="btn wide gold" id="gsYes">💗 ' + (v.cost ? tr('Welcome') + ' · ' + fmt(v.cost) + ' ' + CN : tr('Welcome (free)')) + '</button><button class="btn wide ghost" id="gsNo">' + tr('Not now') + '</button>');
+  $('gsYes').onclick = () => { closeModal(); welcomeGuest(); };
+  $('gsNo').onclick = closeModal;
+}
+/* tap a pool: change its type */
+function openPool(i){
+  sfx('tap');
+  const cur = poolsIn(S.cur)[i];
+  const who = S.capys.filter(x => x.a === S.cur && x.pool === i);
+  let h = '<p class="center">' + (who.length ? who.map(x => esc(x.n) + (x.fp === cur ? ' 💖' : '')).join(', ') : tr('Nobody is soaking here yet.')) + '</p>';
+  h += '<p class="muted center">' + tr('Pick a pool type. 💖 = their favorite pool (+50% coins).') + '</p><div class="pickGrid">';
+  POOL_IDS.forEach(k => { const P = POOLS[k], own = S.poolTypes[k];
+    h += '<button data-pt="' + k + '" class="' + (cur === k ? 'on' : '') + '"' + (own ? '' : ' disabled') + '><span class="big">' + P.e + '</span>' + L(P) + '<br><span class="muted">' + (own ? '+' + Math.round(P.bonus * 100) + '% · ' + S.capys.filter(x => x.fp === k).length + ' 💖' : '🔒') + '</span></button>'; });
+  h += '</div><button class="btn wide ghost" id="ptBuild">🔨 ' + tr('Unlock pool types') + '</button>';
+  openModal(POOLS[cur].e + ' ' + tr('Pool {n}', {n: i + 1}), h);
+  $('mBody').querySelectorAll('[data-pt]').forEach(b => b.onclick = () => {
+    S.ar[S.cur].pools[i] = b.dataset.pt; poolKey = ''; sfx('splash'); saveNow(); closeModal(); renderSpa();
+    toast(POOLS[b.dataset.pt].e + ' ' + L(POOLS[b.dataset.pt]) + '!');
+  });
+  $('ptBuild').onclick = () => { closeModal(); buildTab = 'pools'; showView('Build'); };
+}
+function openWeather(){
+  sfx('tap');
+  const A = AREA(S.cur), cw = currentWeather();
+  let h = '<p class="center muted">' + tr('Auto follows the real season. Weather charms let you choose. Each charm: +5% coins.') + '</p><div class="pickGrid">';
+  h += '<button data-wx="" class="' + (!S.weather ? 'on' : '') + '"><span class="big">🗓️</span>' + tr('Auto') + '<br><span class="muted">' + SEASONS[seasonNow()].e + ' ' + L(SEASONS[seasonNow()]) + '</span></button>';
+  WEATHER_IDS.filter(k => A.weather.includes(k)).forEach(k => { const W = WEATHER[k], own = S.wx[k];
+    h += '<button data-wx="' + k + '" class="' + (S.weather === k ? 'on' : '') + '"' + (own ? '' : ' disabled') + '><span class="big">' + W.e + '</span>' + L(W) + '<br><span class="muted">' + (own ? (cw === k ? '✔' : '') : '🔒') + '</span></button>'; });
+  h += '</div><button class="btn wide ghost" id="wxBuild">🔨 ' + tr('Get weather charms') + '</button>';
+  openModal('🌦️ ' + tr('Weather'), h);
+  $('mBody').querySelectorAll('[data-wx]').forEach(b => b.onclick = () => { S.weather = b.dataset.wx || null; saveNow(); closeModal(); renderWx(); renderSide(); sfx('chime'); });
+  $('wxBuild').onclick = () => { closeModal(); buildTab = 'weather'; showView('Build'); };
+}
+function renderSpa(){
+  if(!S) return;
+  renderAreaName(); renderBg(); renderPools(); renderCapys(); renderSide(); renderCare(); applyDark(); renderWx();
+}
+
+/* =====================================================================
+   9. SCREENS — top bar, pop-ups, Capys, Build, Shop, Games, More
+===================================================================== */
+let curView = 'Spa';
+const NAV = [['Spa','♨️'],['Capys','capy'],['Build','🔨'],['Shop','🛒'],['Games','🎮'],['More','✨']];
+function renderNav(){
+  $('nav').innerHTML = NAV.map(([k, e]) => '<button id="nav' + k + '" class="' + (curView === k ? 'on' : '') + '"><span class="e">' + (e === 'capy' ? capySVG('classic') : e) + '</span>' + tr(k) + '<i class="dot" id="dot' + k + '"></i></button>').join('');
+  NAV.forEach(([k]) => $('nav' + k).onclick = () => { sfx('tap'); showView(k); });
+}
+function showView(k){
+  curView = k;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  $('v' + k).classList.add('on');
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.id === 'nav' + k));
+  ({Spa: renderSpa, Capys: renderCapysView, Build: renderBuild, Shop: renderShop, Games: renderGames, More: renderMore})[k]();
+  $('v' + k).scrollTop = 0;
+  tutEvent('view' + k);
+}
+let shownCo = 0;
+function refreshTop(){
+  if(!S) return;
+  $('vGem').textContent = fmt(S.g);
+  $('vLevel').textContent = S.lv;
+  $('vXp').style.width = (S.xp / xpNeed(S.lv) * 100) + '%';
+  const t = now(); let b = '';
+  if(S.ad2x > t){ const l = (S.ad2x - t) / 1000; b += '<span class="bst">2× ' + (l > 60 ? Math.ceil(l / 60) + 'm' : Math.ceil(l) + 's') + '</span>'; }
+  if(isNight(t)) b += '<span class="bst">🌙</span>';
+  if($('boosts')._h !== b){ $('boosts')._h = b; $('boosts').innerHTML = b; }
+  $('muteBtn').textContent = (S.snd || S.mus) ? '🔊' : '🔇';
+  const av = S.avatar && capyById(S.avatar), k = av ? av.k + isAdult(av) : 'none';
+  if($('profBtn').dataset.k !== k){ $('profBtn').dataset.k = k; $('profBtn').innerHTML = av ? capySVG(av.k, {baby: !isAdult(av)}) : '🙂'; }
+  const dg = $('dotGames'); if(dg) dg.classList.toggle('show', S.tickets >= CONFIG.TICKETS_MAX);
+  const db = $('dotBuild'); if(db) db.classList.toggle('show', AREAS.some((a, i) => canOpenArea(i) && S.co >= areaCost(i)) || (poolsIn(S.cur).length < CONFIG.POOLS_MAX && S.co >= poolCost(S.cur) && !hasRoom(S.cur)));
+  const dc = $('dotCapys'); if(dc) dc.classList.toggle('show', S.miles < BOOK_MILES.length && false);
+}
+function tickCoinDisplay(){
+  const diff = S.co - shownCo;   // the number counts up smoothly instead of jumping
+  shownCo = Math.abs(diff) < 1 ? S.co : shownCo + diff * 0.25;
+  $('vCoin').textContent = fmt(shownCo);
+}
+
+/* ---------- toast + modal ---------- */
+function toast(msg, kind){
+  const t = document.createElement('div'); t.className = 'tst' + (kind ? ' ' + kind : ''); t.innerHTML = msg;
+  const box = $('toast'); box.appendChild(t);
+  while(box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = 0; setTimeout(() => t.remove(), 400); }, 2600);
+}
+let modalOnClose = null, modalQueue = [];
+function openModal(title, html, onClose, noClose){
+  $('mBody').innerHTML = (title ? '<h2>' + title + '</h2>' : '') + html;
+  $('modalBg').classList.add('on');
+  $('mClose').style.display = noClose ? 'none' : '';
+  $('modal').scrollTop = 0;
+  modalOnClose = onClose || null;
+}
+function closeModal(){
+  if(!$('modalBg').classList.contains('on')) return;
+  $('modalBg').classList.remove('on');
+  const f = modalOnClose; modalOnClose = null; if(f) f();
+  refreshTop();
+  if(modalQueue.length) setTimeout(() => { if(!$('modalBg').classList.contains('on') && modalQueue.length) modalQueue.shift()(); }, 250);
+}
+function queueModal(fn){ if($('modalBg').classList.contains('on')) modalQueue.push(fn); else fn(); }
+function showReward(art, title, html, onClose){
+  openModal('', '<div class="reward"><div class="big">' + art + '</div><h2>' + title + '</h2><div>' + (html || '') + '</div><button class="btn wide" id="rwOk">' + tr('Yay!') + '</button></div>', onClose);
+  $('rwOk').onclick = closeModal;
+}
+function confirmBox(title, msg, yes, cb){
+  openModal(title, '<p class="center">' + msg + '</p><button class="btn wide" id="cfY">' + yes + '</button><button class="btn wide ghost" id="cfN">' + tr('Cancel') + '</button>');
+  $('cfY').onclick = () => { closeModal(); cb(); }; $('cfN').onclick = closeModal;
+}
+const moodColor = v => v > 60 ? '#5cc99a' : v > 30 ? '#ffc53d' : '#ff7a7a';
+function moodBars(x){
+  return [['food', '🍉', tr('Food')], ['calm', '😌', tr('Calm')]].map(([k, e, n]) =>
+    '<div class="mood"><span>' + e + '</span><span style="width:auto;min-width:50px;text-align:left">' + n + '</span><div class="bar"><i style="width:' + x.m[k] + '%;background:' + moodColor(x.m[k]) + '"></i></div></div>').join('');
+}
+function heartsHtml(x){ const h = hearts(x); return '<span class="hearts">' + '❤️'.repeat(h) + '🤍'.repeat(10 - h) + '</span>'; }
+
+/* ---------- CAPYS tab: my capybaras + collection book ---------- */
+let cpTab = 'mine', cpFilter = 'here';
+function renderCapysView(){
+  let h = '<div class="tabs">' + [['mine', '💗 ' + tr('My capybaras')], ['book', '📖 ' + tr('Collection book')]].map(([k, n]) => '<button data-t="' + k + '" class="' + (cpTab === k ? 'on' : '') + '">' + n + '</button>').join('') + '</div>';
+  if(cpTab === 'mine') h += mineHtml();
+  if(cpTab === 'book') h += bookHtml();
+  $('iCapys').innerHTML = h;
+  $('iCapys').querySelectorAll('.tabs [data-t]').forEach(b => b.onclick = () => { sfx('tap'); cpTab = b.dataset.t; renderCapysView(); });
+  $('iCapys').querySelectorAll('[data-cp]').forEach(b => b.onclick = () => openCapy(+b.dataset.cp));
+  $('iCapys').querySelectorAll('[data-f]').forEach(b => b.onclick = () => { cpFilter = b.dataset.f; renderCapysView(); });
+}
+function capyCard(x){
+  const K = KINDS[x.k];
+  return '<div class="card" data-cp="' + x.id + '"><div class="art r' + K.r + '">' + capySVG(x.k, {baby: !isAdult(x), stack: stackOk(x) ? x.stack : null, pal: x.pal}) + '</div><div class="info"><div class="nm">' + esc(x.n) + ' ' + (isAdult(x) ? '' : '<span class="tag">🍼 ' + tr('Baby') + '</span>') + '</div>' +
+    '<div class="sub"><b style="color:' + RARITY[K.r].c + '">' + L(K) + '</b> · ' + PERSONALITIES[x.t].e + ' ' + L(PERSONALITIES[x.t]) + ' · ' + POOLS[x.fp].e + (inFavPool(x) ? '💖' : '') + '</div>' +
+    '<div class="sub">' + '❤️'.repeat(hearts(x)) + ' · 🍉 ' + Math.round(x.m.food) + '% · 😌 ' + Math.round(x.m.calm) + '%</div></div><span style="font-size:22px">›</span></div>';
+}
+function mineHtml(){
+  const list = cpFilter === 'here' ? capysIn(S.cur) : S.capys;
+  let h = '<div class="seg" style="margin-bottom:10px"><button data-f="here" class="' + (cpFilter === 'here' ? 'on' : '') + '">' + AREA(S.cur).e + ' ' + tr('This area') + ' (' + capysIn(S.cur).length + '/' + seatsIn(S.cur) + ')</button><button data-f="all" class="' + (cpFilter === 'all' ? 'on' : '') + '">' + tr('All') + ' (' + S.capys.length + ')</button></div>';
+  h += list.map(capyCard).join('') || '<p class="muted center">' + tr('No capybaras here yet.') + '</p>';
+  return h;
+}
+function bookHtml(){
+  const n = bookCount(), next = BOOK_MILES[S.miles];
+  let h = '<h2>📖 ' + tr('Collection book') + ' <span class="muted">' + n + '/' + KIND_IDS.length + '</span></h2>';
+  if(next) h += '<div class="card" style="display:block"><b>🎯 ' + tr('Next prize: find {n} kinds', {n: next[0]}) + ' → +' + next[1] + ' 💎</b><div class="prog"><i style="width:' + Math.min(100, n / next[0] * 100) + '%"></i></div></div>';
+  h += '<div class="grid">';
+  KIND_IDS.forEach(k => {
+    const K = KINDS[k], got = S.book[k];
+    let hint = '';
+    if(!got){
+      if(K.paid) hint = '🛍️ ' + tr('Spa Pack');
+      else if(K.season) hint = SEASONS[K.season].e + ' ' + L(SEASONS[K.season]);
+      else if(K.home) hint = AREA(K.home).e + ' ' + L(AREA(K.home));
+      else hint = '👋 ' + tr('Guests');
+    }
+    h += '<div class="tile ' + (got ? 'r' + K.r : 'lock') + '">' + capySVG(k, {halo: !!got}) + (got ? L(K) : '???') + '<div class="muted" style="font-size:.85em">' + (got ? '<span style="color:' + RARITY[K.r].c + '">' + L(RARITY[K.r]) + '</span>' : hint) + '</div></div>';
+  });
+  h += '</div><p class="muted">💡 ' + tr('Seasonal capybaras only visit in their season. Some only visit one area.') + '</p>';
+  return h;
+}
+/* one capybara, up close */
+function openCapy(id){
+  const x = capyById(id); if(!x) return;
+  sfx('tap');
+  const K = KINDS[x.k], P = PERSONALITIES[x.t], nh = nextHeartAt(x), par = x.parent && capyById(x.parent);
+  let h = capyBig(x, 200);
+  h += '<div class="center" style="font-size:1.3em;font-weight:900">' + esc(x.n) + ' <button class="btn ghost sm" id="cpRen">✏️</button></div>';
+  h += '<p class="center"><b style="color:' + RARITY[K.r].c + '">' + L(K) + ' · ' + L(RARITY[K.r]) + '</b></p>';
+  h += '<div class="card" style="display:block"><div><b>' + P.e + ' ' + L(P) + '</b> — ' + L(P.d) + '</div>' +
+    '<div style="margin-top:6px">' + tr('Favorite pool:') + ' <b>' + POOLS[x.fp].e + ' ' + L(POOLS[x.fp]) + '</b> ' + (inFavPool(x) ? '💖' : '<span class="muted">(' + tr('now in') + ' ' + POOLS[poolType(x)].e + ')</span>') + '</div>' +
+    '<div style="margin-top:6px">' + tr('Friendship') + ': ' + heartsHtml(x) + (nh ? ' <span class="muted">(' + Math.floor(x.f) + '/' + nh + ')</span>' : '') + '</div>' +
+    moodBars(x) + (isAdult(x) ? '' : '<div class="mood"><span>🍼</span><span style="width:auto;min-width:50px;text-align:left">' + tr('Growing') + '</span><div class="bar"><i style="width:' + (x.grow / CONFIG.GROW_SEC * 100) + '%;background:var(--lav2)"></i></div></div>') +
+    (par ? '<div class="muted">🍼 ' + tr('Follows {p}', {p: esc(par.n)}) + '</div>' : '') +
+    '<div class="muted" style="margin-top:6px">' + CN + ' ' + fmt(capyRate(x) * 60) + ' / ' + tr('min') + ' · ' + (stackOk(x) ? '🗼 +' + Math.round(stackBonus(x) * 100) + '% ' : '') + (x.pal ? PALS[x.pal].e + ' +' + Math.round(palBonus(x) * 100) + '%' + (isCombo(x) ? ' 💥' : '') : '') + '</div></div>';
+  h += '<div class="row" style="gap:6px"><button class="btn mint" id="cpFeed" style="flex:1">🍉 ' + tr('Feed') + '</button><button class="btn mint" id="cpStack" style="flex:1">🍊 ' + tr('Stack') + '</button><button class="btn mint" id="cpPal" style="flex:1">🐤 ' + tr('Friend') + '</button></div>';
+  if(!isAdult(x)) h += '<button class="btn wide lav" id="cpRush">💎 ' + rushGems(x) + ' · ' + tr('Grow up now') + '</button>';
+  h += '<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:8px"><button class="btn ghost" id="cpMove" style="flex:1">🧭 ' + tr('Move') + '</button><button class="btn ghost" id="cpAv" style="flex:1">🖼️ ' + tr('Profile picture') + '</button></div>';
+  if(S.capys.length > 2) h += '<button class="btn wide ghost" id="cpBye" style="color:var(--bad)">👋 ' + tr('Say goodbye') + '</button>';
+  openModal('', h);
+  $('cpRen').onclick = () => renameCapy(x);
+  $('cpFeed').onclick = () => openFeed(x);
+  $('cpStack').onclick = () => openStack(x);
+  $('cpPal').onclick = () => openPal(x);
+  if($('cpRush')) $('cpRush').onclick = () => { if(!pay('g', rushGems(x))) return; x.grow = CONFIG.GROW_SEC; closeModal(); toast('🌟 ' + esc(x.n) + ' ' + tr('is all grown up!'), 'gold'); assignPool(x); if(actors[x.id]){ actors[x.id].follow = false; actors[x.id].key = ''; } saveNow(); renderSpa(); if(curView === 'Capys') renderCapysView(); };
+  $('cpAv').onclick = () => { S.avatar = x.id; saveNow(); refreshTop(); toast('🖼️ ' + tr('New profile picture!')); };
+  $('cpMove').onclick = () => openMove(x);
+  if($('cpBye')) $('cpBye').onclick = () => {
+    const gift = Math.round(Math.max(100, capyRate(x) * 600));
+    confirmBox('👋 ' + tr('Say goodbye to {n}?', {n: esc(x.n)}), tr('It goes home to the river. It leaves you {p} coins as a thank-you.', {p: fmt(gift)}), tr('Say goodbye'), () => {
+      S.capys.forEach(q => { if(q.parent === x.id) q.parent = null; });
+      S.capys = S.capys.filter(q => q !== x); if(S.avatar === x.id) S.avatar = S.capys[0].id; if(sel === x.id) sel = null;
+      addCo(gift); saveNow(); renderSpa(); if(curView === 'Capys') renderCapysView(); toast('💗 ' + tr('Bye bye, {n}!', {n: esc(x.n)}));
+    });
+  };
+}
+function renameCapy(x){
+  openModal(tr('New name'), '<input id="rnIn" maxlength="14" value="' + esc(x.n) + '" style="width:100%;padding:12px;border-radius:12px;border:2px solid #eddccb;font-size:18px"><button class="btn wide" id="rnOk">' + tr('Save') + '</button>');
+  $('rnOk').onclick = () => { const v = $('rnIn').value.trim(); if(v) x.n = v.slice(0, 14); closeModal(); saveNow(); renderCare(); if(curView === 'Capys') renderCapysView(); };
+}
+function openMove(x){
+  let h = '';
+  S.open.forEach(a => { const A = AREA(a), here = x.a === a, ok = hasRoom(a);
+    h += '<div class="card"><div class="art">' + A.e + '</div><div class="info"><div class="nm">' + L(A) + '</div><div class="sub">' + capysIn(a).length + '/' + seatsIn(a) + '</div></div>' +
+      (here ? '<span class="tag">' + tr('Here') + '</span>' : '<button class="btn mint sm" data-mv="' + a + '"' + (ok ? '' : ' disabled') + '>' + (ok ? tr('Move') : tr('Full')) + '</button>') + '</div>'; });
+  if(x.a === S.cur && poolsIn(x.a).length > 1){
+    h += '<h3>♨️ ' + tr('Change pool') + '</h3><div class="pickGrid">' + poolsIn(x.a).map((tp, i) => '<button data-pi="' + i + '" class="' + (x.pool === i ? 'on' : '') + '"><span class="big">' + POOLS[tp].e + '</span>' + tr('Pool {n}', {n: i + 1}) + (tp === x.fp ? ' 💖' : '') + '</button>').join('') + '</div>';
+  }
+  openModal('🧭 ' + tr('Move {n}', {n: esc(x.n)}), h);
+  $('mBody').querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { x.a = b.dataset.mv; x.parent = isAdult(x) ? x.parent : null; assignPool(x); if(sel === x.id) sel = null; closeModal(); saveNow(); renderSpa(); if(curView === 'Capys') renderCapysView(); toast('🧭 ' + esc(x.n) + ' → ' + L(AREA(x.a))); });
+  $('mBody').querySelectorAll('[data-pi]').forEach(b => b.onclick = () => { x.pool = +b.dataset.pi; const a = actors[x.id]; if(a && isAdult(x)) goToPool(a, x); closeModal(); saveNow(); renderCare(); toast(POOLS[poolType(x)].e + ' ' + esc(x.n) + (inFavPool(x) ? ' 💖' : '')); });
+}
+
+/* ---------- BUILD tab: pools, upgrades, decor, areas, weather ---------- */
+let buildTab = 'pools';
+function priceBtn(attr, cur, price, extra){ return '<button class="btn ' + (cur === 'g' ? 'lav' : 'gold') + ' sm" ' + attr + (extra || '') + '>' + fmt(price) + ' ' + (cur === 'g' ? '💎' : CN) + '</button>'; }
+const card = (art, name, sub, btn) => '<div class="card"><div class="art">' + art + '</div><div class="info"><div class="nm">' + name + '</div><div class="sub">' + sub + '</div></div>' + btn + '</div>';
+const owned = () => '<span class="tag" style="background:var(--teal)">✔ ' + tr('Owned') + '</span>';
+const maxTag = () => '<span class="tag">MAX</span>';
+function renderBuild(){
+  const A = AREA(S.cur);
+  let h = '<div class="tabs">' + [['pools', '♨️ ' + tr('Pools')], ['up', '⬆️ ' + tr('Upgrades')], ['decor', '🏮 ' + tr('Decor')], ['areas', '🗺️ ' + tr('Areas')], ['weather', '🌦️ ' + tr('Weather')]]
+    .map(([k, n]) => '<button data-t="' + k + '" class="' + (buildTab === k ? 'on' : '') + '">' + n + '</button>').join('') + '</div>';
+  if(buildTab === 'pools'){
+    const n = poolsIn(S.cur).length;
+    h += '<p class="muted">' + A.e + ' <b>' + L(A) + '</b> · ' + tr('Each pool fits {n} capybaras.', {n: CONFIG.POOL_SEATS}) + '</p>';
+    h += card('♨️', tr('New hot spring pool') + ' <span class="tag">' + n + '/' + CONFIG.POOLS_MAX + '</span>', tr('Room for {n} more capybaras', {n: CONFIG.POOL_SEATS}) + ' (' + capysIn(S.cur).length + '/' + seatsIn(S.cur) + ')', n >= CONFIG.POOLS_MAX ? maxTag() : priceBtn('id="bPool"', 'c', poolCost(S.cur)));
+    h += '<h3>🛁 ' + tr('Pool types') + '</h3><p class="muted">' + tr('Unlock once, then tap a pool in your spa to change it. Capybaras love their favorite pool (+50%).') + '</p>';
+    POOL_IDS.forEach(k => { const P = POOLS[k], fans = S.capys.filter(x => x.fp === k).length;
+      h += card(P.e, L(P), '+' + Math.round(P.bonus * 100) + '% ' + CN + ' · ' + fans + ' 💖', S.poolTypes[k] ? owned() : P.g ? priceBtn('data-pt="' + k + '"', 'g', P.g) : priceBtn('data-pt="' + k + '"', 'c', poolTypeCost(k))); });
+  }
+  if(buildTab === 'up'){
+    h += card('🍱', tr('Better snacks') + ' <span class="tag">' + tr('Lv') + ' ' + S.up.snack + '</span>', tr('+25% coins from ALL capybaras'), S.up.snack >= CONFIG.SNACK_UP_MAX ? maxTag() : priceBtn('id="upSnack"', 'c', snackUpCost()));
+    h += card('🫙', tr('Coin jar') + ' <span class="tag">' + S.up.jar + '/4</span>', tr('Keep earning longer while away') + ' (' + offlineCapH() + 'h)', S.up.jar >= 4 ? maxTag() : priceBtn('id="upJar"', 'c', jarCost()));
+    h += card('🧺', tr('Fluffy towels') + ' <span class="tag">' + S.up.towel + '/5</span>', tr('Babies grow up faster') + ' (' + fmtTime(babyTime()) + ')', S.up.towel >= 5 ? maxTag() : priceBtn('id="upTowel"', 'c', towelCost()));
+    h += '<p class="muted center">' + CN + ' ' + fmt(incomePerSec()) + '/s</p>';
+  }
+  if(buildTab === 'decor'){
+    h += '<p class="muted">' + A.e + ' <b>' + L(A) + '</b> · ' + tr('Each decor gives +10% coins in this area.') + '</p>';
+    DECOR_IDS.forEach(k => {
+      const D = DECOR[k], own = S.ar[S.cur].decor[k], P = propSVG(k, A);
+      const art = '<div style="width:56px;height:56px;display:grid;place-items:center">' + P.svg.replace('<svg ', '<svg style="max-width:54px;max-height:54px" ') + '</div>';
+      const btn = own ? '<span class="tag" style="background:var(--teal)">✔ ' + tr('Placed') + '</span>' :
+        (D.g ? '<div style="display:flex;flex-direction:column;gap:4px">' + priceBtn('data-dec="' + k + '"', 'c', decorCost(k, S.cur)) + '<span class="tag" style="text-align:center">+ ' + D.g + ' 💎</span></div>' : priceBtn('data-dec="' + k + '"', 'c', decorCost(k, S.cur)));
+      h += card(art, D.e + ' ' + L(D), (D.g ? '✨ ' + tr('Special') + ' · ' : '') + '+10% ' + CN + (k === 'lantern' ? ' · 🌙 ' + tr('Glows at night') : ''), btn);
+    });
+  }
+  if(buildTab === 'areas'){
+    const desc = {onsen: tr('Your first hot spring. Warm and cozy.'), snow: tr('Snow falls into the warm pools. Snowy capybaras live here.'), jungle: tr('Big leaves and warm rain. Mossy capybaras live here.'), sakura: tr('Cherry blossoms all year round.'), sauna: tr('A warm wooden sauna. The best coins!')};
+    AREAS.forEach((Ar, i) => {
+      const open = S.open.includes(Ar.id);
+      let btn;
+      if(open) btn = S.cur === Ar.id ? '<span class="tag">' + tr('You are here') + '</span>' : '<button class="btn mint sm" data-go="' + Ar.id + '">' + tr('Go') + '</button>';
+      else if(S.open.length < i) btn = '<span class="tag">🔒</span>';
+      else if(S.lv < CONFIG.AREA_LEVEL[i]) btn = '<button class="btn ghost sm" disabled>🔒 ' + tr('Lv') + ' ' + CONFIG.AREA_LEVEL[i] + '</button>';
+      else btn = priceBtn('data-area="' + i + '"', 'c', areaCost(i));
+      h += card(Ar.e, L(Ar), (i ? '×' + Math.pow(CONFIG.AREA_MULT, i) + ' ' + CN + ' · ' : '') + desc[Ar.id], btn);
+    });
+  }
+  if(buildTab === 'weather'){
+    h += '<p class="muted">' + tr('Auto follows the real season. Weather charms let you choose. Each charm: +5% coins.') + '</p>';
+    WEATHER_IDS.filter(k => k !== 'clear').forEach(k => { const W = WEATHER[k]; h += card(W.e, L(W), '+5% ' + CN + ' · ' + tr('everywhere'), S.wx[k] ? owned() : priceBtn('data-wx="' + k + '"', 'c', wxCost(k))); });
+  }
+  $('iBuild').innerHTML = h;
+  const I = $('iBuild');
+  I.querySelectorAll('.tabs [data-t]').forEach(b => b.onclick = () => { sfx('tap'); buildTab = b.dataset.t; renderBuild(); });
+  const bought = () => { sfx('coin'); addXP(3); saveNow(); renderBuild(); refreshTop(); tutEvent('buy'); };
+  if($('bPool')) $('bPool').onclick = () => { if(pay('c', poolCost(S.cur))){ S.ar[S.cur].pools.push('hot'); poolKey = ''; addXP(10); toast('♨️ ' + tr('A new pool! Room for {n} more.', {n: CONFIG.POOL_SEATS}), 'gold'); rebalance(S.cur); bought(); } };
+  I.querySelectorAll('[data-pt]').forEach(b => b.onclick = () => { const k = b.dataset.pt, P = POOLS[k]; if(P.g ? pay('g', P.g) : pay('c', poolTypeCost(k))){ S.poolTypes[k] = 1; toast(P.e + ' ' + L(P) + ' ' + tr('unlocked! Tap a pool to use it.'), 'gold'); bought(); } });
+  if($('upSnack')) $('upSnack').onclick = () => { if(pay('c', snackUpCost())){ S.up.snack++; toast('🍱 ' + tr('Better snacks!') + ' Lv ' + S.up.snack); bought(); } };
+  if($('upJar')) $('upJar').onclick = () => { if(pay('c', jarCost())){ S.up.jar++; toast('🫙 ' + offlineCapH() + 'h'); bought(); } };
+  if($('upTowel')) $('upTowel').onclick = () => { if(pay('c', towelCost())){ S.up.towel++; toast('🧺 ' + tr('Fluffier towels!')); bought(); } };
+  I.querySelectorAll('[data-dec]').forEach(b => b.onclick = () => {
+    const k = b.dataset.dec, D = DECOR[k], pr = decorCost(k, S.cur);
+    if(D.g && S.g < D.g){ toast('💎 ' + tr('Not enough gems'), 'err'); sfx('err'); return; }
+    if(!pay('c', pr)) return;
+    if(D.g) S.g -= D.g;
+    S.ar[S.cur].decor[k] = 1; addXP(8); toast(D.e + ' ' + L(D) + ' ' + tr('placed!'), 'gold'); bgKey = ''; bought();
+  });
+  I.querySelectorAll('[data-wx]').forEach(b => b.onclick = () => { const k = b.dataset.wx; if(pay('c', wxCost(k))){ S.wx[k] = 1; S.weather = k; wxKey = ''; toast(WEATHER[k].e + ' ' + L(WEATHER[k]) + '!', 'gold'); bought(); } });
+  I.querySelectorAll('[data-area]').forEach(b => b.onclick = () => openArea(+b.dataset.area));
+  I.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { goArea(b.dataset.go); showView('Spa'); });
+}
+/* after a new pool: spread the capybaras out */
+function rebalance(a){
+  capysIn(a).filter(isAdult).forEach(x => { const old = x.pool; assignPool(x); if(x.pool !== old && actors[x.id] && a === S.cur) goToPool(actors[x.id], x); });
+}
+function openArea(i){
+  const Ar = AREAS[i];
+  if(!canOpenArea(i) || !pay('c', areaCost(i))) return;
+  S.open.push(Ar.id); S.ar[Ar.id] = newArea(); addXP(30); sfx('new');
+  // a friend moves in to welcome you
+  const k = Ar.id === 'snow' ? 'snowy' : Ar.id === 'jungle' ? 'mossy' : pick(['golden', 'fluffy', 'spotted']);
+  const x = makeCapy({k, a: Ar.id, adult: true});
+  saveNow();
+  showReward(Ar.e, tr('{a} is open!', {a: L(Ar)}), tr('{n} was waiting for you there!', {n: esc(x.n)}) + '<br><div class="bigCapy">' + capySVG(k, {size: 140, halo: true}) + '</div>', () => { goArea(Ar.id); showView('Spa'); });
+}
+
+/* ---------- SHOP tab: snacks, fruits, friends, goodies ---------- */
+let shopTab = 'snacks';
+function renderShop(){
+  let h = '<div class="tabs">' + [['snacks', '🍉 ' + tr('Snacks')], ['fruits', '🍊 ' + tr('Fruits')], ['friends', '🐤 ' + tr('Friends')], ['paid', '🛍️ ' + tr('Goodies')]]
+    .map(([k, n]) => '<button data-t="' + k + '" class="' + (shopTab === k ? 'on' : '') + '">' + n + '</button>').join('') + '</div>';
+  if(shopTab === 'snacks'){
+    h += '<p class="muted">' + tr('Feed your capybaras to keep them happy. Happy = more coins.') + ' <b>(' + tr('pack of 5') + ')</b></p>';
+    SNACK_IDS.forEach(k => { const F = SNACKS[k]; h += card(F.e, L(F) + ' <span class="muted">× ' + S.snacks[k] + '</span>', '🍉 +' + F.food + (F.calm ? ' · 😌 +' + F.calm : '') + ' · 💗 +' + F.fr_, priceBtn('data-sn="' + k + '"', 'c', snackPrice(k) * 5)); });
+  }
+  if(shopTab === 'fruits'){
+    h += '<p class="muted">' + tr('Stack fruits on a capybara’s head. The taller the stack, the bigger the bonus!') + ' <b>(' + tr('pack of 3') + ')</b></p>';
+    FRUIT_IDS.forEach(k => { const F = FRUITS[k]; h += card(F.e, L(F) + ' <span class="muted">× ' + S.fruit[k] + '</span>', '🗼 ' + tr('For the head stack'), priceBtn('data-fr="' + k + '"', 'c', fruitPrice(k) * 3)); });
+  }
+  if(shopTab === 'friends'){
+    h += '<p class="muted">' + tr('Invite animal friends to sit on your capybaras. +15% coins, x2 with the right personality!') + '</p>';
+    PAL_IDS.forEach(k => { const P = PALS[k], Pe = PERSONALITIES[P.likes];
+      h += card(P.e, L(P) + ' <span class="muted">× ' + (S.pals[k] || 0) + '</span>', '💥 ' + tr('Combo with') + ' ' + Pe.e + ' ' + L(Pe), priceBtn('data-pl="' + k + '"', 'c', palPrice(k))); });
+  }
+  if(shopTab === 'paid') h += paidShopHtml();
+  $('iShop').innerHTML = h;
+  const I = $('iShop');
+  I.querySelectorAll('.tabs [data-t]').forEach(b => b.onclick = () => { sfx('tap'); shopTab = b.dataset.t; renderShop(); });
+  const bought = () => { sfx('coin'); addXP(2); saveNow(); renderShop(); refreshTop(); tutEvent('buy'); };
+  I.querySelectorAll('[data-sn]').forEach(b => b.onclick = () => { const k = b.dataset.sn; if(pay('c', snackPrice(k) * 5)){ S.snacks[k] += 5; toast('+5 ' + SNACKS[k].e); bought(); } });
+  I.querySelectorAll('[data-fr]').forEach(b => b.onclick = () => { const k = b.dataset.fr; if(pay('c', fruitPrice(k) * 3)){ S.fruit[k] += 3; toast('+3 ' + FRUITS[k].e); bought(); } });
+  I.querySelectorAll('[data-pl]').forEach(b => b.onclick = () => { const k = b.dataset.pl; if(pay('c', palPrice(k))){ S.pals[k] = (S.pals[k] || 0) + 1; sfx('chirp'); toast(PALS[k].e + ' ' + tr('{n} joined your spa!', {n: L(PALS[k])}), 'gold'); bought(); } });
+  if(shopTab === 'paid') bindPaidShop();
+}
+
+/* ---------- daily gift ---------- */
+function openGift(){
+  const t = now(), today = dayNum(t), ready = S.daily.last !== today;
+  const streak = ready ? (S.daily.last === today - 1 ? S.daily.streak + 1 : 1) : S.daily.streak;
+  const day = ((streak - 1) % 7 + 7) % 7, G = GIFT_DAYS[day];
+  const pr = Math.round(Math.max(150, incomeFloor() * 60 * G.p));
+  const items = Object.keys(G).filter(k => k !== 'p').map(k => ' +' + G[k] + ' ' + (SNACKS[k] || FRUITS[k]).e).join('');
+  let h = '<div class="row" style="justify-content:center;gap:4px;flex-wrap:wrap;margin-bottom:8px">';
+  GIFT_DAYS.forEach((g, i) => h += '<span class="tag" style="font-size:.9em;padding:5px 8px;' + (i === day ? 'background:var(--peach2);color:#fff' : i < day ? 'background:var(--teal)' : '') + '">' + tr('Day') + ' ' + (i + 1) + '</span>');
+  h += '</div><div class="reward"><div class="big">🎁</div><div class="amt">+' + fmt(pr) + ' ' + CN + items + '</div>';
+  h += '<p class="muted">🔥 ' + tr('Streak') + ': ' + streak + '<br>👋 ' + tr('A visiting capybara comes too!') + '</p></div>';
+  h += ready ? '<button class="btn wide gold" id="gfGo">' + tr('Open my gift!') + '</button>' : '<p class="center"><b>' + tr('Come back tomorrow for the next gift!') + '</b></p>';
+  openModal('🎁 ' + tr('Daily gift'), h);
+  if($('gfGo')) $('gfGo').onclick = () => {
+    S.daily = {streak, last: today}; addCo(pr);
+    Object.keys(G).forEach(k => { if(SNACKS[k]) S.snacks[k] += G[k]; if(FRUITS[k]) S.fruit[k] += G[k]; });
+    sfx('win'); closeModal(); toast('🎁 +' + fmt(pr) + ' ' + CN, 'gold'); saveNow(); renderSide(); refreshTop();
+    if(S.dvDay !== today && !S.guest){ S.dvDay = today; setTimeout(() => spawnGuest('daily'), 900); }
+  };
+}
+
+/* ---------- boosts + free rewards (all optional) ---------- */
+function openBoosts(){
+  sfx('tap');
+  const t = now(), left = Math.max(0, S.ad2x - t), maxMs = CONFIG.AD_2X_MAX_H * 3600000, today = dayNum(t);
+  const gemsLeft = CONFIG.AD_GEMS_PER_DAY - (S.adGems.day === today ? S.adGems.n : 0);
+  const upWait = Math.max(0, S.adUpAt - t);
+  let h = card('⚡', '2× ' + tr('coins'), left ? tr('Active') + ': ' + fmtTime(left / 1000) : tr('+30 min each time, up to 4 h'), '<button class="btn mint sm" id="bxAd"' + (left + CONFIG.AD_2X_MIN * 60000 > maxMs ? ' disabled' : '') + '>' + adIcon() + ' +30m</button>');
+  h += card('🌟', tr('Call a rare capybara'), S.guest ? tr('A guest is already here') : tr('A rare guest comes. Welcome it for free!'), '<div style="display:flex;flex-direction:column;gap:4px"><button class="btn mint sm" id="bxRare"' + (S.guest ? ' disabled' : '') + '>' + adIcon() + ' ' + tr('Call') + '</button><button class="btn lav sm" id="bxRareG"' + (S.guest ? ' disabled' : '') + '>💎 ' + CONFIG.RARE_GUEST_GEMS + '</button></div>');
+  h += card('🎁', tr('Free upgrade'), upWait ? '⏳ ' + fmtTime(upWait / 1000) : tr('Next “Better snacks” level for free'), '<button class="btn mint sm" id="bxUp"' + (upWait || S.up.snack >= CONFIG.SNACK_UP_MAX ? ' disabled' : '') + '>' + adIcon() + ' ' + tr('Get') + '</button>');
+  h += card('💎', '+' + CONFIG.AD_GEMS + ' ' + tr('gems'), tr('{n} left today', {n: gemsLeft}), '<button class="btn mint sm" id="bxGem"' + (gemsLeft < 1 ? ' disabled' : '') + '>' + adIcon() + ' +' + CONFIG.AD_GEMS + '</button>');
+  h += '<p class="muted center">' + CN + ' ' + fmt(incomePerSec()) + '/s · ' + tr('Ads are always your choice.') + '</p>';
+  if(!S.noAds) h += '<button class="btn wide lav" id="bxNo">🛍️ ' + tr('Spa Pack: no ads needed') + '</button>';
+  openModal('⚡ ' + tr('Boosts & free rewards'), h);
+  $('bxAd').onclick = async () => { closeModal(); if(await rewardAd()){ S.ad2x = Math.min(now() + maxMs, Math.max(now(), S.ad2x) + CONFIG.AD_2X_MIN * 60000); toast('⚡ 2× ' + tr('coins') + '!', 'gold'); refreshTop(); renderSide(); saveNow(); } };
+  $('bxRare').onclick = async () => { closeModal(); if(await rewardAd()) spawnGuest('rare'); };
+  $('bxRareG').onclick = () => { if(!pay('g', CONFIG.RARE_GUEST_GEMS)) return; closeModal(); spawnGuest('rare'); };
+  $('bxUp').onclick = async () => { closeModal(); if(await rewardAd()){ S.up.snack++; S.adUpAt = now() + CONFIG.AD_UPGRADE_HOURS * 3600000; sfx('level'); toast('🍱 ' + tr('Better snacks!') + ' Lv ' + S.up.snack, 'gold'); saveNow(); } };
+  $('bxGem').onclick = async () => { closeModal(); if(await rewardAd()){ if(S.adGems.day !== dayNum(now())) S.adGems = {day: dayNum(now()), n: 0}; S.adGems.n++; S.g += CONFIG.AD_GEMS; sfx('coin'); toast('+' + CONFIG.AD_GEMS + ' 💎', 'gold'); saveNow(); refreshTop(); } };
+  if($('bxNo')) $('bxNo').onclick = () => { closeModal(); shopTab = 'paid'; showView('Shop'); };
+}
+
+/* ---------- MORE tab: profile, settings, help ---------- */
+function renderMore(){
+  const av = S.avatar && capyById(S.avatar);
+  let h = '<div class="center">' + (av ? '<div class="bigCapy">' + capySVG(av.k, {size: 150, baby: !isAdult(av), halo: true}) + '</div>' : '') + '<div style="font-size:1.4em;font-weight:900">' + esc(S.name || tr('Spa Keeper')) + ' <button class="btn ghost sm" id="pfName">✏️</button></div>' +
+    '<div class="tag" style="font-size:.95em;margin-top:4px">⭐ ' + tr('Level') + ' ' + S.lv + ' · ' + L(titleOf(S.lv)) + '</div><p class="muted">' + tr('Pick your profile picture from any capybara.') + '</p></div>';
+  const st = S.stats;
+  const rows = [[CN, tr('Coins earned'), fmt(st.coins)], ['💗', tr('Capybaras'), S.capys.length], ['📖', tr('Kinds found'), bookCount() + '/' + KIND_IDS.length],
+    ['👋', tr('Guests welcomed'), st.guests], ['🍼', tr('Babies'), st.babies], ['🤲', tr('Pets'), st.pets], ['🍉', tr('Snacks given'), st.feeds], ['🍊', tr('Fruits stacked'), st.stacks], ['🎮', tr('Games played'), st.games], ['🔥', tr('Streak'), S.daily.streak], ['⏱️', tr('Time played'), fmtTime(st.play)], [CN, tr('Per second'), fmt(incomePerSec())]];
+  h += '<h3>📊 ' + tr('Stats') + '</h3><div class="card" style="display:block">' + rows.map(r => '<div class="row" style="justify-content:space-between;padding:4px 0"><span>' + r[0] + ' ' + r[1] + '</span><b>' + r[2] + '</b></div>').join('') + '</div>';
+  h += '<h3>⚙️ ' + tr('Settings') + '</h3>';
+  const tg = (id, on, e, n) => '<div class="card"><div class="art">' + e + '</div><div class="info nm">' + n + '</div><button class="btn sm ' + (on ? 'mint' : 'ghost') + '" id="' + id + '">' + (on ? tr('On') : tr('Off')) + '</button></div>';
+  h += tg('stSnd', S.snd, '🔊', tr('Sounds')) + tg('stMus', S.mus, '🎵', tr('Music')) + tg('stEasy', S.easy, '🔤', tr('Easy-read font'));
+  h += '<div class="card"><div class="art">🌐</div><div class="info nm">' + tr('Language') + '</div><div class="seg"><button id="lgEn" class="' + (S.lang === 'en' ? 'on' : '') + '">English</button><button id="lgFr" class="' + (S.lang === 'fr' ? 'on' : '') + '">Français</button></div></div>';
+  h += '<div class="card"><div class="art">🔠</div><div class="info nm">' + tr('Text size') + '</div><div class="seg">' + [[0.9, 'A'], [1, 'A+'], [1.15, 'A++']].map(([v, n]) => '<button data-fs="' + v + '" class="' + (S.fsz === v ? 'on' : '') + '">' + n + '</button>').join('') + '</div></div>';
+  if(S.pack) h += '<div class="card"><div class="art">🌙</div><div class="info nm">' + tr('Spa theme') + '</div><div class="seg"><button id="thC" class="' + (S.theme !== 'moon' ? 'on' : '') + '">' + tr('Classic') + '</button><button id="thM" class="' + (S.theme === 'moon' ? 'on' : '') + '">' + tr('Moonlight') + '</button></div></div>';
+  h += '<h3>❓ ' + tr('How to play') + '</h3><div class="card" style="display:block;line-height:1.6">' +
+    ['💗 ' + tr('Tap a capybara to pet it. Feed it snacks.'), CN + ' ' + tr('Relaxed capybaras give coins, even while the app is closed.'), '🍊 ' + tr('Stack fruits on its head. Taller stack = bigger bonus!'),
+     '🐤 ' + tr('Animal friends sit on capybaras. Match the personality for a combo!'), '♨️ ' + tr('Each capybara has a favorite pool type: +50% coins there.'),
+     '🍼 ' + tr('Happy friends (3 hearts) sometimes get a baby.'), '👋 ' + tr('Guests come to the gate. Welcome them!'), '📖 ' + tr('Fill your Collection book for gems!')].map(s => '<div>' + s + '</div>').join('') + '</div>';
+  h += '<button class="btn wide ghost" id="stTut">🧭 ' + tr('Replay tutorial') + '</button>';
+  h += '<button class="btn wide ghost" id="stRestore">💳 ' + tr('Restore purchases') + '</button>';
+  h += '<button class="btn wide ghost" id="stReset" style="color:var(--bad)">🗑️ ' + tr('Reset game') + '</button>';
+  h += '<p class="muted center">' + tr('No account. Everything is saved on this phone.') + '<br>Capybara Spa v1.0 · MOS Arcade</p>';
+  $('iMore').innerHTML = h;
+  $('pfName').onclick = () => { openModal(tr('Your name'), '<input id="pnIn" maxlength="16" value="' + esc(S.name) + '" style="width:100%;padding:12px;border-radius:12px;border:2px solid #eddccb;font-size:18px"><button class="btn wide" id="pnOk">' + tr('Save') + '</button>');
+    $('pnOk').onclick = () => { S.name = $('pnIn').value.trim().slice(0, 16); closeModal(); renderMore(); saveNow(); }; };
+  $('stSnd').onclick = () => { S.snd = !S.snd; if(S.snd) waterStart(); else waterStop(); renderMore(); refreshTop(); saveNow(); sfx('tap'); };
+  $('stMus').onclick = () => { S.mus = !S.mus; if(S.mus) audioUnlock(); else musicStop(); renderMore(); refreshTop(); saveNow(); };
+  $('stEasy').onclick = () => { S.easy = !S.easy; applySettings(); renderMore(); saveNow(); };
+  $('lgEn').onclick = () => { S.lang = 'en'; applySettings(); renderAll(); saveNow(); };
+  $('lgFr').onclick = () => { S.lang = 'fr'; applySettings(); renderAll(); saveNow(); };
+  $('iMore').querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { S.fsz = +b.dataset.fs; applySettings(); renderMore(); saveNow(); });
+  if($('thC')){ $('thC').onclick = () => { S.theme = 'classic'; bgKey = ''; saveNow(); renderMore(); }; $('thM').onclick = () => { S.theme = 'moon'; bgKey = ''; saveNow(); renderMore(); }; }
+  $('stTut').onclick = () => { S.tut = 1; showView('Spa'); tutShow(); };
+  $('stRestore').onclick = restorePurchases;
+  $('stReset').onclick = () => confirmBox('🗑️ ' + tr('Reset game?'), tr('This deletes ALL your progress. It cannot be undone.'), tr('Yes, reset'), () =>
+    confirmBox('⚠️ ' + tr('Are you really sure?'), tr('Last chance! Everything will be gone.'), tr('Reset everything'), () => {
+      try{ localStorage.removeItem(SAVE_KEY); }catch(e){} S = null; location.reload(); }));
+}
+function applySettings(){
+  document.body.classList.toggle('easy', !!S.easy);
+  document.documentElement.style.setProperty('--fs', S.fsz || 1);
+  document.documentElement.lang = S.lang;
+}
+function renderAll(){ renderNav(); refreshTop(); poolKey = ''; $('areaName')._h = ''; $('sideR')._h = ''; $('careBar')._h = ''; showView(curView); }
+
+/* =====================================================================
+   10. MINI GAMES — Fruit Stack, Fruit Catch
+   Each game: intro → loop (update + draw) → gameOver(score)
+   update(dt) moves things, draw(ctx) paints the screen, every frame.
+===================================================================== */
+const GAMES = [
+  {id:'stack', e:'🗼', en:'Fruit Stack', fr:'Pile de fruits', d:{en:'Tap to drop the swinging fruit on the capybara’s head. Build the tallest stack!', fr:'Touche pour lâcher le fruit qui se balance sur la tête du capybara. Fais la plus haute pile!'}},
+  {id:'catch', e:'🧺', en:'Fruit Catch', fr:'Attrape les fruits', d:{en:'Slide your finger to catch falling fruit. Watch out for the bees!', fr:'Glisse ton doigt pour attraper les fruits qui tombent. Attention aux abeilles!'}},
+];
+function renderGames(){
+  const t = now(), next = S.tickets < CONFIG.TICKETS_MAX ? fmtTime((S.tkT + CONFIG.TICKET_MIN * 60000 - t) / 1000) : '';
+  let h = card('🎟️', tr('Tickets') + ': ' + S.tickets + '/' + CONFIG.TICKETS_MAX, next ? tr('+1 in') + ' ' + next : tr('Full!'), '<button class="btn mint sm" id="tkAd">' + adIcon() + ' +' + CONFIG.AD_TICKETS + '</button>');
+  GAMES.forEach(g => {
+    h += '<div class="card"><div class="art" style="font-size:36px">' + g.e + '</div><div class="info"><div class="nm">' + L(g) + '</div><div class="sub">' + L(g.d) + '</div><div class="sub">🏆 ' + tr('Best') + ': ' + (S.stats.best[g.id] || 0) + '</div></div>' +
+      '<button class="btn sm" data-g="' + g.id + '"' + (S.tickets < 1 ? ' disabled' : '') + '>▶ ' + tr('Play') + '</button></div>';
+  });
+  h += '<p class="muted center">' + tr('Win coins and fruits for your capybaras!') + '</p>';
+  $('iGames').innerHTML = '<h2>🎮 ' + tr('Mini games') + '</h2>' + h;
+  $('iGames').querySelectorAll('[data-g]').forEach(b => b.onclick = () => startGame(b.dataset.g, true));
+  $('tkAd').onclick = async () => { if(await rewardAd()){ S.tickets += CONFIG.AD_TICKETS; saveNow(); toast('+' + CONFIG.AD_TICKETS + ' 🎟️', 'gold'); renderGames(); } };
+}
+
+let G = null;   // the running game
+const cv = () => $('gCanvas');
+function svgImg(svg){ const i = new Image(); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); return i; }
+function playerCapy(){ return (S.avatar && capyById(S.avatar)) || S.capys[0] || {k: 'classic', grow: 99999}; }
+function startGame(id, intro){
+  if(S.tickets < 1){ toast('🎟️ ' + tr('No tickets left. Watch an ad or wait.'), 'err'); sfx('err'); showView('Games'); return; }
+  audioUnlock();
+  $('game').classList.add('on'); $('gOver').classList.remove('on'); $('gHud').innerHTML = '';
+  const c = cv(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  c.width = innerWidth * dpr; c.height = innerHeight * dpr;
+  const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  G = {id, ctx, W: innerWidth, H: innerHeight, t: 0, score: 0, shownScore: 0, shake: 0, parts: [], texts: [], over: false, started: false, last: performance.now(), img: svgImg(capySVG(playerCapy().k))};
+  ({stack: stackInit, catch: catchInit})[id]();
+  const go = () => {
+    if(S.tickets < 1) return;
+    if(S.tickets >= CONFIG.TICKETS_MAX) S.tkT = now();
+    S.tickets--; S.stats.games++; saveNow();
+    $('gIntro').classList.remove('on'); G.started = true; G.last = performance.now();
+    tutEvent('game');
+  };
+  if(intro){
+    const g = GAMES.find(q => q.id === id);
+    $('gIntroBox').innerHTML = '<div style="font-size:56px">' + g.e + '</div><h2 style="margin:6px 0">' + L(g) + '</h2><p style="font-weight:800">' + L(g.d) + '</p>' +
+      '<button class="btn wide" id="giGo">▶ ' + tr('Start') + ' · 🎟️ 1</button><button class="btn wide ghost" id="giBack">' + tr('Back') + '</button>';
+    $('gIntro').classList.add('on');
+    $('giGo').onclick = go; $('giBack').onclick = closeGame;
+  } else go();
+  requestAnimationFrame(gameLoop);
+}
+function gameLoop(ts){
+  if(!G || G.over) return;
+  const dt = Math.min(0.05, (ts - G.last) / 1000); G.last = ts;
+  if(G.started){ G.t += dt; G.update(dt); }
+  G.shownScore += (G.score - G.shownScore) * Math.min(1, dt * 10);   // score ticks up
+  const ctx = G.ctx; ctx.save();
+  if(G.shake > 0){ G.shake -= dt; ctx.translate(rnd(-6, 6) * G.shake * 3, rnd(-6, 6) * G.shake * 3); }
+  G.draw(ctx);
+  G.parts = G.parts.filter(p => (p.life -= dt) > 0);
+  G.parts.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 200 * dt; ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); });
+  G.texts = G.texts.filter(q => (q.life -= dt) > 0);
+  G.texts.forEach(q => { q.y -= 40 * dt; ctx.globalAlpha = Math.min(1, q.life * 2); ctx.font = '900 ' + (q.size || 24) + 'px Nunito, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.strokeText(q.s, q.x, q.y); ctx.fillStyle = q.c || '#4b3527'; ctx.fillText(q.s, q.x, q.y); });
+  ctx.globalAlpha = 1; ctx.restore();
+  requestAnimationFrame(gameLoop);
+}
+function burst(x, y, c, n){ for(let i=0;i<(n || 10);i++){ const a = Math.random() * 7, s = rnd(60, 200); G.parts.push({x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 60, r: rnd(2, 5), c: c || '#fff', life: 0.7, max: 0.7}); } }
+function floatText(x, y, s, c, size){ G.texts.push({x, y, s, c, size, life: 0.9}); }
+function hud(html){ if(G._hud === html) return; G._hud = html; $('gHud').innerHTML = html + '<button class="pill" id="gQuit" style="padding:8px 14px">✕</button>'; $('gQuit').onclick = () => G.started ? gameOver(true) : closeGame(); }
+function emoji(ctx, e, x, y, size){ ctx.font = size + 'px "Noto Color Emoji","Apple Color Emoji","Segoe UI Emoji",serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(e, x, y); }
+function spaBg(ctx){
+  const g = ctx.createLinearGradient(0, 0, 0, G.H); g.addColorStop(0, '#ffe9d4'); g.addColorStop(0.55, '#ffd2b0'); g.addColorStop(0.56, '#e5b27c'); g.addColorStop(1, '#cf9763');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, G.W, G.H);
+  ctx.fillStyle = '#d9b39a'; ctx.beginPath(); ctx.moveTo(0, G.H * 0.5); for(let x=0;x<=G.W;x+=G.W/6) ctx.lineTo(x, G.H * (0.42 + ((x / G.W * 6) % 2 ? 0.05 : 0))); ctx.lineTo(G.W, G.H * 0.56); ctx.lineTo(0, G.H * 0.56); ctx.fill();
+}
+function drawCapy(ctx, x, y, w, face, sx, sy){
+  if(!G.img.complete) return;
+  ctx.save(); ctx.translate(x, y); ctx.scale((face || 1) * (sx || 1), sy || 1); ctx.drawImage(G.img, -w / 2, -w * 0.7, w, w * 0.7); ctx.restore();
+}
+
+/* ---------- FRUIT STACK ---------- */
+function stackInit(){
+  const fr = FRUIT_IDS.map(k => FRUITS[k].e);
+  Object.assign(G, {lives: 3, stack: [], cam: 0, camT: 0, hang: pick(fr), fall: null, R: 22, fr, swingT: 0});
+  const cw = Math.min(260, G.W * 0.62);
+  G.base = {x: G.W / 2, y: G.H - 70, w: cw};
+  // head top of the capybara drawing (in screen space when cam = 0)
+  G.headX = G.base.x + cw * 28 / 120; G.headY = G.base.y + 6 - cw * 0.7 * (64 / 84);
+  const c = cv();
+  c.onpointerdown = () => {
+    if(!G.started || G.fall || G.over) return;
+    const p = hangPos();
+    G.fall = {x: p.x, y: p.y, vy: 0, e: G.hang}; sfx('whoosh');
+  };
+  const topY = () => G.headY - G.stack.length * G.R * 1.6;               // world y of the top of the stack
+  const topX = () => G.stack.length ? G.stack[G.stack.length - 1].x : G.headX;
+  function hangPos(){
+    const L = 120, amp = Math.min(0.85, 0.5 + G.stack.length * 0.03), a = Math.sin(G.swingT) * amp;
+    const ay = topY() - 230 + G.cam;   // the rope hangs well above the stack (screen space)
+    return {x: G.W / 2 + Math.sin(a) * L * 1.6, y: ay + Math.cos(a) * L, ax: G.W / 2, ay};
+  }
+  G.hangPos = hangPos;
+  G.update = dt => {
+    G.swingT += dt * (CONFIG.STACK_SWING + G.stack.length * 0.1);
+    // camera follows the stack up
+    G.camT = Math.max(0, (G.H * 0.62) - (topY()));
+    G.cam += (G.camT - G.cam) * Math.min(1, dt * 4);
+    if(G.fall){
+      const f = G.fall; f.vy += 1500 * dt; f.y += f.vy * dt;
+      if(!f.miss){
+        const ty = topY() - G.R * 0.8 + G.cam;
+        if(f.y >= ty){
+          const dx = f.x - topX();
+          if(Math.abs(dx) < G.R * (G.stack.length ? 1.15 : 1.4)){
+            const perfect = Math.abs(dx) < 6;
+            G.stack.push({x: perfect ? topX() : f.x, e: f.e, sq: 0.4});
+            const v = perfect ? 2 : 1; G.score += v;
+            sfx('stack'); if(perfect){ sfx('coin'); floatText(f.x, ty - 30, tr('Perfect!') + ' +2', '#ff6f91', 26); burst(f.x, ty, '#ffd54a', 16); }
+            else { floatText(f.x, ty - 30, '+1'); burst(f.x, ty, '#fff', 8); }
+            if(G.stack.length % 5 === 0) squeak(1.3);
+            G.fall = null; G.hang = pick(G.fr);
+          } else { f.miss = true; f.vx = dx > 0 ? 160 : -160; G.lives--; G.shake = 0.3; sfx('err'); floatText(f.x, ty - 30, tr('Oops!'), '#ff5f6f'); }
+        }
+      } else {
+        f.x += f.vx * dt;
+        if(f.y > G.H + 60){ G.fall = null; G.hang = pick(G.fr); if(G.lives <= 0) gameOver(); }
+      }
+    }
+    G.stack.forEach(s => { if(s.sq > 0) s.sq -= dt * 2; });
+    hud('<span class="pill">🗼 ' + Math.round(G.shownScore) + '</span><span class="pill">' + '❤️'.repeat(Math.max(0, G.lives)) + '🤍'.repeat(Math.max(0, 3 - G.lives)) + '</span>');
+  };
+  G.draw = ctx => {
+    spaBg(ctx);
+    ctx.save(); ctx.translate(0, G.cam);
+    // the capybara + the stack (wobbles a little as it gets taller)
+    drawCapy(ctx, G.base.x, G.base.y + 6, G.base.w, 1, 1, 1);
+    const wob = Math.sin(G.t * 2) * Math.min(0.06, G.stack.length * 0.004);
+    ctx.save(); ctx.translate(G.headX, G.headY); ctx.rotate(wob); ctx.translate(-G.headX, -G.headY);
+    G.stack.forEach((s, i) => { const y = G.headY - i * G.R * 1.6 - G.R * 0.8, sc = 1 + Math.max(0, s.sq) * 0.5; ctx.save(); ctx.translate(s.x, y); ctx.scale(sc, 2 - sc); emoji(ctx, s.e, 0, 0, G.R * 2); ctx.restore(); });
+    ctx.restore();
+    ctx.restore();
+    // the swinging fruit on its rope
+    const p = G.hangPos();
+    if(!G.fall){
+      ctx.strokeStyle = '#8a6040'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(p.ax, p.ay); ctx.lineTo(p.x, p.y - G.R); ctx.stroke();
+      ctx.fillStyle = '#8a6040'; ctx.beginPath(); ctx.arc(p.ax, p.ay, 6, 0, 7); ctx.fill();
+      emoji(ctx, G.hang, p.x, p.y, G.R * 2);
+      // a dotted guide line down
+      ctx.setLineDash([4, 8]); ctx.strokeStyle = '#ffffffaa'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x, p.y + G.R); ctx.lineTo(p.x, p.y + 160); ctx.stroke(); ctx.setLineDash([]);
+    } else emoji(ctx, G.fall.e, G.fall.x, G.fall.y, G.R * 2);
+  };
+  hud('<span class="pill">🗼 0</span>');
+}
+
+/* ---------- FRUIT CATCH ---------- */
+function catchInit(){
+  Object.assign(G, {x: G.W / 2, tx: G.W / 2, face: 1, items: [], spawn: 0, lives: 3, pop: 0, speed: CONFIG.CATCH_SPEED});
+  const c = cv();
+  c.onpointerdown = c.onpointermove = e => { G.tx = e.clientX; };
+  const fr = ['🍊', '🍎', '🍓', '🍋', '🍑'];
+  G.update = dt => {
+    const old = G.x; G.x += (G.tx - G.x) * Math.min(1, dt * 12);
+    if(Math.abs(G.x - old) > 0.5) G.face = G.x > old ? 1 : -1;
+    G.speed += CONFIG.CATCH_RAMP * dt;
+    G.spawn -= dt;
+    if(G.spawn <= 0){
+      G.spawn = Math.max(0.33, 0.95 - G.t * 0.012);
+      const r = Math.random();
+      G.items.push({x: rnd(30, G.W - 30), y: -30, k: r < 0.07 ? 'melon' : r < 0.3 + Math.min(0.18, G.t * 0.004) ? 'bee' : 'fruit', e: pick(fr), vy: G.speed * rnd(0.85, 1.2), rot: rnd(-2, 2), wob: rnd(0, 6)});
+    }
+    const py = G.H - 120;
+    G.items = G.items.filter(it => {
+      it.y += it.vy * dt; it.rot += dt; if(it.k === 'bee') it.x += Math.sin(G.t * 4 + it.wob) * 60 * dt;
+      if(Math.abs(it.y - py) < 36 && Math.abs(it.x - G.x) < 52){
+        if(it.k === 'bee'){ G.lives--; G.shake = 0.35; sfx('err'); burst(it.x, it.y, '#ffd23a', 12); floatText(it.x, it.y - 20, '🐝!', '#ff5f6f'); if(G.lives <= 0) setTimeout(() => gameOver(), 300); }
+        else { const v = it.k === 'melon' ? 3 : 1; G.score += v; G.pop = 0.18; sfx(it.k === 'melon' ? 'coin' : 'eat'); burst(it.x, it.y, it.k === 'melon' ? '#7fd36a' : '#ffb36b', 10); floatText(it.x, it.y - 20, '+' + v); if(Math.random() < 0.2) squeak(); }
+        return false;
+      }
+      return it.y < G.H + 40;
+    });
+    if(G.pop > 0) G.pop -= dt;
+    hud('<span class="pill">🧺 ' + Math.round(G.shownScore) + '</span><span class="pill">' + '❤️'.repeat(Math.max(0, G.lives)) + '🤍'.repeat(Math.max(0, 3 - G.lives)) + '</span>');
+  };
+  G.draw = ctx => {
+    spaBg(ctx);
+    G.items.forEach(it => { ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(it.k === 'bee' ? Math.sin(G.t * 8) * 0.2 : it.rot * 0.4);
+      emoji(ctx, it.k === 'bee' ? '🐝' : it.k === 'melon' ? '🍉' : it.e, 0, 0, it.k === 'melon' ? 46 : 40); ctx.restore(); });
+    const s = 1 + (G.pop > 0 ? G.pop * 1.4 : 0);
+    drawCapy(ctx, G.x, G.H - 80, 150, G.face, s, 2 - s);
+  };
+  hud('<span class="pill">🧺 0</span>');
+}
+
+/* ---------- game over + prizes ---------- */
+function gameOver(quit){
+  if(!G || G.over) return;
+  G.over = true;
+  const id = G.id, sc = G.score, inc = incomeFloor();
+  let p = sc * inc * ({stack: 12, catch: 6}[id]), best = false;
+  if(sc > (S.stats.best[id] || 0)){ S.stats.best[id] = sc; best = sc > 0; }
+  if(quit) p *= 0.5;
+  p = Math.round(Math.max(sc > 0 ? 25 : 0, p));
+  addCo(p); addXP(Math.min(25, 6 + Math.floor(sc / 2)));
+  const fruit = sc >= 6 ? pick(FRUIT_IDS) : null; if(fruit) S.fruit[fruit] += 2;
+  const snack = sc >= 12 ? pick(SNACK_IDS) : null; if(snack) S.snacks[snack] += 2;
+  saveNow();
+  if(best) sfx('win');
+  const g = GAMES.find(q => q.id === id);
+  $('gOverBox').innerHTML = '<div style="font-size:50px">' + (best ? '🏆' : g.e) + '</div><h2 style="margin:6px 0">' + (best ? tr('New best!') : tr('Nice try!')) + '</h2>' +
+    '<div style="font-size:1.4em;font-weight:900">' + g.e + ' ' + sc + ' <span class="muted">· 🏆 ' + S.stats.best[id] + '</span></div>' +
+    '<div class="reward"><div class="amt">+' + fmt(p) + ' ' + CN + (fruit ? ' +2 ' + FRUITS[fruit].e : '') + (snack ? ' +2 ' + SNACKS[snack].e : '') + '</div></div>' +
+    '<button class="btn wide" id="goAgain"' + (S.tickets < 1 ? ' disabled' : '') + '>🔁 ' + tr('Play again') + ' · 🎟️ ' + S.tickets + '</button>' +
+    (S.tickets < 1 ? '<button class="btn wide mint" id="goTk">' + adIcon() + ' +' + CONFIG.AD_TICKETS + ' 🎟️</button>' : '') +
+    '<button class="btn wide ghost" id="goBack">' + tr('Back') + '</button>';
+  $('gOver').classList.add('on');
+  $('goAgain').onclick = () => startGame(id, false);
+  if($('goTk')) $('goTk').onclick = async () => { if(await rewardAd()){ S.tickets += CONFIG.AD_TICKETS; saveNow(); startGame(id, false); } };
+  $('goBack').onclick = closeGame;
+}
+function closeGame(){
+  G = null; $('game').classList.remove('on'); $('gIntro').classList.remove('on'); $('gOver').classList.remove('on');
+  const c = cv(); c.onpointerdown = c.onpointermove = null;
+  refreshTop(); if(curView === 'Games') renderGames(); else if(curView === 'Spa') renderSpa();
+}
+
+/* =====================================================================
+   11. MONEY — rewarded ads (AdMob) + the Spa Pack (Google Play Billing)
+   ---------------------------------------------------------------------
+   FAKE FOR NOW: in a browser, ads are a 3-second pretend ad, and
+   purchases are pretend (a "Demo" box gives you the item).
+   Inside the Android app (Capacitor) with the plugins installed, the
+   real ones take over automatically:
+     • @capacitor-community/admob   → rewarded video ads
+     • cordova-plugin-purchase      → Google Play purchases
+   BEFORE RELEASE: put your real AdMob rewarded unit ID below,
+   set MONEY.TESTING to false, and set MONEY.DEMO_BUY to false.
+   Ads are ALWAYS the player's choice. Nothing plays on its own.
+===================================================================== */
+const MONEY = {
+  TESTING: true,
+  DEMO_BUY: true,   // browser only: pretend purchases give the item (for testing)
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917', // Google's TEST rewarded ID — replace with yours
+};
+const PACK = {sku: 'spa_pack', price: '$2.99', gems: 60};
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null;
+let adBusy = false;
+const adIcon = () => S && S.noAds ? '✨' : '▶️';
+
+/* the one function the game calls. Resolves true if the player earned the reward. */
+async function rewardAd(){
+  if(S.noAds){ toast('✨ ' + tr('Spa Pack: reward given!'), 'gold'); return true; }
+  if(adBusy) return false;
+  adBusy = true;
+  musicStop(); waterStop();
+  let ok = false;
+  try{ ok = AdMobP() ? await nativeAd() : await demoAd(); }catch(e){ ok = false; }
+  adBusy = false;
+  if(S.mus) musicStart(); if(S.snd) waterStart();
+  if(!ok) toast(tr('No reward this time'), 'err');
+  return ok;
+}
+function nativeAd(){
+  const A = AdMobP();
+  return new Promise(async res => {
+    let earned = false, finished = false, hs = [];
+    const finish = () => { if(finished) return; finished = true; hs.forEach(h => { try{ h.remove(); }catch(e){} }); res(earned); };
+    try{
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      await A.prepareRewardVideoAd({adId: MONEY.REWARDED_ID, isTesting: MONEY.TESTING});
+      const item = await A.showRewardVideoAd();
+      if(item && item.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    }catch(e){ finish(); }
+  });
+}
+/* browser preview: a 3-second pretend ad */
+function demoAd(){
+  return new Promise(res => {
+    let n = 3;
+    openModal('📺 ' + tr('Ad preview'), '<div class="reward"><div class="big">📺</div><p>' + tr('A real video ad plays here in the app.') + '</p><div class="amt" id="adCd">' + n + '</div>' +
+      '<button class="btn wide ghost" id="adSkip">' + tr('Close (no reward)') + '</button></div>', null, true);
+    const iv = setInterval(() => { n--; const el = $('adCd'); if(el) el.textContent = n; if(n <= 0){ clearInterval(iv); modalOnClose = null; closeModal(); res(true); } }, 1000);
+    $('adSkip').onclick = () => { clearInterval(iv); closeModal(); res(false); };
+  });
+}
+async function adsInit(){ const A = AdMobP(); if(!A) return; try{ await A.initialize({initializeForTesting: MONEY.TESTING}); }catch(e){} }
+
+/* ---------- what the Spa Pack gives ---------- */
+function grantSku(sku){
+  if(sku !== PACK.sku || S.pack) return '';
+  S.pack = true; S.noAds = true; S.g += PACK.gems; S.theme = 'moon'; bgKey = '';
+  const room = a => hasRoom(a) ? a : (S.open.find(q => hasRoom(q)) || S.cur);
+  const a1 = makeCapy({k: 'moonlight', a: room(S.cur), adult: true, t: 'sleepy', fp: 'milk'});
+  const a2 = makeCapy({k: 'rainbow', a: room(S.cur), adult: true, t: 'social', fp: 'petal'});
+  S.poolTypes.milk = 1;
+  return '🌙 ' + tr('Moonlight spa theme') + '<div class="duo">' + capySVG('moonlight', {size: 110}) + capySVG('rainbow', {size: 110}) + '</div>' + esc(a1.n) + ' & ' + esc(a2.n) +
+    '<br>🥛 ' + tr('Milk bath unlocked') + '<br>+' + PACK.gems + ' 💎<br>✨ ' + tr('Ad rewards without ads');
+}
+const ALL_SKUS = () => [PACK.sku];
+const PRICES = {};   // filled with real local prices by Google Play
+const priceOf = (sku, fallback) => PRICES[sku] || fallback;
+
+/* ---------- Google Play ---------- */
+let iapReady = false;
+function iapStore(){ return window.CdvPurchase && CdvPurchase.store; }
+function iapInit(){
+  const C = window.CdvPurchase; if(!C || iapReady) return;
+  const {store, ProductType, Platform} = C; iapReady = true;
+  store.register(ALL_SKUS().map(id => ({id, type: ProductType.NON_CONSUMABLE, platform: Platform.GOOGLE_PLAY})));
+  store.when()
+    .productUpdated(p => { if(p.pricing && p.pricing.price) PRICES[p.id] = p.pricing.price; })
+    .approved(tx => {
+      if(!S.iapDone) S.iapDone = {};
+      const tid = tx.transactionId || ('t' + now());
+      if(!S.iapDone[tid]){
+        S.iapDone[tid] = now();
+        (tx.products || []).forEach(it => { const msg = grantSku(it.id); if(msg) queueModal(() => showReward('💝', tr('Thank you!'), msg)); });
+        saveNow(); refreshTop(); renderSpa();
+      }
+      tx.finish();
+    });
+  store.error(e => { if(e && e.code !== C.ErrorCode.PAYMENT_CANCELLED) toast(tr('Store error. Please try again.'), 'err'); });
+  store.initialize([Platform.GOOGLE_PLAY]);
+}
+document.addEventListener('deviceready', iapInit, false);
+function buy(sku, label, fallbackPrice){
+  sfx('tap');
+  const st = iapStore();
+  if(st){
+    const p = st.get(sku), offer = p && p.getOffer();
+    if(!offer){ toast(tr('Store is still loading. Try again in a moment.'), 'err'); return; }
+    offer.order(); return;
+  }
+  // browser: pretend purchase
+  openModal('💳 ' + label, '<div class="reward"><div class="big">🛍️</div><p><b>' + fallbackPrice + '</b></p><p class="muted">' + tr('Demo mode: real payments work in the Android app through Google Play.') + '</p></div>' +
+    (MONEY.DEMO_BUY ? '<button class="btn wide gold" id="dmBuy">' + tr('Demo: get it free') + '</button>' : '') + '<button class="btn wide ghost" id="dmNo">' + tr('Close') + '</button>');
+  if($('dmBuy')) $('dmBuy').onclick = () => { closeModal(); const msg = grantSku(sku); saveNow(); refreshTop(); renderSpa(); if(curView === 'Shop') renderShop(); if(msg) showReward('💝', tr('Thank you!'), msg); };
+  $('dmNo').onclick = closeModal;
+}
+function restorePurchases(){
+  const st = iapStore();
+  if(st && st.restorePurchases){ st.restorePurchases(); toast(tr('Checking your purchases...')); }
+  else toast(tr('Restore works in the Android app.'));
+}
+function paidShopHtml(){
+  let h = '<div class="card" style="display:block;border:3px solid var(--peach2);text-align:center"><div style="font-size:1.3em;font-weight:900">🛍️ ' + tr('Spa Pack') + '</div>' +
+    '<div class="duo" style="margin:8px 0">' + capySVG('moonlight', {size: 130, halo: true}) + capySVG('rainbow', {size: 130, halo: true}) + '</div>' +
+    '<div style="text-align:left;line-height:1.8;font-weight:800">🌙 ' + tr('Moonlight spa theme (starry sky + glowing moon)') + '<br>💗 ' + tr('2 exclusive capybaras: Moonlight + Rainbow') + '<br>🥛 ' + tr('Milk bath unlocked') + '<br>💎 +' + PACK.gems + ' ' + tr('gems') + '<br>✨ ' + tr('Get every ad reward without watching ads') + '</div>' +
+    (S.pack ? '<span class="tag" style="background:var(--teal);font-size:1em;margin-top:8px">✔ ' + tr('Owned') + '</span>' : '<button class="btn wide gold" id="buyPack">' + priceOf(PACK.sku, PACK.price) + ' · ' + tr('one time') + '</button>') + '</div>';
+  h += '<h3>💎 ' + tr('What gems do') + '</h3><div class="card" style="display:block;line-height:1.7">🍼 ' + tr('Help a baby grow up now') + '<br>🌟 ' + tr('Call a rare guest right away') + '<br>🥛🧊 ' + tr('Special pools') + ' · ⛩️⛱️ ' + tr('Special decor') + '<br><span class="muted">' + tr('Get gems from your Collection book and optional ads.') + '</span></div>';
+  h += '<p class="muted center">' + tr('Totally optional! Everything else can be earned by playing.') + '<br>' + tr('Payments are handled securely by Google Play.') + '</p>';
+  h += '<button class="btn wide ghost" id="shRestore">💳 ' + tr('Restore purchases') + '</button>';
+  return h;
+}
+function bindPaidShop(){
+  if($('buyPack')) $('buyPack').onclick = () => buy(PACK.sku, tr('Spa Pack'), PACK.price);
+  $('shRestore').onclick = restorePurchases;
+}
+
+/* =====================================================================
+   12. MAIN LOOP — game ticks, away time, tutorial, start-up
+   tick(): once a second — moods, coins, babies, guests, timers
+   frame(): every screen frame — capybaras walk
+===================================================================== */
+function stepWorld(dt, t, offline){
+  const rate = MOOD_RATE();
+  let earned = 0;
+  S.capys.forEach(x => {
+    const fav = inFavPool(x) ? 0.6 : 1;
+    x.m.food = Math.max(0, x.m.food - rate * dt * (x.t === 'snacky' ? 1.5 : 1) * (x.t === 'sleepy' ? 0.8 : 1));
+    x.m.calm = Math.max(0, x.m.calm - rate * dt * fav * (x.t === 'sleepy' ? 0.6 : 1) * (x.t === 'grumpy' ? 1.2 : 1));
+    if(!isAdult(x)){
+      x.grow += dt * (0.5 + moodAvg(x) / 100) * (CONFIG.GROW_SEC / babyTime());
+      if(isAdult(x)){
+        x.grow = CONFIG.GROW_SEC; assignPool(x);
+        if(!offline){ toast('🌟 ' + esc(x.n) + ' ' + tr('is all grown up!'), 'gold'); addXP(10); const a = actors[x.id]; if(a){ a.follow = false; a.key = ''; a.until = 0; } }
+      }
+    }
+    if(x.stack && x.stack.length && (x.stackT || 0) <= t){
+      x.stack = []; addFriend(x, 2);
+      if(!offline && x.a === S.cur && curView === 'Spa'){ fxAtCapy(x, '😋'); toast('😋 ' + esc(x.n) + ' ' + tr('ate the fruit stack! Yum!')); const a = actors[x.id]; if(a) a.key = ''; }
+    }
+    earned += capyRate(x, t) * dt;
+  });
+  addCo(earned);
+  return {earned};
+}
+let tickN = 0;
+function tick(){
+  const t = now();
+  stepWorld(1, t);
+  S.stats.play++; tickN++;
+  // tickets
+  while(S.tickets < CONFIG.TICKETS_MAX && t - S.tkT >= CONFIG.TICKET_MIN * 60000){ S.tickets++; S.tkT += CONFIG.TICKET_MIN * 60000; }
+  if(S.tickets >= CONFIG.TICKETS_MAX) S.tkT = t;
+  // guests
+  if(S.guest && t > S.guest.until){ S.guest = null; S.guestAt = t + rnd(...CONFIG.GUEST_MIN) * 60000; if(curView === 'Spa') renderSpa(); }
+  if(S.tut >= 99 && !S.guest){
+    if(S.daily.last === dayNum(t) && S.dvDay !== dayNum(t)){ S.dvDay = dayNum(t); spawnGuest('daily'); }
+    else if(t > S.guestAt) spawnGuest('random');
+  }
+  // babies
+  if(S.tut >= 99 && t > S.babyAt){ tryBaby(); S.babyAt = t + rnd(...CONFIG.BABY_MIN) * 60000; }
+  if(tickN % 10 === 0) saveNow();
+  // screen updates
+  refreshTop();
+  if(curView === 'Spa' && !G){
+    if(tickN % 3 === 0){ renderCapys(); renderCare(); renderSide(); applyDark(); }
+    if(tickN % 2 === 0) steamPuffs();
+    if(tickN % 4 === 0){ const list = capysIn(S.cur).filter(isAdult); if(list.length){ const x = pick(list); fxAtCapy(x, '+' + fmt(capyRate(x) * 4) + ' ' + CN); } }
+    if(tickN % 7 === 0 && S.snd && Math.random() < 0.5) bloop(rnd(0.8, 1.2));
+  }
+  if(curView === 'Games' && tickN % 5 === 0 && !$('modalBg').classList.contains('on')) renderGames();
+}
+let lastFrame = performance.now();
+function frame(ts){
+  const dt = Math.min(0.1, (ts - lastFrame) / 1000); lastFrame = ts;
+  if(S && curView === 'Spa' && !G) stepActors(dt);
+  if(S) tickCoinDisplay();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- away time (coins while the app is closed) ---------- */
+function catchUp(){
+  const t = now(), away = (t - (S.lastSeen || t)) / 1000;
+  if(away < 60) return;
+  const capped = Math.min(away, offlineCapH() * 3600);
+  let earned = 0, sim = S.lastSeen;
+  const steps = Math.floor(capped / 60);
+  for(let i=0;i<steps;i++){ sim += 60000; earned += stepWorld(60, sim, true).earned; }
+  // after the limit: no more coins, but moods still go down and babies still grow
+  const rest = away - steps * 60, rate = MOOD_RATE();
+  S.capys.forEach(x => { x.m.food = Math.max(0, x.m.food - rate * rest); x.m.calm = Math.max(0, x.m.calm - rate * rest * 0.8); if(!isAdult(x)){ x.grow = Math.min(CONFIG.GROW_SEC, x.grow + rest * 0.5); if(isAdult(x)) assignPool(x); } if(x.stack && x.stackT <= t) x.stack = []; });
+  while(S.tickets < CONFIG.TICKETS_MAX && t - S.tkT >= CONFIG.TICKET_MIN * 60000){ S.tickets++; S.tkT += CONFIG.TICKET_MIN * 60000; }
+  S.lastSeen = t;
+  if(earned >= 1){
+    S.awayLast = Math.round(earned);
+    const capTxt = away > capped ? '<p class="muted">' + tr('Coins stop after {h}h away. Coin jars in Build keep them coming longer.', {h: offlineCapH()}) + '</p>' : '';
+    queueModal(() => {
+      openModal('🌅 ' + tr('Welcome back!'), '<div class="reward"><div class="big">' + capySVG('classic', {size: 150, towel: true}) + '</div><p>' + tr('You were away for {t}.', {t: fmtTime(away)}) + '</p><p>' + tr('Your capybaras relaxed and made') + '</p><div class="amt">+' + fmt(S.awayLast) + ' ' + CN + '</div>' + capTxt + '</div>' +
+        '<button class="btn wide gold" id="wbX2">' + adIcon() + ' ' + tr('Double it!') + ' +' + fmt(S.awayLast) + ' ' + CN + '</button><button class="btn wide ghost" id="wbOk">' + tr('Collect') + '</button>');
+      $('wbOk').onclick = closeModal;
+      $('wbX2').onclick = async () => { closeModal(); if(await rewardAd()){ addCo(S.awayLast); toast('+' + fmt(S.awayLast) + ' ' + CN, 'gold'); S.awayLast = 0; saveNow(); } };
+    });
+  }
+  saveNow();
+}
+
+/* ---------- tutorial with Grandpa Yuzu ---------- */
+const TUT = [
+  null,
+  {ev:'pet',   hl:'#capys .capy', en:'Welcome! I’m Grandpa Yuzu. Tap a capybara to pet it! 💗', fr:'Bienvenue! Moi, c’est Grand-papa Yuzu. Touche un capybara pour le flatter! 💗'},
+  {ev:'feed',  hl:'#cbFeed',      en:'It looks hungry. Tap Feed and give it a snack! 🍉', fr:'Il a l’air d’avoir faim. Touche Nourrir et donne-lui une collation! 🍉'},
+  {ev:'stack', hl:'#cbFruit',     en:'Now the fun part: put a fruit on its head! 🍊 Taller stacks give more coins.', fr:'Maintenant le plus drôle : mets un fruit sur sa tête! 🍊 Plus la pile est haute, plus ça rapporte.'},
+  {ev:'buy',   hl:'#navBuild',    en:'Coins come in by themselves. Open Build and buy something! 🔨', fr:'Les pièces arrivent toutes seules. Ouvre Construire et achète quelque chose! 🔨'},
+  {ev:'game',  hl:'#navGames',    en:'Last one! Open Games and play a mini game. 🎮', fr:'Dernière étape! Ouvre Jeux et joue à un mini-jeu. 🎮'},
+];
+function tutShow(){
+  document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl'));
+  const st = TUT[S.tut];
+  if(!st){ $('tut').classList.remove('on'); return; }
+  $('tutCap').innerHTML = capySVG('classic', {towel: true});
+  $('tutTx').textContent = S.lang === 'fr' ? st.fr : st.en;
+  $('tutBtn').textContent = tr('Skip');
+  $('tutBtn').onclick = () => { S.tut = 99; $('tut').classList.remove('on'); document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl')); S.guestAt = Math.min(S.guestAt, now() + 60000); saveNow(); checkDaily(); };
+  $('tut').classList.add('on');
+  const spa = curView === 'Spa';   // on the spa it sits above the care bar, elsewhere above the menu
+  $('tut').style.top = 'auto'; $('tut').style.bottom = spa ? 'calc(170px + env(safe-area-inset-bottom))' : 'calc(90px + env(safe-area-inset-bottom))';
+  setTimeout(() => { const el = document.querySelector(st.hl); if(el) el.classList.add('hl'); }, 200);
+}
+function tutEvent(ev){
+  if(!S || S.tut < 1 || S.tut >= 99) return;
+  const st = TUT[S.tut];
+  if(ev.startsWith('view')) setTimeout(tutShow, 50);
+  if(!st || st.ev !== ev) return;
+  S.tut++;
+  sfx('coin');
+  if(!TUT[S.tut]){
+    S.tut = 99; $('tut').classList.remove('on'); document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl'));
+    S.g += 10; addCo(300); S.guestAt = now() + 60000;
+    queueModal(() => showReward(capySVG('classic', {size: 150, towel: true}), tr('You’re a natural!'), tr('Here’s a gift to start:') + '<br>+10 💎 +300 ' + CN, () => checkDaily()));
+  } else setTimeout(tutShow, 300);
+  saveNow();
+}
+function checkDaily(){
+  if(S.tut < 99) return;
+  if(S.daily.last !== dayNum(now())) queueModal(openGift);
+}
+function startNewGame(){
+  S = newState();
+  const first = makeCapy({k: 'classic', a: 'onsen', adult: true, t: 'social', fp: 'hot'});
+  const second = makeCapy({k: 'sandy', a: 'onsen', adult: true, t: 'sleepy', fp: 'yuzu'});
+  first.m = {food: 30, calm: 70}; second.m = {food: 70, calm: 60};
+  first.f = 46;   // already good friends: a baby came with them!
+  const baby = makeCapy({k: 'classic', a: 'onsen', parent: first.id, t: 'snacky', fp: 'hot'});
+  baby.grow = CONFIG.GROW_SEC * 0.4;
+  S.avatar = first.id;
+  S.tut = 0;
+  saveNow();
+  startNewGameName(first, first.n);
+}
+function startNewGameName(first, val){
+  openModal('', '<div class="reward"><div class="big">' + capySVG(first.k, {size: 190}) + '</div><h2>' + tr('Welcome to Capybara Spa!') + '</h2><p>' + tr('This capybara is your first guest. What’s its name?') + '</p>' +
+    '<input id="fnIn" maxlength="14" value="' + esc(val) + '" style="width:80%;padding:12px;border-radius:12px;border:2px solid #eddccb;text-align:center;font-size:18px">' +
+    '<div class="seg" style="margin:12px auto;max-width:240px"><button id="nlEn" class="' + (S.lang === 'en' ? 'on' : '') + '">English</button><button id="nlFr" class="' + (S.lang === 'fr' ? 'on' : '') + '">Français</button></div>' +
+    '<button class="btn wide" id="fnGo">♨️ ' + tr('Let’s relax!') + '</button></div>', null, true);
+  const relang = l => { S.lang = l; const v = $('fnIn').value; applySettings(); renderAll(); closeModal(); startNewGameName(first, v); };
+  $('nlEn').onclick = () => relang('en'); $('nlFr').onclick = () => relang('fr');
+  $('fnGo').onclick = () => { const v = $('fnIn').value.trim(); if(v) first.n = v.slice(0, 14); closeModal(); S.tut = 1; renderSpa(); tutShow(); sfx('pet'); squeak(); saveNow(); };
+}
+
+/* ---------- start-up ---------- */
+function boot(){
+  $('loadCapy').innerHTML = capySVG('classic', {stack: ['yuzu', 'orange', 'strawberry'], pal: 'duck'});
+  const lang0 = (load() || {}).lang || ((navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en');
+  $('loadTip').textContent = '💡 ' + pick(TIPS)[lang0];
+  let p = 0; const iv = setInterval(() => { p = Math.min(100, p + rnd(12, 28)); $('loadBar').style.width = p + '%'; }, 140);
+  setTimeout(() => {
+    clearInterval(iv); $('loadBar').style.width = '100%';
+    const saved = load();
+    if(saved){ S = saved; catchUp(); if(S.tut >= 99) checkMiles(); }
+    if(!S) startNewGame();
+    shownCo = S.co;
+    applySettings(); renderNav(); showView('Spa');
+    if(S.tut >= 1 && S.tut < 99) tutShow();
+    else if(S.tut >= 99) checkDaily();
+    $('load').style.opacity = 0; setTimeout(() => $('load').remove(), 600);
+    setInterval(tick, 1000);
+    requestAnimationFrame(frame);
+    adsInit();
+  }, 1300);
+  $('mClose').onclick = closeModal;
+  $('modalBg').addEventListener('pointerdown', e => { if(e.target === $('modalBg') && $('mClose').style.display !== 'none') closeModal(); });
+  $('pCoin').onclick = openBoosts;
+  $('pGem').onclick = () => { shopTab = 'paid'; showView('Shop'); };
+  $('pLevel').onclick = () => showView('More');
+  $('profBtn').onclick = () => showView('More');
+  $('muteBtn').onclick = () => { const on = S.snd || S.mus; S.snd = S.mus = !on; if(!on) audioUnlock(); else { musicStop(); waterStop(); } refreshTop(); saveNow(); if(curView === 'More') renderMore(); };
+  $('scene').addEventListener('pointerdown', () => { if(sel){ sel = null; renderCapys(); renderCare(); } });
+  document.addEventListener('pointerdown', audioUnlock, {once: true});
+  document.addEventListener('visibilitychange', () => {
+    if(!S) return;
+    if(document.hidden){ saveNow(); musicStop(); waterStop(); }
+    else { catchUp(); if(S.mus) musicStart(); if(S.snd) waterStart(); if(curView === 'Spa') renderSpa(); }
+  });
+  document.addEventListener('pause', () => { if(S){ saveNow(); musicStop(); waterStop(); } }, false);
+  window.addEventListener('resize', () => { if(S && curView === 'Spa'){ bgKey = ''; poolKey = ''; for(const k in actors){ actors[k].key = ''; const x = capyById(+k); if(x && isAdult(x) && (actors[k].st === 'soak' || actors[k].st === 'nap')){ const p = seatPos(x.a, x.pool, actors[k].seat, false); actors[k].x = p.x; actors[k].y = p.y; } } renderSpa(); } });
+}
+window.addEventListener('load', boot);
+
+/* =====================================================================
+   FRENCH WORDS — English on the left, French on the right.
+   To fix a French word, change the right side only.
+===================================================================== */
+const FR = {
+"Spa": "Spa",
+"Capys": "Capys",
+"Build": "Construire",
+"Shop": "Boutique",
+"Games": "Jeux",
+"More": "Plus",
+"+1 in": "+1 dans",
+"+25% coins from ALL capybaras": "+25% de pièces de TOUS les capybaras",
+"+30 min each time, up to 4 h": "+30 min à chaque fois, jusqu’à 4 h",
+"2 exclusive capybaras: Moonlight + Rainbow": "2 capybaras exclusifs : Clair de lune + Arc-en-ciel",
+"A baby arrived! {b} follows {p}.": "Un bébé est arrivé! {b} suit {p}.",
+"A guest is already here": "Un invité est déjà là",
+"A guest is at the gate!": "Un invité est à l’entrée!",
+"A guest!": "Un invité!",
+"A new pool! Room for {n} more.": "Un nouveau bain! De la place pour {n} de plus.",
+"A rare guest came to see you!": "Un invité rare est venu te voir!",
+"A rare guest comes. Welcome it for free!": "Un invité rare arrive. Accueille-le gratuitement!",
+"A real video ad plays here in the app.": "Une vraie pub vidéo joue ici dans l’app.",
+"A visiting capybara comes too!": "Un capybara visiteur vient aussi!",
+"A warm wooden sauna. The best coins!": "Un sauna en bois bien chaud. Les meilleures pièces!",
+"Active": "Actif",
+"Ad preview": "Aperçu de pub",
+"Ad rewards without ads": "Récompenses de pub sans pub",
+"Ads are always your choice.": "Les pubs sont toujours ton choix.",
+"All": "Tous",
+"Animal friend": "Ami animal",
+"Animal friends sit on capybaras. Match the personality for a combo!": "Les amis animaux s’assoient sur les capybaras. Trouve la bonne personnalité pour un combo!",
+"Animal friends sit on your capybara. The right friend for its personality makes a combo!": "Les amis animaux s’assoient sur ton capybara. Le bon ami pour sa personnalité fait un combo!",
+"Are you really sure?": "Es-tu vraiment sûr?",
+"Areas": "Zones",
+"Auto": "Auto",
+"Auto follows the real season. Weather charms let you choose. Each charm: +5% coins.": "Auto suit la vraie saison. Les charmes météo te laissent choisir. Chaque charme : +5% de pièces.",
+"Babies": "Bébés",
+"Babies grow up faster": "Les bébés grandissent plus vite",
+"Baby": "Bébé",
+"Back": "Retour",
+"Best": "Record",
+"Better snacks": "Meilleures collations",
+"Better snacks!": "Meilleures collations!",
+"Big leaves and warm rain. Mossy capybaras live here.": "Grandes feuilles et pluie chaude. Les capybaras mousse vivent ici.",
+"Book milestone!": "Étape du livre!",
+"Boost": "Boost",
+"Boosts & free rewards": "Boosts et cadeaux gratuits",
+"Buy fruits": "Acheter des fruits",
+"Buy snacks": "Acheter des collations",
+"Bye bye, {n}!": "Bye bye, {n}!",
+"Call": "Appeler",
+"Call a rare capybara": "Appeler un capybara rare",
+"Call a rare guest right away": "Appeler un invité rare tout de suite",
+"Calm": "Calme",
+"Cancel": "Annuler",
+"Capybaras": "Capybaras",
+"Change pool": "Changer de bain",
+"Checking your purchases...": "Vérification de tes achats...",
+"Cherry blossoms all year round.": "Des fleurs de cerisier toute l’année.",
+"Classic": "Classique",
+"Close": "Fermer",
+"Close (no reward)": "Fermer (pas de récompense)",
+"Coin jar": "Pot à pièces",
+"Coins earned": "Pièces gagnées",
+"Coins stop after {h}h away. Coin jars in Build keep them coming longer.": "Les pièces arrêtent après {h} h d’absence. Les pots à pièces (Construire) les font durer plus longtemps.",
+"Collect": "Récupérer",
+"Collection book": "Livre de collection",
+"Combo with": "Combo avec",
+"Combo!": "Combo!",
+"Come back tomorrow for the next gift!": "Reviens demain pour le prochain cadeau!",
+"Daily gift": "Cadeau du jour",
+"Day": "Jour",
+"Decor": "Déco",
+"Demo mode: real payments work in the Android app through Google Play.": "Mode démo : les vrais paiements marchent dans l’app Android avec Google Play.",
+"Demo: get it free": "Démo : l’avoir gratuitement",
+"Double it!": "Double-le!",
+"Each capybara has a favorite pool type: +50% coins there.": "Chaque capybara a un type de bain préféré : +50% de pièces là-bas.",
+"Each decor gives +10% coins in this area.": "Chaque déco donne +10% de pièces dans cette zone.",
+"Each pool fits {n} capybaras.": "Chaque bain accueille {n} capybaras.",
+"Easy-read font": "Police facile à lire",
+"Favorite pool:": "Bain préféré :",
+"Feed": "Nourrir",
+"Feed your capybaras to keep them happy. Happy = more coins.": "Nourris tes capybaras pour qu’ils soient heureux. Heureux = plus de pièces.",
+"Feed {n}": "Nourrir {n}",
+"Fill your Collection book for gems!": "Remplis ton Livre de collection pour des gemmes!",
+"Fluffier towels!": "Des serviettes plus douces!",
+"Fluffy towels": "Serviettes douces",
+"Follows {p}": "Suit {p}",
+"Food": "Faim",
+"For the head stack": "Pour la pile sur la tête",
+"Free upgrade": "Amélioration gratuite",
+"Friend": "Ami",
+"Friend hops off": "L’ami descend",
+"Friends": "Amis",
+"Friendship": "Amitié",
+"Fruit on the head": "Fruit sur la tête",
+"Fruits": "Fruits",
+"Fruits stacked": "Fruits empilés",
+"Full": "Plein",
+"Full!": "Plein!",
+"Games played": "Parties jouées",
+"Get": "Obtenir",
+"Get every ad reward without watching ads": "Toutes les récompenses de pub sans regarder de pub",
+"Get gems from your Collection book and optional ads.": "Gagne des gemmes avec ton Livre de collection et les pubs optionnelles.",
+"Get weather charms": "Obtenir des charmes météo",
+"Gift": "Cadeau",
+"Give": "Donner",
+"Glows at night": "Brille la nuit",
+"Go": "Y aller",
+"Goodies": "Petits plus",
+"Grow up now": "Grandir maintenant",
+"Growing": "Croissance",
+"Guest": "Invité",
+"Guests": "Invités",
+"Guests come to the gate. Welcome them!": "Des invités arrivent à l’entrée. Accueille-les!",
+"Guests welcomed": "Invités accueillis",
+"Happy friends (3 hearts) sometimes get a baby.": "Les amis heureux (3 cœurs) ont parfois un bébé.",
+"Help a baby grow up now": "Aider un bébé à grandir tout de suite",
+"Here": "Ici",
+"Here’s a gift to start:": "Voici un cadeau pour commencer :",
+"How to play": "Comment jouer",
+"Info": "Infos",
+"Invite animal friends to sit on your capybaras. +15% coins, x2 with the right personality!": "Invite des amis animaux à s’asseoir sur tes capybaras. +15% de pièces, x2 avec la bonne personnalité!",
+"Invite friends": "Inviter des amis",
+"It goes home to the river. It leaves you {p} coins as a thank-you.": "Il retourne à la rivière. Il te laisse {p} pièces pour te remercier.",
+"It would love to stay at your spa.": "Il aimerait beaucoup rester à ton spa.",
+"It’s now in your Collection book.": "Il est maintenant dans ton Livre de collection.",
+"Keep earning longer while away": "Gagne plus longtemps quand tu es absent",
+"Kinds found": "Sortes trouvées",
+"Language": "Langue",
+"Last chance! Everything will be gone.": "Dernière chance! Tout va disparaître.",
+"Let’s relax!": "On se détend!",
+"Level": "Niveau",
+"Level {n}!": "Niveau {n}!",
+"Loves:": "Adore :",
+"Lv": "Niv.",
+"Milk bath unlocked": "Bain de lait débloqué",
+"Mini games": "Mini-jeux",
+"Moonlight": "Clair de lune",
+"Moonlight spa theme": "Thème spa Clair de lune",
+"Moonlight spa theme (starry sky + glowing moon)": "Thème spa Clair de lune (ciel étoilé + lune brillante)",
+"Move": "Déplacer",
+"Move {n}": "Déplacer {n}",
+"Music": "Musique",
+"My capybaras": "Mes capybaras",
+"New best!": "Nouveau record!",
+"New capybara in your book!": "Nouveau capybara dans ton livre!",
+"New hot spring pool": "Nouveau bain de source chaude",
+"New name": "Nouveau nom",
+"New pool": "Nouveau bain",
+"New profile picture!": "Nouvelle photo de profil!",
+"Next prize: find {n} kinds": "Prochain prix : trouve {n} sortes",
+"Next “Better snacks” level for free": "Prochain niveau de « Meilleures collations » gratuit",
+"Nice try!": "Bien essayé!",
+"No account. Everything is saved on this phone.": "Pas de compte. Tout est sauvegardé sur ce téléphone.",
+"No capybaras here yet.": "Pas encore de capybaras ici.",
+"No reward this time": "Pas de récompense cette fois",
+"No room! Build more pools.": "Plus de place! Construis d’autres bains.",
+"No tickets left. Watch an ad or wait.": "Plus de billets. Regarde une pub ou attends.",
+"Nobody is soaking here yet.": "Personne ne se baigne ici pour l’instant.",
+"Not enough coins": "Pas assez de pièces",
+"Not enough gems": "Pas assez de gemmes",
+"Not now": "Pas maintenant",
+"Off": "Non",
+"On": "Oui",
+"Oops!": "Oups!",
+"Open my gift!": "Ouvrir mon cadeau!",
+"Owned": "Acquis",
+"Payments are handled securely by Google Play.": "Les paiements sont gérés de façon sécuritaire par Google Play.",
+"Per second": "Par seconde",
+"Perfect!": "Parfait!",
+"Pets": "Caresses",
+"Pick a pool type. 💖 = their favorite pool (+50% coins).": "Choisis un type de bain. 💖 = leur bain préféré (+50% de pièces).",
+"Pick your profile picture from any capybara.": "Choisis ta photo de profil parmi tes capybaras.",
+"Placed": "Placé",
+"Play": "Jouer",
+"Play again": "Rejouer",
+"Pool types": "Types de bains",
+"Pool {n}": "Bain {n}",
+"Pools": "Bains",
+"Profile picture": "Photo de profil",
+"Relaxed capybaras give coins, even while the app is closed.": "Les capybaras détendus donnent des pièces, même quand l’app est fermée.",
+"Replay tutorial": "Revoir le tutoriel",
+"Reset everything": "Tout effacer",
+"Reset game": "Recommencer le jeu",
+"Reset game?": "Recommencer le jeu?",
+"Restore purchases": "Restaurer les achats",
+"Restore works in the Android app.": "La restauration marche dans l’app Android.",
+"Room for {n} more capybaras": "De la place pour {n} capybaras de plus",
+"Save": "Enregistrer",
+"Say goodbye": "Dire au revoir",
+"Say goodbye to {n}?": "Dire au revoir à {n}?",
+"Seasonal capybaras only visit in their season. Some only visit one area.": "Les capybaras saisonniers viennent seulement pendant leur saison. Certains visitent une seule zone.",
+"Settings": "Réglages",
+"Skip": "Passer",
+"Snacks": "Collations",
+"Snacks given": "Collations données",
+"Snow falls into the warm pools. Snowy capybaras live here.": "La neige tombe dans les bains chauds. Les capybaras neigeux vivent ici.",
+"Sounds": "Sons",
+"Spa Keeper": "Gardien du spa",
+"Spa Pack": "Pack Spa",
+"Spa Pack: no ads needed": "Pack Spa : plus besoin de pubs",
+"Spa Pack: reward given!": "Pack Spa : récompense donnée!",
+"Spa theme": "Thème du spa",
+"Special": "Spécial",
+"Special decor": "Déco spéciale",
+"Special pools": "Bains spéciaux",
+"Stack": "Empiler",
+"Stack fruits on a capybara’s head. The taller the stack, the bigger the bonus!": "Empile des fruits sur la tête d’un capybara. Plus la pile est haute, plus le bonus est gros!",
+"Stack fruits on its head. Taller stack = bigger bonus!": "Empile des fruits sur sa tête. Pile plus haute = plus gros bonus!",
+"Start": "Commencer",
+"Stats": "Statistiques",
+"Store error. Please try again.": "Erreur de la boutique. Réessaie s’il te plaît.",
+"Store is still loading. Try again in a moment.": "La boutique charge encore. Réessaie dans un instant.",
+"Streak": "Série",
+"Tap a capybara to pet it. Feed it snacks.": "Touche un capybara pour le flatter. Donne-lui des collations.",
+"Tap a capybara!": "Touche un capybara!",
+"Text size": "Taille du texte",
+"Thank you!": "Merci!",
+"That friend is busy. Invite more in the Shop.": "Cet ami est occupé. Invites-en d’autres à la Boutique.",
+"The stack is as tall as it can be!": "La pile est aussi haute que possible!",
+"The taller the stack, the bigger the bonus! After {h}h your capybara eats it.": "Plus la pile est haute, plus le bonus est gros! Après {h} h, ton capybara la mange.",
+"This area": "Cette zone",
+"This capybara is your first guest. What’s its name?": "Ce capybara est ton premier invité. Comment s’appelle-t-il?",
+"This deletes ALL your progress. It cannot be undone.": "Ça efface TOUTE ta progression. Impossible d’annuler.",
+"Tickets": "Billets",
+"Time played": "Temps de jeu",
+"Today’s visiting capybara wants to stay!": "Le capybara visiteur du jour veut rester!",
+"Totally optional! Everything else can be earned by playing.": "Totalement optionnel! Tout le reste se gagne en jouant.",
+"Unlock once, then tap a pool in your spa to change it. Capybaras love their favorite pool (+50%).": "Débloque une fois, puis touche un bain dans ton spa pour le changer. Les capybaras adorent leur bain préféré (+50%).",
+"Unlock pool types": "Débloquer des types de bains",
+"Upgrades": "Améliorations",
+"Weather": "Météo",
+"Welcome": "Accueillir",
+"Welcome (free)": "Accueillir (gratuit)",
+"Welcome back!": "Bon retour!",
+"Welcome to Capybara Spa!": "Bienvenue à Capybara Spa!",
+"What gems do": "À quoi servent les gemmes",
+"Win coins and fruits for your capybaras!": "Gagne des pièces et des fruits pour tes capybaras!",
+"Yay!": "Youpi!",
+"Yes, reset": "Oui, recommencer",
+"You are here": "Tu es ici",
+"You have none. Buy some in the Shop.": "Tu n’en as plus. Achètes-en à la Boutique.",
+"You were away for {t}.": "Tu étais absent pendant {t}.",
+"Your capybaras relaxed and made": "Tes capybaras se sont détendus et ont gagné",
+"Your first hot spring. Warm and cozy.": "Ta première source chaude. Chaude et douillette.",
+"Your name": "Ton nom",
+"You’re a natural!": "Tu es doué!",
+"ate the fruit stack! Yum!": "a mangé la pile de fruits! Miam!",
+"can be opened in Build!": "peut être ouverte dans Construire!",
+"coins": "pièces",
+"everywhere": "partout",
+"gems": "gemmes",
+"is all grown up!": "est devenu grand!",
+"is staying at your spa!": "reste à ton spa!",
+"likes you more!": "t’aime encore plus!",
+"min": "min",
+"now in": "maintenant dans",
+"one time": "une seule fois",
+"pack of 3": "paquet de 3",
+"pack of 5": "paquet de 5",
+"placed!": "placé!",
+"unlocked! Tap a pool to use it.": "débloqué! Touche un bain pour l’utiliser.",
+"{a} is open!": "{a} est ouvert!",
+"{n} joined your spa!": "{n} s’est joint à ton spa!",
+"{n} kinds found!": "{n} sortes trouvées!",
+"{n} left today": "{n} restantes aujourd’hui",
+"{n} was waiting for you there!": "{n} t’attendait là-bas!",
+};
+</script>
+</body>
+</html>

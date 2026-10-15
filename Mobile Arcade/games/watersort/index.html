@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0B0B14">
+<title>Water Sort — STeamWorkS</title>
+<!--
+════════════════════════════════════════════════════════════════════════
+  STeamWorkS · Water Sort · v1.0.0 · single self-contained file
+════════════════════════════════════════════════════════════════════════
+  MOS INTEGRATION
+  ───────────────
+    <iframe src="watersort.html?embed=1&prefix=PLAYER_ID"
+            style="width:100%;height:100%;border:0" allow="autoplay"></iframe>
+
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.source === 'stws-puzzle') {
+        // e.data = {source:'stws-puzzle', game:'watersort', event, ...payload}
+        // events: ready · newPuzzle · start · win · gameover
+        // win/gameover payloads carry the run's stats (moves, time, score…)
+      }
+    });
+
+  URL params:
+    ?embed=1       hide footer chrome
+    ?prefix=<id>   namespace localStorage per player  (stws-watersort-v1:<id>)
+    ?mute=1        start muted
+    ?seed=<any>    deterministic puzzles (same seed = same sequence)
+    ?daily=1       seed from today's date — everyone gets the same puzzle
+    ?diff=<id>     start on a specific difficulty (where the game has them)
+
+  Same-page API: STWGame.newGame() · STWGame.on(evt,cb) · STWGame.config
+════════════════════════════════════════════════════════════════════════
+-->
+<style>
+:root{
+  --night:#0B0B14; --panel:#15152A; --panel-2:#1A1F38;
+  --milk:#F2EFFF; --faded:#8B87A8; --line:rgba(242,239,255,.08);
+  --acc:#38B6FF;
+  --round:18px;
+  --font:"SF Pro Rounded",ui-rounded,"Nunito","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--night);color:var(--milk);font-family:var(--font);overflow:hidden;
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;
+  user-select:none;-webkit-user-select:none;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(55% 38% at 25% -5%, color-mix(in srgb,var(--acc) 9%,transparent), transparent 60%);
+}
+#app{
+  position:relative;height:100dvh;max-width:520px;margin:0 auto;
+  display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+#top{display:flex;align-items:center;gap:12px;padding:14px 16px 10px}
+#top .ico{font-size:30px;line-height:1;filter:drop-shadow(0 4px 14px color-mix(in srgb,var(--acc) 55%,transparent))}
+#top h1{font-size:19px;font-weight:900;letter-spacing:.02em;line-height:1.1}
+#top .sub{font-size:10px;font-weight:800;letter-spacing:.3em;color:var(--faded);text-transform:uppercase;margin-top:2px}
+#top .grow{flex:1}
+.iconbtn{
+  width:40px;height:40px;border-radius:13px;border:1px solid var(--line);
+  background:var(--panel);color:var(--milk);font-size:16px;font-family:var(--font);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  transition:transform .12s ease;
+}
+.iconbtn:active{transform:scale(.92)}
+.iconbtn:focus-visible{outline:2px solid var(--milk);outline-offset:2px}
+#status{display:flex;gap:8px;justify-content:center;padding:2px 16px 8px;flex-wrap:wrap}
+.chip{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:6px 13px;text-align:center;min-width:66px;
+}
+.chip .l{font-size:9px;font-weight:800;letter-spacing:.22em;color:var(--faded);text-transform:uppercase}
+.chip .v{font-size:17px;font-weight:900;color:var(--acc);font-variant-numeric:tabular-nums;margin-top:1px}
+#toolrow{display:flex;gap:8px;justify-content:center;padding:0 16px 8px}
+#toolrow:empty{display:none}
+.pill{
+  border:1px solid var(--line);background:var(--panel);color:var(--faded);
+  font-family:var(--font);font-size:12px;font-weight:800;letter-spacing:.06em;
+  padding:8px 16px;border-radius:999px;cursor:pointer;transition:transform .12s ease;
+}
+.pill:active{transform:scale(.94)}
+.pill.on{background:var(--acc);color:#10101C;border-color:transparent}
+#stage{flex:1;position:relative;min-height:0;margin:0 10px}
+#board{position:absolute;inset:0;touch-action:none}
+#ovl{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(11,11,20,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  border-radius:var(--round);z-index:5;
+}
+#ovl[hidden]{display:none}
+.ov-in{text-align:center;padding:26px 28px;max-width:330px;animation:rise .3s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1}}
+.ov-ico{
+  width:86px;height:86px;margin:0 auto 14px;border-radius:26px;
+  background:var(--panel-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:42px;
+  box-shadow:0 10px 40px -8px var(--acc);
+}
+.ov-in h2{font-size:25px;font-weight:900;letter-spacing:.02em}
+.ov-in .tip{margin-top:10px;font-size:14px;line-height:1.55;color:var(--faded);font-weight:600}
+.ov-in .chips{display:flex;gap:8px;justify-content:center;margin-top:16px}
+.cta{margin-top:22px;font-size:12px;font-weight:900;letter-spacing:.3em;color:var(--milk)}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.btn{
+  margin-top:16px;display:inline-block;padding:12px 22px;border-radius:14px;
+  background:var(--acc);border:0;color:#10101C;
+  font-family:var(--font);font-size:13px;font-weight:900;letter-spacing:.06em;cursor:pointer;
+  transition:transform .12s ease;
+}
+.btn.ghost{background:var(--panel-2);border:1px solid var(--line);color:var(--milk)}
+.btn:active{transform:scale(.94)}
+.btn:focus-visible{outline:2px solid var(--milk);outline-offset:2px}
+#foot{
+  padding:10px 16px calc(12px + env(safe-area-inset-bottom));
+  font-size:10.5px;color:var(--faded);text-align:center;font-weight:600;letter-spacing:.05em;
+}
+body.embed #foot{display:none}
+/* ── app: action bar (undo · hint · extra tube) ── */
+#actions{display:flex;gap:10px;justify-content:center;padding:8px 16px 4px}
+.act{
+  position:relative;flex:1;max-width:112px;padding:10px 6px 9px;border-radius:16px;
+  background:var(--panel);border:1px solid var(--line);color:var(--milk);
+  font-family:var(--font);cursor:pointer;transition:transform .12s ease,opacity .2s;
+}
+.act:active{transform:scale(.93)}
+.act[disabled]{opacity:.35;pointer-events:none}
+.act .e{font-size:22px;line-height:1}
+.act .n{font-size:10px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--faded);margin-top:4px}
+.act .b{
+  position:absolute;top:-7px;right:-5px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;
+  background:var(--acc);color:#10101C;font-size:11px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+}
+.act .b.ad{background:#FFD449}
+.act.pop{animation:actpop .35s ease}
+@keyframes actpop{40%{transform:scale(1.14)}}
+.btnrow{display:flex;flex-direction:column;align-items:center;gap:0}
+.btn.ad{background:#FFD449}
+/* toast */
+#toast{
+  position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translate(-50%,20px);
+  background:var(--panel-2);border:1px solid var(--line);color:var(--milk);
+  padding:10px 16px;border-radius:14px;font-size:13px;font-weight:700;max-width:88vw;text-align:center;
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:30;
+}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+/* browser-only fake ad */
+#adDemo{position:fixed;inset:0;background:rgba(5,5,12,.92);z-index:40;display:flex;align-items:center;justify-content:center}
+#adDemo[hidden]{display:none}
+/* ── achievements ── */
+.achwrap{width:100%;max-width:380px;max-height:100%;overflow-y:auto;padding:18px 14px 20px;animation:rise .3s ease}
+.achwrap h2{font-size:22px;font-weight:900;text-align:center}
+.achwrap .sub2{text-align:center;color:var(--faded);font-size:12px;font-weight:800;letter-spacing:.12em;margin:4px 0 12px}
+.achgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ach{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 10px 9px;text-align:left}
+.ach .ai{font-size:24px;line-height:1}
+.ach .an{font-size:12.5px;font-weight:900;margin-top:5px}
+.ach .ad2{font-size:11px;color:var(--faded);font-weight:600;line-height:1.35;margin-top:2px}
+.ach .bar{height:5px;border-radius:3px;background:var(--panel-2);margin-top:6px;overflow:hidden}
+.ach .bar i{display:block;height:100%;background:var(--acc)}
+.ach.locked .ai{filter:grayscale(1);opacity:.35}
+.ach.locked .an{color:var(--faded)}
+.ach.got{border-color:color-mix(in srgb,#FFD449 55%,transparent);background:linear-gradient(160deg,color-mix(in srgb,#FFD449 12%,var(--panel)),var(--panel))}
+#achPop{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translate(-50%,-130%);z-index:35;
+  background:var(--panel-2);border:1px solid color-mix(in srgb,#FFD449 60%,transparent);border-radius:16px;padding:10px 16px 10px 12px;
+  display:flex;align-items:center;gap:10px;box-shadow:0 12px 40px -10px #FFD449;transition:transform .35s cubic-bezier(.2,1.4,.4,1);max-width:92vw}
+#achPop.on{transform:translate(-50%,0)}
+#achPop .ai{font-size:30px}
+#achPop .t1{font-size:10px;font-weight:900;letter-spacing:.2em;color:#FFD449}
+#achPop .t2{font-size:14px;font-weight:900}
+.ov-in .newach{margin-top:12px;font-size:13px;font-weight:800;color:#FFD449}
+@media (prefers-reduced-motion:reduce){.pulse,.ov-in{animation:none}}
+@media (min-width:560px){#app{border-left:1px solid var(--line);border-right:1px solid var(--line)}}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <span class="ico">🧪</span>
+    <div><h1>Water Sort</h1><div class="sub">STeamWorkS</div></div>
+    <div class="grow"></div>
+    <button class="iconbtn" id="btnNew" aria-label="Restart this puzzle" title="Restart this puzzle">↻</button>
+    <button class="iconbtn" id="btnAch" aria-label="Achievements" title="Achievements">🏆</button>
+    <button class="iconbtn" id="btnSnd" aria-label="Toggle sound">🔊</button>
+  </header>
+  <div id="status"></div>
+  <div id="toolrow"></div>
+  <div id="stage">
+    <div id="board"></div>
+    <div id="ovl" hidden></div>
+  </div>
+  <div id="actions">
+    <button class="act" id="btnUndo" aria-label="Undo"><div class="e">↩</div><div class="n">Undo</div><span class="b" id="bUndo"></span></button>
+    <button class="act" id="btnHint" aria-label="Hint"><div class="e">💡</div><div class="n">Hint</div><span class="b" id="bHint"></span></button>
+    <button class="act" id="btnTube" aria-label="Extra tube"><div class="e">🧪</div><div class="n">+ Tube</div><span class="b" id="bTube"></span></button>
+  </div>
+  <footer id="foot">Saves on this device · v1.2.0</footer>
+</div>
+<div id="toast"></div>
+<div id="achPop" aria-live="polite"></div>
+<div id="adDemo" hidden></div>
+<script>
+(() => {
+'use strict';
+
+/* ══ shell: helpers ════════════════════════════════════ */
+const GAME_ID = 'watersort', GAME_TITLE = 'Water Sort', GAME_ICON = '🧪', ACCENT = '#38B6FF';
+const GAME_TIP = 'Tap a tube, then tap where to pour. You can only pour onto the same color or into space. One color per tube wins.<br><br>❄ Ice can\'t move until it melts.<br>🌈 Rainbow matches any color.<br>📅 Solve the Daily each day for a 🔥 streak.';
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const $ = s => document.querySelector(s);
+const FONT = '"SF Pro Rounded",ui-rounded,"Nunito","Segoe UI",system-ui,sans-serif';
+
+/* ══ CONFIG — tune the app here ════════════════════════
+   Free help per puzzle. When it runs out, the button
+   shows a yellow 📺 badge: tap = watch an ad to get more.
+   Set a number to 99 to make that help basically free. */
+const HELP = {
+  FREE_UNDOS: 5,      // undos per puzzle before an ad is needed
+  AD_UNDOS: 5,        // undos an ad gives back
+  FREE_HINTS: 1,      // hints per puzzle before an ad is needed
+  MAX_EXTRA_TUBES: 1, // extra empty tubes per puzzle (each one = 1 ad)
+  HINT_SHOW_MS: 2200  // how long the hint glow stays on
+};
+
+/* ══ MONEY — rewarded ads (AdMob) ══════════════════════
+   In a normal browser: DEMO mode, a 3-second fake ad.
+   Inside the Android app (Capacitor + @capacitor-community/admob)
+   the real ads play.
+   BEFORE RELEASE: put your real AdMob rewarded unit ID
+   below and set TESTING to false. */
+const MONEY = {
+  TESTING: true,
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917' // Google's TEST rewarded ID — replace with yours
+};
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null;
+let adBusy = false;
+
+let toastT = 0;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 2600);
+}
+/* show one rewarded ad → resolves true if the player earned the reward */
+function showRewardedAd() {
+  if (adBusy) return Promise.resolve(false);
+  adBusy = true;
+  const done = r => { adBusy = false; return r; };
+  const A = AdMobP();
+  if (!A) return demoAd().then(done);
+  return new Promise(async res => {
+    let earned = false, finished = false; const hs = [];
+    const finish = () => { if (finished) return; finished = true; hs.forEach(h => { try { h.remove(); } catch (e) {} }); res(earned); };
+    try {
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      await A.prepareRewardVideoAd({ adId: MONEY.REWARDED_ID, isTesting: MONEY.TESTING });
+      const item = await A.showRewardVideoAd();
+      if (item && item.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    } catch (e) { finish(); }
+  }).then(r => {
+    if (!r) toast('No ad right now — try again in a minute');
+    return done(r);
+  });
+}
+/* browser preview: fake 3-second ad so the flow can be tested */
+function demoAd() {
+  return new Promise(res => {
+    const box = document.getElementById('adDemo');
+    let n = 3;
+    box.innerHTML = '<div class="ov-in"><div class="ov-ico">📺</div><h2>Ad preview</h2>' +
+      '<p class="tip">A real video ad plays here in the app.</p>' +
+      '<div style="font-size:40px;font-weight:900;margin-top:10px;color:#FFD449" id="adCd">3</div>' +
+      '<button class="btn ghost" id="adSkip">Close (no reward)</button></div>';
+    box.hidden = false;
+    const end = r => { clearInterval(iv); box.hidden = true; res(r); };
+    const iv = setInterval(() => { n--; const el = document.getElementById('adCd'); if (el) el.textContent = n; if (n <= 0) end(true); }, 1000);
+    document.getElementById('adSkip').onclick = () => end(false);
+  });
+}
+async function adsInit() {
+  const A = AdMobP(); if (!A) return;
+  try { await A.initialize({ initializeForTesting: MONEY.TESTING }); } catch (e) {}
+}
+
+/* ══ shell: config + seeded rng ════════════════════════ */
+const QS = new URLSearchParams(location.search);
+const CFG = {
+  embed: QS.get('embed') === '1',
+  mute: QS.get('mute') === '1',
+  prefix: QS.get('prefix') || '',
+  seed: QS.get('seed') || '',
+  daily: QS.get('daily') === '1',
+  diff: QS.get('diff') || ''
+};
+if (CFG.daily && !CFG.seed) {
+  const d = new Date();
+  CFG.seed = '' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+}
+if (CFG.embed) document.body.classList.add('embed');
+
+function strHash(s) {
+  let h = 1779033703;
+  for (let i = 0; i < s.length; i++) { h = Math.imul(h ^ s.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  return h >>> 0;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const seedBase = CFG.seed ? strHash(CFG.seed) : null;
+let gameN = 0;
+let rng = Math.random;
+function freshRng() { gameN++; rng = seedBase !== null ? mulberry32(seedBase + gameN * 7919) : Math.random; }
+const RF = (a = 1, b) => b === undefined ? rng() * a : a + rng() * (b - a);
+const RI = (a, b) => Math.floor(RF(a, b + 1));
+const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+
+/* ══ shell: storage ════════════════════════════════════ */
+const STORE_KEY = 'stws-' + GAME_ID + '-v1' + (CFG.prefix ? ':' + CFG.prefix : '');
+const DATA = (() => {
+  try { return Object.assign({ sound: true, seen: false, best: {}, diff: '', save: null }, JSON.parse(localStorage.getItem(STORE_KEY) || '{}')); }
+  catch (e) { return { sound: true, seen: false, best: {}, diff: '', save: null }; }
+})();
+if (CFG.mute) DATA.sound = false;
+const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); } catch (e) {} };
+
+/* ══ shell: audio synth ════════════════════════════════ */
+const AU = {
+  ctx: null,
+  ensure() {
+    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(f, d, type = 'sine', g = 0.15, slide = 0, at = 0) {
+    if (!DATA.sound || !this.ctx) return;
+    const t = this.ctx.currentTime + at;
+    const o = this.ctx.createOscillator(), ga = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+    ga.gain.setValueAtTime(g, t);
+    ga.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(ga).connect(this.ctx.destination);
+    o.start(t); o.stop(t + d + 0.02);
+  },
+  noise(d = 0.15, g = 0.18, fq = 1000) {
+    if (!DATA.sound || !this.ctx) return;
+    const t = this.ctx.currentTime, n = Math.floor(this.ctx.sampleRate * d);
+    const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = fq;
+    const ga = this.ctx.createGain(); ga.gain.value = g;
+    src.connect(f).connect(ga).connect(this.ctx.destination);
+    src.start(t);
+  },
+  play(name, p = 1) {
+    switch (name) {
+      case 'ui':    this.tone(520, 0.07, 'triangle', 0.10); break;
+      case 'tap':   this.tone(300, 0.05, 'square', 0.06); break;
+      case 'tick':  this.tone(230, 0.04, 'square', 0.05); break;
+      case 'slide': this.noise(0.07, 0.08, 1400); break;
+      case 'ok':    this.tone(540 * p, 0.09, 'triangle', 0.14); this.tone(810 * p, 0.11, 'triangle', 0.10, 0, 0.05); break;
+      case 'good':  this.tone(660, 0.10, 'triangle', 0.14); this.tone(990, 0.14, 'triangle', 0.11, 0, 0.07); break;
+      case 'pour':  this.tone(300, 0.16, 'sine', 0.12, 160); this.noise(0.10, 0.06, 900); break;
+      case 'pop':   this.noise(0.10, 0.20, 1600); this.tone(200 * p, 0.07, 'square', 0.10); break;
+      case 'bad':   this.tone(220, 0.16, 'sawtooth', 0.10, -80); break;
+      case 'fail':  this.tone(300, 0.38, 'sawtooth', 0.13, -210); this.noise(0.2, 0.10, 500); break;
+      case 'level': [440, 550, 660, 880].forEach((f, i) => this.tone(f, 0.10, 'triangle', 0.12, 0, i * 0.07)); break;
+      case 'win':   [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => this.tone(f, 0.13, 'triangle', 0.13, 0, i * 0.085)); break;
+    }
+  }
+};
+const snd = (n, p) => AU.play(n, p);
+
+/* ══ shell: events (postMessage for MOS) ═══════════════ */
+const listeners = {};
+function on(ev, cb) { (listeners[ev] = listeners[ev] || []).push(cb); }
+function emit(ev, payload = {}) {
+  (listeners[ev] || []).forEach(cb => { try { cb(payload); } catch (e) {} });
+  if (window.parent !== window) {
+    try { window.parent.postMessage(Object.assign({ source: 'stws-puzzle', game: GAME_ID, event: ev }, payload), '*'); } catch (e) {}
+  }
+}
+
+/* ══ shell: status chips + toolbar pills ═══════════════ */
+const boardEl = $('#board'), ovl = $('#ovl'), statusEl = $('#status'), toolEl = $('#toolrow');
+function setChips(pairs) {
+  statusEl.innerHTML = pairs.map(p =>
+    '<div class="chip"><div class="l">' + p[0] + '</div><div class="v">' + p[1] + '</div></div>').join('');
+}
+function setPills(list, cur, cb) {
+  toolEl.innerHTML = '';
+  for (const d of list) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (d.id === cur ? ' on' : '');
+    b.textContent = d.label;
+    b.addEventListener('click', () => { snd('ui'); cb(d.id); });
+    toolEl.appendChild(b);
+  }
+}
+
+/* ══ shell: overlays ═══════════════════════════════════ */
+let ovlAction = null;
+function overlay(html, tapAction) {
+  ovl.innerHTML = html; ovl.hidden = false; ovlAction = tapAction || null;
+}
+function hideOverlay() { ovl.hidden = true; ovlAction = null; }
+function chipsHtml(pairs) {
+  return '<div class="chips">' + pairs.map(p =>
+    '<div class="chip"><div class="l">' + p[0] + '</div><div class="v">' + p[1] + '</div></div>').join('') + '</div>';
+}
+function winOverlay(pairs, payload) {
+  snd('win');
+  emit('win', payload || {});
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>Solved!</h2>' +
+      chipsHtml(pairs) +
+      '<div><button class="btn" id="ovNew">New puzzle</button></div>' +
+    '</div>');
+}
+function overOverlay(title, pairs, payload) {
+  snd('fail');
+  emit('gameover', payload || {});
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>' + title + '</h2>' +
+      chipsHtml(pairs) +
+      '<div><button class="btn" id="ovNew">Play again</button></div>' +
+    '</div>');
+}
+function helpOverlay() {
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">' + GAME_ICON + '</div>' +
+      '<h2>' + GAME_TITLE + '</h2>' +
+      '<p class="tip">' + GAME_TIP + '</p>' +
+      '<div class="cta pulse">TAP TO PLAY</div>' +
+    '</div>', 'close');
+  DATA.seen = true; save();
+}
+ovl.addEventListener('click', e => {
+  if (e.target.closest('#ovAchClose')) { AU.ensure(); snd('ui'); hideOverlay(); return; }
+  if (e.target.closest('#ovNew')) { AU.ensure(); snd('ui'); hideOverlay(); game.newGame(); return; }
+  if (e.target.closest('#ovTube')) { AU.ensure(); hideOverlay(); helpTube(); return; }
+  if (e.target.closest('#ovUndo')) { AU.ensure(); hideOverlay(); helpUndo(); return; }
+  if (e.target.closest('#ovRestart')) { AU.ensure(); snd('ui'); hideOverlay(); game.restart(); return; }
+  if (e.target.closest('#ovFree')) { AU.ensure(); snd('ui'); hideOverlay(); diff = ['e','m','h'].includes(DATA.diff) ? DATA.diff : 'm'; renderPills(); game.newGame(); return; }
+  if (e.target.closest('.btn')) return;
+  if (ovlAction === 'close') { AU.ensure(); hideOverlay(); introTwists(); }
+});
+
+/* ══ shell: timer ══════════════════════════════════════ */
+const T = {
+  t0: 0, acc: 0, run: false,
+  reset() { this.t0 = 0; this.acc = 0; this.run = false; },
+  start() { if (!this.run) { this.run = true; this.t0 = Date.now(); } },
+  stop() { if (this.run) { this.acc += Date.now() - this.t0; this.run = false; } },
+  sec() { return Math.floor((this.acc + (this.run ? Date.now() - this.t0 : 0)) / 1000); }
+};
+const fmtT = s => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+setInterval(() => { if (game.tick) game.tick(); }, 500);
+
+/* ══ shell: canvas helper ══════════════════════════════ */
+let CW = 0, CH = 0;
+function initCanvas() {
+  const cvs = document.createElement('canvas');
+  cvs.style.cssText = 'position:absolute;inset:0;display:block;touch-action:none';
+  boardEl.appendChild(cvs);
+  const g = cvs.getContext('2d');
+  function fit() {
+    const r = boardEl.getBoundingClientRect();
+    CW = Math.max(1, Math.round(r.width)); CH = Math.max(1, Math.round(r.height));
+    const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    cvs.width = CW * dpr; cvs.height = CH * dpr;
+    cvs.style.width = CW + 'px'; cvs.style.height = CH + 'px';
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (game.onResize) game.onResize();
+  }
+  fit();
+  window.addEventListener('resize', fit);
+  // the header chips fill in after the canvas is made, so re-measure when the board changes size
+  if (window.ResizeObserver) new ResizeObserver(() => { const r = boardEl.getBoundingClientRect(); if (Math.round(r.width) !== CW || Math.round(r.height) !== CH) fit(); }).observe(boardEl);
+  const pos = e => { const r = cvs.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  cvs.addEventListener('contextmenu', e => e.preventDefault());
+  return { cvs, g, pos, fit };
+}
+function startLoop() {
+  let last = performance.now();
+  (function raf(now) {
+    requestAnimationFrame(raf);
+    const dt = Math.min(0.033, (now - (last || now)) / 1000); last = now;
+    if (game.frame) game.frame(dt);
+  })(performance.now());
+}
+
+/* ══ shell: top buttons ════════════════════════════════ */
+function syncSnd() { $('#btnSnd').textContent = DATA.sound ? '🔊' : '🔇'; }
+$('#btnSnd').addEventListener('click', () => { DATA.sound = !DATA.sound; save(); syncSnd(); AU.ensure(); snd('ui'); });
+$('#btnNew').addEventListener('click', () => { AU.ensure(); snd('ui'); hideOverlay(); game.restart(); });
+$('#btnUndo').addEventListener('click', () => { AU.ensure(); helpUndo(); });
+$('#btnAch').addEventListener('click', () => { AU.ensure(); snd('ui'); if (ovl.hidden || document.querySelector('.achwrap')) achOverlay(); });
+$('#btnHint').addEventListener('click', () => { AU.ensure(); helpHint(); });
+$('#btnTube').addEventListener('click', () => { AU.ensure(); helpTube(); });
+window.addEventListener('pointerdown', () => AU.ensure(), { once: true, capture: true });
+
+/* ══ game ══════════════════════════════════════════════ */
+/* Water Sort — pour until every tube is one color · solver-verified
+   Special twists (v1.2):
+   ❄ ICE      some layers are frozen. A frozen layer can't be poured,
+              and a tube with ice on top is locked both ways. Each ice
+              shows how many pours until it melts. Undo re-freezes it.
+   🌈 RAINBOW  one rare layer matches ANY color. It takes the place of
+              one cell of a color, so it belongs with that color in the end.
+   📅 DAILY    one special puzzle a day — the same for everyone —
+              with a 🔥 streak for solving it on days in a row. */
+const CAP = 4;
+const W = -1; // the rainbow drop
+const WPAL = ['#FF5C8A','#FFB03A','#2BD9C7','#8A6BFF','#38B6FF','#A6F548','#FFD449','#FF6B4A','#C792EA','#7FD1AE'];
+let tubes = [], sel = -1, wMoves = 0, wSolved = false, history = [], splash = [];
+/* the pour animation: the tube lifts, flies over the target, tilts,
+   a stream of liquid flows in, then it goes back. Times in seconds. */
+const POUR = { LIFT: 0.2, POUR: 0.26, PER_LAYER: 0.07, BACK: 0.2, TILT: 1.22 };
+let pourAnim = null;
+let ice = [];        // [{t, i, at}] — cell i of tube t is frozen while pours < at
+let undosLeft = 0, hintsLeft = 0, extraUsed = 0, hint = null;
+/* The deal as it was dealt, so ↻ can restore it exactly. */
+let startTubes = null, startIce = [];
+let C, GG, POS;
+const DIFFS = [{ id: 'e', label: 'Easy' }, { id: 'm', label: 'Medium' }, { id: 'h', label: 'Hard' }, { id: 'd', label: '📅 Daily' }];
+const NCOL = { e: 5, m: 7, h: 9, d: 8 };
+/* how many ice layers, their melt range (in pours), rainbow chance */
+const FEAT = {
+  e: { ice: 1, lo: 3, hi: 5, rb: 0.35 },
+  m: { ice: 2, lo: 3, hi: 7, rb: 0.5 },
+  h: { ice: 3, lo: 4, hi: 9, rb: 0.5 },
+  d: { ice: 3, lo: 4, hi: 8, rb: 1 }
+};
+let diff = 'm';
+const clock = () => history.length;
+
+/* ── dates for the daily puzzle ── */
+const dayKey = d => '' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+const today = () => dayKey(new Date());
+const yesterday = () => { const d = new Date(); d.setDate(d.getDate() - 1); return dayKey(d); };
+function dailyInfo() {
+  if (!DATA.daily) DATA.daily = { last: '', streak: 0, bestStreak: 0 };
+  return DATA.daily;
+}
+/* streak that still counts right now (0 if a day was missed) */
+function liveStreak() {
+  const d = dailyInfo();
+  return (d.last === today() || d.last === yesterday()) ? d.streak : 0;
+}
+const dailyDone = () => dailyInfo().last === today();
+
+/* ── rules ── */
+function frozenAt(iceL, clk, t, i) {
+  for (const e of iceL) if (e.t === t && e.i === i && clk < e.at) return e;
+  return null;
+}
+function topFrozen(iceL, clk, ts, t) {
+  return ts[t].length ? frozenAt(iceL, clk, t, ts[t].length - 1) : null;
+}
+const match = (a, b) => a === W || b === W || a === b;
+/* how many layers pour from tube i into tube j (0 = not allowed) */
+function pourN(ts, iceL, clk, i, j) {
+  const a = ts[i], b = ts[j];
+  if (!a.length || b.length >= CAP) return 0;
+  if (topFrozen(iceL, clk, ts, i) || topFrozen(iceL, clk, ts, j)) return 0;
+  const c = a[a.length - 1];
+  if (b.length && !match(b[b.length - 1], c)) return 0;
+  let n = 1;
+  for (let k = a.length - 2; k >= 0 && a[k] === c && !frozenAt(iceL, clk, i, k); k--) n++;
+  return Math.min(n, CAP - b.length);
+}
+/* one color per tube; the rainbow fits with anything */
+function uniformW(t) {
+  let c = null;
+  for (const v of t) { if (v === W) continue; if (c === null) c = v; else if (v !== c) return false; }
+  return true;
+}
+const strict = t => t.every(c => c === t[0]);
+const doneTube = t => t.length === CAP && uniformW(t);
+function isSolvedState(ts) { return ts.every(t => t.length === 0 || doneTube(t)); }
+function keyOf(ts) { return ts.map(t => t.join(',')).sort().join('|'); }
+const icePending = (iceL, clk) => iceL.some(e => clk < e.at);
+
+/* every pour worth trying. While ice is still melting, "waiting" pours
+   count too — they pass time. Pours onto a color come first. */
+function movesOf(t, iceL, clk) {
+  const pend = icePending(iceL, clk);
+  const out = [];
+  for (let i = 0; i < t.length; i++) {
+    if (!t[i].length) continue;
+    if (!pend && t[i].length === CAP && strict(t[i])) continue;
+    for (let j = 0; j < t.length; j++) {
+      if (i === j) continue;
+      if (!pend && strict(t[i]) && !t[j].length) continue; // moving a one-color stack to an empty tube does nothing
+      if (pourN(t, iceL, clk, i, j)) out.push([i, j]);
+    }
+  }
+  return out.sort((a, b) => (t[a[1]].length ? 0 : 1) - (t[b[1]].length ? 0 : 1));
+}
+function applyPour(t, iceL, clk, i, j) {
+  const n = pourN(t, iceL, clk, i, j);
+  const nt = t.map(x => x.slice());
+  const c = nt[i][nt[i].length - 1];
+  for (let q = 0; q < n; q++) { nt[i].pop(); nt[j].push(c); }
+  return nt;
+}
+/* depth-first search: is it solvable, and what's the first move? */
+function search(t0, iceL, clk0, limit) {
+  const start = t0.map(x => x.slice());
+  if (isSolvedState(start)) return { ok: true, first: null };
+  const maxAt = iceL.reduce((m, e) => Math.max(m, e.at), 0);
+  const kf = (t, clk) => clk < maxAt ? t.map(x => x.join(',')).join('|') + '#' + clk : keyOf(t);
+  const seen = new Set([kf(start, clk0)]);
+  const st = [{ t: start, clk: clk0, first: null, prev: null, mv: null }];
+  let steps = 0;
+  while (st.length) {
+    if (++steps > limit) return { ok: false, first: null, gaveUp: true };
+    const cur = st.pop(); st.lastPopped = cur;
+    const { t, clk, first } = cur;
+    if (isSolvedState(t)) {
+      const node = st.lastPopped, path = [];
+      for (let q = node; q && q.mv; q = q.prev) path.unshift(q.mv);
+      return { ok: true, first, path };
+    }
+    const mv = movesOf(t, iceL, clk);
+    for (let k = mv.length - 1; k >= 0; k--) {   // reverse so the best move is popped first
+      const [i, j] = mv[k];
+      const nt = applyPour(t, iceL, clk, i, j);
+      const kk = kf(nt, clk + 1);
+      if (!seen.has(kk)) { seen.add(kk); st.push({ t: nt, clk: clk + 1, first: first || { from: i, to: j }, prev: cur, mv: { from: i, to: j } }); }
+    }
+  }
+  return { ok: false, first: null };
+}
+/* Hints follow ONE full solution, so pressing Hint again and again
+   always makes progress. If the player leaves the plan, a new one is made. */
+let plan = null; // Map: state → next move
+const stateStr = () => tubes.map(x => x.join(',')).join('|') + '#' + clock();
+function nextMove() {
+  const k = stateStr();
+  if (plan && plan.has(k)) return plan.get(k);
+  const r = search(tubes, ice, clock(), 80000);
+  if (!r.ok || !r.path || !r.path.length) { plan = null; return null; }
+  plan = new Map();
+  let t = tubes.map(x => x.slice()), clk = clock();
+  for (const m of r.path) {
+    plan.set(t.map(x => x.join(',')).join('|') + '#' + clk, m);
+    t = applyPour(t, ice, clk, m.from, m.to); clk++;
+  }
+  return plan.get(k);
+}
+
+/* ── making a puzzle ── */
+function placeIce(n) {
+  const f = FEAT[diff], out = [];
+  const cand = shuffle(tubes.map((t, ti) => ti).filter(ti => tubes[ti].length));
+  for (const ti of cand) {
+    if (out.length >= n) break;
+    const spots = [];
+    for (let i = 0; i < tubes[ti].length; i++) if (tubes[ti][i] !== W) spots.push(i);
+    if (!spots.length) continue;
+    out.push({ t: ti, i: spots[RI(0, spots.length - 1)], at: RI(f.lo, f.hi) });
+  }
+  return out;
+}
+function gen() {
+  const nc = NCOL[diff], f = FEAT[diff];
+  const wantW = rng() < f.rb;
+  // pass 0: all twists · pass 1: no ice · pass 2: plain
+  for (let pass = 0; pass < 3; pass++) {
+    const nIce = pass === 0 ? f.ice : 0;
+    const useW = pass < 2 && wantW;
+    for (let tries = 0; tries < 14; tries++) {
+      const pool = [];
+      for (let c = 0; c < nc; c++) for (let k = 0; k < CAP; k++) pool.push(c);
+      shuffle(pool);
+      if (useW) { const x = RI(0, nc - 1); pool[pool.indexOf(x)] = W; }
+      tubes = [];
+      for (let t = 0; t < nc; t++) tubes.push(pool.slice(t * CAP, t * CAP + CAP));
+      tubes.push([], []);
+      ice = placeIce(nIce);
+      // no tube may start fully finished
+      if (tubes.some(t => t.length === CAP && strict(t))) continue;
+      if (search(tubes, ice, 0, 50000).ok) return;
+    }
+  }
+}
+function geom() {
+  const n = tubes.length;
+  const perRow = Math.ceil(n / 2);
+  const tw = Math.min(54, (CW - 24) / perRow - 12);
+  const th = tw * 2.9;
+  const totalH = 2 * th + 70;
+  const oy = Math.max(20, (CH - totalH) / 2);
+  const pos = [];
+  for (let i = 0; i < n; i++) {
+    const row = i < perRow ? 0 : 1;
+    const col = row === 0 ? i : i - perRow;
+    const inRow = row === 0 ? perRow : n - perRow;
+    const gx = (CW - inRow * tw) / (inRow + 1);
+    pos.push({ x: gx + col * (tw + gx), y: oy + row * (th + 56), w: tw, h: th });
+  }
+  return pos;
+}
+function tubeAt(x, y) {
+  const pos = geom();
+  for (let i = 0; i < pos.length; i++) {
+    const p = pos[i];
+    if (x >= p.x - 8 && x <= p.x + p.w + 8 && y >= p.y - 26 && y <= p.y + p.h + 8) return i;
+  }
+  return -1;
+}
+const colorOf = c => c === W ? '#FFFFFF' : WPAL[c];
+function iceToast(e) { toast('❄ Frozen — melts in ' + (e.at - clock()) + ' pour' + (e.at - clock() === 1 ? '' : 's')); }
+
+function tap(i) {
+  if (wSolved || !ovl.hidden) return;
+  if (pourAnim) pourAnim = null;   // tapping again finishes the pour instantly
+  const clk = clock();
+  if (sel === -1) {
+    if (!tubes[i].length) return;
+    const fz = topFrozen(ice, clk, tubes, i);
+    if (fz) { snd('bad'); iceToast(fz); return; }
+    sel = i; snd('tap');
+    return;
+  }
+  if (sel === i) { sel = -1; snd('tap', 0.8); return; }
+  const n = pourN(tubes, ice, clk, sel, i);
+  if (!n) {
+    const fz = topFrozen(ice, clk, tubes, i);
+    if (fz) { snd('bad'); iceToast(fz); sel = -1; return; }
+    sel = tubes[i].length ? i : -1;
+    snd(tubes[i].length ? 'tap' : 'bad');
+    return;
+  }
+  T.start();
+  const c = tubes[sel][tubes[sel].length - 1];
+  history.push({ from: sel, to: i, n });
+  hint = null;
+  for (let k = 0; k < n; k++) { tubes[sel].pop(); tubes[i].push(c); }
+  wMoves++;
+  { const st = stats(); st.pours++; if (c === W) st.rainbow++; }
+  const P = geom();
+  pourAnim = { from: sel, to: i, n, c, t: 0, L: POUR.LIFT, P: POUR.POUR + POUR.PER_LAYER * n, R: POUR.BACK, toBefore: tubes[i].length - n, sounded: false };
+  const animMs = (pourAnim.L + pourAnim.P + pourAnim.R) * 1000;
+  setTimeout(checkAch, animMs + 50);
+  // ice that just melted
+  const melted = ice.filter(e => e.at === clock());
+  stats().ice += melted.length;
+  if (melted.length) setTimeout(() => {
+    snd('good');
+    const P = geom();
+    for (const e of melted) {
+      const p = P[e.t]; if (!p) continue;
+      const segH = (p.h - 8) / CAP, cy = p.y + p.h - 4 - (e.i + 0.5) * segH;
+      for (let k = 0; k < 10; k++) splash.push({ x: p.x + p.w / 2 + RF(-12, 12), y: cy, vy: RF(-90, -30), vx: RF(-50, 50), life: RF(0.4, 0.7), c: '#CFEFFF' });
+    }
+  }, animMs);
+  sel = -1;
+  refresh();
+  if (isSolvedState(tubes)) {
+    wSolved = true; T.stop();
+    const t = T.sec();
+    const key = 'm' + diff;
+    if (!DATA.best[key] || wMoves < DATA.best[key]) DATA.best[key] = wMoves;
+    if (diff === 'd') {
+      const d = dailyInfo();
+      if (d.last !== today()) {
+        d.streak = d.last === yesterday() ? d.streak + 1 : 1;
+        d.last = today();
+        d.bestStreak = Math.max(d.bestStreak || 0, d.streak);
+      }
+    }
+    const st = stats();
+    st.solved++;
+    if (diff === 'h') st.hard++;
+    if (diff === 'd') { st.daily++; st.bestStreak = Math.max(st.bestStreak, dailyInfo().streak); }
+    if (t < 60) st.fast++;
+    if (!usedHelp && (diff === 'm' || diff === 'h' || diff === 'd')) st.nohelp++;
+    save(); refresh();
+    setTimeout(() => {
+      if (diff === 'd') dailyWinOverlay(t);
+      else winOverlay([['MOVES', wMoves], ['TIME', fmtT(t)], ['BEST', DATA.best[key]]], { diff, moves: wMoves, timeSec: t });
+      renderPills();
+    }, animMs + 250);
+  } else if (!movesOf(tubes, ice, clock()).length) {
+    setTimeout(stuckOverlay, animMs + 200);
+  }
+}
+function dailyWinOverlay(t) {
+  snd('win');
+  emit('win', { diff: 'd', moves: wMoves, timeSec: t, streak: dailyInfo().streak });
+  const s = dailyInfo().streak;
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">🔥</div>' +
+      '<h2>Daily solved!</h2>' +
+      chipsHtml([['MOVES', wMoves], ['TIME', fmtT(t)], ['STREAK', s + (s === 1 ? ' day' : ' days')]]) +
+      '<p class="tip">A new daily puzzle comes tomorrow.<br>Best streak: ' + (dailyInfo().bestStreak || s) + '</p>' +
+      '<div><button class="btn" id="ovFree">Keep playing</button></div>' +
+    '</div>');
+}
+function refresh() {
+  const third = diff === 'd'
+    ? ['🔥 STREAK', liveStreak()]
+    : ['BEST', DATA.best['m' + diff] || '—'];
+  setChips([['MOVES', wMoves], ['TIME', fmtT(T.sec())], third]);
+  syncActions();
+}
+function renderPills() {
+  const list = DIFFS.map(d => d.id === 'd' ? { id: 'd', label: dailyDone() ? '📅 Daily ✓' : '📅 Daily' } : d);
+  setPills(list, diff, id => {
+    if (id !== 'd') DATA.diff = id;
+    diff = id; save();
+    hideOverlay(); renderPills(); game.newGame();
+  });
+}
+
+/* ══ app: achievements (in-game badges) ════════════════
+   Stats live in DATA.stats; unlocked badges in DATA.ach {id: date}.
+   Add a badge: put a line in ACH with a test(stats) and, for counters,
+   a goal + val(stats) so the trophy room shows a progress bar. */
+const ACH = [
+  { id: 'pour1',   ico: '💧', name: 'First Pour',      desc: 'Make your first pour',            goal: 1,    val: s => s.pours },
+  { id: 'solve1',  ico: '🧪', name: 'Sorted!',         desc: 'Solve your first puzzle',         goal: 1,    val: s => s.solved },
+  { id: 'solve10', ico: '🔟', name: 'Sorter',          desc: 'Solve 10 puzzles',                goal: 10,   val: s => s.solved },
+  { id: 'solve100',ico: '💯', name: 'Master Sorter',   desc: 'Solve 100 puzzles',               goal: 100,  val: s => s.solved },
+  { id: 'hard1',   ico: '⛰️', name: 'Brave',           desc: 'Solve a Hard puzzle',             goal: 1,    val: s => s.hard },
+  { id: 'hard10',  ico: '🏔️', name: 'Summit',          desc: 'Solve 10 Hard puzzles',           goal: 10,   val: s => s.hard },
+  { id: 'ice1',    ico: '❄️', name: 'Ice Breaker',     desc: 'Melt your first ice layer',       goal: 1,    val: s => s.ice },
+  { id: 'ice50',   ico: '🧊', name: 'Thaw Master',     desc: 'Melt 50 ice layers',              goal: 50,   val: s => s.ice },
+  { id: 'rainbow', ico: '🌈', name: 'Over the Rainbow',desc: 'Pour a rainbow drop',             goal: 1,    val: s => s.rainbow },
+  { id: 'daily1',  ico: '📅', name: 'Daily Debut',     desc: 'Solve your first Daily',          goal: 1,    val: s => s.daily },
+  { id: 'streak3', ico: '🔥', name: 'On Fire',         desc: 'Reach a 3-day streak',            goal: 3,    val: s => s.bestStreak },
+  { id: 'streak7', ico: '🏆', name: 'Week Warrior',    desc: 'Reach a 7-day streak',            goal: 7,    val: s => s.bestStreak },
+  { id: 'streak30',ico: '💎', name: 'Unstoppable',     desc: 'Reach a 30-day streak',           goal: 30,   val: s => s.bestStreak },
+  { id: 'fast',    ico: '⚡', name: 'Speedy',          desc: 'Solve a puzzle in under 60 seconds', goal: 1, val: s => s.fast },
+  { id: 'nohelp',  ico: '🧠', name: 'No Help Needed',  desc: 'Solve Medium or Hard with no undo, hint or extra tube', goal: 1, val: s => s.nohelp },
+  { id: 'pour1000',ico: '🌊', name: 'Ocean',           desc: 'Make 1,000 pours',                goal: 1000, val: s => s.pours }
+];
+function stats() {
+  if (!DATA.stats) DATA.stats = {};
+  const d = { pours: 0, solved: 0, hard: 0, ice: 0, rainbow: 0, daily: 0, bestStreak: 0, fast: 0, nohelp: 0 };
+  for (const k in d) if (typeof DATA.stats[k] !== 'number') DATA.stats[k] = d[k];
+  if (!DATA.ach) DATA.ach = {};
+  if (DATA.daily && DATA.daily.bestStreak > DATA.stats.bestStreak) DATA.stats.bestStreak = DATA.daily.bestStreak;
+  return DATA.stats;
+}
+let usedHelp = false;
+const achQueue = [];
+let achShowing = false;
+function checkAch() {
+  const s = stats(), fresh = [];
+  for (const a of ACH) {
+    if (DATA.ach[a.id]) continue;
+    if (a.val(s) >= a.goal) { DATA.ach[a.id] = today(); fresh.push(a); }
+  }
+  if (fresh.length) { save(); fresh.forEach(a => achQueue.push(a)); showNextAch(); }
+  return fresh;
+}
+function showNextAch() {
+  if (achShowing || !achQueue.length) return;
+  achShowing = true;
+  const a = achQueue.shift(), el = $('#achPop');
+  el.innerHTML = '<div class="ai">' + a.ico + '</div><div><div class="t1">ACHIEVEMENT</div><div class="t2">' + a.name + '</div></div>';
+  setTimeout(() => { el.classList.add('on'); [784, 988, 1175].forEach((f, i) => AU.tone(f, 0.12, 'triangle', 0.12, 0, i * 0.08)); }, 60);
+  setTimeout(() => { el.classList.remove('on'); setTimeout(() => { achShowing = false; showNextAch(); }, 400); }, 2600);
+}
+function achOverlay() {
+  const s = stats();
+  const got = ACH.filter(a => DATA.ach[a.id]).length;
+  overlay('<div class="achwrap"><h2>🏆 Achievements</h2><div class="sub2">' + got + ' / ' + ACH.length + ' UNLOCKED</div><div class="achgrid">' +
+    ACH.map(a => {
+      const has = !!DATA.ach[a.id];
+      const v = Math.min(a.goal, a.val(s));
+      const bar = !has && a.goal > 1 ? '<div class="bar"><i style="width:' + Math.round(100 * v / a.goal) + '%"></i></div><div class="ad2">' + v + ' / ' + a.goal + '</div>' : '';
+      return '<div class="ach ' + (has ? 'got' : 'locked') + '"><div class="ai">' + a.ico + '</div><div class="an">' + a.name + '</div><div class="ad2">' + a.desc + '</div>' + bar + '</div>';
+    }).join('') +
+    '</div><div style="text-align:center"><button class="btn" id="ovAchClose">Back to the game</button></div></div>');
+}
+
+/* ══ app: help buttons (undo · hint · extra tube) ══════ */
+function badge(id, n) {
+  const b = $(id);
+  if (n > 0) { b.textContent = n; b.className = 'b'; }
+  else { b.textContent = '📺'; b.className = 'b ad'; }
+}
+function syncActions() {
+  badge('#bUndo', undosLeft);
+  badge('#bHint', hintsLeft);
+  const tubesLeft = HELP.MAX_EXTRA_TUBES - extraUsed;
+  $('#bTube').textContent = '📺'; $('#bTube').className = 'b ad';
+  $('#btnUndo').disabled = wSolved || !history.length;
+  $('#btnHint').disabled = wSolved;
+  $('#btnTube').disabled = wSolved || tubesLeft <= 0;
+}
+function popBtn(id) { const b = $(id); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
+
+async function helpUndo() {
+  if (wSolved || !history.length) return;
+  if (undosLeft <= 0) {
+    snd('ui');
+    if (!await showRewardedAd()) return;
+    undosLeft += HELP.AD_UNDOS; snd('good'); popBtn('#btnUndo');
+    toast('+' + HELP.AD_UNDOS + ' undos — thanks for watching!');
+  }
+  undosLeft--; usedHelp = true;
+  game.undo();
+}
+async function helpHint() {
+  if (wSolved) return;
+  const mv = nextMove();
+  if (!mv) {
+    snd('bad');
+    toast(history.length ? 'No way out from here — undo or add a tube' : 'Try adding a tube');
+    return;
+  }
+  if (hintsLeft <= 0) {
+    snd('ui');
+    if (!await showRewardedAd()) return;
+    snd('good');
+  } else hintsLeft--;
+  sel = -1; usedHelp = true;
+  hint = { from: mv.from, to: mv.to, until: performance.now() + HELP.HINT_SHOW_MS };
+  popBtn('#btnHint'); snd('ok');
+  refresh();
+}
+async function helpTube() {
+  if (wSolved || extraUsed >= HELP.MAX_EXTRA_TUBES) return;
+  snd('ui');
+  if (!await showRewardedAd()) return;
+  extraUsed++; usedHelp = true;
+  tubes.push([]);
+  hint = null; sel = -1;
+  snd('level'); popBtn('#btnTube');
+  toast('Extra tube added!');
+  refresh();
+}
+
+/* no moves left → offer help (the "retry after an ad" moment) */
+function stuckOverlay() {
+  if (wSolved || !ovl.hidden || movesOf(tubes, ice, clock()).length) return;
+  snd('fail');
+  const canTube = extraUsed < HELP.MAX_EXTRA_TUBES;
+  overlay(
+    '<div class="ov-in">' +
+      '<div class="ov-ico">😵</div>' +
+      '<h2>Stuck!</h2>' +
+      '<p class="tip">No moves left. Want some help?</p>' +
+      '<div class="btnrow">' +
+        (canTube ? '<button class="btn ad" id="ovTube">📺 Watch ad · extra tube</button>' : '') +
+        (history.length ? '<button class="btn ghost" id="ovUndo">↩ Undo' + (undosLeft > 0 ? ' (' + undosLeft + ' left)' : ' · 📺 ad') + '</button>' : '') +
+        '<button class="btn ghost" id="ovRestart">↻ Restart puzzle</button>' +
+      '</div>' +
+    '</div>');
+}
+/* first time a twist shows up, explain it */
+function introTwists() {
+  const msgs = [];
+  if (ice.length && !DATA.seenIce) { msgs.push('❄ Ice can\'t move. It melts after the number of pours shown.'); DATA.seenIce = true; }
+  if (tubes.some(t => t.includes(W)) && !DATA.seenRainbow) { msgs.push('🌈 Rainbow drop! It matches any color.'); DATA.seenRainbow = true; }
+  if (diff === 'd' && !DATA.seenDaily) { msgs.push('📅 Daily puzzle — same for everyone. Solve it each day for a 🔥 streak!'); DATA.seenDaily = true; }
+  if (!msgs.length) return;
+  save();
+  msgs.forEach((m, k) => setTimeout(() => toast(m), 400 + k * 2900));
+}
+
+/* ── drawing ── */
+function drawIce(g, x, cy, w, segH, left, bottom) {
+  g.save();
+  g.fillStyle = 'rgba(214,240,255,.40)';
+  g.beginPath();
+  if (bottom) g.roundRect(x + 3, cy, w - 6, segH, [0, 0, w / 2 - 3, w / 2 - 3]);
+  else g.rect(x + 3, cy, w - 6, segH);
+  g.fill();
+  g.clip();
+  g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.2;
+  g.beginPath();
+  g.moveTo(x + 6, cy + segH * 0.25); g.lineTo(x + w * 0.4, cy + segH * 0.55); g.lineTo(x + w * 0.3, cy + segH * 0.9);
+  g.moveTo(x + w * 0.4, cy + segH * 0.55); g.lineTo(x + w - 7, cy + segH * 0.35);
+  g.stroke();
+  g.fillStyle = '#0E2A44'; g.font = '900 ' + Math.round(Math.min(15, segH * 0.5)) + 'px ' + FONT;
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('❄' + left, x + w / 2, cy + segH / 2 + 1);
+  g.textBaseline = 'alphabetic';
+  g.restore();
+}
+function rainbowFill(g, x, cy, w, segH) {
+  const t = performance.now() / 1000;
+  const gr = g.createLinearGradient(x, cy, x + w, cy + segH);
+  for (let k = 0; k <= 4; k++) gr.addColorStop(k / 4, 'hsl(' + ((t * 70 + k * 72) % 360) + ',95%,62%)');
+  return gr;
+}
+
+const game = {
+  init() {
+    const d0 = CFG.diff || DATA.diff;
+    diff = ['e', 'm', 'h'].includes(d0) ? d0 : 'm';
+    if (CFG.daily) diff = 'd';
+    const cn = initCanvas(); C = cn; GG = cn.g; POS = cn.pos;
+    C.cvs.addEventListener('pointerdown', e => { e.preventDefault(); const p = POS(e); const i = tubeAt(p.x, p.y); if (i >= 0) tap(i); else { sel = -1; } });
+    renderPills();
+    this.newGame(true);
+    startLoop();
+  },
+  newGame(silent) {
+    if (diff === 'd') rng = mulberry32(strHash('watersort-daily-' + today()));
+    else freshRng();
+    wMoves = 0; wSolved = false; sel = -1; history = []; splash = []; hint = null; pourAnim = null; usedHelp = false;
+    undosLeft = HELP.FREE_UNDOS; hintsLeft = HELP.FREE_HINTS; extraUsed = 0;
+    T.reset();
+    gen();
+    startTubes = tubes.map(t => t.slice());
+    startIce = ice.map(e => Object.assign({}, e));
+    refresh();
+    if (DATA.seen) introTwists();
+    if (!silent) emit('newPuzzle', { diff });
+  },
+  /* ↻ = back to the opening position of this same puzzle. */
+  restart() {
+    if (!startTubes) return;
+    tubes = startTubes.map(t => t.slice());
+    ice = startIce.map(e => Object.assign({}, e));
+    for (let k = 0; k < extraUsed; k++) tubes.push([]); // keep tubes already paid for
+    wMoves = 0; wSolved = false; sel = -1; history = []; splash = []; hint = null; pourAnim = null; usedHelp = false;
+    undosLeft = Math.max(undosLeft, HELP.FREE_UNDOS);
+    T.reset();
+    refresh();
+  },
+  undo() {
+    if (!history.length || wSolved) return;
+    const m = history.pop();
+    const c = tubes[m.to][tubes[m.to].length - 1];
+    for (let k = 0; k < m.n; k++) { tubes[m.to].pop(); tubes[m.from].push(c); }
+    wMoves++; sel = -1; hint = null; pourAnim = null;
+    snd('ui');
+    refresh();
+  },
+  tick() { if (!wSolved) refresh(); },
+  frame(dt) {
+    const g = GG;
+    g.clearRect(0, 0, CW, CH);
+    if (hint && performance.now() > hint.until) hint = null;
+    const pos = geom();
+    const clk = clock();
+    const A = pourAnim;
+    let p = 1, srcT = null;
+    if (A) {
+      A.t += dt;
+      const T1 = A.L, T2 = A.L + A.P, T3 = A.L + A.P + A.R;
+      if (A.t >= T3 || !pos[A.from] || !pos[A.to]) pourAnim = null;
+      else {
+        p = clamp((A.t - T1) / A.P, 0, 1);
+        if (!A.sounded && A.t >= T1) { A.sounded = true; snd('pour'); }
+        const ps = pos[A.from], pt = pos[A.to];
+        const side = ps.x <= pt.x ? 1 : -1;
+        const th = side * POUR.TILT;
+        const Lm = ps.h / 2 + 6;
+        const mouthT = { x: pt.x + pt.w / 2 - side * pt.w * 0.18, y: pt.y - 16 };
+        const pc = { x: mouthT.x - Lm * Math.sin(th), y: mouthT.y + Lm * Math.cos(th) };
+        const home = { x: ps.x + ps.w / 2, y: ps.y + ps.h / 2 };
+        const ease = u => u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+        let k, ang;
+        if (A.t < T1) { k = ease(A.t / T1); ang = th * k; }
+        else if (A.t < T2) { k = 1; ang = th + side * 0.18 * p; }
+        else { k = 1 - ease((A.t - T2) / A.R); ang = (th + side * 0.18) * k; }
+        const startY = home.y - (A.t < T1 ? 14 : 0);
+        srcT = { x: lerp(home.x, pc.x, k), y: lerp(startY, pc.y, k), ang, side, pouring: A.t >= T1 && A.t < T2 };
+      }
+    }
+    const segOf = q => (q.h - 8) / CAP;
+    const contentsOf = i => {
+      const t = tubes[i];
+      if (pourAnim && i === pourAnim.to) {
+        const out = t.slice(0, pourAnim.toBefore).map((v, s) => ({ v, f: 1, s }));
+        const amt = pourAnim.n * p;
+        for (let k = 0; k < pourAnim.n; k++) { const f = clamp(amt - k, 0, 1); if (f > 0) out.push({ v: pourAnim.c, f, s: -1 }); }
+        return out;
+      }
+      if (pourAnim && i === pourAnim.from) {
+        const out = t.map((v, s) => ({ v, f: 1, s }));
+        const rem = pourAnim.n * (1 - p);
+        for (let k = 0; k < pourAnim.n; k++) { const f = clamp(rem - k, 0, 1); if (f > 0) out.push({ v: pourAnim.c, f, s: -1 }); }
+        return out;
+      }
+      return t.map((v, s) => ({ v, f: 1, s }));
+    };
+    const drawTube = (i, cx, cy, ang, lifted) => {
+      const q = pos[i];
+      const w = q.w, h = q.h, rr = w / 2, segH = segOf(q);
+      g.save();
+      g.translate(cx, cy); if (ang) g.rotate(ang);
+      const x = -w / 2, y = -h / 2 + (lifted ? -14 : 0);
+      // liquid, clipped to the inside of the glass
+      g.save();
+      g.beginPath(); g.roundRect(x + 3, y - 6, w - 6, h + 2, [0, 0, rr - 3, rr - 3]); g.clip();
+      let yb = y + h - 4;
+      for (const it of contentsOf(i)) {
+        const hh = segH * it.f, cyy = yb - hh;
+        g.fillStyle = it.v === W ? rainbowFill(g, x, cyy, w, segH) : WPAL[it.v];
+        g.fillRect(x + 3, cyy, w - 6, hh + 0.8);
+        if (it.v === W && it.f > 0.6) {
+          g.fillStyle = '#FFFFFF'; g.font = '900 ' + Math.round(Math.min(14, segH * 0.45)) + 'px ' + FONT;
+          g.textAlign = 'center'; g.textBaseline = 'middle';
+          g.fillText('★', x + w / 2, cyy + hh / 2 + 1);
+          g.textBaseline = 'alphabetic';
+        }
+        if (it.s >= 0) { const fz = frozenAt(ice, clk, i, it.s); if (fz) drawIce(g, x, cyy, w, segH, fz.at - clk, false); }
+        yb = cyy;
+      }
+      // a little wave on the liquid surface while it's moving
+      if (pourAnim && (i === pourAnim.to || i === pourAnim.from) && yb < y + h - 4) {
+        g.fillStyle = 'rgba(255,255,255,.22)';
+        const tt = performance.now() / 120;
+        g.beginPath(); g.moveTo(x + 3, yb + 2);
+        for (let xx = 0; xx <= w - 6; xx += 3) g.lineTo(x + 3 + xx, yb + Math.sin(tt + xx * 0.35) * 1.6);
+        g.lineTo(x + w - 3, yb + 3); g.lineTo(x + 3, yb + 3); g.fill();
+      }
+      g.restore();
+      // glass (hint tubes glow yellow and pulse)
+      const isHint = hint && (hint.from === i || hint.to === i);
+      if (isHint) {
+        const pulse = 0.55 + 0.45 * Math.sin(performance.now() / 140);
+        g.shadowColor = '#FFD449'; g.shadowBlur = 18 * pulse;
+        g.fillStyle = '#FFD449'; g.font = '900 15px ' + FONT; g.textAlign = 'center';
+        g.fillText(hint.from === i ? '①' : '②', x + w / 2, y - 16);
+      }
+      const locked = topFrozen(ice, clk, tubes, i);
+      g.strokeStyle = isHint ? '#FFD449' : (sel === i || (pourAnim && pourAnim.from === i)) ? ACCENT : locked ? 'rgba(170,225,255,.75)' : 'rgba(242,239,255,.35)';
+      g.lineWidth = sel === i || isHint ? 3 : 2.5;
+      g.beginPath();
+      g.moveTo(x, y - 6);
+      g.lineTo(x, y + h - rr);
+      g.arc(x + rr, y + h - rr, rr, Math.PI, 0, true);
+      g.lineTo(x + w, y - 6);
+      g.stroke();
+      g.shadowBlur = 0;
+      g.strokeStyle = 'rgba(242,239,255,.5)'; g.lineWidth = 3;
+      g.beginPath(); g.moveTo(x - 3, y - 6); g.lineTo(x + w + 3, y - 6); g.stroke();
+      g.strokeStyle = 'rgba(255,255,255,.14)'; g.lineWidth = 3;
+      g.beginPath(); g.moveTo(x + 6, y + 6); g.lineTo(x + 6, y + h - rr); g.stroke();
+      if (doneTube(tubes[i]) && !isHint && !(pourAnim && pourAnim.to === i)) {
+        g.fillStyle = '#F2EFFF'; g.font = '900 13px ' + FONT; g.textAlign = 'center';
+        g.fillText('✓', x + w / 2, y - 14);
+      }
+      g.restore();
+    };
+    for (let i = 0; i < tubes.length; i++) {
+      const q = pos[i];
+      if (!q || (srcT && i === pourAnim.from)) continue;
+      drawTube(i, q.x + q.w / 2, q.y + q.h / 2, 0, sel === i);
+    }
+    if (srcT) {
+      const A2 = pourAnim, pt = pos[A2.to], ps = pos[A2.from];
+      // the stream: from the tilted tube's mouth down to the liquid in the target
+      if (srcT.pouring) {
+        const Lm = ps.h / 2 + 6;
+        const mx = srcT.x + Lm * Math.sin(srcT.ang), my = srcT.y - Lm * Math.cos(srcT.ang);
+        const segH = segOf(pt);
+        const surf = pt.y + pt.h - 4 - (A2.toBefore + A2.n * p) * segH;
+        const sx = pt.x + pt.w / 2 - srcT.side * pt.w * 0.12;
+        const wob = Math.sin(performance.now() / 45) * 1.2;
+        const thick = pt.w * 0.2 * (p < 0.85 ? 1 : (1 - p) / 0.15 + 0.15);
+        g.strokeStyle = A2.c === W ? rainbowFill(g, sx - 6, my, 12, surf - my) : WPAL[A2.c];
+        g.lineCap = 'round'; g.lineWidth = Math.max(2, thick);
+        g.beginPath(); g.moveTo(mx, my);
+        g.quadraticCurveTo(sx + wob, my + 4, sx + wob, surf); g.stroke();
+        g.lineCap = 'butt';
+        if (Math.random() < 0.5) splash.push({ x: sx + RF(-6, 6), y: surf, vy: RF(-110, -40), vx: RF(-40, 40), life: RF(0.2, 0.4), c: colorOf(A2.c) });
+      }
+      drawTube(A2.from, srcT.x, srcT.y, srcT.ang, false);
+    }
+    // splash particles
+    for (let i = splash.length - 1; i >= 0; i--) {
+      const s = splash[i];
+      s.x += s.vx * dt; s.y += s.vy * dt; s.vy += 500 * dt; s.life -= dt;
+      if (s.life <= 0) { splash.splice(i, 1); continue; }
+      g.globalAlpha = clamp(s.life * 2.5, 0, 1);
+      g.fillStyle = s.c;
+      g.beginPath(); g.arc(s.x, s.y, 2.6, 0, TAU); g.fill();
+    }
+    g.globalAlpha = 1;
+  },
+  debug() {
+    return {
+      tubes: tubes.map(t => t.slice()), ice: ice.map(e => Object.assign({}, e)), clock: clock(),
+      solvable: search(tubes, ice, clock(), 80000).ok, solved: isSolvedState(tubes)
+    };
+  }
+};
+
+
+/* ══ public API + boot ═════════════════════════════════ */
+window.STWGame = {
+  id: GAME_ID, version: '1.2.0', config: CFG,
+  newGame: () => { hideOverlay(); game.newGame(); },
+  restart: () => { hideOverlay(); game.restart(); },
+  on,
+  getBest: () => JSON.parse(JSON.stringify(DATA.best)),
+  mute: v => { DATA.sound = !v; save(); syncSnd(); },
+  _debug: () => (game.debug ? game.debug() : null),
+  _tap: i => tap(i),
+  _next: () => nextMove(),
+  _stats: () => ({ stats: stats(), ach: DATA.ach })
+};
+game.init();
+syncSnd();
+adsInit();
+if (!DATA.seen) helpOverlay();
+emit('ready', {});
+})();
+</script>
+</body>
+</html>

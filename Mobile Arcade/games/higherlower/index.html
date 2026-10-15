@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0B0B14">
+<title>Higher or Lower — MOS Arcade</title>
+<!--
+════════════════════════════════════════════════════════════════════════
+  MOS Arcade · Higher or Lower · v2.0.0 · single self-contained file
+════════════════════════════════════════════════════════════════════════
+  HOW THE CODE IS ORGANIZED
+    1. TEXT     – every word in English + French (I18N)
+    2. SAVE     – coins, best scores, card backs (localStorage, try/catch)
+    3. SOUND    – tiny synth, no audio files
+    4. ADS      – rewarded ads. On the phone: AdMob plugin.
+                  In a browser (Arcade): a fake 3-second "ad" so it still works.
+    5. GAME     – bet → guess → cash out / bust
+    6. SCREENS  – overlays: help, bust, cash-out, shop, broke
+
+  URL params (Arcade):  ?embed=1  ?prefix=<id>  ?mute=1
+  postMessage events:   {source:'stws-puzzle', game:'higherlower', event}
+                        ready · start · cashout · gameover
+
+  LATER (not in v1):
+    - Real 52-card deck with "cards left" counter
+    - Daily challenge (same deck for everyone)
+    - Stats screen (games played, biggest win)
+════════════════════════════════════════════════════════════════════════
+-->
+<style>
+:root{
+  --night:#0B0B14; --panel:#15152A; --panel-2:#1A1F38;
+  --milk:#F2EFFF; --faded:#9A96B8; --line:rgba(242,239,255,.09);
+  --acc:#FF5C8A; --up:#A6F548; --gold:#FFC94D;
+  --round:18px;
+  --font:"SF Pro Rounded",ui-rounded,"Nunito","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--night);color:var(--milk);font-family:var(--font);overflow:hidden;
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(60% 40% at 25% -5%, rgba(255,92,138,.13), transparent 60%),
+             radial-gradient(50% 35% at 90% 105%, rgba(166,245,72,.07), transparent 60%);
+}
+button{font-family:var(--font)}
+#app{
+  position:relative;height:100dvh;max-width:520px;margin:0 auto;
+  display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+/* header */
+#top{display:flex;align-items:center;gap:10px;padding:14px 16px 8px}
+#top .ico{font-size:30px;line-height:1;filter:drop-shadow(0 4px 14px rgba(255,92,138,.55))}
+#top h1{font-size:19px;font-weight:900;letter-spacing:.02em;line-height:1.1}
+#top .sub{font-size:10px;font-weight:800;letter-spacing:.3em;color:var(--faded);text-transform:uppercase;margin-top:2px}
+#top .grow{flex:1}
+.iconbtn{
+  width:40px;height:40px;border-radius:13px;border:1px solid var(--line);
+  background:var(--panel);color:var(--milk);font-size:16px;font-weight:900;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+  transition:transform .12s ease;
+}
+.iconbtn:active{transform:scale(.92)}
+:focus-visible{outline:2px solid var(--milk);outline-offset:2px}
+/* status */
+#status{display:flex;gap:8px;justify-content:center;padding:2px 16px 8px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 12px;text-align:center;min-width:70px}
+.chip .l{font-size:9px;font-weight:800;letter-spacing:.2em;color:var(--faded);text-transform:uppercase}
+.chip .v{font-size:17px;font-weight:900;color:var(--acc);font-variant-numeric:tabular-nums;margin-top:1px}
+.chip.coins .v{color:var(--gold)}
+.chip.gift{cursor:pointer;border-color:rgba(255,201,77,.35);background:rgba(255,201,77,.08)}
+.chip.gift .v{color:var(--gold);font-size:14px}
+.chip.gift[disabled]{opacity:.45;cursor:default}
+/* table */
+#stage{flex:1;position:relative;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:4px 14px}
+#potbar{
+  width:min(100%,400px);display:flex;align-items:center;gap:10px;
+  background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:10px 12px;min-height:58px;
+}
+#potbar .pl{font-size:10px;font-weight:800;letter-spacing:.2em;color:var(--faded);text-transform:uppercase}
+#potbar .pv{font-size:22px;font-weight:900;color:var(--gold);font-variant-numeric:tabular-nums}
+#potbar .grow{flex:1}
+#cashBtn{
+  border:0;border-radius:12px;padding:11px 16px;background:var(--gold);color:#1A1028;
+  font-size:13px;font-weight:900;letter-spacing:.05em;cursor:pointer;transition:transform .12s;
+}
+#cashBtn:active{transform:scale(.94)}
+#cashBtn[disabled]{opacity:.35;cursor:default}
+#table{display:flex;align-items:center;justify-content:center;gap:16px}
+.card{
+  width:min(42vw,170px);aspect-ratio:5/7;border-radius:18px;position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  box-shadow:0 16px 40px -12px rgba(0,0,0,.7);transition:transform .16s ease;
+}
+.card.face{background:#F2EFFF}
+.card.flip{transform:rotateY(88deg) scale(.96)}
+.card.small{width:min(22vw,88px);border-radius:12px}
+.card.small::after{content:"";position:absolute;inset:-5px -5px 5px 5px;border-radius:12px;background:inherit;z-index:-1;opacity:.55;filter:brightness(.7)}
+.rank{font-size:clamp(40px,13vw,64px);font-weight:900;color:#1A1028;line-height:1}
+.suit{font-size:clamp(30px,10vw,44px);line-height:1;color:#1A1028}
+.red{color:#D6335C}
+.corner{position:absolute;top:10px;left:12px;font-size:15px;font-weight:900;line-height:1;text-align:center;color:#1A1028}
+.corner.br{top:auto;left:auto;bottom:10px;right:12px;transform:rotate(180deg)}
+/* card backs */
+.back{border:3px solid rgba(255,255,255,.85)}
+.bk-classic{background:repeating-linear-gradient(45deg,#2E3A8C 0 8px,#24307A 8px 16px)}
+.bk-neon{background:#120E24;background-image:linear-gradient(rgba(255,92,138,.75) 1px,transparent 1px),linear-gradient(90deg,rgba(255,92,138,.75) 1px,transparent 1px);background-size:14px 14px;box-shadow:0 0 22px -4px #FF5C8A}
+.bk-ocean{background:radial-gradient(circle at 50% 120%,#3FD0E0 0 18%,transparent 19%),repeating-radial-gradient(circle at 50% 120%,#0E5C8A 0 10px,#127AB0 10px 20px)}
+.bk-sakura{background:#F7B6CC;background-image:radial-gradient(#fff 22%,transparent 24%),radial-gradient(#E87FA3 18%,transparent 20%);background-size:18px 18px;background-position:0 0,9px 9px}
+.bk-galaxy{background:radial-gradient(1px 1px at 20% 30%,#fff,transparent),radial-gradient(1.5px 1.5px at 70% 60%,#fff,transparent),radial-gradient(1px 1px at 40% 80%,#fff,transparent),radial-gradient(1.5px 1.5px at 85% 20%,#fff,transparent),radial-gradient(60% 50% at 30% 40%,#7B3FE4,transparent),radial-gradient(70% 60% at 75% 70%,#E040A0,transparent),#140A30}
+.bk-gold{background:linear-gradient(135deg,#7A5410,#FFD86B 30%,#B8862B 50%,#FFE9A8 70%,#8C6418);box-shadow:0 0 26px -4px #FFC94D}
+#msg{min-height:20px;font-size:14px;font-weight:800;color:var(--faded);text-align:center}
+#msg.good{color:var(--up)} #msg.bad{color:var(--acc)}
+/* guess buttons */
+#guess{display:flex;gap:12px;width:min(100%,400px);height:100px}
+.gbtn{
+  flex:1;border-radius:var(--round);cursor:pointer;
+  border:1px solid rgba(166,245,72,.35);background:rgba(166,245,72,.10);color:var(--up);
+  font-size:26px;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  transition:transform .08s ease;
+}
+.gbtn .t{font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase}
+.gbtn .o{font-size:13px;font-weight:800;color:var(--milk);opacity:.9}
+.gbtn:active{transform:scale(.95)}
+.gbtn.low{background:rgba(255,92,138,.10);color:var(--acc);border-color:rgba(255,92,138,.35)}
+.gbtn[disabled]{opacity:.3;cursor:default}
+/* bet panel */
+#betpanel{width:min(100%,400px);display:flex;flex-direction:column;gap:10px}
+#betpanel .lbl{font-size:11px;font-weight:800;letter-spacing:.2em;color:var(--faded);text-transform:uppercase;text-align:center}
+.bets{display:flex;gap:8px;justify-content:center}
+.bet{
+  flex:1;padding:12px 0;border-radius:12px;border:1px solid var(--line);background:var(--panel);
+  color:var(--milk);font-size:15px;font-weight:900;cursor:pointer;
+}
+.bet.on{background:var(--gold);color:#1A1028;border-color:transparent}
+.bet[disabled]{opacity:.3;cursor:default}
+.big{
+  width:100%;padding:18px;border-radius:var(--round);border:0;background:var(--acc);color:#10101C;
+  font-size:17px;font-weight:900;letter-spacing:.08em;cursor:pointer;transition:transform .1s;
+}
+.big:active{transform:scale(.97)}
+.big[disabled]{opacity:.4;cursor:default}
+[hidden]{display:none!important}
+/* overlays */
+#ovl{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(11,11,20,.8);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:5;
+}
+.ov-in{text-align:center;padding:24px 26px;width:min(92%,360px);max-height:92%;overflow:auto;animation:rise .3s ease}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1}}
+.ov-ico{width:84px;height:84px;margin:0 auto 14px;border-radius:26px;background:var(--panel-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 10px 40px -8px var(--acc)}
+.ov-in h2{font-size:25px;font-weight:900}
+.ov-in .tip{margin-top:10px;font-size:15px;line-height:1.55;color:var(--faded);font-weight:600}
+.ov-in .tip b{color:var(--milk)}
+.ov-in .btns{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.btn{padding:14px 20px;border-radius:14px;border:0;background:var(--acc);color:#10101C;font-size:14px;font-weight:900;letter-spacing:.04em;cursor:pointer}
+.btn.ad{background:var(--gold);color:#1A1028}
+.btn.ghost{background:var(--panel-2);border:1px solid var(--line);color:var(--milk)}
+.btn:active{transform:scale(.96)}
+.cta{margin-top:22px;font-size:12px;font-weight:900;letter-spacing:.3em}
+.pulse{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.bigwin{font-size:40px;font-weight:900;color:var(--gold);margin-top:8px}
+/* shop */
+.shop{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 6px;cursor:pointer;color:var(--milk);display:flex;flex-direction:column;align-items:center;gap:6px}
+.item.sel{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold) inset}
+.item .card{width:52px;border-radius:8px;border-width:2px;box-shadow:none}
+.item .nm{font-size:11px;font-weight:800}
+.item .pr{font-size:12px;font-weight:900;color:var(--gold)}
+.item.locked .pr::before{content:"🪙 "}
+/* fake ad */
+#fakead{position:fixed;inset:0;z-index:50;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;font-weight:800}
+#fakead .n{font-size:48px;font-weight:900}
+#toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--line);
+  padding:10px 16px;border-radius:12px;font-size:13px;font-weight:800;z-index:20;transition:opacity .3s}
+@media (prefers-reduced-motion:reduce){.pulse,.ov-in{animation:none}.card{transition:none}}
+@media (max-height:640px){.card{width:min(34vw,130px)}#guess{height:84px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <span class="ico">🃏</span>
+    <div><h1>Higher or Lower</h1><div class="sub">MOS Arcade</div></div>
+    <div class="grow"></div>
+    <button class="iconbtn" id="btnLang" aria-label="Language">FR</button>
+    <button class="iconbtn" id="btnShop" aria-label="Shop">🛒</button>
+    <button class="iconbtn" id="btnHelp" aria-label="Help">?</button>
+    <button class="iconbtn" id="btnSnd" aria-label="Sound">🔊</button>
+  </header>
+  <div id="status"></div>
+  <main id="stage">
+    <div id="potbar" hidden>
+      <div><div class="pl" data-t="pot">Pot</div><div class="pv" id="potV">0</div></div>
+      <div class="grow"></div>
+      <button id="cashBtn" data-t="cashout">CASH OUT</button>
+    </div>
+    <div id="table">
+      <div class="card small back" id="deck" aria-hidden="true"></div>
+      <div class="card back" id="card" aria-live="polite"></div>
+    </div>
+    <div id="msg"></div>
+    <div id="guess" hidden>
+      <button class="gbtn" id="gHi"><span>▲</span><span class="t" data-t="higher">higher</span><span class="o" id="oHi"></span></button>
+      <button class="gbtn low" id="gLo"><span>▼</span><span class="t" data-t="lower">lower</span><span class="o" id="oLo"></span></button>
+    </div>
+    <div id="betpanel">
+      <div class="lbl" data-t="pickbet">Pick your bet</div>
+      <div class="bets" id="bets"></div>
+      <button class="big" id="dealBtn" data-t="deal">DEAL</button>
+    </div>
+  </main>
+  <div id="ovl" hidden></div>
+</div>
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const GAME_ID = 'higherlower';
+
+/* ══ 1. TEXT (EN + FR) ═════════════════════════════════ */
+const I18N = {
+  en: {
+    pot:'Pot', cashout:'CASH OUT', higher:'higher', lower:'lower', pickbet:'Pick your bet', deal:'DEAL',
+    coins:'Coins', streak:'Streak', best:'Best', gift:'+50',
+    helpT:'Higher or Lower',
+    help:'Bet some coins, then guess if the <b>next card</b> is higher or lower.<br><br>Each right guess grows your <b>pot</b>. Risky guesses pay more.<br><br>Same rank = push, nothing lost.<br><br><b>Cash out</b> anytime to keep your pot. One wrong guess and the pot is gone!',
+    tap:'TAP TO PLAY',
+    first:'Pick a bet and tap DEAL', guessMsg:'Higher or lower?',
+    push:'Push — same rank, pot safe', wins:['Nice!','Called it!','Clean read!','On a roll!'],
+    bustT:'Busted!', bustTip:'You lost a pot of <b>{p}</b> coins.',
+    adCont:'▶ Watch ad to keep going', newRound:'New round',
+    cashT:'Cashed out!', cashTip:'Streak of {s}', ok:'Nice!',
+    brokeT:'Out of coins', brokeTip:'Free coins in <b>{t}</b>', brokeReady:'Free coins are ready!',
+    claim:'Claim 100 coins', adRefill:'▶ Watch ad: +100 now',
+    shopT:'Card backs', shopTip:'Tap to buy or use.', close:'Close', owned:'Use', using:'Using',
+    notEnough:'Not enough coins', bought:'New card back!', giftDone:'+50 coins!',
+    giftWait:'Next gift in {t}', adFail:'Ad not ready, try again soon', adWatch:'Ad playing…',
+    backs:{classic:'Classic',neon:'Neon',ocean:'Ocean',sakura:'Sakura',galaxy:'Galaxy',gold:'Gold'}
+  },
+  fr: {
+    pot:'Cagnotte', cashout:'ENCAISSER', higher:'plus haut', lower:'plus bas', pickbet:'Choisis ta mise', deal:'DISTRIBUER',
+    coins:'Pièces', streak:'Série', best:'Record', gift:'+50',
+    helpT:'Plus haut ou plus bas',
+    help:'Mise des pièces, puis devine si la <b>prochaine carte</b> est plus haute ou plus basse.<br><br>Chaque bonne réponse fait grossir ta <b>cagnotte</b>. Les choix risqués rapportent plus.<br><br>Même valeur = égalité, rien de perdu.<br><br><b>Encaisse</b> quand tu veux pour garder ta cagnotte. Une erreur et tout est perdu!',
+    tap:'TOUCHE POUR JOUER',
+    first:'Choisis une mise et touche DISTRIBUER', guessMsg:'Plus haut ou plus bas?',
+    push:'Égalité — cagnotte sauve', wins:['Bien!','Bien vu!','Parfait!','En feu!'],
+    bustT:'Perdu!', bustTip:'Tu as perdu une cagnotte de <b>{p}</b> pièces.',
+    adCont:'▶ Pub pour continuer', newRound:'Nouvelle partie',
+    cashT:'Encaissé!', cashTip:'Série de {s}', ok:'Super!',
+    brokeT:'Plus de pièces', brokeTip:'Pièces gratuites dans <b>{t}</b>', brokeReady:'Pièces gratuites prêtes!',
+    claim:'Prendre 100 pièces', adRefill:'▶ Pub: +100 maintenant',
+    shopT:'Dos de cartes', shopTip:'Touche pour acheter ou utiliser.', close:'Fermer', owned:'Utiliser', using:'Utilisé',
+    notEnough:'Pas assez de pièces', bought:'Nouveau dos de carte!', giftDone:'+50 pièces!',
+    giftWait:'Prochain cadeau dans {t}', adFail:'Pub pas prête, réessaie bientôt', adWatch:'Pub en cours…',
+    backs:{classic:'Classique',neon:'Néon',ocean:'Océan',sakura:'Sakura',galaxy:'Galaxie',gold:'Or'}
+  }
+};
+// In a browser (MOS Arcade) there are no ads, so drop the "watch ad" wording.
+if (!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform())) {
+  Object.assign(I18N.en, { adCont: 'Keep going (once)', adRefill: '+100 coins now' });
+  Object.assign(I18N.fr, { adCont: 'Continuer (une fois)', adRefill: '+100 pièces maintenant' });
+}
+let L = I18N.en;
+const tr = (k, vars) => { let s = L[k]; if (vars) for (const v in vars) s = s.replace('{' + v + '}', vars[v]); return s; };
+
+/* ══ 2. SAVE ═══════════════════════════════════════════ */
+const QS = new URLSearchParams(location.search);
+const EMBED = QS.get('embed') === '1';
+const STORE_KEY = 'stws-' + GAME_ID + '-v2' + (QS.get('prefix') ? ':' + QS.get('prefix') : '');
+const START_COINS = 200, REFILL = 100, REFILL_MS = 10 * 60e3, GIFT = 50, GIFT_MS = 3 * 60e3, MIN_BET = 10;
+const DEF = { sound: true, seen: false, lang: '', coins: START_COINS, best: 0, bestPot: 0,
+  backs: ['classic'], back: 'classic', bet: 25, refillAt: 0, giftAt: 0 };
+let DATA;
+try { DATA = Object.assign({}, DEF, JSON.parse(localStorage.getItem(STORE_KEY) || '{}')); }
+catch (e) { DATA = Object.assign({}, DEF); }
+if (QS.get('mute') === '1') DATA.sound = false;
+if (!DATA.lang) DATA.lang = (navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en';
+const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); } catch (e) {} };
+
+/* ══ 3. SOUND ══════════════════════════════════════════ */
+const AU = {
+  ctx: null,
+  ensure() {
+    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(f, d, type = 'sine', g = 0.14, slide = 0, at = 0) {
+    if (!DATA.sound || !this.ctx) return;
+    const t = this.ctx.currentTime + at, o = this.ctx.createOscillator(), ga = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+    ga.gain.setValueAtTime(g, t); ga.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(ga).connect(this.ctx.destination); o.start(t); o.stop(t + d + 0.02);
+  },
+  play(n, p = 1) {
+    switch (n) {
+      case 'ui':   this.tone(520, 0.07, 'triangle', 0.10); break;
+      case 'flip': this.tone(300, 0.05, 'square', 0.05); break;
+      case 'tick': this.tone(260, 0.06, 'square', 0.05); break;
+      case 'ok':   this.tone(540 * p, 0.09, 'triangle'); this.tone(810 * p, 0.11, 'triangle', 0.1, 0, 0.05); break;
+      case 'fail': this.tone(300, 0.38, 'sawtooth', 0.12, -210); break;
+      case 'coin': [880, 1175, 1568].forEach((f, i) => this.tone(f, 0.09, 'triangle', 0.11, 0, i * 0.06)); break;
+      case 'win':  [523, 659, 784, 1047, 1319].forEach((f, i) => this.tone(f, 0.13, 'triangle', 0.12, 0, i * 0.08)); break;
+    }
+  }
+};
+const snd = (n, p) => AU.play(n, p);
+window.addEventListener('pointerdown', () => AU.ensure(), { capture: true });
+
+/* ══ 4. ADS ════════════════════════════════════════════
+   Change these two IDs to your real AdMob IDs before release.
+   The ones below are Google's official TEST ids (safe to click). */
+const ADS = {
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917',
+  plugin: null, ready: false, loading: false,
+  native() { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); },
+  async init() {
+    if (!this.native()) return;
+    this.plugin = window.Capacitor.Plugins.AdMob;
+    if (!this.plugin) return;
+    try { await this.plugin.initialize({}); } catch (e) {}
+    this.load();
+  },
+  async load() {
+    if (!this.plugin || this.loading || this.ready) return;
+    this.loading = true;
+    try { await this.plugin.prepareRewardVideoAd({ adId: this.REWARDED_ID }); this.ready = true; }
+    catch (e) { this.ready = false; setTimeout(() => this.load(), 30e3); }
+    this.loading = false;
+  },
+  /* resolves true only if the player watched to the end */
+  async show() {
+    if (!this.native()) return true;   // browser (Arcade): no ads, reward right away
+    if (!this.plugin) return false;
+    if (!this.ready) { this.load(); toast(tr('adFail')); return false; }
+    this.ready = false;
+    let rewarded = false;
+    const h = await this.plugin.addListener('onRewardedVideoAdReward', () => { rewarded = true; });
+    try { const r = await this.plugin.showRewardVideoAd(); if (r && r.amount !== undefined) rewarded = true; }
+    catch (e) {}
+    try { h.remove(); } catch (e) {}
+    this.load();
+    return rewarded;
+  }
+};
+function fakeAd() {
+  return new Promise(res => {
+    const d = document.createElement('div'); d.id = 'fakead';
+    d.innerHTML = '<div>' + tr('adWatch') + '</div><div class="n">3</div>';
+    document.body.appendChild(d);
+    let n = 3;
+    const iv = setInterval(() => {
+      n--; d.querySelector('.n').textContent = n;
+      if (n <= 0) { clearInterval(iv); d.remove(); res(true); }
+    }, 1000);
+  });
+}
+
+/* ══ helpers ═══════════════════════════════════════════ */
+function emit(ev, payload = {}) {
+  if (window.parent !== window) {
+    try { window.parent.postMessage(Object.assign({ source: 'stws-puzzle', game: GAME_ID, event: ev }, payload), '*'); } catch (e) {}
+  }
+}
+const fmt = n => Math.floor(n).toLocaleString(DATA.lang === 'fr' ? 'fr-CA' : 'en-US');
+const fmtT = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+let toastT;
+function toast(t) {
+  let el = $('#toast');
+  if (!el) { el = document.createElement('div'); el.id = 'toast'; $('#app').appendChild(el); }
+  el.textContent = t; el.style.opacity = 1;
+  clearTimeout(toastT); toastT = setTimeout(() => { el.style.opacity = 0; }, 1800);
+}
+
+/* ══ 5. GAME ═══════════════════════════════════════════ */
+const SUITS = ['♠', '♥', '♦', '♣'];
+const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+const BETS = [10, 25, 50, 100, 250];
+const EDGE = 0.95;                      // payout = EDGE / chance
+const BACKS = [
+  { id: 'classic', price: 0 }, { id: 'neon', price: 300 }, { id: 'ocean', price: 750 },
+  { id: 'sakura', price: 1500 }, { id: 'galaxy', price: 3000 }, { id: 'gold', price: 7500 }
+];
+
+// state: 'bet' (choosing) · 'play' (guessing) · 'over' (busted, ad offer shown)
+let state = 'bet', cur = null, pot = 0, stake = 0, streak = 0, busy = false, adUsed = false, lostPot = 0;
+
+const draw = () => ({ v: 1 + Math.floor(Math.random() * 13), s: Math.floor(Math.random() * 4) });
+const pHi = v => (13 - v) / 13;
+const pLo = v => (v - 1) / 13;
+const mult = p => p <= 0 ? 0 : Math.max(1.01, EDGE / p);
+
+const cardEl = $('#card'), deckEl = $('#deck'), msgEl = $('#msg');
+function setMsg(t, cls = '') { msgEl.textContent = t; msgEl.className = cls; }
+
+function showFace(c) {
+  const red = c.s === 1 || c.s === 2, r = RANKS[c.v - 1], su = SUITS[c.s], k = red ? ' red' : '';
+  cardEl.className = 'card face';
+  cardEl.setAttribute('aria-label', r + ' ' + su);
+  cardEl.innerHTML =
+    '<div class="corner' + k + '">' + r + '<br>' + su + '</div>' +
+    '<div class="rank' + k + '">' + r + '</div><div class="suit' + k + '">' + su + '</div>' +
+    '<div class="corner br' + k + '">' + r + '<br>' + su + '</div>';
+}
+function showBack() {
+  cardEl.className = 'card back bk-' + DATA.back; cardEl.innerHTML = ''; cardEl.removeAttribute('aria-label');
+}
+
+function renderStatus() {
+  const left = DATA.giftAt - Date.now();
+  $('#status').innerHTML =
+    '<div class="chip coins"><div class="l">' + tr('coins') + '</div><div class="v">🪙 ' + fmt(DATA.coins) + '</div></div>' +
+    '<div class="chip"><div class="l">' + tr('streak') + '</div><div class="v">' + streak + '</div></div>' +
+    '<div class="chip"><div class="l">' + tr('best') + '</div><div class="v">' + DATA.best + '</div></div>' +
+    '<button class="chip gift" id="giftBtn"' + (left > 0 ? ' disabled' : '') + ' aria-label="Free coins">' +
+      '<div class="l">🎁' + (ADS.native() ? ' ▶' : '') + '</div><div class="v">' + (left > 0 ? fmtT(left) : tr('gift')) + '</div></button>';
+}
+function renderBets() {
+  const box = $('#bets'); box.innerHTML = '';
+  const maxOk = Math.max(...BETS.filter(b => b <= DATA.coins), 0);
+  if (DATA.bet > DATA.coins) DATA.bet = maxOk || MIN_BET;
+  for (const b of BETS) {
+    const el = document.createElement('button');
+    el.className = 'bet' + (b === DATA.bet ? ' on' : '');
+    el.textContent = b; el.disabled = b > DATA.coins;
+    el.addEventListener('click', () => { snd('ui'); DATA.bet = b; save(); renderBets(); });
+    box.appendChild(el);
+  }
+  $('#dealBtn').disabled = DATA.coins < MIN_BET;
+}
+function renderOdds() {
+  const ph = pHi(cur.v), pl = pLo(cur.v);
+  $('#oHi').textContent = ph > 0 ? Math.round(ph * 100) + '% · ×' + mult(ph).toFixed(2) : '—';
+  $('#oLo').textContent = pl > 0 ? Math.round(pl * 100) + '% · ×' + mult(pl).toFixed(2) : '—';
+  $('#gHi').disabled = ph <= 0; $('#gLo').disabled = pl <= 0;
+}
+function render() {
+  const playing = state === 'play';
+  $('#betpanel').hidden = playing || state === 'over';
+  $('#guess').hidden = !playing;
+  $('#potbar').hidden = !playing;
+  $('#potV').textContent = '🪙 ' + fmt(pot);
+  $('#cashBtn').disabled = streak < 1 || busy;
+  deckEl.className = 'card small back bk-' + DATA.back;
+  if (playing) renderOdds(); else renderBets();
+  renderStatus();
+}
+
+function deal() {
+  if (DATA.coins < MIN_BET) return broke();
+  stake = Math.min(DATA.bet, DATA.coins);
+  DATA.coins -= stake; save();
+  pot = stake; streak = 0; adUsed = false; state = 'play';
+  cur = draw();
+  snd('flip');
+  cardEl.classList.add('flip');
+  setTimeout(() => { showFace(cur); setMsg(tr('guessMsg')); render(); }, 160);
+  emit('start', { stake });
+  render();
+}
+
+function guess(higher) {
+  if (state !== 'play' || busy || !$('#ovl').hidden) return;
+  const p = higher ? pHi(cur.v) : pLo(cur.v);
+  if (p <= 0) return;
+  busy = true; render();
+  const nxt = draw(), prev = cur.v;
+  cardEl.classList.add('flip'); snd('flip');
+  setTimeout(() => { cur = nxt; showFace(cur); }, 160);
+  setTimeout(() => {
+    busy = false;
+    if (nxt.v === prev) { setMsg(tr('push')); snd('tick'); }
+    else if ((nxt.v > prev) === higher) {
+      streak++;
+      pot = Math.floor(pot * mult(p));
+      if (streak > DATA.best) { DATA.best = streak; save(); }
+      setMsg(L.wins[Math.floor(Math.random() * L.wins.length)] + '  ×' + mult(p).toFixed(2), 'good');
+      snd('ok', 1 + Math.min(0.9, streak * 0.05));
+    } else {
+      lostPot = pot; pot = 0; state = 'over';
+      setMsg('', 'bad'); snd('fail');
+      setTimeout(bustScreen, 500);
+    }
+    render();
+  }, 220);
+}
+
+function cashOut() {
+  if (state !== 'play' || streak < 1 || busy) return;
+  const won = pot;
+  DATA.coins += won; DATA.bestPot = Math.max(DATA.bestPot, won); save();
+  emit('cashout', { pot: won, streak });
+  snd('win');
+  overlay('<div class="ov-in"><div class="ov-ico">💰</div><h2>' + tr('cashT') + '</h2>' +
+    '<div class="bigwin">+🪙 ' + fmt(won) + '</div><p class="tip">' + tr('cashTip', { s: streak }) + '</p>' +
+    '<div class="btns"><button class="btn" data-a="next">' + tr('ok') + '</button></div></div>');
+  endRound();
+}
+function endRound() { state = 'bet'; pot = 0; streak = 0; showBack(); setMsg(tr('first')); render(); }
+
+/* ══ 6. SCREENS ════════════════════════════════════════ */
+const ovl = $('#ovl');
+let ovlTap = null;
+function overlay(html, tap) { ovl.innerHTML = html; ovl.hidden = false; ovlTap = tap || null; }
+function hideOverlay() { ovl.hidden = true; ovl.innerHTML = ''; ovlTap = null; }
+
+function bustScreen() {
+  emit('gameover', { streak, lost: lostPot });
+  overlay('<div class="ov-in"><div class="ov-ico">💥</div><h2>' + tr('bustT') + '</h2>' +
+    '<p class="tip">' + tr('bustTip', { p: fmt(lostPot) }) + '</p>' +
+    '<div class="btns">' + (adUsed ? '' : '<button class="btn ad" data-a="adcont">' + tr('adCont') + '</button>') +
+    '<button class="btn ghost" data-a="newround">' + tr('newRound') + '</button></div></div>');
+}
+function helpScreen() {
+  overlay('<div class="ov-in"><div class="ov-ico">🃏</div><h2>' + tr('helpT') + '</h2>' +
+    '<p class="tip">' + tr('help') + '</p><div class="cta pulse">' + tr('tap') + '</div></div>', 'close');
+  DATA.seen = true; save();
+}
+function broke() {
+  if (!DATA.refillAt) { DATA.refillAt = Date.now() + REFILL_MS; save(); }
+  const left = DATA.refillAt - Date.now();
+  overlay('<div class="ov-in"><div class="ov-ico">🪙</div><h2>' + tr('brokeT') + '</h2>' +
+    '<p class="tip" id="brokeTip">' + (left > 0 ? tr('brokeTip', { t: fmtT(left) }) : tr('brokeReady')) + '</p>' +
+    '<div class="btns">' +
+    (left > 0 ? '' : '<button class="btn" data-a="claim">' + tr('claim') + '</button>') +
+    '<button class="btn ad" data-a="adrefill">' + tr('adRefill') + '</button>' +
+    '<button class="btn ghost" data-a="close">' + tr('close') + '</button></div></div>');
+}
+function shopScreen() {
+  const items = BACKS.map(b => {
+    const own = DATA.backs.includes(b.id), sel = DATA.back === b.id;
+    return '<button class="item' + (sel ? ' sel' : '') + (own ? '' : ' locked') + '" data-a="back" data-id="' + b.id + '">' +
+      '<div class="card back bk-' + b.id + '"></div><div class="nm">' + L.backs[b.id] + '</div>' +
+      '<div class="pr">' + (sel ? tr('using') : own ? tr('owned') : fmt(b.price)) + '</div></button>';
+  }).join('');
+  overlay('<div class="ov-in"><h2>' + tr('shopT') + '</h2><p class="tip">🪙 ' + fmt(DATA.coins) + ' · ' + tr('shopTip') + '</p>' +
+    '<div class="shop">' + items + '</div><div class="btns"><button class="btn ghost" data-a="close">' + tr('close') + '</button></div></div>');
+}
+function buyBack(id) {
+  const b = BACKS.find(x => x.id === id);
+  if (DATA.backs.includes(id)) { DATA.back = id; snd('ui'); }
+  else if (DATA.coins >= b.price) { DATA.coins -= b.price; DATA.backs.push(id); DATA.back = id; snd('coin'); toast(tr('bought')); }
+  else { snd('tick'); toast(tr('notEnough')); return; }
+  save(); if (state !== 'play') showBack(); render(); shopScreen();
+}
+
+ovl.addEventListener('click', async e => {
+  const b = e.target.closest('[data-a]');
+  if (!b) { if (ovlTap === 'close') { hideOverlay(); } return; }
+  const a = b.dataset.a;
+  if (a === 'close' || a === 'next') { snd('ui'); hideOverlay(); return; }
+  if (a === 'newround') { snd('ui'); hideOverlay(); endRound(); if (DATA.coins < MIN_BET) broke(); return; }
+  if (a === 'back') { buyBack(b.dataset.id); return; }
+  if (a === 'adcont') {
+    b.disabled = true;
+    if (await ADS.show()) {
+      adUsed = true; pot = lostPot; state = 'play'; hideOverlay();
+      cur = draw(); showFace(cur); setMsg(tr('guessMsg')); snd('coin'); render();
+    } else { b.disabled = false; }
+    return;
+  }
+  if (a === 'claim') { DATA.coins += REFILL; DATA.refillAt = 0; save(); snd('coin'); hideOverlay(); render(); return; }
+  if (a === 'adrefill') {
+    b.disabled = true;
+    if (await ADS.show()) { DATA.coins += REFILL; DATA.refillAt = 0; save(); snd('coin'); hideOverlay(); render(); }
+    else b.disabled = false;
+  }
+});
+
+$('#status').addEventListener('click', async e => {
+  const g = e.target.closest('#giftBtn');
+  if (!g || g.disabled) return;
+  g.disabled = true;
+  if (await ADS.show()) {
+    DATA.coins += GIFT; DATA.giftAt = Date.now() + GIFT_MS;
+    if (DATA.coins >= MIN_BET) DATA.refillAt = 0;
+    save(); snd('coin'); toast(tr('giftDone')); render();
+  } else render();
+});
+
+$('#gHi').addEventListener('click', () => guess(true));
+$('#gLo').addEventListener('click', () => guess(false));
+$('#cashBtn').addEventListener('click', cashOut);
+$('#dealBtn').addEventListener('click', () => { snd('ui'); deal(); });
+$('#btnShop').addEventListener('click', () => { snd('ui'); shopScreen(); });
+$('#btnHelp').addEventListener('click', () => { snd('ui'); helpScreen(); });
+function syncSnd() { $('#btnSnd').textContent = DATA.sound ? '🔊' : '🔇'; }
+$('#btnSnd').addEventListener('click', () => { DATA.sound = !DATA.sound; save(); syncSnd(); snd('ui'); });
+function applyLang() {
+  L = I18N[DATA.lang];
+  document.documentElement.lang = DATA.lang;
+  document.querySelector('#top h1').textContent = L.helpT;
+  document.querySelectorAll('[data-t]').forEach(el => { el.textContent = L[el.dataset.t]; });
+  $('#btnLang').textContent = DATA.lang === 'en' ? 'FR' : 'EN';
+  if (state === 'bet') setMsg(tr('first'));
+  else if (state === 'play' && !busy) setMsg(tr('guessMsg'));
+  render();
+}
+$('#btnLang').addEventListener('click', () => {
+  snd('ui'); DATA.lang = DATA.lang === 'en' ? 'fr' : 'en'; save(); applyLang();
+  if (!ovl.hidden && ovl.querySelector('.shop')) shopScreen();
+});
+window.addEventListener('keydown', e => {
+  if (e.code === 'ArrowUp') guess(true);
+  if (e.code === 'ArrowDown') guess(false);
+  if (e.code === 'Space' && state === 'bet' && ovl.hidden) { e.preventDefault(); deal(); }
+});
+
+// 1-second clock: gift countdown + refill countdown
+setInterval(() => {
+  if (DATA.giftAt && DATA.giftAt - Date.now() <= 1000) { /* will show ready next tick */ }
+  renderStatus();
+  const tip = $('#brokeTip');
+  if (tip && DATA.refillAt) {
+    const left = DATA.refillAt - Date.now();
+    if (left > 0) tip.innerHTML = tr('brokeTip', { t: fmtT(left) }); else broke();
+  }
+}, 1000);
+
+/* boot */
+syncSnd();
+showBack();
+applyLang();
+ADS.init();
+if (!DATA.seen) helpScreen();
+else if (DATA.coins < MIN_BET) broke();
+window.STWGame = { id: GAME_ID, version: '2.0.0', _debug: () => ({ state, cur, pot, streak, coins: DATA.coins }) };
+emit('ready', {});
+})();
+</script>
+</body>
+</html>

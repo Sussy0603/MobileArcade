@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0B0A14">
+<title>Doublet</title>
+<style>
+:root{
+  --bg:#FAF7F2; --bg2:#F0E9DE; --panel:#FFFFFF; --panel2:#F6F1E9;
+  --board:#DCD2C4; --cell:#EAE3D8; --text:#3B3128; --muted:#8A7C6C;
+  --line:rgba(0,0,0,.08); --accent:#C08552; --accent-ink:#FFFFFF; --accent2:#7A9E7E;
+  --shadow:0 6px 20px rgba(0,0,0,.10);
+  --radius:18px; --radius-sm:12px;
+  --font-display:'Trebuchet MS',ui-rounded,'Avenir Next',system-ui,sans-serif;
+  --font-body:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --gap:10px; --cellsize:70px; --tile-radius:12px; --tile-border:none; --tile-glow:none;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  font-family:var(--font-body);
+  color:var(--text);
+  background:var(--bg);
+  background-image:linear-gradient(170deg,var(--bg) 0%,var(--bg2) 100%);
+  background-attachment:fixed;
+  overflow:hidden;
+  overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;
+  transition:background-color .4s ease,color .4s ease;
+}
+button{font-family:inherit;color:inherit;border:none;background:none;cursor:pointer}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* ---------- shell ---------- */
+#app{position:relative;height:100dvh;display:flex;flex-direction:column;z-index:2}
+#particles{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.pp{position:absolute;top:-8%;opacity:.5;will-change:transform;animation:fall linear infinite}
+@keyframes fall{
+  0%{transform:translate3d(0,-10vh,0) rotate(0deg)}
+  100%{transform:translate3d(var(--drift,20px),112vh,0) rotate(var(--spin,220deg))}
+}
+@keyframes rise{
+  0%{transform:translate3d(0,112vh,0) rotate(0deg);opacity:0}
+  12%{opacity:.55}
+  100%{transform:translate3d(var(--drift,20px),-12vh,0) rotate(var(--spin,120deg));opacity:0}
+}
+
+.topbar{
+  display:flex;align-items:center;gap:10px;
+  padding:calc(env(safe-area-inset-top) + 12px) 16px 10px;
+  flex:0 0 auto;
+}
+.brand{
+  font-family:var(--font-display);font-weight:800;font-size:23px;letter-spacing:.02em;
+  display:flex;align-items:center;gap:9px;margin-right:auto;
+}
+.brand .dot{
+  width:22px;height:22px;border-radius:7px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  box-shadow:var(--tile-glow);
+  display:grid;place-items:center;font-size:11px;color:var(--accent-ink);font-weight:900;
+}
+.iconbtn{
+  width:40px;height:40px;border-radius:13px;display:grid;place-items:center;
+  background:var(--panel);box-shadow:var(--shadow);font-size:17px;
+  transition:transform .12s ease, opacity .2s ease;
+}
+.iconbtn:active{transform:scale(.92)}
+.iconbtn.off{opacity:.42}
+
+.screens{flex:1 1 auto;position:relative;overflow:hidden}
+.screen{
+  position:absolute;inset:0;display:none;flex-direction:column;
+  padding:0 16px calc(env(safe-area-inset-bottom) + 14px);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+.screen.active{display:flex;animation:screenIn .26s ease both}
+@keyframes screenIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+h2.sec{font-family:var(--font-display);font-size:15px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:20px 0 10px}
+.card{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.muted{color:var(--muted)}
+.row{display:flex;align-items:center;gap:10px}
+
+/* ---------- buttons ---------- */
+.btn{
+  background:var(--panel);border-radius:var(--radius-sm);padding:13px 16px;
+  font-weight:700;font-size:15px;box-shadow:var(--shadow);
+  transition:transform .12s ease,filter .2s ease;
+}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);box-shadow:var(--shadow),var(--tile-glow)}
+.btn.ghost{background:transparent;box-shadow:none;border:1.5px solid var(--line)}
+.btn.wide{width:100%;display:block}
+.btn[disabled]{opacity:.4;pointer-events:none}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  padding:9px 14px;border-radius:999px;font-size:14px;font-weight:700;
+  background:var(--panel);box-shadow:var(--shadow);transition:transform .12s ease;
+}
+.chip:active{transform:scale(.95)}
+.chip.on{background:var(--accent);color:var(--accent-ink)}
+
+/* ---------- home ---------- */
+.hero{
+  background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:18px;margin-top:6px;
+}
+.hero .lead{font-family:var(--font-display);font-size:19px;font-weight:800;margin:0 0 4px}
+.hero p{margin:0 0 14px;font-size:14px;color:var(--muted);line-height:1.45}
+.gridbtns{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
+.tilebtn{
+  background:var(--panel);border-radius:var(--radius-sm);box-shadow:var(--shadow);
+  padding:14px;text-align:left;transition:transform .12s ease;
+}
+.tilebtn:active{transform:scale(.97)}
+.tilebtn .t{font-weight:800;font-size:15px;font-family:var(--font-display)}
+.tilebtn .s{font-size:12.5px;color:var(--muted);margin-top:3px}
+.tilebtn .best{font-size:12px;color:var(--accent);font-weight:700;margin-top:6px}
+
+/* ---------- game ---------- */
+.scorebar{display:flex;gap:9px;margin:2px 0 12px}
+.scorebox{
+  flex:1;background:var(--panel);border-radius:var(--radius-sm);padding:9px 12px;
+  box-shadow:var(--shadow);position:relative;
+}
+.scorebox .lab{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.scorebox .val{font-family:var(--font-display);font-weight:800;font-size:21px;line-height:1.15;font-variant-numeric:tabular-nums}
+.gain{
+  position:absolute;right:10px;top:8px;font-weight:800;font-size:15px;color:var(--accent);
+  animation:gainUp .85s ease-out forwards;pointer-events:none;
+}
+@keyframes gainUp{0%{opacity:0;transform:translateY(6px)}25%{opacity:1}100%{opacity:0;transform:translateY(-16px)}}
+
+/* ---------- board ---------- */
+.boardwrap{position:relative;width:100%;max-width:460px;margin:0 auto;flex:0 0 auto}
+#board{
+  position:relative;width:100%;aspect-ratio:1/1;
+  background:var(--board);border-radius:var(--radius);
+  padding:var(--gap);touch-action:none;
+  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.12);
+  transition:background-color .4s ease;
+}
+.cells{position:absolute;inset:var(--gap)}
+.cellbg{
+  position:absolute;width:var(--cellsize);height:var(--cellsize);
+  border-radius:var(--tile-radius);background:var(--cell);
+}
+.tiles{position:absolute;inset:var(--gap)}
+.tile{
+  position:absolute;width:var(--cellsize);height:var(--cellsize);
+  border-radius:var(--tile-radius);
+  display:grid;place-items:center;
+  font-family:var(--font-display);font-weight:800;font-variant-numeric:tabular-nums;
+  letter-spacing:-.02em;
+  transition:transform .1s cubic-bezier(.2,.7,.3,1);
+  will-change:transform;border:var(--tile-border);
+}
+.tile.pop{animation:pop .18s ease-out}
+.tile.merged{animation:bump .19s ease-out}
+.tile.ghost{z-index:0;transition:transform .1s cubic-bezier(.2,.7,.3,1)}
+@keyframes pop{0%{transform:var(--pos) scale(.1);opacity:0}60%{opacity:1}100%{transform:var(--pos) scale(1)}}
+@keyframes bump{0%{transform:var(--pos) scale(1)}45%{transform:var(--pos) scale(1.13)}100%{transform:var(--pos) scale(1)}}
+.tile.big{font-size:.72em}
+
+.boardmsg{
+  position:absolute;inset:0;border-radius:var(--radius);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  background:var(--board);
+  background:color-mix(in srgb,var(--board) 88%,transparent);
+  backdrop-filter:blur(3px);text-align:center;padding:22px;z-index:5;
+}
+.boardmsg.show{display:flex;animation:screenIn .3s ease both}
+.boardmsg .big{font-family:var(--font-display);font-size:27px;font-weight:800;margin:0}
+.boardmsg .sub{font-size:14px;color:var(--muted);margin:0;max-width:22ch;line-height:1.45}
+.boardmsg .row{gap:9px;flex-wrap:wrap;justify-content:center}
+
+.controls{display:flex;gap:9px;margin:12px auto 0;max-width:460px;width:100%}
+.controls .btn{flex:1;text-align:center;padding:12px 8px;font-size:14.5px}
+.cnt{font-size:11px;font-weight:800;opacity:.75;margin-left:4px}
+#hintArrow{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:4;
+  font-size:min(30vw,130px);font-weight:900;color:var(--accent);text-shadow:0 4px 18px rgba(0,0,0,.28);opacity:0;transition:opacity .25s ease}
+#hintArrow.show{opacity:.92;animation:nudge .55s ease-in-out infinite alternate}
+@keyframes nudge{from{transform:translate(0,0)}to{transform:translate(var(--hx,0),var(--hy,0))}}
+#moneyModal{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.45)}
+#moneyModal.show{display:flex;animation:screenIn .2s ease both}
+#moneyBody{background:var(--panel);color:var(--text);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;max-width:340px;width:100%;text-align:center;display:flex;flex-direction:column;gap:10px}
+#moneyBody h3{font-family:var(--font-display);font-size:21px;margin:0}
+#moneyBody p{margin:0;color:var(--muted);font-size:14px;line-height:1.45}
+#moneyBody .count{font-family:var(--font-display);font-size:46px;font-weight:800;color:var(--accent)}
+.btn.gold{background:linear-gradient(135deg,#F5C451,#E0973A);color:#3A2400}
+.plusCard{margin-top:6px}
+.themecard.locked .swatches,.themecard.locked .gr{opacity:.4}
+.hint{text-align:center;font-size:12.5px;color:var(--muted);margin:12px auto 0;max-width:460px;line-height:1.5}
+
+/* ---------- themes screen ---------- */
+.themegrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.themecard{
+  border-radius:var(--radius-sm);padding:12px;box-shadow:var(--shadow);
+  text-align:left;position:relative;overflow:hidden;transition:transform .12s ease;
+  min-height:86px;
+}
+.themecard:active{transform:scale(.97)}
+.themecard .nm{font-family:var(--font-display);font-weight:800;font-size:14.5px;position:relative;z-index:2}
+.themecard .gr{font-size:11px;opacity:.75;margin-top:2px;position:relative;z-index:2}
+.themecard .swatches{display:flex;gap:4px;margin-top:10px;position:relative;z-index:2}
+.themecard .sw{width:15px;height:15px;border-radius:5px}
+.themecard .check{position:absolute;top:9px;right:10px;font-size:14px;z-index:2}
+
+/* ---------- lists ---------- */
+.list{display:flex;flex-direction:column;gap:9px}
+.item{
+  background:var(--panel);border-radius:var(--radius-sm);box-shadow:var(--shadow);
+  padding:13px 14px;display:flex;align-items:center;gap:12px;
+}
+.item .ico{
+  width:38px;height:38px;flex:0 0 auto;border-radius:11px;display:grid;place-items:center;
+  background:var(--panel2);font-size:17px;
+}
+.item.done .ico{background:var(--accent);color:var(--accent-ink)}
+.item .txt{flex:1;min-width:0}
+.item .nm{font-weight:700;font-size:14.5px}
+.item .ds{font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+.item.locked{opacity:.55}
+.statgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.stat{background:var(--panel);border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:12px}
+.stat .v{font-family:var(--font-display);font-weight:800;font-size:20px;font-variant-numeric:tabular-nums}
+.stat .k{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+input[type=text]{
+  width:100%;padding:12px 13px;border-radius:var(--radius-sm);border:1.5px solid var(--line);
+  background:var(--panel2);color:var(--text);font-size:15px;font-family:inherit;
+}
+input[type=text]:focus{outline:none;border-color:var(--accent)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0}
+.switch + .switch{border-top:1px solid var(--line)}
+.tog{width:50px;height:29px;border-radius:999px;background:var(--line);position:relative;transition:background .2s ease;flex:0 0 auto}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:23px;height:23px;border-radius:50%;background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.25);transition:transform .2s ease}
+.tog.on{background:var(--accent)}
+.tog.on::after{transform:translateX(21px)}
+
+/* ---------- toasts ---------- */
+#toasts{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 18px);z-index:60;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 16px}
+.toast{
+  background:var(--panel);border-radius:14px;box-shadow:var(--shadow);
+  padding:11px 15px;display:flex;align-items:center;gap:10px;max-width:340px;
+  animation:toastIn .3s ease both;font-size:14px;
+}
+.toast .ti{font-size:19px}
+.toast .tn{font-weight:800}
+.toast .td{font-size:12px;color:var(--muted)}
+.toast.out{animation:toastOut .3s ease both}
+@keyframes toastIn{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateY(-8px) scale(.97)}}
+
+/* ---------- drawer ---------- */
+#drawer{position:fixed;inset:0;z-index:50;display:none}
+#drawer.show{display:block}
+#drawer .veil{position:absolute;inset:0;background:rgba(0,0,0,.4);animation:screenIn .2s ease both}
+#drawer .sheet{
+  position:absolute;left:0;right:0;bottom:0;background:var(--panel);
+  border-radius:22px 22px 0 0;padding:10px 16px calc(env(safe-area-inset-bottom) + 18px);
+  animation:sheetUp .28s cubic-bezier(.2,.8,.3,1) both;max-height:82dvh;overflow-y:auto;
+}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+.grab{width:38px;height:4px;border-radius:999px;background:var(--line);margin:2px auto 12px}
+.menuitem{display:flex;align-items:center;gap:13px;padding:14px 4px;font-weight:700;font-size:15px;width:100%;text-align:left}
+.menuitem + .menuitem{border-top:1px solid var(--line)}
+.menuitem .mi{width:26px;text-align:center;font-size:17px}
+
+@media (max-height:700px){
+  .boardwrap{max-width:min(460px,58dvh)}
+  .brand{font-size:20px}
+}
+@media (min-width:520px){
+  .screen{padding-left:calc(50% - 244px);padding-right:calc(50% - 244px)}
+  .topbar{padding-left:max(16px,calc(50% - 244px));padding-right:max(16px,calc(50% - 244px))}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+  .pp{display:none}
+}
+</style>
+</head>
+<body>
+<div id="particles" aria-hidden="true"></div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="brand"><span class="dot">2</span><span id="brandName">Doublet</span></div>
+    <button class="iconbtn" id="btnSound" aria-label="Sound">&#128266;</button>
+    <button class="iconbtn" id="btnMenu" aria-label="Menu">&#9776;</button>
+  </div>
+
+  <div class="screens">
+
+    <!-- ============ HOME ============ -->
+    <section class="screen active" id="scr-home">
+      <div class="hero">
+        <p class="lead" id="welcomeLine">Slide, merge, repeat.</p>
+        <p>Swipe to slide every tile. Equal numbers fuse into one. Get to 2048 &mdash; then keep going as long as you can hold the board together.</p>
+        <button class="btn primary wide" id="btnResume">Continue game</button>
+        <div class="gridbtns" id="sizeButtons"></div>
+      </div>
+
+      <h2 class="sec">Daily challenge</h2>
+      <div class="card" id="dailyCard">
+        <div class="row" style="align-items:flex-start">
+          <div style="flex:1">
+            <div style="font-family:var(--font-display);font-weight:800;font-size:16px" id="dailyTitle">Today's board</div>
+            <div class="muted" style="font-size:13px;margin-top:4px;line-height:1.45" id="dailyDesc">Everyone gets the same tiles today. Reach 512 to clear it.</div>
+            <div style="font-size:13px;font-weight:700;color:var(--accent);margin-top:8px" id="dailyStreak">Streak: 0 days</div>
+          </div>
+          <div style="font-size:30px" id="dailyIcon">&#127919;</div>
+        </div>
+        <button class="btn primary wide" style="margin-top:12px" id="btnDaily">Play today's board</button>
+      </div>
+
+      <h2 class="sec">Endless</h2>
+      <div class="card">
+        <div class="muted" style="font-size:13.5px;line-height:1.5;margin-bottom:12px">No target, no win screen. Just play until the board locks up.</div>
+        <button class="btn wide" id="btnEndless" style="background:var(--panel2)">Start an endless run</button>
+      </div>
+      <div style="height:18px"></div>
+    </section>
+
+    <!-- ============ GAME ============ -->
+    <section class="screen" id="scr-game">
+      <div class="scorebar">
+        <div class="scorebox"><div class="lab">Score</div><div class="val" id="uiScore">0</div></div>
+        <div class="scorebox"><div class="lab" id="uiBestLab">Best</div><div class="val" id="uiBest">0</div></div>
+        <div class="scorebox" style="flex:0 0 92px"><div class="lab">Top tile</div><div class="val" id="uiMax">0</div></div>
+      </div>
+
+      <div class="boardwrap">
+        <div id="board">
+          <div class="cells" id="cells"></div>
+          <div class="tiles" id="tiles"></div>
+        </div>
+        <div id="hintArrow"></div>
+        <div class="boardmsg" id="boardMsg">
+          <p class="big" id="msgTitle">Nice.</p>
+          <p class="sub" id="msgSub"></p>
+          <div class="row" id="msgButtons"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn" id="btnUndo">&#8630; Undo<span class="cnt" id="undoCnt"></span></button>
+        <button class="btn" id="btnHint">&#128161; Hint<span class="cnt" id="hintCnt"></span></button>
+        <button class="btn" id="btnRestart">New</button>
+        <button class="btn" id="btnHome">Menu</button>
+      </div>
+      <div class="hint" id="modeHint">Swipe the board, or use the arrow keys.</div>
+      <div style="height:14px"></div>
+    </section>
+
+    <!-- ============ THEMES ============ -->
+    <section class="screen" id="scr-themes">
+      <div id="plusBox"></div>
+      <h2 class="sec">Seasons</h2>
+      <div class="themegrid" id="themeSeason"></div>
+      <h2 class="sec">Moods</h2>
+      <div class="themegrid" id="themeMood"></div>
+      <h2 class="sec">Wild cards</h2>
+      <div class="themegrid" id="themeSpecial"></div>
+      <div style="height:18px"></div>
+    </section>
+
+    <!-- ============ ACHIEVEMENTS ============ -->
+    <section class="screen" id="scr-ach">
+      <h2 class="sec"><span id="achCount">0</span> of <span id="achTotal">0</span> unlocked</h2>
+      <div class="list" id="achList"></div>
+      <div style="height:18px"></div>
+    </section>
+
+    <!-- ============ PROFILE ============ -->
+    <section class="screen" id="scr-profile">
+      <h2 class="sec">Player</h2>
+      <div class="card">
+        <input type="text" id="nameInput" maxlength="18" placeholder="Your name" autocomplete="off" spellcheck="false">
+        <div class="muted" style="font-size:12.5px;margin-top:8px">Saved on this device only.</div>
+      </div>
+
+      <h2 class="sec">Record</h2>
+      <div class="statgrid" id="statGrid"></div>
+
+      <h2 class="sec">Best by board</h2>
+      <div class="list" id="bestList"></div>
+
+      <h2 class="sec">Sound</h2>
+      <div class="card">
+        <div class="switch"><div><div style="font-weight:700;font-size:14.5px">Sound effects</div><div class="muted" style="font-size:12.5px">Soft merge tones</div></div><button class="tog" id="togSfx" aria-label="Sound effects"></button></div>
+        <div class="switch"><div><div style="font-weight:700;font-size:14.5px">Background music</div><div class="muted" style="font-size:12.5px">Slow lofi loop</div></div><button class="tog" id="togMusic" aria-label="Music"></button></div>
+        <div class="switch"><div><div style="font-weight:700;font-size:14.5px">Haptics</div><div class="muted" style="font-size:12.5px">Small buzz on merges</div></div><button class="tog" id="togHaptic" aria-label="Haptics"></button></div>
+      </div>
+
+      <h2 class="sec">Recent unlocks</h2>
+      <div class="list" id="recentAch"></div>
+
+      <h2 class="sec">Data</h2>
+      <div class="card">
+        <button class="btn ghost wide" id="btnReset">Erase all progress</button>
+        <div class="muted" style="font-size:12.5px;margin-top:10px">Clears scores, achievements and the saved board. Themes stay.</div>
+      </div>
+      <div style="height:18px"></div>
+    </section>
+
+    <!-- ============ HELP ============ -->
+    <section class="screen" id="scr-help">
+      <h2 class="sec">How to play</h2>
+      <div class="card" style="line-height:1.6;font-size:14.5px">
+        <p style="margin:0 0 12px"><b>Swipe</b> anywhere on the board. Every tile slides as far as it can in that direction.</p>
+        <p style="margin:0 0 12px">Two tiles with the <b>same number</b> touch and become one tile worth double. A tile that has just merged rests until your next move.</p>
+        <p style="margin:0 0 12px">After every move that changes the board, one new tile appears &mdash; usually a 2, sometimes a 4.</p>
+        <p style="margin:0 0 12px">Reach <b>2048</b> to win. You can carry on afterwards for as long as there is room.</p>
+        <p style="margin:0">The game ends when no tile can move and no two neighbours match.</p>
+      </div>
+      <h2 class="sec">Handy things</h2>
+      <div class="card" style="line-height:1.6;font-size:14.5px">
+        <p style="margin:0 0 12px"><b>Undo</b>: 3 free per game. Need more? Watch a short ad.</p>
+        <p style="margin:0 0 12px"><b>Hint</b> shows an arrow for the best next swipe.</p>
+        <p style="margin:0 0 12px"><b>Second chance</b>: when the board locks up, watch a short ad and the smallest tiles disappear.</p>
+        <p style="margin:0 0 12px"><b>Arrow keys</b>, WASD, U to undo, R for a new game.</p>
+        <p style="margin:0">Boards come in four sizes. Bigger boards are roomier but slower to build a big tile on.</p>
+      </div>
+      <h2 class="sec">A working tactic</h2>
+      <div class="card" style="line-height:1.6;font-size:14.5px">
+        <p style="margin:0 0 12px">Pick one corner and keep your biggest tile there. Only use the two directions that keep it pinned, and save the third for emergencies.</p>
+        <p style="margin:0">Keep your top row ordered from largest to smallest. Merges then cascade instead of scattering.</p>
+      </div>
+      <div style="height:18px"></div>
+    </section>
+
+  </div>
+</div>
+
+<div id="toasts"></div>
+<div id="moneyModal"><div id="moneyBody"></div></div>
+
+<div id="drawer">
+  <div class="veil" data-close="1"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <button class="menuitem" data-go="home"><span class="mi">&#9635;</span> Home</button>
+    <button class="menuitem" data-go="themes"><span class="mi">&#127912;</span> Themes</button>
+    <button class="menuitem" data-go="ach"><span class="mi">&#127942;</span> Achievements</button>
+    <button class="menuitem" data-go="profile"><span class="mi">&#128100;</span> Profile &amp; sound</button>
+    <button class="menuitem" data-go="help"><span class="mi">&#10067;</span> How to play</button>
+  </div>
+</div>
+<script>
+"use strict";
+/* ============================================================
+   Doublet — a 2048 game
+   Single file, no network, no dependencies.
+   ============================================================ */
+
+/* ---------------- themes ---------------- */
+/* tile ramp is generated from a hue/sat/light path so every theme
+   gets a coherent 14-step ladder from 2 up to 16384. */
+const THEMES = [
+  { id:'ete', name:'Été', group:'season', season:'summer',
+    bg:'#FFF6E6', bg2:'#FFE3BE', panel:'#FFFFFF', panel2:'#FFF3E0', board:'#F0CE96', cell:'#F9E4BF',
+    text:'#6A4622', muted:'#A47B4E', line:'rgba(106,70,34,.13)', accent:'#F2913C', accentInk:'#FFFFFF', accent2:'#2FB2C4',
+    tile:{h0:44,h1:192,s0:82,s1:62,l0:66,l1:44}, font:"'Trebuchet MS',ui-rounded,sans-serif",
+    particle:{glyphs:['☀','🐚','🌴','🍧'],count:12,mode:'fall',size:20}, music:'sunny' },
+
+  { id:'printemps', name:'Printemps', group:'season', season:'spring',
+    bg:'#F4FBEF', bg2:'#E4F4DD', panel:'#FFFFFF', panel2:'#F0F8EC', board:'#C9E2BE', cell:'#DCEED4',
+    text:'#3B5836', muted:'#7A9472', line:'rgba(59,88,54,.13)', accent:'#74BE63', accentInk:'#FFFFFF', accent2:'#EE8FB6',
+    tile:{h0:104,h1:-32,s0:52,s1:66,l0:68,l1:52}, font:"'Trebuchet MS',ui-rounded,sans-serif",
+    particle:{glyphs:['🌸','🌷','🍃','🌼'],count:12,mode:'fall',size:19}, music:'bright' },
+
+  { id:'automne', name:'Automne', group:'season', season:'autumn',
+    bg:'#FDF2E5', bg2:'#F3DCC1', panel:'#FFFAF3', panel2:'#F7EADA', board:'#DCB68C', cell:'#EBD3B4',
+    text:'#5A3520', muted:'#977053', line:'rgba(90,53,32,.14)', accent:'#C96A28', accentInk:'#FFFFFF', accent2:'#8E3B2C',
+    tile:{h0:46,h1:-14,s0:72,s1:58,l0:62,l1:40}, font:"'Palatino Linotype',Georgia,serif",
+    particle:{glyphs:['🍁','🍂','🌰'],count:11,mode:'fall',size:21}, music:'warm' },
+
+  { id:'hiver', name:'Hiver', group:'season', season:'winter',
+    bg:'#F0F7FD', bg2:'#DCEAF6', panel:'#FFFFFF', panel2:'#EFF6FC', board:'#C2D8EA', cell:'#DAE9F5',
+    text:'#2C4A63', muted:'#6E8CA5', line:'rgba(44,74,99,.13)', accent:'#5595D2', accentInk:'#FFFFFF', accent2:'#93CFE4',
+    tile:{h0:198,h1:272,s0:52,s1:46,l0:70,l1:48}, font:"'Trebuchet MS',ui-rounded,sans-serif",
+    particle:{glyphs:['❄','❅','✻'],count:16,mode:'fall',size:17}, music:'still' },
+
+  { id:'nature', name:'Nature', group:'mood',
+    bg:'#F3F7EC', bg2:'#E5EEDA', panel:'#FFFFFF', panel2:'#F0F5E8', board:'#C4D3AE', cell:'#DAE4C9',
+    text:'#37472C', muted:'#78876A', line:'rgba(55,71,44,.13)', accent:'#6C9448', accentInk:'#FFFFFF', accent2:'#A0703F',
+    tile:{h0:96,h1:32,s0:38,s1:52,l0:64,l1:42}, font:"'Trebuchet MS',ui-rounded,sans-serif",
+    particle:null, music:'warm' },
+
+  { id:'calme', name:'Calme & Bien-être', group:'mood',
+    bg:'#F8F4F0', bg2:'#EDE5DC', panel:'#FFFFFF', panel2:'#F5F0EA', board:'#D9CEC3', cell:'#E8E0D7',
+    text:'#4B4038', muted:'#8E8177', line:'rgba(75,64,56,.12)', accent:'#B08F72', accentInk:'#FFFFFF', accent2:'#A5A2C6',
+    tile:{h0:28,h1:276,s0:32,s1:34,l0:74,l1:54}, font:"'Palatino Linotype',Georgia,serif",
+    particle:{glyphs:['☕','🕯','🤍'],count:9,mode:'rise',size:18}, music:'still' },
+
+  { id:'creativite', name:'Créativité', group:'mood',
+    bg:'#FFFAF2', bg2:'#F4E9FA', panel:'#FFFFFF', panel2:'#F7EFFA', board:'#DFCFEF', cell:'#EDE2F6',
+    text:'#452F63', muted:'#8471A3', line:'rgba(69,47,99,.13)', accent:'#8B5CF6', accentInk:'#FFFFFF', accent2:'#FBBF24',
+    tile:{h0:276,h1:404,s0:64,s1:82,l0:68,l1:54}, font:"'Trebuchet MS',ui-rounded,sans-serif",
+    particle:null, music:'bright' },
+
+  { id:'energie', name:'Énergie', group:'mood',
+    bg:'#FFF8EC', bg2:'#FFE6C4', panel:'#FFFFFF', panel2:'#FFF1DD', board:'#F6C583', cell:'#FBDDB2',
+    text:'#5E3000', muted:'#A0703A', line:'rgba(94,48,0,.14)', accent:'#FF6B00', accentInk:'#FFFFFF', accent2:'#FFC300',
+    tile:{h0:54,h1:-8,s0:92,s1:78,l0:62,l1:46}, font:"'Arial Black','Trebuchet MS',sans-serif",
+    particle:null, music:'sunny' },
+
+  { id:'minimaliste', name:'Minimaliste', group:'mood',
+    bg:'#FBFBFB', bg2:'#F1F1F1', panel:'#FFFFFF', panel2:'#F4F4F4', board:'#E2E2E2', cell:'#EEEEEE',
+    text:'#1E1E1E', muted:'#8A8A8A', line:'rgba(0,0,0,.10)', accent:'#1E1E1E', accentInk:'#FFFFFF', accent2:'#9A9A9A',
+    tile:{h0:0,h1:0,s0:0,s1:0,l0:90,l1:22}, font:"'Helvetica Neue',Arial,sans-serif",
+    particle:null, music:'still', flat:true },
+
+  { id:'romantique', name:'Romantique', group:'mood',
+    bg:'#FFF2F5', bg2:'#FBDCE4', panel:'#FFFFFF', panel2:'#FFF0F4', board:'#F0C3CF', cell:'#F8DCE4',
+    text:'#6C2C3E', muted:'#A9707F', line:'rgba(108,44,62,.13)', accent:'#E06485', accentInk:'#FFFFFF', accent2:'#C09BDA',
+    tile:{h0:348,h1:288,s0:64,s1:48,l0:74,l1:52}, font:"'Palatino Linotype',Georgia,serif",
+    particle:{glyphs:['🌹','💗','🤍'],count:10,mode:'rise',size:18}, music:'warm' },
+
+  { id:'ocean', name:'Océan', group:'mood',
+    bg:'#EDF7FB', bg2:'#D5EBF3', panel:'#FFFFFF', panel2:'#E9F5F9', board:'#AFD6E4', cell:'#CDE6EF',
+    text:'#12394D', muted:'#5E8497', line:'rgba(18,57,77,.13)', accent:'#0E86A8', accentInk:'#FFFFFF', accent2:'#2FC4B2',
+    tile:{h0:186,h1:246,s0:58,s1:52,l0:64,l1:40}, font:"'Trebuchet MS',ui-rounded,sans-serif",
+    particle:{glyphs:['🐠','🫧','🐚','🪸'],count:12,mode:'rise',size:19}, music:'still' },
+
+  { id:'neon', name:'Néon / Nuit Urbaine', group:'mood', dark:true,
+    bg:'#0A0912', bg2:'#141230', panel:'#191634', panel2:'#221E45', board:'#1B1839', cell:'#262151',
+    text:'#EAE7FF', muted:'#9992CC', line:'rgba(255,255,255,.10)', accent:'#00E5FF', accentInk:'#08111A', accent2:'#FF2D95',
+    tile:{h0:188,h1:326,s0:88,s1:86,l0:58,l1:52}, font:"'Arial Black','Trebuchet MS',sans-serif",
+    particle:null, music:'night', glow:true },
+
+  { id:'fancy', name:'Fancy', group:'mood', dark:true,
+    bg:'#14100B', bg2:'#20190F', panel:'#211A12', panel2:'#2C2318', board:'#2B2218', cell:'#372C1F',
+    text:'#F2E5C9', muted:'#B29B72', line:'rgba(212,175,55,.18)', accent:'#D4AF37', accentInk:'#1A1408', accent2:'#7A5490',
+    tile:{h0:46,h1:300,s0:58,s1:38,l0:60,l1:44}, font:"'Didot','Palatino Linotype',Georgia,serif",
+    particle:null, music:'lounge' },
+
+  { id:'crazy', name:'Crazy', group:'special', dark:true,
+    bg:'#08061A', bg2:'#1B0A38', panel:'#160C2E', panel2:'#221347', board:'#1D0F3C', cell:'#2C1657',
+    text:'#EADDFF', muted:'#A78FDB', line:'rgba(255,62,165,.22)', accent:'#3BF0D2', accentInk:'#06131A', accent2:'#FF3EA5',
+    tile:{h0:312,h1:166,s0:88,s1:84,l0:62,l1:54}, font:"'Arial Black','Trebuchet MS',sans-serif",
+    particle:{glyphs:['✦','⚡','✧','★'],count:14,mode:'rise',size:16,color:'#FF3EA5'}, music:'chaos', glow:true, wild:true },
+
+  { id:'heavy', name:'Heavy', group:'special', dark:true,
+    bg:'#131010', bg2:'#221816', panel:'#1F1917', panel2:'#2B2320', board:'#2A211D', cell:'#372A25',
+    text:'#F1E3DA', muted:'#B0958A', line:'rgba(255,92,122,.18)', accent:'#FF5C7A', accentInk:'#1A0C10', accent2:'#C87A3C',
+    tile:{h0:22,h1:-16,s0:56,s1:70,l0:52,l1:46}, font:"'Impact','Arial Black',sans-serif",
+    particle:{glyphs:['✦','⚙','▲'],count:10,mode:'rise',size:15,color:'#C87A3C'}, music:'forge', chunky:true }
+];
+const THEME_BY_ID = {};
+THEMES.forEach(t => THEME_BY_ID[t.id] = t);
+
+function hsl(h, s, l) {
+  while (h < 0) h += 360;
+  return 'hsl(' + (h % 360).toFixed(1) + ' ' + s.toFixed(1) + '% ' + l.toFixed(1) + '%)';
+}
+/* perceived brightness decides the ink colour: a vivid blue at 58% lightness
+   is far darker to the eye than a yellow at the same number. */
+function luminance(h, s, l) {
+  h = ((h % 360) + 360) % 360; s /= 100; l /= 100;
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; } else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; } else { r = c; b = x; }
+  const lin = v => { v += m; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+function tileRamp(theme) {
+  const p = theme.tile, out = [];
+  for (let i = 0; i < 14; i++) {
+    const t = i / 13;
+    const h = p.h0 + (p.h1 - p.h0) * t;
+    const s = p.s0 + (p.s1 - p.s0) * t;
+    const l = p.l0 + (p.l1 - p.l0) * t;
+    out.push({
+      bg: hsl(h, s, l),
+      ink: luminance(h, s, l) > 0.34 ? (theme.dark ? 'rgba(10,7,16,.94)' : 'rgba(36,26,18,.94)') : '#FFFFFF'
+    });
+  }
+  return out;
+}
+
+/* ---------------- storage ---------------- */
+const KEY = 'steamworks.doublet.v1';
+const DEFAULT_STATE = {
+  name: '', theme: 'ete', sfx: true, music: true, haptic: true,
+  best: { 3: 0, 4: 0, 5: 0, 6: 0 },
+  stats: { games: 0, moves: 0, merges: 0, totalScore: 0, maxTile: 0, wins: 0, undos: 0, themesTried: ['ete'] },
+  ach: {}, daily: { last: '', streak: 0, best: 0, cleared: 0, todayDone: false, todayKey: '' },
+  save: null
+};
+let S = load();
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    const p = JSON.parse(raw);
+    const s = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    Object.keys(s).forEach(k => { if (p[k] !== undefined && p[k] !== null) s[k] = p[k]; });
+    s.best = Object.assign({ 3: 0, 4: 0, 5: 0, 6: 0 }, p.best || {});
+    s.stats = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE.stats)), p.stats || {});
+    s.daily = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE.daily)), p.daily || {});
+    return s;
+  } catch (e) {
+    return JSON.parse(JSON.stringify(DEFAULT_STATE));
+  }
+}
+let saveTimer = null;
+function save(now) {
+  if (saveTimer) clearTimeout(saveTimer);
+  const doIt = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+  if (now) doIt(); else saveTimer = setTimeout(doIt, 220);
+}
+
+/* ---------------- audio ----------------
+   Everything is synthesised. Levels are deliberately low: the loop should
+   sit under the game, not on top of it. Needs a tap to start (browser rule). */
+const Audio2 = (function () {
+  let ctx = null, master, sfxBus, musicBus, sfxFilter, delay, delayGain, noiseBuf;
+  let started = false, musicOn = false, timer = null, step = 0, nextTime = 0, mood = 'warm';
+
+  const MOODS = {
+    warm:   { bpm: 70, wave: 'triangle', chords: [[0,3,7,10],[-2,3,5,10],[-4,0,3,7],[-5,-1,2,7]], root: 53, cut: 620, mel: [0,3,5,7,10] },
+    bright: { bpm: 74, wave: 'triangle', chords: [[0,4,7,11],[-3,2,4,9],[-5,0,4,7],[-7,-3,0,4]], root: 57, cut: 760, mel: [0,2,4,7,9] },
+    sunny:  { bpm: 78, wave: 'triangle', chords: [[0,4,7,11],[2,5,9,12],[-3,0,4,9],[-5,2,7,11]], root: 55, cut: 820, mel: [0,2,4,7,9] },
+    still:  { bpm: 62, wave: 'sine',     chords: [[0,7,12,16],[-4,3,7,14],[-5,2,7,11],[-7,0,5,12]], root: 53, cut: 520, mel: [0,3,7,10,12] },
+    night:  { bpm: 76, wave: 'sawtooth', chords: [[0,3,7,10],[-3,0,5,10],[-5,-1,2,7],[-7,-3,0,5]], root: 50, cut: 480, mel: [0,3,5,6,10] },
+    lounge: { bpm: 68, wave: 'triangle', chords: [[0,4,9,14],[-2,5,9,12],[-4,2,7,11],[-7,0,4,9]], root: 52, cut: 640, mel: [0,2,5,9,11] },
+    chaos:  { bpm: 82, wave: 'square',   chords: [[0,3,7,10],[1,4,8,11],[-2,3,6,10],[-4,0,5,9]], root: 49, cut: 430, mel: [0,3,6,7,10] },
+    forge:  { bpm: 64, wave: 'sawtooth', chords: [[0,3,7,10],[-5,0,3,10],[-4,0,5,8],[-2,3,7,10]], root: 45, cut: 380, mel: [0,3,5,7,10] }
+  };
+  const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+
+  function ensure() {
+    if (ctx) return ctx;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    ctx = new AC();
+
+    master = ctx.createGain(); master.gain.value = 0.62; master.connect(ctx.destination);
+
+    sfxFilter = ctx.createBiquadFilter();
+    sfxFilter.type = 'lowpass'; sfxFilter.frequency.value = 2600; sfxFilter.Q.value = 0.4;
+    sfxBus = ctx.createGain(); sfxBus.gain.value = S.sfx ? 1 : 0;
+    sfxBus.connect(sfxFilter); sfxFilter.connect(master);
+
+    delay = ctx.createDelay(1.0); delay.delayTime.value = 0.28;
+    delayGain = ctx.createGain(); delayGain.gain.value = 0.22;
+    const dampen = ctx.createBiquadFilter(); dampen.type = 'lowpass'; dampen.frequency.value = 1400;
+    delay.connect(dampen); dampen.connect(delayGain); delayGain.connect(delay); delayGain.connect(master);
+
+    musicBus = ctx.createGain(); musicBus.gain.value = S.music ? 0.30 : 0;
+    musicBus.connect(master);
+
+    const len = Math.floor(ctx.sampleRate * 2);
+    noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+
+    started = true;
+    return ctx;
+  }
+
+  function resume() {
+    ensure();
+    if (ctx && ctx.state === 'suspended') ctx.resume();
+  }
+
+  function tone(o) {
+    if (!started || !S.sfx) return;
+    const t = ctx.currentTime + (o.delay || 0);
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    const f = ctx.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = o.cut || 2200; f.Q.value = 0.5;
+    osc.type = o.wave || 'sine';
+    osc.frequency.setValueAtTime(o.f, t);
+    if (o.f2) osc.frequency.exponentialRampToValueAtTime(Math.max(20, o.f2), t + (o.dur || 0.25));
+    if (o.detune) osc.detune.value = o.detune;
+    const peak = Math.max(0.0006, o.gain || 0.04);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + (o.atk || 0.012));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (o.dur || 0.25));
+    osc.connect(f); f.connect(g); g.connect(sfxBus);
+    if (o.space) { const s = ctx.createGain(); s.gain.value = 0.35; g.connect(s); s.connect(delay); }
+    osc.start(t); osc.stop(t + (o.dur || 0.25) + 0.05);
+  }
+
+  function noise(o) {
+    if (!started || !S.sfx) return;
+    const t = ctx.currentTime + (o.delay || 0);
+    const src = ctx.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+    const f = ctx.createBiquadFilter();
+    f.type = o.type || 'bandpass'; f.frequency.value = o.f || 700; f.Q.value = o.q || 0.9;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0006, o.gain || 0.02), t + (o.atk || 0.008));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (o.dur || 0.12));
+    src.connect(f); f.connect(g); g.connect(sfxBus);
+    src.start(t); src.stop(t + (o.dur || 0.12) + 0.05);
+  }
+
+  /* ---- music scheduler ---- */
+  function scheduleStep(time) {
+    const M = MOODS[mood] || MOODS.warm;
+    const beat = 60 / M.bpm;
+    const bar = Math.floor(step / 8) % M.chords.length;
+    const inBar = step % 8;
+    const chord = M.chords[bar];
+
+    // pad on the downbeat, long and quiet
+    if (inBar === 0) {
+      chord.forEach((iv, k) => {
+        const osc = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+        osc.type = M.wave;
+        osc.frequency.value = mtof(M.root + iv + 12);
+        osc.detune.value = (k % 2 ? 5 : -5);
+        f.type = 'lowpass'; f.frequency.value = M.cut; f.Q.value = 0.7;
+        const dur = beat * 4.1;
+        g.gain.setValueAtTime(0.0001, time);
+        g.gain.exponentialRampToValueAtTime(0.030, time + beat * 1.1);
+        g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+        osc.connect(f); f.connect(g); g.connect(musicBus);
+        osc.start(time); osc.stop(time + dur + 0.1);
+      });
+      // bass
+      const b = ctx.createOscillator(), bg = ctx.createGain();
+      b.type = 'sine'; b.frequency.value = mtof(M.root + chord[0] - 12);
+      bg.gain.setValueAtTime(0.0001, time);
+      bg.gain.exponentialRampToValueAtTime(0.055, time + 0.05);
+      bg.gain.exponentialRampToValueAtTime(0.0001, time + beat * 1.6);
+      b.connect(bg); bg.connect(musicBus);
+      b.start(time); b.stop(time + beat * 1.7);
+    }
+
+    // soft kick on 1 and 3
+    if (inBar === 0 || inBar === 4) {
+      const k = ctx.createOscillator(), kg = ctx.createGain();
+      k.type = 'sine';
+      k.frequency.setValueAtTime(88, time);
+      k.frequency.exponentialRampToValueAtTime(42, time + 0.11);
+      kg.gain.setValueAtTime(0.0001, time);
+      kg.gain.exponentialRampToValueAtTime(0.075, time + 0.008);
+      kg.gain.exponentialRampToValueAtTime(0.0001, time + 0.20);
+      k.connect(kg); kg.connect(musicBus);
+      k.start(time); k.stop(time + 0.25);
+    }
+    // brushed hat on the ands
+    if (inBar % 2 === 1) {
+      const src = ctx.createBufferSource(); src.buffer = noiseBuf;
+      src.playbackRate.value = 1.6;
+      const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 6500;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, time);
+      g.gain.exponentialRampToValueAtTime(0.016, time + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, time + 0.05);
+      src.connect(f); f.connect(g); g.connect(musicBus);
+      src.start(time); src.stop(time + 0.09);
+    }
+    // sparse melody
+    if ((inBar === 2 || inBar === 5 || inBar === 7) && Math.random() < 0.42) {
+      const note = M.mel[Math.floor(Math.random() * M.mel.length)] + (Math.random() < 0.3 ? 12 : 0);
+      const o = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
+      o.type = 'triangle';
+      o.frequency.value = mtof(M.root + chord[0] + note + 12);
+      f.type = 'lowpass'; f.frequency.value = 1500;
+      g.gain.setValueAtTime(0.0001, time);
+      g.gain.exponentialRampToValueAtTime(0.028, time + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, time + beat * 1.3);
+      o.connect(f); f.connect(g); g.connect(musicBus);
+      const send = ctx.createGain(); send.gain.value = 0.5; g.connect(send); send.connect(delay);
+      o.start(time); o.stop(time + beat * 1.4);
+    }
+    step++;
+    nextTime = time + beat / 2;
+  }
+
+  function tick() {
+    if (!ctx) return;
+    while (nextTime < ctx.currentTime + 0.2) scheduleStep(nextTime);
+  }
+
+  let vinylSrc = null, vinylGain = null;
+  function startVinyl() {
+    if (vinylSrc || !ctx) return;
+    vinylSrc = ctx.createBufferSource(); vinylSrc.buffer = noiseBuf; vinylSrc.loop = true;
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2600; f.Q.value = 0.6;
+    vinylGain = ctx.createGain(); vinylGain.gain.value = 0.010;
+    vinylSrc.connect(f); f.connect(vinylGain); vinylGain.connect(musicBus);
+    vinylSrc.start();
+  }
+
+  return {
+    unlock() { resume(); },
+    setMood(m) {
+      mood = m || 'warm';
+      if (musicOn && ctx) step = 0;
+    },
+    startMusic() {
+      ensure(); resume();
+      if (!ctx || musicOn) return;
+      musicOn = true;
+      nextTime = ctx.currentTime + 0.1;
+      startVinyl();
+      timer = setInterval(tick, 40);
+      musicBus.gain.cancelScheduledValues(ctx.currentTime);
+      musicBus.gain.setValueAtTime(0.0001, ctx.currentTime);
+      musicBus.gain.exponentialRampToValueAtTime(0.30, ctx.currentTime + 2.2);
+    },
+    stopMusic() {
+      if (!ctx || !musicOn) return;
+      musicOn = false;
+      musicBus.gain.cancelScheduledValues(ctx.currentTime);
+      musicBus.gain.setValueAtTime(musicBus.gain.value, ctx.currentTime);
+      musicBus.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.9);
+      clearInterval(timer); timer = null;
+    },
+    setSfx(on) { if (sfxBus) sfxBus.gain.value = on ? 1 : 0; },
+
+    /* --- effects --- */
+    slide(theme) {
+      noise({ f: theme && theme.chunky ? 380 : 620, q: 0.8, gain: 0.020, dur: 0.10, type: 'bandpass' });
+    },
+    merge(value, index, theme) {
+      const scale = [0, 3, 7, 10, 12, 15, 19, 22, 24, 27, 31, 34, 36, 39];
+      const step2 = Math.min(13, Math.max(0, Math.round(Math.log2(value)) - 2));
+      const wave = theme && theme.wild ? 'triangle' : (theme && theme.chunky ? 'sine' : 'sine');
+      const base = 55 + scale[step2];
+      tone({ f: mtof(base), wave: wave, gain: 0.042, atk: 0.010, dur: 0.34, cut: 1900, space: true, delay: index * 0.045 });
+      tone({ f: mtof(base + 12), wave: 'sine', gain: 0.016, atk: 0.014, dur: 0.26, cut: 2400, delay: index * 0.045 + 0.01 });
+      if (value >= 256) tone({ f: mtof(base + 19), wave: 'sine', gain: 0.014, atk: 0.02, dur: 0.5, cut: 2600, space: true, delay: index * 0.045 + 0.03 });
+    },
+    undo() {
+      tone({ f: 520, f2: 300, wave: 'triangle', gain: 0.030, dur: 0.24, cut: 1400 });
+    },
+    tap() { noise({ f: 1200, q: 1.2, gain: 0.010, dur: 0.05, type: 'bandpass' }); },
+    win() {
+      [0, 4, 7, 12, 16].forEach((n, i) =>
+        tone({ f: mtof(69 + n), wave: 'sine', gain: 0.038, atk: 0.02, dur: 0.7, cut: 2400, space: true, delay: i * 0.13 }));
+    },
+    over() {
+      [0, -3, -8].forEach((n, i) =>
+        tone({ f: mtof(60 + n), wave: 'triangle', gain: 0.034, atk: 0.03, dur: 0.8, cut: 1100, space: true, delay: i * 0.2 }));
+    },
+    achievement() {
+      [0, 7, 12].forEach((n, i) =>
+        tone({ f: mtof(76 + n), wave: 'sine', gain: 0.030, atk: 0.015, dur: 0.6, cut: 3000, space: true, delay: i * 0.09 }));
+    },
+    isMusicOn() { return musicOn; }
+  };
+})();
+
+/* ---------------- engine (verified headlessly before the UI was written) ---------------- */
+function createRNG(seed) {
+  let s = (seed >>> 0) || 88675123;
+  return {
+    next() { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; },
+    get state() { return s; },
+    set state(v) { s = v >>> 0; }
+  };
+}
+const DIRS = [{ dr: -1, dc: 0 }, { dr: 0, dc: 1 }, { dr: 1, dc: 0 }, { dr: 0, dc: -1 }];
+let TID = 1;
+
+class Game {
+  constructor(size, seed) {
+    this.size = size;
+    this.rng = createRNG(seed === undefined ? Math.floor(Math.random() * 4294967295) : seed);
+    this.grid = [];
+    this.score = 0; this.moves = 0; this.merges = 0; this.maxTile = 0;
+    this.won = false; this.consumed = [];
+    for (let r = 0; r < size; r++) this.grid.push(new Array(size).fill(null));
+  }
+  each(fn) { for (let r = 0; r < this.size; r++) for (let c = 0; c < this.size; c++) if (this.grid[r][c]) fn(this.grid[r][c], r, c); }
+  tiles() { const o = []; this.each(t => o.push(t)); return o; }
+  values() { return this.grid.map(row => row.map(t => t ? t.v : 0)); }
+  emptyCells() {
+    const o = [];
+    for (let r = 0; r < this.size; r++) for (let c = 0; c < this.size; c++) if (!this.grid[r][c]) o.push({ r, c });
+    return o;
+  }
+  addRandomTile() {
+    const empty = this.emptyCells();
+    if (!empty.length) return null;
+    const cell = empty[Math.floor(this.rng.next() * empty.length)];
+    const v = this.rng.next() < 0.9 ? 2 : 4;
+    const t = { id: TID++, r: cell.r, c: cell.c, v, pr: cell.r, pc: cell.c, isNew: true, mergedFrom: null };
+    this.grid[cell.r][cell.c] = t;
+    if (v > this.maxTile) this.maxTile = v;
+    return t;
+  }
+  start() { this.addRandomTile(); this.addRandomTile(); return this; }
+  inBounds(r, c) { return r >= 0 && c >= 0 && r < this.size && c < this.size; }
+  prepare() { this.each(t => { t.pr = t.r; t.pc = t.c; t.isNew = false; t.mergedFrom = null; t.justMerged = false; }); }
+  move(dir) {
+    const { dr, dc } = DIRS[dir], n = this.size;
+    this.prepare();
+    const rows = [], cols = [];
+    for (let i = 0; i < n; i++) { rows.push(i); cols.push(i); }
+    if (dr === 1) rows.reverse();
+    if (dc === 1) cols.reverse();
+    let moved = false, gained = 0, mergeCount = 0, biggestMerge = 0;
+    this.consumed = [];
+    for (const r of rows) for (const c of cols) {
+      const tile = this.grid[r][c];
+      if (!tile) continue;
+      let fr = r, fc = c;
+      while (true) {
+        const nr2 = fr + dr, nc2 = fc + dc;
+        if (!this.inBounds(nr2, nc2) || this.grid[nr2][nc2]) break;
+        fr = nr2; fc = nc2;
+      }
+      const nr = fr + dr, nc = fc + dc;
+      const next = this.inBounds(nr, nc) ? this.grid[nr][nc] : null;
+      if (next && next.v === tile.v && !next.justMerged && !tile.justMerged) {
+        this.grid[r][c] = null;
+        this.consumed.push({ id: tile.id, v: tile.v, fromR: tile.pr, fromC: tile.pc, toR: next.r, toC: next.c });
+        next.v *= 2;
+        next.justMerged = true;
+        next.mergedFrom = [{ r: tile.pr, c: tile.pc }, { r: next.pr, c: next.pc }];
+        gained += next.v; mergeCount++;
+        if (next.v > biggestMerge) biggestMerge = next.v;
+        if (next.v > this.maxTile) this.maxTile = next.v;
+        moved = true;
+      } else if (fr !== r || fc !== c) {
+        this.grid[r][c] = null;
+        this.grid[fr][fc] = tile;
+        tile.r = fr; tile.c = fc;
+        moved = true;
+      }
+    }
+    if (moved) { this.score += gained; this.moves++; this.merges += mergeCount; }
+    return { moved, gained, mergeCount, biggestMerge };
+  }
+  canMove() {
+    if (this.emptyCells().length) return true;
+    for (let r = 0; r < this.size; r++) for (let c = 0; c < this.size; c++) {
+      const v = this.grid[r][c].v;
+      if (c + 1 < this.size && this.grid[r][c + 1].v === v) return true;
+      if (r + 1 < this.size && this.grid[r + 1][c].v === v) return true;
+    }
+    return false;
+  }
+  snapshot() {
+    return { vals: this.values(), score: this.score, moves: this.moves, merges: this.merges, maxTile: this.maxTile, won: this.won, rng: this.rng.state };
+  }
+  restore(snap) {
+    for (let r = 0; r < this.size; r++) for (let c = 0; c < this.size; c++) {
+      const v = snap.vals[r][c];
+      this.grid[r][c] = v ? { id: TID++, r, c, v, pr: r, pc: c, isNew: false, mergedFrom: null } : null;
+    }
+    this.score = snap.score; this.moves = snap.moves; this.merges = snap.merges;
+    this.maxTile = snap.maxTile; this.won = snap.won; this.rng.state = snap.rng;
+  }
+}
+
+/* ---------------- dom helpers ---------------- */
+const $ = id => document.getElementById(id);
+const boardEl = $('board'), cellsEl = $('cells'), tilesEl = $('tiles');
+const MOVE_MS = 100;
+
+/* ---------------- session ---------------- */
+const SIZES = [
+  { n: 3, name: 'Tight', desc: '3 × 3 · sharp and fast' },
+  { n: 4, name: 'Classic', desc: '4 × 4 · the original' },
+  { n: 5, name: 'Roomy', desc: '5 × 5 · space to think' },
+  { n: 6, name: 'Vast', desc: '6 × 6 · long haul' }
+];
+let game = null;
+let mode = 'classic';         // classic | endless | daily
+let undoStack = [];
+let usedUndo = false;
+let undosLeft = 3, chancesUsed = 0;   // real numbers live in MONEY (see the MONEY block)
+let mergeStreak = 0;
+let animLock = false, pendingPhase = null, queuedDir = null;
+let theme = THEME_BY_ID[S.theme] || THEMES[0];
+let ramp = tileRamp(theme);
+const els = new Map();
+
+/* ---------------- theme application ---------------- */
+function applyTheme(t) {
+  theme = t; ramp = tileRamp(t);
+  const r = document.documentElement.style;
+  r.setProperty('--bg', t.bg); r.setProperty('--bg2', t.bg2);
+  r.setProperty('--panel', t.panel); r.setProperty('--panel2', t.panel2);
+  r.setProperty('--board', t.board); r.setProperty('--cell', t.cell);
+  r.setProperty('--text', t.text); r.setProperty('--muted', t.muted);
+  r.setProperty('--line', t.line); r.setProperty('--accent', t.accent);
+  r.setProperty('--accent-ink', t.accentInk); r.setProperty('--accent2', t.accent2);
+  r.setProperty('--font-display', t.font);
+  r.setProperty('--shadow', t.dark ? '0 6px 22px rgba(0,0,0,.45)' : '0 6px 20px rgba(0,0,0,.10)');
+  r.setProperty('--tile-radius', t.chunky ? '7px' : (t.flat ? '6px' : '12px'));
+  r.setProperty('--tile-border', t.chunky ? '2px solid rgba(0,0,0,.34)' : 'none');
+  r.setProperty('--tile-glow', t.glow ? '0 0 16px ' + t.accent2 + '55' : 'none');
+  const meta = document.querySelector('meta[name=theme-color]');
+  if (meta) meta.setAttribute('content', t.bg);
+  S.theme = t.id;
+  if (S.stats.themesTried.indexOf(t.id) < 0) { S.stats.themesTried.push(t.id); }
+  Audio2.setMood(t.music);
+  if (S.stats.themesTried.length >= 8) unlock('palette');
+  buildParticles();
+  if (game) paintAllTiles();
+  save();
+}
+
+function buildParticles() {
+  const host = $('particles');
+  host.innerHTML = '';
+  const p = theme.particle;
+  if (!p) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  for (let i = 0; i < p.count; i++) {
+    const el = document.createElement('div');
+    el.className = 'pp';
+    el.textContent = p.glyphs[i % p.glyphs.length];
+    el.style.left = (Math.random() * 100) + '%';
+    el.style.fontSize = (p.size * (0.7 + Math.random() * 0.7)).toFixed(0) + 'px';
+    el.style.setProperty('--drift', (Math.random() * 120 - 60).toFixed(0) + 'px');
+    el.style.setProperty('--spin', (Math.random() * 500 - 250).toFixed(0) + 'deg');
+    el.style.animationName = p.mode === 'rise' ? 'rise' : 'fall';
+    el.style.animationDuration = (13 + Math.random() * 17).toFixed(1) + 's';
+    el.style.animationDelay = (-Math.random() * 25).toFixed(1) + 's';
+    el.style.opacity = (0.25 + Math.random() * 0.35).toFixed(2);
+    if (p.color) el.style.color = p.color;
+    host.appendChild(el);
+  }
+}
+
+/* ---------------- board layout & painting ---------------- */
+let CELL = 70, GAP = 10;
+function layout() {
+  if (!game) return;
+  const w = boardEl.clientWidth;
+  const n = game.size;
+  GAP = Math.max(4, Math.round(w * (n > 4 ? 0.018 : 0.024)));
+  CELL = Math.floor((w - GAP * (n + 1)) / n);
+  document.documentElement.style.setProperty('--gap', GAP + 'px');
+  document.documentElement.style.setProperty('--cellsize', CELL + 'px');
+  buildCells();
+  els.forEach((el, id) => {
+    const t = findTile(id);
+    if (t) place(el, t.r, t.c);
+  });
+  paintAllTiles();
+}
+function findTile(id) { let f = null; game.each(t => { if (t.id === id) f = t; }); return f; }
+function pos(r, c) { return { x: c * (CELL + GAP), y: r * (CELL + GAP) }; }
+function place(el, r, c) {
+  const p = pos(r, c);
+  const tr = 'translate(' + p.x + 'px,' + p.y + 'px)';
+  el.style.setProperty('--pos', tr);
+  el.style.transform = tr;
+}
+function buildCells() {
+  cellsEl.innerHTML = '';
+  for (let r = 0; r < game.size; r++) for (let c = 0; c < game.size; c++) {
+    const d = document.createElement('div');
+    d.className = 'cellbg';
+    const p = pos(r, c);
+    d.style.transform = 'translate(' + p.x + 'px,' + p.y + 'px)';
+    cellsEl.appendChild(d);
+  }
+}
+function rampFor(v) {
+  const i = Math.min(13, Math.max(0, Math.round(Math.log2(v)) - 1));
+  return ramp[i];
+}
+function paintTile(el, v) {
+  const c = rampFor(v);
+  el.style.background = c.bg;
+  el.style.color = c.ink;
+  el.textContent = v;
+  const digits = String(v).length;
+  const f = digits <= 2 ? 0.44 : digits === 3 ? 0.36 : digits === 4 ? 0.29 : 0.24;
+  el.style.fontSize = Math.round(CELL * f) + 'px';
+  el.style.boxShadow = theme.glow && v >= 128 ? '0 0 14px ' + c.bg : (theme.dark ? '0 2px 8px rgba(0,0,0,.4)' : '0 2px 6px rgba(0,0,0,.10)');
+}
+function paintAllTiles() { els.forEach((el, id) => { const t = findTile(id); if (t) paintTile(el, t.v); }); }
+
+function makeTileEl(t, pop) {
+  const el = document.createElement('div');
+  el.className = 'tile';
+  place(el, t.r, t.c);
+  paintTile(el, t.v);
+  tilesEl.appendChild(el);
+  els.set(t.id, el);
+  if (pop) { el.classList.add('pop'); setTimeout(() => el.classList.remove('pop'), 200); }
+  return el;
+}
+function rebuildBoard() {
+  tilesEl.innerHTML = '';
+  els.clear();
+  buildCells();
+  game.each(t => makeTileEl(t, false));
+  paintAllTiles();
+}
+
+/* ---------------- the move ---------------- */
+function flushPhase() {
+  if (pendingPhase) { const f = pendingPhase; pendingPhase = null; f(); }
+}
+function doMove(dir) {
+  if (!game) return;
+  if (animLock) { queuedDir = dir; return; }
+  if ($('boardMsg').classList.contains('show')) return;
+  flushPhase();
+
+  hideHint();
+  const snap = game.snapshot();
+  const res = game.move(dir);
+  if (!res.moved) {
+    boardEl.animate(
+      [{ transform: 'translateX(0)' }, { transform: 'translateX(' + (DIRS[dir].dc * 5 + DIRS[dir].dr * 0) + 'px) translateY(' + (DIRS[dir].dr * 5) + 'px)' }, { transform: 'translateX(0)' }],
+      { duration: 130, easing: 'ease-out' }
+    );
+    return;
+  }
+
+  undoStack.push(snap);
+  if (undoStack.length > 60) undoStack.shift();
+
+  Audio2.slide(theme);
+  const consumed = game.consumed.slice();
+  const mergedTiles = game.tiles().filter(t => t.mergedFrom);
+
+  // phase A — everything slides
+  consumed.forEach(c => {
+    const el = els.get(c.id);
+    if (el) { el.classList.add('ghost'); place(el, c.toR, c.toC); }
+  });
+  game.each(t => {
+    const el = els.get(t.id);
+    if (el) place(el, t.r, t.c);
+  });
+
+  const spawn = game.addRandomTile();
+  animLock = true;
+
+  // phase B — merges resolve, the new tile appears
+  pendingPhase = () => {
+    consumed.forEach(c => { const el = els.get(c.id); if (el) { el.remove(); els.delete(c.id); } });
+    mergedTiles.forEach((t, i) => {
+      const el = els.get(t.id);
+      if (el) {
+        paintTile(el, t.v);
+        el.classList.remove('merged');
+        void el.offsetWidth;
+        el.classList.add('merged');
+        setTimeout(() => el.classList.remove('merged'), 210);
+      }
+      Audio2.merge(t.v, i, theme);
+    });
+    if (spawn && !els.has(spawn.id)) makeTileEl(spawn, true);
+  };
+  setTimeout(() => {
+    flushPhase();
+    animLock = false;
+    if (queuedDir !== null) { const d = queuedDir; queuedDir = null; doMove(d); }
+  }, MOVE_MS);
+
+  // scoring + bookkeeping
+  if (res.gained) showGain(res.gained);
+  S.stats.moves++;
+  S.stats.merges += res.mergeCount;
+  S.stats.totalScore += res.gained;
+  if (game.maxTile > S.stats.maxTile) S.stats.maxTile = game.maxTile;
+  if (res.mergeCount > 0) mergeStreak++; else mergeStreak = 0;
+
+  const key = String(game.size);
+  if (mode !== 'daily' && game.score > (S.best[key] || 0)) S.best[key] = game.score;
+  if (mode === 'daily' && game.score > (S.daily.best || 0)) S.daily.best = game.score;
+
+  updateHUD();
+  checkAchievements(res);
+  checkEnd(res);
+  persistGame();
+  save();
+}
+
+function showGain(g) {
+  const box = $('uiScore').parentElement;
+  const d = document.createElement('div');
+  d.className = 'gain'; d.textContent = '+' + g;
+  box.appendChild(d);
+  setTimeout(() => d.remove(), 900);
+  if (S.haptic && navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
+}
+
+function checkEnd(res) {
+  const target = mode === 'daily' ? 512 : 2048;
+  if (!game.won && game.maxTile >= target && mode !== 'endless') {
+    game.won = true;
+    S.stats.wins++;
+    if (mode === 'daily') completeDaily();
+    setTimeout(() => {
+      Audio2.win();
+      showMsg(mode === 'daily' ? 'Cleared it.' : 'You made 2048.',
+        mode === 'daily' ? 'Today is done. Streak now ' + S.daily.streak + '. Keep playing if you want a bigger score.'
+                         : 'That is the classic target. The board is still alive — keep merging if you fancy it.',
+        [
+          { label: 'Keep going', cls: 'primary', fn: hideMsg },
+          { label: 'New game', cls: '', fn: () => newGame(game.size, mode === 'daily' ? 'classic' : mode) }
+        ]);
+    }, MOVE_MS + 120);
+    return;
+  }
+  if (mode === 'endless' && game.maxTile >= 2048 && !game.won) {
+    game.won = true; S.stats.wins++;
+    toast('🎉', '2048 reached', 'Endless run, no stopping.');
+  }
+  if (!game.canMove()) {
+    setTimeout(() => { Audio2.over(); gameOverMsg(); }, MOVE_MS + 140);
+  }
+}
+
+function showMsg(title, sub, buttons) {
+  $('msgTitle').textContent = title;
+  $('msgSub').textContent = sub;
+  const box = $('msgButtons');
+  box.innerHTML = '';
+  buttons.forEach(b => {
+    const el = document.createElement('button');
+    el.className = 'btn ' + (b.cls || '');
+    el.textContent = b.label;
+    el.onclick = () => { Audio2.tap(); b.fn(); };
+    box.appendChild(el);
+  });
+  $('boardMsg').classList.add('show');
+}
+function hideMsg() { $('boardMsg').classList.remove('show'); }
+
+function undo() {
+  if (!undoStack.length || !game) return;
+  flushPhase();
+  const snap = undoStack.pop();
+  game.restore(snap);
+  usedUndo = true;
+  S.stats.undos++;
+  rebuildBoard();
+  hideMsg();
+  updateHUD();
+  Audio2.undo();
+  persistGame();
+  save();
+  if (S.stats.undos >= 25) unlock('rewind');
+}
+
+function newGame(size, m) {
+  mode = m || 'classic';
+  hideMsg();
+  undoStack = [];
+  usedUndo = false;
+  undosLeft = MONEY.FREE_UNDOS; chancesUsed = 0; hideHint();
+  mergeStreak = 0;
+  let seed;
+  if (mode === 'daily') { seed = dailySeed(); size = 4; }
+  game = new Game(size, seed);
+  game.start();
+  S.stats.games++;
+  layout();
+  rebuildBoard();
+  updateHUD();
+  persistGame();
+  save();
+  go('game');
+  if (S.stats.games >= 100) unlock('regular');
+}
+
+function persistGame() {
+  if (!game) return;
+  S.save = {
+    size: game.size, mode: mode, vals: game.values(), score: game.score,
+    moves: game.moves, merges: game.merges, maxTile: game.maxTile, won: game.won,
+    rng: game.rng.state, usedUndo: usedUndo, undosLeft: undosLeft, chancesUsed: chancesUsed,
+    undo: undoStack.slice(-20), dailyKey: mode === 'daily' ? todayKey() : ''
+  };
+}
+function restoreGame() {
+  const s = S.save;
+  if (!s || !s.vals) return false;
+  mode = s.mode || 'classic';
+  game = new Game(s.size, 1);
+  game.restore({ vals: s.vals, score: s.score, moves: s.moves, merges: s.merges, maxTile: s.maxTile, won: s.won, rng: s.rng });
+  undoStack = s.undo || [];
+  usedUndo = !!s.usedUndo;
+  undosLeft = s.undosLeft === undefined ? MONEY.FREE_UNDOS : s.undosLeft;
+  chancesUsed = s.chancesUsed || 0;
+  layout();
+  rebuildBoard();
+  updateHUD();
+  if (!game.canMove()) gameOverMsg();
+  return true;
+}
+
+function updateHUD() {
+  if (!game) return;
+  $('uiScore').textContent = game.score.toLocaleString();
+  $('uiMax').textContent = game.maxTile;
+  const key = String(game.size);
+  $('uiBestLab').textContent = mode === 'daily' ? 'Daily best' : 'Best ' + game.size + '×' + game.size;
+  $('uiBest').textContent = (mode === 'daily' ? (S.daily.best || 0) : (S.best[key] || 0)).toLocaleString();
+  $('btnUndo').disabled = undoStack.length === 0;
+  $('undoCnt').textContent = hasPlus() ? '∞' : (undosLeft > 0 ? undosLeft : '▶');
+  $('hintCnt').textContent = hasPlus() ? '∞' : (U.hints > 0 ? U.hints : '▶');
+  $('modeHint').textContent =
+    mode === 'daily' ? 'Daily board · same tiles for everyone today · reach 512 to clear it'
+    : mode === 'endless' ? 'Endless run · no target, just keep the board breathing'
+    : 'Swipe the board, or use the arrow keys. Target: 2048.';
+}
+
+/* ---------------- input ---------------- */
+let sx = 0, sy = 0, tracking = false;
+boardEl.addEventListener('pointerdown', e => {
+  if (e.button !== undefined && e.button !== 0) return;
+  tracking = true; sx = e.clientX; sy = e.clientY;
+  try { boardEl.setPointerCapture(e.pointerId); } catch (err) {}
+  Audio2.unlock();
+}, { passive: true });
+boardEl.addEventListener('pointerup', e => {
+  if (!tracking) return;
+  tracking = false;
+  swipe(e.clientX - sx, e.clientY - sy);
+}, { passive: true });
+boardEl.addEventListener('pointercancel', () => { tracking = false; }, { passive: true });
+boardEl.addEventListener('touchmove', e => { e.preventDefault(); }, { passive: false });
+
+function swipe(dx, dy) {
+  const ax = Math.abs(dx), ay = Math.abs(dy);
+  if (Math.max(ax, ay) < 20) return;
+  if (ax > ay) doMove(dx > 0 ? 1 : 3);
+  else doMove(dy > 0 ? 2 : 0);
+}
+const KEYS = {
+  ArrowUp: 0, ArrowRight: 1, ArrowDown: 2, ArrowLeft: 3,
+  w: 0, d: 1, s: 2, a: 3, W: 0, D: 1, S: 2, A: 3,
+  k: 0, l: 1, j: 2, h: 3
+};
+window.addEventListener('keydown', e => {
+  if (e.target && e.target.tagName === 'INPUT') return;
+  if (!$('scr-game').classList.contains('active')) return;
+  if (KEYS[e.key] !== undefined) { e.preventDefault(); Audio2.unlock(); doMove(KEYS[e.key]); }
+  else if (e.key === 'u' || e.key === 'U' || (e.key === 'z' && (e.ctrlKey || e.metaKey))) { e.preventDefault(); tryUndo(); }
+  else if (e.key === 'r' || e.key === 'R') { newGame(game ? game.size : 4, mode); }
+});
+
+/* ---------------- achievements ---------------- */
+const ACHIEVEMENTS = [
+  { id: 'first',    icon: '🧩', name: 'First fuse',      desc: 'Merge your first pair of tiles.' },
+  { id: 't64',      icon: '🔹', name: 'Sixty-four',      desc: 'Build a 64 tile.' },
+  { id: 't256',     icon: '🔷', name: 'Two fifty-six',   desc: 'Build a 256 tile.' },
+  { id: 't512',     icon: '🟦', name: 'Five twelve',     desc: 'Build a 512 tile.' },
+  { id: 't1024',    icon: '🟪', name: 'Ten twenty-four', desc: 'Build a 1024 tile.' },
+  { id: 't2048',    icon: '🏆', name: 'Doublet',         desc: 'Build the 2048 tile.' },
+  { id: 't4096',    icon: '👑', name: 'Past the post',   desc: 'Build a 4096 tile.' },
+  { id: 'score5k',  icon: '⭐', name: 'Five thousand',   desc: 'Score 5,000 in a single game.' },
+  { id: 'score20k', icon: '🌟', name: 'Twenty thousand', desc: 'Score 20,000 in a single game.' },
+  { id: 'quad',     icon: '💥', name: 'Four at once',    desc: 'Land four merges in one move.' },
+  { id: 'chain',    icon: '🔗', name: 'Chain of five',   desc: 'Merge on five moves in a row.' },
+  { id: 'clean',    icon: '🧼', name: 'Clean hands',     desc: 'Reach 1024 without using undo.' },
+  { id: 'tight',    icon: '🤏', name: 'Tight fit',       desc: 'Reach 256 on the 3 × 3 board.' },
+  { id: 'vast',     icon: '🌌', name: 'Wide open',       desc: 'Reach 1024 on the 6 × 6 board.' },
+  { id: 'daily1',   icon: '📅', name: 'Day one',         desc: 'Clear a daily challenge.' },
+  { id: 'streak7',  icon: '🔥', name: 'Seven straight',  desc: 'Hold a 7-day daily streak.' },
+  { id: 'marathon', icon: '🏃', name: 'Long haul',       desc: 'Play 400 moves in one game.' },
+  { id: 'rewind',   icon: '↩️', name: 'Rewind',          desc: 'Use undo 25 times overall.' },
+  { id: 'palette',  icon: '🎨', name: 'Colour theory',   desc: 'Try eight different themes.' },
+  { id: 'regular',  icon: '🎮', name: 'Regular',         desc: 'Start 100 games.' }
+];
+const ACH_BY_ID = {};
+ACHIEVEMENTS.forEach(a => ACH_BY_ID[a.id] = a);
+
+function unlock(id) {
+  if (S.ach[id]) return;
+  const a = ACH_BY_ID[id];
+  if (!a) return;
+  S.ach[id] = Date.now();
+  save();
+  toast(a.icon, a.name, a.desc);
+  Audio2.achievement();
+  renderAch();
+}
+function checkAchievements(res) {
+  if (!game) return;
+  if (game.merges > 0) unlock('first');
+  const m = game.maxTile;
+  if (m >= 64) unlock('t64');
+  if (m >= 256) unlock('t256');
+  if (m >= 512) unlock('t512');
+  if (m >= 1024) unlock('t1024');
+  if (m >= 2048) unlock('t2048');
+  if (m >= 4096) unlock('t4096');
+  if (game.score >= 5000) unlock('score5k');
+  if (game.score >= 20000) unlock('score20k');
+  if (res && res.mergeCount >= 4) unlock('quad');
+  if (mergeStreak >= 5) unlock('chain');
+  if (m >= 1024 && !usedUndo) unlock('clean');
+  if (game.size === 3 && m >= 256) unlock('tight');
+  if (game.size === 6 && m >= 1024) unlock('vast');
+  if (game.moves >= 400) unlock('marathon');
+  if (S.stats.themesTried.length >= 8) unlock('palette');
+}
+
+function toast(icon, name, desc) {
+  const host = $('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = '<div class="ti"></div><div><div class="tn"></div><div class="td"></div></div>';
+  t.querySelector('.ti').textContent = icon;
+  t.querySelector('.tn').textContent = name;
+  t.querySelector('.td').textContent = desc;
+  host.appendChild(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, 2900);
+}
+
+/* ---------------- daily ---------------- */
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function yesterdayKey() {
+  const d = new Date(Date.now() - 86400000);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function dailySeed() {
+  const k = todayKey();
+  let h = 2166136261;
+  for (let i = 0; i < k.length; i++) { h ^= k.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return h >>> 0;
+}
+function completeDaily() {
+  const today = todayKey();
+  if (S.daily.todayKey === today && S.daily.todayDone) return;
+  S.daily.streak = (S.daily.last === yesterdayKey()) ? (S.daily.streak || 0) + 1 : 1;
+  S.daily.last = today;
+  S.daily.todayKey = today;
+  S.daily.todayDone = true;
+  S.daily.cleared = (S.daily.cleared || 0) + 1;
+  unlock('daily1');
+  if (S.daily.streak >= 7) unlock('streak7');
+  save(true);
+  renderHome();
+}
+function syncDaily() {
+  const today = todayKey();
+  if (S.daily.todayKey !== today) { S.daily.todayDone = false; S.daily.todayKey = today; S.daily.best = 0; }
+  if (S.daily.last && S.daily.last !== today && S.daily.last !== yesterdayKey()) S.daily.streak = 0;
+}
+
+/* ---------------- screens ---------------- */
+function go(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = $('scr-' + name);
+  if (el) { el.classList.add('active'); el.scrollTop = 0; }
+  if (name === 'home') renderHome();
+  if (name === 'themes') renderThemes();
+  if (name === 'ach') renderAch();
+  if (name === 'profile') renderProfile();
+  if (name === 'game') setTimeout(layout, 30);
+}
+
+function renderHome() {
+  const who = S.name ? S.name : '';
+  $('welcomeLine').textContent = who ? 'Back for more, ' + who + '.' : 'Slide, merge, repeat.';
+  $('btnResume').style.display = S.save && S.save.vals ? 'block' : 'none';
+  if (S.save && S.save.vals) {
+    $('btnResume').textContent = 'Continue · ' + S.save.size + '×' + S.save.size + ' · ' + (S.save.score || 0).toLocaleString();
+  }
+  const host = $('sizeButtons');
+  host.innerHTML = '';
+  SIZES.forEach(s => {
+    const b = document.createElement('button');
+    b.className = 'tilebtn';
+    const best = S.best[String(s.n)] || 0;
+    b.innerHTML = '<div class="t"></div><div class="s"></div><div class="best"></div>';
+    b.querySelector('.t').textContent = s.name;
+    b.querySelector('.s').textContent = s.desc;
+    b.querySelector('.best').textContent = best ? 'Best ' + best.toLocaleString() : 'No score yet';
+    b.onclick = () => { Audio2.tap(); newGame(s.n, 'classic'); };
+    host.appendChild(b);
+  });
+  syncDaily();
+  $('dailyStreak').textContent = 'Streak: ' + (S.daily.streak || 0) + (S.daily.streak === 1 ? ' day' : ' days');
+  $('dailyTitle').textContent = S.daily.todayDone ? 'Today: cleared' : "Today's board";
+  $('dailyIcon').textContent = S.daily.todayDone ? '✅' : '🎯';
+  $('dailyDesc').textContent = S.daily.todayDone
+    ? 'You reached 512 today. Play it again for a bigger score if you like.'
+    : 'Everyone gets the same opening tiles today. Reach 512 to clear it.';
+  $('btnDaily').textContent = S.daily.todayDone ? 'Play today again' : "Play today's board";
+}
+
+function renderThemes() {
+  const groups = { season: $('themeSeason'), mood: $('themeMood'), special: $('themeSpecial') };
+  Object.values(groups).forEach(g => g.innerHTML = '');
+  THEMES.forEach(t => {
+    const r = tileRamp(t);
+    const card = document.createElement('button');
+    card.className = 'themecard';
+    card.style.background = 'linear-gradient(150deg,' + t.bg + ',' + t.bg2 + ')';
+    card.style.color = t.text;
+    card.style.border = (t.id === theme.id ? '2px solid ' + t.accent : '2px solid transparent');
+    card.innerHTML = '<div class="nm"></div><div class="gr"></div><div class="swatches"></div><div class="check"></div>';
+    card.querySelector('.nm').textContent = t.name;
+    card.querySelector('.gr').textContent = t.group === 'season' ? 'Season' : t.group === 'special' ? 'Wild card' : 'Mood';
+    const locked = !isThemeUnlocked(t.id);
+    if (locked) card.classList.add('locked');
+    card.querySelector('.check').textContent = locked ? '🔒' : (t.id === theme.id ? '✓' : '');
+    const sw = card.querySelector('.swatches');
+    [r[0].bg, r[4].bg, r[8].bg, r[12].bg, t.accent].forEach(c => {
+      const d = document.createElement('div'); d.className = 'sw'; d.style.background = c; sw.appendChild(d);
+    });
+    card.onclick = () => { Audio2.tap(); if (locked) openThemeUnlock(t); else { applyTheme(t); renderThemes(); } };
+    (groups[t.group] || groups.mood).appendChild(card);
+  });
+}
+
+function renderAch() {
+  const host = $('achList');
+  if (!host) return;
+  host.innerHTML = '';
+  const got = ACHIEVEMENTS.filter(a => S.ach[a.id]).length;
+  $('achCount').textContent = got;
+  $('achTotal').textContent = ACHIEVEMENTS.length;
+  ACHIEVEMENTS.forEach(a => {
+    const done = !!S.ach[a.id];
+    const d = document.createElement('div');
+    d.className = 'item' + (done ? ' done' : ' locked');
+    d.innerHTML = '<div class="ico"></div><div class="txt"><div class="nm"></div><div class="ds"></div></div>';
+    d.querySelector('.ico').textContent = done ? a.icon : '🔒';
+    d.querySelector('.nm').textContent = a.name;
+    d.querySelector('.ds').textContent = a.desc;
+    host.appendChild(d);
+  });
+}
+
+function renderProfile() {
+  $('nameInput').value = S.name || '';
+  const st = S.stats;
+  const stats = [
+    ['Games started', st.games], ['Moves made', st.moves],
+    ['Tiles merged', st.merges], ['Points scored', st.totalScore],
+    ['Biggest tile', st.maxTile], ['Games won', st.wins],
+    ['Dailies cleared', S.daily.cleared || 0], ['Daily streak', S.daily.streak || 0]
+  ];
+  const g = $('statGrid'); g.innerHTML = '';
+  stats.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'stat';
+    d.innerHTML = '<div class="v"></div><div class="k"></div>';
+    d.querySelector('.v').textContent = Number(s[1] || 0).toLocaleString();
+    d.querySelector('.k').textContent = s[0];
+    g.appendChild(d);
+  });
+  const bl = $('bestList'); bl.innerHTML = '';
+  SIZES.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'item';
+    d.innerHTML = '<div class="ico"></div><div class="txt"><div class="nm"></div><div class="ds"></div></div>';
+    d.querySelector('.ico').textContent = s.n;
+    d.querySelector('.nm').textContent = s.name + ' · ' + s.n + ' × ' + s.n;
+    d.querySelector('.ds').textContent = (S.best[String(s.n)] || 0).toLocaleString() + ' points';
+    bl.appendChild(d);
+  });
+  const ra = $('recentAch'); ra.innerHTML = '';
+  const recent = ACHIEVEMENTS.filter(a => S.ach[a.id]).sort((a, b) => S.ach[b.id] - S.ach[a.id]).slice(0, 4);
+  if (!recent.length) {
+    const d = document.createElement('div');
+    d.className = 'item';
+    d.innerHTML = '<div class="ico">🔒</div><div class="txt"><div class="nm">Nothing yet</div><div class="ds">Merge a pair to open your first one.</div></div>';
+    ra.appendChild(d);
+  }
+  recent.forEach(a => {
+    const d = document.createElement('div');
+    d.className = 'item done';
+    d.innerHTML = '<div class="ico"></div><div class="txt"><div class="nm"></div><div class="ds"></div></div>';
+    d.querySelector('.ico').textContent = a.icon;
+    d.querySelector('.nm').textContent = a.name;
+    d.querySelector('.ds').textContent = new Date(S.ach[a.id]).toLocaleDateString();
+    ra.appendChild(d);
+  });
+  $('togSfx').classList.toggle('on', !!S.sfx);
+  $('togMusic').classList.toggle('on', !!S.music);
+  $('togHaptic').classList.toggle('on', !!S.haptic);
+}
+
+/* ---------------- wiring ---------------- */
+$('btnResume').onclick = () => { Audio2.tap(); if (restoreGame()) go('game'); else newGame(4, 'classic'); };
+$('btnDaily').onclick = () => { Audio2.tap(); newGame(4, 'daily'); };
+$('btnEndless').onclick = () => { Audio2.tap(); newGame(4, 'endless'); };
+$('btnUndo').onclick = () => { Audio2.tap(); tryUndo(); };
+$('btnRestart').onclick = () => { Audio2.tap(); newGame(game ? game.size : 4, mode === 'daily' ? 'classic' : mode); };
+$('btnHome').onclick = () => { Audio2.tap(); go('home'); };
+$('btnMenu').onclick = () => { Audio2.tap(); $('drawer').classList.add('show'); };
+$('drawer').addEventListener('click', e => {
+  if (e.target.dataset.close) { $('drawer').classList.remove('show'); return; }
+  const b = e.target.closest('[data-go]');
+  if (b) { Audio2.tap(); $('drawer').classList.remove('show'); go(b.dataset.go); }
+});
+$('nameInput').addEventListener('input', e => { S.name = e.target.value.slice(0, 18); save(); });
+
+function refreshSoundIcon() {
+  const anyOn = S.sfx || S.music;
+  $('btnSound').innerHTML = anyOn ? '&#128266;' : '&#128263;';
+  $('btnSound').classList.toggle('off', !anyOn);
+}
+$('btnSound').onclick = () => {
+  const anyOn = S.sfx || S.music;
+  S.sfx = !anyOn; S.music = !anyOn;
+  Audio2.setSfx(S.sfx);
+  if (S.music) Audio2.startMusic(); else Audio2.stopMusic();
+  refreshSoundIcon(); renderProfile(); save(true);
+  if (S.sfx) Audio2.tap();
+};
+$('togSfx').onclick = () => { S.sfx = !S.sfx; Audio2.setSfx(S.sfx); if (S.sfx) Audio2.tap(); refreshSoundIcon(); renderProfile(); save(true); };
+$('togMusic').onclick = () => {
+  S.music = !S.music;
+  if (S.music) Audio2.startMusic(); else Audio2.stopMusic();
+  refreshSoundIcon(); renderProfile(); save(true);
+};
+$('togHaptic').onclick = () => { S.haptic = !S.haptic; renderProfile(); save(true); if (S.haptic && navigator.vibrate) { try { navigator.vibrate(10); } catch (e) {} } };
+$('btnReset').onclick = () => {
+  showResetConfirm();
+};
+function showResetConfirm() {
+  const keepTheme = S.theme;
+  const host = $('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.style.pointerEvents = 'auto';
+  t.innerHTML = '<div class="ti">⚠️</div><div><div class="tn">Erase everything?</div><div class="td">Scores, achievements and the saved board.</div>' +
+    '<div class="row" style="margin-top:8px"><button class="btn" id="rsYes" style="padding:8px 12px;font-size:13px">Erase</button>' +
+    '<button class="btn ghost" id="rsNo" style="padding:8px 12px;font-size:13px">Keep</button></div></div>';
+  host.appendChild(t);
+  t.querySelector('#rsNo').onclick = () => t.remove();
+  t.querySelector('#rsYes').onclick = () => {
+    S = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    S.theme = keepTheme;
+    S.stats.themesTried = [keepTheme];
+    save(true);
+    game = null; undoStack = [];
+    t.remove();
+    toast('🧹', 'Cleared', 'Fresh start.');
+    renderProfile(); renderAch(); go('home');
+  };
+}
+
+let firstGesture = false;
+function onFirstGesture() {
+  if (firstGesture) return;
+  firstGesture = true;
+  Audio2.unlock();
+  Audio2.setSfx(S.sfx);
+  if (S.music) Audio2.startMusic();
+}
+['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
+  window.addEventListener(ev, onFirstGesture, { once: true, passive: true }));
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (Audio2.isMusicOn()) Audio2.stopMusic(); }
+  else if (S.music && firstGesture) Audio2.startMusic();
+});
+
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (game) layout(); }, 120);
+});
+
+/* ================================================================
+   MONEY — how Doublet earns. Everything is OPTIONAL for the player.
+   1. Second chance → game over: watch an ad, the smallest tiles vanish
+   2. Extra undos   → out of free undos: watch an ad for more
+   3. Hints         → watch an ad for a few "best swipe" hints
+   4. Themes        → watch an ad to unlock one locked theme
+   5. Doublet Plus  → one-time purchase: never need an ad + all themes
+
+   In a browser it runs in DEMO mode (a fake 3-second ad).
+   In the Android app the real plugins take over:
+     @capacitor-community/admob → rewarded video ads
+     cordova-plugin-purchase    → Google Play "doublet_plus" purchase
+
+   BEFORE RELEASE: put your real AdMob rewarded ID below and set
+   TESTING to false. Until then Google's TEST ads are shown.
+   ================================================================ */
+const MONEY = {
+  TESTING: true,
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917', // Google TEST id — replace with yours
+  PLUS_SKU: 'doublet_plus',   // must match the product ID in Play Console
+  PLUS_PRICE: '$1.99',        // replaced by the real Google Play price when the store loads
+  FREE_UNDOS: 3,              // free undos at the start of every game
+  UNDOS_PER_AD: 3,            // undos you get for one ad
+  START_HINTS: 1,             // free hints for a brand new player
+  HINTS_PER_AD: 3,            // hints you get for one ad
+  SWEEP_COUNT: 4,             // tiles removed by "Second chance"
+  CHANCES_PER_GAME: 1,        // how many second chances per game
+  FREE_THEMES: ['ete', 'printemps', 'automne', 'hiver', 'nature', 'minimaliste']
+};
+
+/* ---------- what the player owns (separate save, survives "Erase progress") ---------- */
+const UNLOCK_KEY = 'steamworks.doublet.unlocks.v1';
+function loadUnlocks() {
+  const d = { themes: [], plus: false, hints: MONEY.START_HINTS };
+  try { return Object.assign(d, JSON.parse(localStorage.getItem(UNLOCK_KEY) || '{}')); }
+  catch (e) { return d; }
+}
+let U = loadUnlocks();
+function saveUnlocks() { try { localStorage.setItem(UNLOCK_KEY, JSON.stringify(U)); } catch (e) {} }
+const hasPlus = () => !!U.plus;
+function isThemeUnlocked(id) { return hasPlus() || MONEY.FREE_THEMES.indexOf(id) >= 0 || U.themes.indexOf(id) >= 0; }
+undosLeft = MONEY.FREE_UNDOS;
+
+/* ---------- pop-up ---------- */
+function openModal(html) { $('moneyBody').innerHTML = html; $('moneyModal').classList.add('show'); }
+function closeModal() { $('moneyModal').classList.remove('show'); }
+$('moneyModal').addEventListener('click', e => { if (e.target.id === 'moneyModal') closeModal(); });
+
+// Generic "watch an ad for X" pop-up
+function offer(o) {
+  openModal(
+    '<div style="font-size:38px">' + o.icon + '</div>' +
+    '<h3>' + o.title + '</h3><p>' + o.text + '</p>' +
+    '<button class="btn primary wide" id="mWatch">&#9654; Watch an ad</button>' +
+    '<button class="btn gold wide" id="mPlus">&#10024; Doublet Plus &mdash; ' + MONEY.PLUS_PRICE + '</button>' +
+    '<p style="font-size:12px">Plus = no ads needed, ever. All themes.</p>' +
+    '<button class="btn ghost wide" id="mNo">Not now</button>');
+  $('mNo').onclick = () => { Audio2.tap(); closeModal(); };
+  $('mPlus').onclick = buyPlus;
+  $('mWatch').onclick = async () => {
+    Audio2.tap(); closeModal();
+    if (await showRewardedAd()) o.onReward();
+  };
+}
+
+/* ---------- rewarded ads ---------- */
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => (isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null);
+let adBusy = false;
+
+// Shows one rewarded ad. Resolves true only if the player earned the reward.
+function showRewardedAd() {
+  if (adBusy) return Promise.resolve(false);
+  adBusy = true;
+  if (Audio2.isMusicOn()) Audio2.stopMusic();
+  const done = r => { adBusy = false; if (S.music && firstGesture && !document.hidden) Audio2.startMusic(); return r; };
+  const A = AdMobP();
+  if (!A) return demoAd().then(done);
+  return new Promise(async res => {
+    let earned = false, finished = false;
+    const hs = [];
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      hs.forEach(h => { try { h.remove(); } catch (e) {} });
+      res(earned);
+    };
+    try {
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      await A.prepareRewardVideoAd({ adId: MONEY.REWARDED_ID, isTesting: MONEY.TESTING });
+      const item = await A.showRewardVideoAd();
+      if (item && item.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    } catch (e) { finish(); }
+  }).then(r => {
+    if (!r) toast('📺', 'No ad right now', 'Try again in a minute.');
+    return done(r);
+  });
+}
+
+// Browser preview: a 3-second fake ad so the flow can be tested.
+function demoAd() {
+  return new Promise(res => {
+    let n = 3;
+    openModal('<h3>&#128250; Ad preview</h3><p>A real video ad plays here in the app.</p>' +
+      '<div class="count" id="adCount">3</div><button class="btn ghost wide" id="adSkip">Close (no reward)</button>');
+    const iv = setInterval(() => {
+      n--;
+      if ($('adCount')) $('adCount').textContent = n;
+      if (n <= 0) { clearInterval(iv); closeModal(); res(true); }
+    }, 1000);
+    $('adSkip').onclick = () => { clearInterval(iv); closeModal(); res(false); };
+  });
+}
+
+async function adsInit() {
+  const A = AdMobP();
+  if (!A) return;
+  try { await A.initialize({ initializeForTesting: MONEY.TESTING }); } catch (e) {}
+}
+
+/* ---------- Google Play: Doublet Plus (one-time purchase) ---------- */
+let iapReady = false;
+const iapStore = () => window.CdvPurchase && CdvPurchase.store;
+function grantPlus() {
+  if (U.plus) return false;
+  U.plus = true; saveUnlocks(); return true;
+}
+function iapInit() {
+  const C = window.CdvPurchase;
+  if (!C || iapReady) return;
+  iapReady = true;
+  const { store, ProductType, Platform } = C;
+  store.register([{ id: MONEY.PLUS_SKU, type: ProductType.NON_CONSUMABLE, platform: Platform.GOOGLE_PLAY }]);
+  store.when()
+    .productUpdated(p => {
+      if (p.id !== MONEY.PLUS_SKU) return;
+      if (p.pricing && p.pricing.price) { MONEY.PLUS_PRICE = p.pricing.price; refreshMoneyUI(); }
+      // bought before (new phone / reinstall) → unlock again
+      if (p.owned && grantPlus()) refreshMoneyUI();
+    })
+    .approved(tr => {
+      if (grantPlus()) {
+        Audio2.win();
+        toast('✨', 'Doublet Plus', 'Thank you! Everything is unlocked.');
+        refreshMoneyUI();
+      }
+      tr.finish(); // tells Google Play the purchase was delivered
+    });
+  store.error(e => {
+    if (e && e.code !== C.ErrorCode.PAYMENT_CANCELLED) toast('⚠️', 'Store error', 'Please try again.');
+  });
+  store.initialize([Platform.GOOGLE_PLAY]);
+}
+document.addEventListener('deviceready', () => { adsInit(); iapInit(); }, false);
+
+function buyPlus() {
+  Audio2.tap();
+  const st = iapStore();
+  if (st) {
+    const pr = st.get(MONEY.PLUS_SKU);
+    const off = pr && pr.getOffer();
+    if (!off) { toast('⏳', 'Store is loading', 'Try again in a moment.'); return; }
+    closeModal();
+    off.order();
+    return;
+  }
+  openModal('<h3>&#10024; Doublet Plus</h3><p>Purchases work in the Android app through Google Play.</p>' +
+    '<button class="btn primary wide" id="mOk">OK</button>');
+  $('mOk').onclick = () => { Audio2.tap(); closeModal(); };
+}
+function restorePurchases() {
+  Audio2.tap();
+  const st = iapStore();
+  if (!st) { toast('ℹ️', 'Restore', 'Works in the Android app.'); return; }
+  st.restorePurchases();
+  toast('🔄', 'Checking', 'Looking for your purchases…');
+}
+
+function refreshMoneyUI() {
+  updateHUD();
+  renderPlusBox();
+  if ($('scr-themes').classList.contains('active')) renderThemes();
+}
+function renderPlusBox() {
+  const box = $('plusBox');
+  if (!box) return;
+  if (hasPlus()) {
+    box.innerHTML = '<div class="card plusCard"><b>&#10024; Doublet Plus</b><div class="muted" style="font-size:13px;margin-top:4px">Thank you! Every theme is yours, and no ads are ever needed.</div></div>';
+    return;
+  }
+  box.innerHTML = '<div class="card plusCard"><b>&#10024; Doublet Plus</b>' +
+    '<div class="muted" style="font-size:13px;margin:4px 0 10px;line-height:1.45">All themes, unlimited undos, hints and second chances. No ads needed, ever.</div>' +
+    '<button class="btn gold wide" id="pBuy">Get Plus &mdash; ' + MONEY.PLUS_PRICE + '</button>' +
+    '<div class="muted" style="font-size:12px;margin-top:9px">Or tap a &#128274; theme and watch a short ad to unlock just that one.</div>' +
+    '<button class="btn ghost wide" id="pRestore" style="margin-top:9px;padding:9px;font-size:13px">Restore purchase</button></div>';
+  $('pBuy').onclick = buyPlus;
+  $('pRestore').onclick = restorePurchases;
+}
+
+/* ---------- locked themes ---------- */
+function openThemeUnlock(t) {
+  offer({
+    icon: '&#128274;', title: t.name,
+    text: 'This theme is locked. Watch a short ad to unlock it forever.',
+    onReward: () => {
+      if (U.themes.indexOf(t.id) < 0) U.themes.push(t.id);
+      saveUnlocks();
+      applyTheme(t);
+      Audio2.achievement();
+      toast('🎨', t.name + ' unlocked', 'It is yours to keep.');
+      renderThemes();
+    }
+  });
+}
+
+/* ---------- limited undo ---------- */
+function tryUndo() {
+  if (!game || !undoStack.length) return;
+  if (hasPlus() || undosLeft > 0) {
+    if (!hasPlus()) undosLeft--;
+    undo();
+    return;
+  }
+  offer({
+    icon: '&#8630;', title: 'Out of undos',
+    text: 'Watch a short ad to get ' + MONEY.UNDOS_PER_AD + ' more undos for this game.',
+    onReward: () => {
+      undosLeft += MONEY.UNDOS_PER_AD - 1; // one is used right away
+      undo();
+      toast('↶', '+' + MONEY.UNDOS_PER_AD + ' undos', 'Rewound one move for you.');
+    }
+  });
+}
+
+/* ---------- game over + second chance ---------- */
+function gameOverMsg() {
+  const best = mode === 'daily' ? S.daily.best : S.best[String(game.size)];
+  const canChance = chancesUsed < MONEY.CHANCES_PER_GAME;
+  const btns = [];
+  if (canChance) btns.push({ label: (hasPlus() ? '✨' : '▶') + ' Second chance', cls: 'primary', fn: secondChance });
+  if (undoStack.length) btns.push({ label: 'Undo', cls: '', fn: tryUndo });
+  btns.push({ label: 'New game', cls: canChance ? '' : 'primary', fn: () => newGame(game.size, mode === 'daily' ? 'classic' : mode) });
+  showMsg('No moves left.',
+    'Score ' + game.score.toLocaleString() + ' · top tile ' + game.maxTile + '. Best here is ' + (best || 0).toLocaleString() + '.' +
+    (canChance ? (hasPlus() ? ' Second chance clears the ' : ' Watch a short ad to clear the ') + MONEY.SWEEP_COUNT + ' smallest tiles.' : ''),
+    btns);
+}
+function secondChance() {
+  if (hasPlus()) { sweepSmall(); return; }
+  showRewardedAd().then(ok => { if (ok) sweepSmall(); });
+}
+function sweepSmall() {
+  if (!game) return;
+  flushPhase();
+  chancesUsed++;
+  undoStack.push(game.snapshot());
+  const small = game.tiles().sort((a, b) => a.v - b.v).slice(0, MONEY.SWEEP_COUNT);
+  small.forEach(t => { game.grid[t.r][t.c] = null; });
+  rebuildBoard(); hideMsg(); updateHUD(); persistGame(); save();
+  Audio2.win();
+  boardEl.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.03)' }, { transform: 'scale(1)' }], { duration: 260, easing: 'ease-out' });
+  toast('✨', 'Second chance', 'The ' + MONEY.SWEEP_COUNT + ' smallest tiles are gone. Keep going!');
+}
+
+/* ---------- hints: a small 2-step lookahead ---------- */
+function cellAt(dir, i, j, n) { // j = 0 is the wall tiles slide toward
+  if (dir === 0) return [j, i];
+  if (dir === 1) return [i, n - 1 - j];
+  if (dir === 2) return [n - 1 - j, i];
+  return [i, j];
+}
+function slideVals(vals, dir) {
+  const n = vals.length, g = vals.map(r => r.slice());
+  let moved = false, gained = 0;
+  for (let i = 0; i < n; i++) {
+    const nums = [];
+    for (let j = 0; j < n; j++) { const p = cellAt(dir, i, j, n); if (g[p[0]][p[1]]) nums.push(g[p[0]][p[1]]); }
+    const out = [];
+    for (let k = 0; k < nums.length; k++) {
+      if (k + 1 < nums.length && nums[k] === nums[k + 1]) { out.push(nums[k] * 2); gained += nums[k] * 2; k++; }
+      else out.push(nums[k]);
+    }
+    while (out.length < n) out.push(0);
+    for (let j = 0; j < n; j++) {
+      const p = cellAt(dir, i, j, n);
+      if (g[p[0]][p[1]] !== out[j]) moved = true;
+      g[p[0]][p[1]] = out[j];
+    }
+  }
+  return { g, moved, gained };
+}
+function evalGrid(g) {
+  const n = g.length, L = v => (v ? Math.log2(v) : 0);
+  let empty = 0, max = 0, mono = 0, smooth = 0;
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    const v = g[r][c];
+    if (!v) { empty++; continue; }
+    if (v > max) max = v;
+    if (c + 1 < n && g[r][c + 1]) smooth -= Math.abs(L(v) - L(g[r][c + 1]));
+    if (r + 1 < n && g[r + 1][c]) smooth -= Math.abs(L(v) - L(g[r + 1][c]));
+  }
+  for (let i = 0; i < n; i++) {
+    let a = 0, b = 0, x = 0, y = 0;
+    for (let j = 0; j + 1 < n; j++) {
+      const d1 = L(g[i][j]) - L(g[i][j + 1]); if (d1 > 0) a += d1; else b -= d1;
+      const d2 = L(g[j][i]) - L(g[j + 1][i]); if (d2 > 0) x += d2; else y -= d2;
+    }
+    mono -= Math.min(a, b) + Math.min(x, y);
+  }
+  const corners = [g[0][0], g[0][n - 1], g[n - 1][0], g[n - 1][n - 1]];
+  const corner = corners.indexOf(max) >= 0 ? L(max) : 0;
+  return Math.log(empty + 1) * 2.7 + mono * 1.0 + smooth * 0.1 + corner * 1.0;
+}
+function bestMove(vals) {
+  let best = -1, bestScore = -Infinity;
+  for (let d = 0; d < 4; d++) {
+    const a = slideVals(vals, d);
+    if (!a.moved) continue;
+    const empties = [];
+    a.g.forEach((row, r) => row.forEach((v, c) => { if (!v) empties.push([r, c]); }));
+    const sample = empties.length > 8 ? empties.filter((_, i) => i % Math.ceil(empties.length / 8) === 0) : empties;
+    let total = 0, w = 0;
+    sample.forEach(([r, c]) => {
+      [[2, 0.9], [4, 0.1]].forEach(([v, p]) => {
+        a.g[r][c] = v;
+        let inner = -50;
+        for (let d2 = 0; d2 < 4; d2++) {
+          const b = slideVals(a.g, d2);
+          if (b.moved) inner = Math.max(inner, evalGrid(b.g) + Math.log2(b.gained + 1) * 0.3);
+        }
+        a.g[r][c] = 0;
+        total += inner * p; w += p;
+      });
+    });
+    const score = (w ? total / w : evalGrid(a.g)) + Math.log2(a.gained + 1) * 0.3;
+    if (score > bestScore) { bestScore = score; best = d; }
+  }
+  return best;
+}
+let hintTimer = null;
+function showHint(dir) {
+  if (dir < 0) return;
+  const h = $('hintArrow');
+  const v = DIRS[dir];
+  h.textContent = ['↑', '→', '↓', '←'][dir];
+  h.style.setProperty('--hx', (v.dc * 14) + 'px');
+  h.style.setProperty('--hy', (v.dr * 14) + 'px');
+  h.classList.add('show');
+  Audio2.tap();
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(hideHint, 3200);
+}
+function hideHint() { const h = $('hintArrow'); if (h) h.classList.remove('show'); }
+function useHint() {
+  if (!game || !game.canMove() || $('boardMsg').classList.contains('show')) return;
+  if (hasPlus() || U.hints > 0) {
+    if (!hasPlus()) { U.hints--; saveUnlocks(); }
+    showHint(bestMove(game.values()));
+    updateHUD();
+    return;
+  }
+  offer({
+    icon: '&#128161;', title: 'Need a hint?',
+    text: 'Watch a short ad for ' + MONEY.HINTS_PER_AD + ' hints. Each one shows the best next swipe.',
+    onReward: () => {
+      U.hints += MONEY.HINTS_PER_AD - 1; // one is used right away
+      saveUnlocks();
+      showHint(bestMove(game.values()));
+      updateHUD();
+    }
+  });
+}
+$('btnHint').onclick = useHint;
+renderPlusBox();
+
+/* ---------------- boot ---------------- */
+applyTheme(isThemeUnlocked(S.theme) && THEME_BY_ID[S.theme] ? THEME_BY_ID[S.theme] : THEMES[0]);
+syncDaily();
+refreshSoundIcon();
+renderHome(); renderThemes(); renderAch(); renderProfile();
+if (S.save && S.save.vals) { restoreGame(); }
+else { game = new Game(4, undefined); game.start(); layout(); rebuildBoard(); updateHUD(); }
+window.addEventListener('load', () => { if (game) layout(); });
+setTimeout(() => { if (game) layout(); }, 60);
+</script>
+</body>
+</html>

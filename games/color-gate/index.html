@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#FFF6E5">
+<title>Color Gate Rise</title>
+<!--
+════════════════════════════════════════════════════════════════════════
+  COLOR GATE · v1.2.0 (app) · one self-contained file
+  Hold to rise, release to fall. A gate only passes your own colour —
+  checked as you enter and again as you leave — but the middle of a
+  ring is safe to wait in.
+════════════════════════════════════════════════════════════════════════
+
+  One thumb, one rule, instant restart. Tap to start, tap to play again.
+  Keyboard: Space / Enter act as a tap, Esc pauses. Hold Space to rise.
+
+  Storage: two localStorage keys
+    stws-color-gate-v1   {sound, best, plays}
+    mosArcadeTheme        shared with the Arcade page, same values
+
+  DESIGN
+  ──────
+  Dressed to match MOS's Arcade listing page (V12/mos-server/arcade):
+  daylight paper, 3px ink borders, hard offset shadows, Nunito, and the
+  same light/dark tokens behind the same theme toggle — so opening a game
+  from that page is not a change of product. The theme key is shared, so
+  a visitor who picked dark there arrives here already dark.
+
+  The screen inside the cabinet stays dark in both themes on purpose.
+  Every one of these games draws light-on-dark — milk-white needles,
+  star fields, translucent white strokes — and would be invisible on
+  paper. A dark screen set into a paper cabinet is also exactly how the
+  Arcade's own cards already show them.
+
+  So the two palettes have one job each: the pastel tint is the chrome
+  (marquee, badge, pills), the game's neon accent is only ever used on
+  the dark screen (confetti on a new best). They never meet.
+════════════════════════════════════════════════════════════════════════
+-->
+<script>
+// Applied before first paint so a returning visitor's saved choice doesn't
+// flash the wrong theme. Nothing stored = follow the OS, handled in CSS by
+// the prefers-color-scheme block below. Same key as the Arcade page, which
+// is the point: one choice covers the listing and every game on it.
+(function(){
+  // In the Android app the page draws under the phone's status bar.
+  if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform())
+    document.documentElement.classList.add('native');
+  try{
+    var saved = localStorage.getItem('mosArcadeTheme');
+    if(saved === 'dark' || saved === 'light') document.documentElement.setAttribute('data-theme', saved);
+  }catch(e){}
+})();
+</script>
+<style>
+/* ---------------- Theme tokens ----------------
+   Lifted from the Arcade page so the two stay in step. Every colour is
+   declared twice, once for daylight and once for night, and the rest of
+   the sheet only ever names tokens. */
+:root{
+  color-scheme:light;
+  --sky-a:#FFF6E5; --sky-b:#E4F3FF;
+  --paper:#FFFFFF;
+  --ink:#2A2140; --ink-soft:#6B6188;
+  --line:#2A2140;
+  --shadow:#2A2140;
+  --title-shadow:3px 4px 0 #CFF3F0, 6px 8px 0 rgba(42,33,64,.10);
+  --emoji-shadow:0 3px 0 rgba(42,33,64,.18);
+  --gloss:rgba(255,255,255,.35);
+  --blob-a:#FFD9E8; --blob-b:#D6F3E0; --blob-c:#FFEFC2;
+  --blob-opacity:.5;
+  /* This game's one pastel, picked from the Arcade's eight card tints. */
+  --tint:#CFF3F0;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --sky-a:#241C40; --sky-b:#131A2E;
+    --paper:#2A2348;
+    --ink:#F6F1FF; --ink-soft:#ABA0CF;
+    --line:#EFE6FF;
+    --shadow:#0B0818;
+    --title-shadow:3px 4px 0 #1E4A4C, 6px 8px 0 rgba(0,0,0,.35);
+    --emoji-shadow:0 3px 0 rgba(0,0,0,.45);
+    --gloss:rgba(255,255,255,.08);
+    --blob-a:#4A2740; --blob-b:#22473A; --blob-c:#4A3A1C;
+    --blob-opacity:.65;
+    --tint:#1E4A4C;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --sky-a:#241C40; --sky-b:#131A2E;
+  --paper:#2A2348;
+  --ink:#F6F1FF; --ink-soft:#ABA0CF;
+  --line:#EFE6FF;
+  --shadow:#0B0818;
+  --title-shadow:3px 4px 0 #1E4A4C, 6px 8px 0 rgba(0,0,0,.35);
+  --emoji-shadow:0 3px 0 rgba(0,0,0,.45);
+  --gloss:rgba(255,255,255,.08);
+  --blob-a:#4A2740; --blob-b:#22473A; --blob-c:#4A3A1C;
+  --blob-opacity:.65;
+  --tint:#1E4A4C;
+}
+/* The one surface that does not flip. See the note in the header. */
+:root{ --screen:#0B0B14; }
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:"Nunito","Quicksand",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:linear-gradient(170deg,var(--sky-a) 0%,var(--sky-b) 100%);
+  background-attachment:fixed;
+  color:var(--ink);
+  overflow:hidden;position:relative;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+  user-select:none;-webkit-user-select:none;
+}
+/* Soft floating shapes in the background — pure decoration. */
+.blob{position:fixed;border-radius:50%;filter:blur(2px);opacity:var(--blob-opacity);pointer-events:none;z-index:0;}
+.blob.a{width:280px;height:280px;background:var(--blob-a);top:-70px;left:-60px;}
+.blob.b{width:220px;height:220px;background:var(--blob-b);bottom:8%;right:-70px;}
+.blob.c{width:150px;height:150px;background:var(--blob-c);top:38%;left:4%;}
+
+/* ---------------- Theme toggle ---------------- */
+.theme-btn{
+  position:fixed;top:16px;right:16px;z-index:6;
+  font:inherit;font-size:13px;font-weight:900;letter-spacing:.04em;
+  color:var(--ink);background:var(--paper);
+  border:3px solid var(--line);border-radius:999px;
+  padding:8px 15px;cursor:pointer;
+  box-shadow:3px 3px 0 var(--shadow);
+  display:flex;align-items:center;gap:6px;
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.theme-btn:hover{transform:translate(-1px,-2px);box-shadow:5px 5px 0 var(--shadow);}
+.theme-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);}
+.theme-btn:focus-visible{outline:3px solid var(--line);outline-offset:3px;}
+
+/* ---------------- Page frame ---------------- */
+.wrap{
+  position:relative;z-index:1;
+  height:100dvh;max-width:560px;margin:0 auto;
+  display:flex;flex-direction:column;gap:14px;
+  padding:calc(16px + env(safe-area-inset-top)) 5vmin calc(12px + env(safe-area-inset-bottom));
+}
+header{text-align:center;flex:0 0 auto;padding-top:6px;}
+/* Paper, not tinted — same as the Arcade page's badge. The tint has one
+   home on this page, the marquee, exactly as it has one home on a listing
+   card. */
+.badge{
+  display:inline-block;margin-bottom:12px;
+  background:var(--paper);border:3px solid var(--line);border-radius:999px;
+  padding:7px 18px;font-size:12.5px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;
+  box-shadow:3px 3px 0 var(--shadow);
+  transform:rotate(-2deg);
+}
+h1{
+  margin:0;
+  font-size:clamp(28px,7vmin,46px);font-weight:900;letter-spacing:-.02em;line-height:1.05;
+  color:var(--ink);text-shadow:var(--title-shadow);
+}
+header p{
+  margin:11px auto 0;max-width:38ch;
+  font-size:clamp(13.5px,2.1vmin,16px);line-height:1.45;font-weight:700;color:var(--ink-soft);
+}
+
+/* ---------------- The cabinet ----------------
+   One card, same construction as an Arcade listing card: tinted top strip
+   with a soft highlight arc, 3px rule under it, and the picture below —
+   except here the picture is the live game. */
+.cabinet{
+  flex:1 1 auto;min-height:0;
+  background:var(--paper);
+  border:3px solid var(--line);border-radius:24px;
+  box-shadow:6px 7px 0 var(--shadow);
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+.marquee{
+  flex:0 0 auto;position:relative;overflow:hidden;
+  background:var(--tint);
+  border-bottom:3px solid var(--line);
+  display:flex;align-items:center;gap:11px;
+  padding:9px 12px;
+}
+.marquee::after{ /* soft highlight arc */
+  content:'';position:absolute;left:-20%;right:-20%;top:-70%;height:120%;
+  background:var(--gloss);border-radius:50%;pointer-events:none;
+}
+.marquee > *{position:relative;z-index:1;}
+.mico{font-size:26px;line-height:1;filter:drop-shadow(var(--emoji-shadow));}
+.counts{display:flex;flex-direction:column;line-height:1;}
+#hudScore{
+  font-size:27px;font-weight:900;color:var(--ink);
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+}
+#hudScore.pop{animation:pop .28s ease;}
+@keyframes pop{40%{transform:scale(1.2);}}
+#hudBest{
+  margin-top:3px;font-size:10.5px;font-weight:900;letter-spacing:.14em;
+  color:var(--ink-soft);font-variant-numeric:tabular-nums;
+}
+.grow{flex:1;}
+.iconbtn{
+  width:38px;height:38px;flex:0 0 auto;
+  font:inherit;font-size:15px;
+  color:var(--ink);background:var(--paper);
+  border:3px solid var(--line);border-radius:999px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:2px 3px 0 var(--shadow);
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.iconbtn:hover{transform:translate(-1px,-2px);box-shadow:4px 5px 0 var(--shadow);}
+.iconbtn:active{transform:translate(2px,3px);box-shadow:0 0 0 var(--shadow);}
+.iconbtn:focus-visible{outline:3px solid var(--line);outline-offset:3px;}
+
+/* The screen. Dark in both themes — see the header note. */
+#stage{position:relative;flex:1 1 auto;min-height:0;background:var(--screen);touch-action:none;}
+#cv{position:absolute;inset:0;display:block;touch-action:none;}
+
+/* ---------------- Overlays ----------------
+   A paper card floating on the dark screen. Only the button takes
+   pointer events, so a tap anywhere else still falls through to the
+   canvas and the game stays a one-thumb game. */
+#ovl{
+  position:absolute;inset:0;z-index:2;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  background:rgba(11,11,20,.55);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  pointer-events:none;
+}
+#ovl[hidden]{display:none;}
+.ovcard{
+  width:100%;max-width:300px;text-align:center;
+  background:var(--paper);border:3px solid var(--line);border-radius:24px;
+  box-shadow:6px 7px 0 var(--shadow);
+  padding:22px 20px;
+  animation:rise .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes rise{from{opacity:0;transform:translateY(12px);}to{opacity:1;}}
+.big-ico{
+  width:76px;height:76px;margin:0 auto 12px;
+  background:var(--tint);border:3px solid var(--line);border-radius:22px;
+  display:flex;align-items:center;justify-content:center;font-size:38px;
+  box-shadow:3px 4px 0 var(--shadow);
+  filter:none;
+}
+.ovcard h2{margin:0;font-size:23px;font-weight:900;letter-spacing:-.01em;}
+.ovcard .tip{margin:9px 0 0;font-size:13px;line-height:1.5;font-weight:700;color:var(--ink-soft);}
+.go-label{
+  font-size:11px;font-weight:900;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft);
+}
+.go-score{
+  font-size:66px;font-weight:900;line-height:1.05;margin-top:2px;
+  color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.03em;
+}
+.go-best{
+  margin-top:4px;font-size:11.5px;font-weight:900;letter-spacing:.14em;
+  color:var(--ink-soft);font-variant-numeric:tabular-nums;
+}
+.new-best{
+  display:inline-block;margin-top:9px;padding:5px 14px;
+  /* The one colour that never flips, same rule as the Arcade's play
+     button: dark ink on arcade yellow reads the same day or night. */
+  background:#FFD23D;color:#2A2140;
+  border:3px solid var(--line);border-radius:999px;
+  font-size:11px;font-weight:900;letter-spacing:.14em;
+  box-shadow:2px 3px 0 var(--shadow);
+  animation:pop .4s ease;
+}
+.play-btn{
+  pointer-events:auto;
+  display:block;width:100%;margin-top:17px;
+  font:inherit;font-size:14.5px;font-weight:900;letter-spacing:.03em;
+  background:#FFD23D;color:#2A2140;
+  border:3px solid var(--line);border-radius:999px;
+  padding:10px 16px;cursor:pointer;
+  box-shadow:0 4px 0 var(--shadow);
+  transition:transform .12s ease, box-shadow .12s ease, background-color .12s ease;
+}
+.play-btn:hover{background:#FFE27A;}
+.play-btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--shadow);}
+.play-btn:focus-visible{outline:3px solid var(--line);outline-offset:3px;}
+.hint{margin-top:9px;font-size:10.5px;font-weight:800;letter-spacing:.1em;color:var(--ink-soft);opacity:.8;}
+
+footer{
+  flex:0 0 auto;text-align:center;
+  font-size:12px;font-weight:800;color:var(--ink-soft);opacity:.75;
+}
+
+/* On a phone the centred badge and the fixed corner toggle grow into each
+   other. The toggle drops its word rather than the page growing a 50px
+   dead strip above the game — the emoji still says which way it goes, and
+   the aria-label still says it in words. */
+@media (max-width:459px){
+  .theme-btn{padding:8px 11px;}
+  #themeLabel{display:none;}
+}
+
+/* Landscape and short screens: the game keeps the room, the words give it
+   up. Everything hidden here is decoration or a label repeated inside the
+   cabinet — the title stays, because a page still has to say what it is. */
+@media (max-height:620px){
+  .badge,header p,footer{display:none;}
+  .wrap{
+    gap:8px;
+    padding-top:calc(8px + env(safe-area-inset-top));
+    padding-bottom:calc(8px + env(safe-area-inset-bottom));
+  }
+  header{padding-top:0;}
+  h1{font-size:clamp(20px,4.6vmin,28px);}
+}
+/* ---------------- App + money ---------------- */
+:root{ --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px); }
+html.native{
+  --safe-top:max(env(safe-area-inset-top,0px),36px);
+  --safe-bottom:max(env(safe-area-inset-bottom,0px),16px);
+}
+html.native .wrap{
+  padding-top:calc(10px + var(--safe-top));
+  padding-bottom:calc(10px + var(--safe-bottom));
+  gap:10px;
+}
+html.native .theme-btn{top:calc(8px + var(--safe-top));}
+html.native .badge, html.native header p, html.native footer{display:none;}
+html.native h1{font-size:clamp(24px,6vmin,34px);}
+.ovcard button, .skins button{pointer-events:auto;}
+.ad-btn{
+  display:block;width:100%;margin-top:14px;
+  font:inherit;font-size:14.5px;font-weight:900;letter-spacing:.03em;
+  background:var(--tint);color:var(--ink);
+  border:3px solid var(--line);border-radius:999px;
+  padding:10px 16px;cursor:pointer;
+  box-shadow:0 4px 0 var(--shadow);
+}
+.ad-btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--shadow);}
+.ad-note{margin-top:6px;font-size:11px;font-weight:800;color:var(--ink-soft);}
+.link-btn{
+  margin-top:12px;background:none;border:none;font:inherit;
+  font-size:12.5px;font-weight:900;color:var(--ink-soft);
+  text-decoration:underline;cursor:pointer;
+}
+.skins{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px;}
+.skin{
+  position:relative;aspect-ratio:1;
+  background:#0B0B14;border:3px solid var(--line);border-radius:16px;
+  cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center;
+  box-shadow:2px 3px 0 var(--shadow);
+}
+.skin canvas{width:70%;height:70%;}
+.skin.on{outline:3px solid #FFD23D;outline-offset:2px;}
+.skin .lk{
+  position:absolute;right:4px;bottom:3px;font-size:13px;
+}
+.skin.locked canvas{opacity:.45;}
+.skin-name{margin-top:10px;font-size:13px;font-weight:900;min-height:1.2em;}
+.ad-count{font-size:56px;font-weight:900;margin:8px 0 2px;}
+.toast{
+  position:absolute;left:50%;bottom:18px;transform:translateX(-50%);
+  z-index:3;max-width:90%;
+  background:var(--paper);color:var(--ink);
+  border:3px solid var(--line);border-radius:999px;
+  padding:8px 16px;font-size:13px;font-weight:900;text-align:center;
+  box-shadow:3px 3px 0 var(--shadow);
+  pointer-events:none;
+  opacity:0;transition:opacity .2s ease;
+}
+.toast.show{opacity:1;}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none !important;}
+  .ovcard,.new-best,#hudScore.pop{animation:none;}
+}
+</style>
+</head>
+<body>
+
+<span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+
+<button id="themeBtn" class="theme-btn" type="button"><span id="themeIcon">🌙</span><span id="themeLabel">Dark</span></button>
+
+<div class="wrap">
+
+  <header>
+    <span class="badge">🌈 Arcade game</span>
+    <h1>Color Gate Rise</h1>
+    <p>Hold to rise, release to fall — and only your own colour gets you through a gate.</p>
+  </header>
+
+  <main class="cabinet">
+    <div class="marquee">
+      <span class="mico">🌈</span>
+      <div class="counts">
+        <span id="hudScore">0</span>
+        <span id="hudBest">BEST 0</span>
+      </div>
+      <span class="grow"></span>
+      <button class="iconbtn" id="btnSkins" type="button" aria-label="Ball skins">🎨</button>
+      <button class="iconbtn" id="btnPause" type="button" aria-label="Pause">⏸</button>
+      <button class="iconbtn" id="btnSnd" type="button" aria-label="Toggle sound">🔊</button>
+    </div>
+    <div id="stage">
+      <canvas id="cv"></canvas>
+      <div id="ovl" hidden></div>
+      <div id="toast" class="toast"></div>
+    </div>
+  </main>
+
+  <footer>Part of MOS 💛</footer>
+
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ══ tiny helpers ══════════════════════════════════════ */
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const rnd = (a = 1, b) => b === undefined ? Math.random() * a : a + Math.random() * (b - a);
+const irnd = (a, b) => Math.floor(rnd(a, b + 1));
+const norm = a => ((a % TAU) + TAU) % TAU;
+const angdiff = (a, b) => { let d = norm(a - b); return d > Math.PI ? d - TAU : d; };
+const dist = (x1, y1, x2, y2) => Math.hypot(x2 - x1, y2 - y1);
+const $ = s => document.querySelector(s);
+const FONT = '"Nunito","Quicksand",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
+
+/* This game, in the facts the shell needs to know about it. */
+const GAME = {
+  id:    'colorgate',
+  title: 'Color Gate Rise',
+  icon:  '🌈',
+  /* Neon, and only ever drawn on the dark screen — the page chrome uses
+     the pastel tint instead. */
+  accent:'#2BD9C7',
+  tip:   'Hold to rise, release to fall. A gate only passes your own colour — checked as you enter and again as you leave — but the middle of a ring is safe to wait in.',
+  /* Whether the tap that dismisses the READY card should also count as the
+     first move. True for the games where holding or steering is the whole
+     control — releasing over a card you can no longer see would otherwise
+     drop the ball. */
+  /* false: every game starts with the ball resting on the floor, and
+     nothing moves until the next press. */
+  fwd:   false
+};
+
+/* ══ theme ═════════════════════════════════════════════ */
+const THEME_KEY = 'mosArcadeTheme';
+const themeBtn = $('#themeBtn'), themeIcon = $('#themeIcon'), themeLabel = $('#themeLabel');
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+const storedTheme = () => { try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; } };
+const activeTheme = () => document.documentElement.getAttribute('data-theme') || (systemDark.matches ? 'dark' : 'light');
+// The button is labelled with what it will DO, not with what's on screen —
+// in daylight it offers "Dark", at night it offers "Light".
+function syncTheme() {
+  const goingTo = activeTheme() === 'dark' ? 'light' : 'dark';
+  themeIcon.textContent = goingTo === 'dark' ? '🌙' : '☀️';
+  themeLabel.textContent = goingTo === 'dark' ? 'Dark' : 'Light';
+  themeBtn.setAttribute('aria-label', 'Switch to ' + goingTo + ' mode');
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', activeTheme() === 'dark' ? '#241C40' : '#FFF6E5');
+}
+themeBtn.addEventListener('click', e => {
+  unfocus(e);
+  const next = activeTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  syncTheme();
+});
+// Follow the OS as it changes, but only for visitors who never picked a
+// side themselves — an explicit choice outranks the system setting.
+systemDark.addEventListener('change', () => { if (!storedTheme()) syncTheme(); });
+syncTheme();
+
+/* ══ storage ═══════════════════════════════════════════ */
+/* ?prefix=<id> namespaces the save, so a shared machine (or a MOS profile
+   embedding this in an iframe) can keep separate bests without separate
+   copies of the file. */
+const QS = new URLSearchParams(location.search);
+const STORE_KEY = 'stws-color-gate-v1' + (QS.get('prefix') ? ':' + QS.get('prefix') : '');
+const DATA = (() => {
+  try { return Object.assign({ sound: true, best: 0, plays: 0, skin: 'dot', skins: [] }, JSON.parse(localStorage.getItem(STORE_KEY) || '{}')); }
+  catch (e) { return { sound: true, best: 0, plays: 0, skin: 'dot', skins: [] }; }
+})();
+if (QS.get('mute') === '1') DATA.sound = false;
+const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); } catch (e) {} };
+
+/* ══ audio: tiny Web Audio synth, no assets ════════════ */
+const AU = {
+  ctx: null,
+  ensure() {
+    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(f, d, type = 'sine', g = 0.16, slide = 0, at = 0) {
+    if (!DATA.sound || !this.ctx) return;
+    const t = this.ctx.currentTime + at;
+    const o = this.ctx.createOscillator(), ga = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), t + d);
+    ga.gain.setValueAtTime(g, t);
+    ga.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(ga).connect(this.ctx.destination);
+    o.start(t); o.stop(t + d + 0.02);
+  },
+  noise(d = 0.2, g = 0.22, fq = 900) {
+    if (!DATA.sound || !this.ctx) return;
+    const t = this.ctx.currentTime, n = Math.floor(this.ctx.sampleRate * d);
+    const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate), ch = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = fq;
+    const ga = this.ctx.createGain(); ga.gain.value = g;
+    src.connect(f).connect(ga).connect(this.ctx.destination);
+    src.start(t);
+  },
+  play(name, p = 1) {
+    switch (name) {
+      case 'ui':      this.tone(520, 0.07, 'triangle', 0.10); break;
+      case 'tap':     this.tone(300, 0.05, 'square', 0.06); break;
+      case 'tick':    this.tone(230, 0.04, 'square', 0.05); break;
+      case 'ok':      this.tone(540 * p, 0.09, 'triangle', 0.15); this.tone(810 * p, 0.11, 'triangle', 0.11, 0, 0.055); break;
+      case 'perfect': this.tone(660, 0.10, 'triangle', 0.15); this.tone(830, 0.10, 'triangle', 0.13, 0, 0.06); this.tone(990, 0.16, 'triangle', 0.12, 0, 0.12); break;
+      case 'fail':    this.tone(300, 0.38, 'sawtooth', 0.14, -210); this.noise(0.22, 0.12, 500); break;
+      case 'pop':     this.noise(0.14, 0.30, 1500); this.tone(170, 0.09, 'square', 0.14); break;
+      case 'flap':    this.tone(430, 0.08, 'sine', 0.13, 190); break;
+      case 'whoosh':  this.noise(0.09, 0.10, 2200); break;
+      case 'stick':   this.tone(180, 0.06, 'square', 0.18); this.noise(0.05, 0.10, 700); break;
+      case 'bounce':  this.tone(240, 0.14, 'square', 0.14, -110); break;
+      case 'level':   [440, 550, 660, 880].forEach((f, i) => this.tone(f, 0.10, 'triangle', 0.13, 0, i * 0.07)); break;
+      case 'best':    [523, 659, 784, 1047, 784, 1047].forEach((f, i) => this.tone(f, 0.12, 'triangle', 0.14, 0, i * 0.085)); break;
+    }
+  }
+};
+
+/* ══ canvas ════════════════════════════════════════════ */
+const cv = $('#cv'), g = cv.getContext('2d');
+let W = 0, H = 0, DPR = 1;
+const stageEl = $('#stage'), ovl = $('#ovl'),
+      hudScore = $('#hudScore'), hudBest = $('#hudBest');
+
+function resize() {
+  const r = stageEl.getBoundingClientRect();
+  W = Math.max(1, Math.round(r.width));
+  H = Math.max(1, Math.round(r.height));
+  DPR = Math.min(2.5, window.devicePixelRatio || 1);
+  cv.width = W * DPR; cv.height = H * DPR;
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (S.game && S.game.onResize) S.game.onResize();
+}
+
+/* roundRect polyfill for older mobile WebViews */
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    this.moveTo(x + r, y);
+    this.arcTo(x + w, y, x + w, y + h, r);
+    this.arcTo(x + w, y + h, x, y + h, r);
+    this.arcTo(x, y + h, x, y, r);
+    this.arcTo(x, y, x + w, y, r);
+    this.closePath();
+    return this;
+  };
+}
+
+/* ══ the shell the game talks to ═══════════════════════ */
+const S = {
+  state: 'ready', game: null, score: 0, overAt: 0,
+  keys: { left: false, right: false },
+  fx: { parts: [], shake: 0 },
+
+  snd(n, p) { AU.play(n, p); },
+  shake(n) { this.fx.shake = Math.max(this.fx.shake, n); },
+  burst(x, y, color, n = 12, sp = 220) {
+    for (let i = 0; i < n; i++) {
+      const a = rnd(TAU), s = rnd(sp * 0.3, sp);
+      this.fx.parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 40, g: 420, r: rnd(2, 4.5), c: color, life: rnd(0.4, 0.8) });
+    }
+  },
+
+  addScore(n = 1) {
+    this.score += n;
+    hudScore.textContent = this.score;
+    hudScore.classList.remove('pop'); void hudScore.offsetWidth; hudScore.classList.add('pop');
+  },
+
+  begin(p, forward) {
+    ovl.hidden = true;
+    this.overCardUp = false;
+    this.state = 'playing';
+    if (forward && p) this.game.press(p.x, p.y);
+  },
+
+  restart(p) {
+    this.revived = false;
+    this.score = 0; this.fx.parts.length = 0; this.fx.shake = 0;
+    hudScore.textContent = '0';
+    hudBest.textContent = 'BEST ' + DATA.best;
+    this.game.reset();
+    this.begin(p, GAME.fwd);
+  },
+
+  endGame() {
+    if (this.state !== 'playing') return;
+    this.state = 'over'; this.overAt = performance.now();
+    // The best and the play count are only written once the run is really
+    // over — a Second Chance continues the same run.
+    const canRevive = !this.revived && this.score > 0;
+    if (canRevive) {
+      setTimeout(() => { if (this.state === 'over') showSecondChance(this.score); }, 380);
+      return;
+    }
+    this.finishRun();
+  },
+
+  finishRun() {
+    this.state = 'over'; this.overAt = performance.now();
+    const nb = this.score > DATA.best;
+    if (nb) DATA.best = this.score;
+    DATA.plays++; save();
+    if (nb && this.score > 0) {
+      AU.play('best');
+      const cols = [GAME.accent, '#FFFFFF', '#FFD23D'];
+      for (let i = 0; i < 3; i++) this.burst(rnd(W * 0.2, W * 0.8), rnd(H * 0.2, H * 0.5), cols[i % 3], 14, 280);
+    }
+    // A beat of held breath before the card lands, so the last frame of the
+    // failure is something you actually get to see.
+    setTimeout(() => { if (this.state === 'over') showOver(this.score, DATA.best, nb); }, this.revived === 'declined' ? 0 : 380);
+  },
+
+  revive() {
+    this.revived = true;
+    this.game.revive();
+    this.state = 'paused';
+    card(
+      '<div class="go-label">Second chance</div>' +
+      '<h2>You\'re back! 🌈</h2>' +
+      '<p class="tip">You\'re floating safe in the middle of a ring. Tap when you\'re ready.</p>' +
+      '<button class="play-btn" type="button" data-act="go">Keep going ▶</button>'
+    );
+  },
+
+  pause() {
+    if (this.state !== 'playing') return;
+    this.state = 'paused';
+    showPaused();
+  }
+};
+
+/* ══ overlays ══════════════════════════════════════════ */
+const card = html => { ovl.innerHTML = '<div class="ovcard">' + html + '</div>'; ovl.hidden = false; };
+// The full rule goes here rather than in the page header: this is the card
+// somebody reads in the second before they start, and the header only has
+// room for a line.
+function showReady() {
+  card(
+    '<div class="big-ico">' + GAME.icon + '</div>' +
+    '<h2>' + GAME.title + '</h2>' +
+    '<p class="tip">' + GAME.tip + '</p>' +
+    '<button class="play-btn" type="button" data-act="go">Play ▶</button>' +
+    '<div class="hint">OR TAP ANYWHERE</div>'
+  );
+}
+function showOver(score, best, nb) {
+  S.overCardUp = true;
+  card(
+    '<div class="go-label">Game over</div>' +
+    '<div class="go-score">' + score + '</div>' +
+    (nb ? '<div class="new-best">NEW BEST</div>' : '<div class="go-best">BEST ' + best + '</div>') +
+    '<button class="play-btn" type="button" data-act="go">Play again ▶</button>'
+  );
+}
+function showSecondChance(score) {
+  card(
+    '<div class="go-label">So close!</div>' +
+    '<div class="go-score">' + score + '</div>' +
+    '<div class="go-best">BEST ' + Math.max(DATA.best, score) + '</div>' +
+    '<button class="ad-btn" type="button" data-act="revive">▶ Watch an ad to keep going</button>' +
+    '<div class="ad-note">Optional · once per game</div>' +
+    '<button class="link-btn" type="button" data-act="giveup">No thanks</button>'
+  );
+}
+function showPaused() {
+  card(
+    '<div class="go-label">Paused</div>' +
+    '<p class="tip">' + GAME.tip + '</p>' +
+    '<button class="play-btn" type="button" data-act="go">Resume ▶</button>'
+  );
+}
+// The button and a tap on the screen are the same gesture, routed the same
+// way, so the deaf spot below applies to both.
+//
+// e.detail is 0 when a click came from the keyboard and non-zero when it
+// came from a pointer. Dropping focus on a pointer click keeps Space
+// playing the game rather than re-firing whichever button was last
+// touched; doing it on a keyboard click would strand a Tab user.
+const unfocus = e => { if (e.detail) e.currentTarget.blur(); };
+ovl.addEventListener('click', async e => {
+  const act = e.target.closest('[data-act]');
+  if (act && act.dataset.act === 'revive') {
+    AU.play('ui');
+    const ok = await showRewardedAd();
+    if (ok) S.revive();
+    return;
+  }
+  if (act && act.dataset.act === 'giveup') {
+    AU.play('ui');
+    S.revived = 'declined';
+    S.finishRun();
+    return;
+  }
+  if (act && act.dataset.act === 'skin') { pickSkin(act.dataset.id, act.dataset.unlock); return; }
+  if (act && act.dataset.act === 'closeskins') { AU.play('ui'); closeSkins(); return; }
+  const btn = e.target.closest('[data-act="go"]');
+  if (!btn) return;
+  if (e.detail) btn.blur();
+  doPress({ x: W / 2, y: H * 0.7 });
+});
+
+/* ══ input ═════════════════════════════════════════════ */
+const pt = e => {
+  const r = cv.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+};
+function doPress(p) {
+  AU.ensure();
+  if (S.skinsOpen) return;
+  if (S.state === 'ready') S.begin(p, GAME.fwd);
+  else if (S.state === 'playing') S.game.press(p.x, p.y);
+  // The 450ms deaf spot stops the tap that killed you from also skipping
+  // past your own score.
+  else if (S.state === 'over') { if (performance.now() - S.overAt > 450 && S.overCardUp) S.restart(p); }
+  else if (S.state === 'paused') { S.state = 'playing'; ovl.hidden = true; }
+}
+cv.addEventListener('pointerdown', e => { e.preventDefault(); doPress(pt(e)); }, { passive: false });
+cv.addEventListener('pointerup',   e => { if (S.state === 'playing') S.game.release(pt(e).x, pt(e).y); });
+cv.addEventListener('pointercancel', () => { if (S.state === 'playing') S.game.release(0, 0); });
+cv.addEventListener('pointermove', e => {
+  if ((S.state === 'playing' || S.state === 'ready') && S.game) { const p = pt(e); S.game.move(p.x, p.y); }
+});
+cv.addEventListener('contextmenu', e => e.preventDefault());
+
+window.addEventListener('keydown', e => {
+  if (e.code === 'ArrowLeft') S.keys.left = true;
+  if (e.code === 'ArrowRight') S.keys.right = true;
+  // e.repeat guard: a held Space fires keydown ~30×/s, and for a game whose
+  // press() is an impulse that reads as one long rocket burn rather than as
+  // a hold. Holding is expressed by keydown-then-keyup, same as a thumb.
+  if ((e.code === 'Space' || e.code === 'Enter') && !e.repeat) {
+    // Let the buttons keep their own keyboard behaviour.
+    if (document.activeElement && document.activeElement.tagName === 'BUTTON') return;
+    e.preventDefault(); doPress({ x: W / 2, y: H * 0.7 });
+  }
+  if (e.code === 'Escape' && S.state === 'playing') S.pause();
+});
+window.addEventListener('keyup', e => {
+  if (e.code === 'ArrowLeft') S.keys.left = false;
+  if (e.code === 'ArrowRight') S.keys.right = false;
+  if ((e.code === 'Space' || e.code === 'Enter') && S.state === 'playing') S.game.release(W / 2, H * 0.7);
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden) S.pause(); });
+
+/* ══ main loop ═════════════════════════════════════════ */
+let last = performance.now();
+function loop(now) {
+  requestAnimationFrame(loop);
+  let dt = (now - last) / 1000; last = now;
+  // Capped so a backgrounded tab doesn't resume with one enormous step that
+  // teleports the player through a wall.
+  dt = Math.min(dt, 0.033);
+  if (!S.game) return;
+  if (S.state === 'playing') S.game.update(dt);
+  g.clearRect(0, 0, W, H);
+  g.save();
+  if (S.fx.shake > 0.3) {
+    g.translate(rnd(-S.fx.shake, S.fx.shake), rnd(-S.fx.shake, S.fx.shake));
+    S.fx.shake *= 0.86;
+  } else S.fx.shake = 0;
+  S.game.draw(g, dt);
+  const ps = S.fx.parts;
+  for (let i = ps.length - 1; i >= 0; i--) {
+    const p = ps[i];
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.g * dt; p.life -= dt;
+    if (p.life <= 0) { ps.splice(i, 1); continue; }
+    g.globalAlpha = clamp(p.life * 2.2, 0, 1);
+    g.fillStyle = p.c;
+    g.beginPath(); g.arc(p.x, p.y, p.r, 0, TAU); g.fill();
+  }
+  g.globalAlpha = 1;
+  g.restore();
+}
+
+/* ══════════════════════════════════════════════════════
+   COLOR GATE — hold to rise, match the arcs
+   ══════════════════════════════════════════════════════ */
+const CG_COLS = ['#FF5C8A', '#FFD449', '#2BD9C7', '#8A6BFF'];
+class ColorGate {
+  constructor(S) { this.S = S; this.reset(); }
+  reset() {
+    this.by = 0; this.vy = 0; this.col = irnd(0, 3); this.hold = false;
+    this.floorY = 40; this.cam = this.by - H * 0.62;
+    this.rings = []; this.ri = 0; this.dying = 0; this.trail = []; this.t = 0; this.grace = 0;
+    for (let i = 0; i < 5; i++) this.addRing();
+  }
+  addRing() {
+    // Room between rings: two radii plus a clear stretch of open space, so
+    // after the colour switcher changes your ball there is time to line up
+    // with the next gate instead of hitting it straight away.
+    const R = Math.min(W * 0.33, 140);
+    const GAP = 2 * R + 240;
+    const y = this.rings.length ? this.rings[this.rings.length - 1].y - GAP : -(R + 200);
+    const sp = clamp(0.85 + this.ri * 0.1, 0, 2.3) * (this.ri % 2 ? 1 : -1);
+    this.rings.push({
+      y, R, rot: rnd(TAU), sp,
+      // The switcher usually sits in the middle of the ring (the safe spot),
+      // so you change colour and then line up with the exit. Now and then it
+      // sits in the open space between rings instead, for variety.
+      passed: false,
+      changer: { y: (this.ri > 0 && Math.random() < 0.25) ? y - GAP / 2 : y, used: false }
+    });
+    this.ri++;
+  }
+  update(dt) {
+    this.t += dt;
+    if (this.dying > 0) { this.dying -= dt; if (this.dying <= 0) this.S.endGame(); return; }
+    // After a Second Chance the ball hovers in the ring's safe middle until
+    // the player presses (or a couple of seconds pass).
+    if (this.grace > 0) {
+      this.grace -= dt;
+      if (!this.hold) { this.vy = 0; for (const r of this.rings) r.rot += r.sp * dt; return; }
+      this.grace = 0;
+    }
+    const acc = this.hold ? -1450 : 1250;
+    this.vy = clamp(this.vy + acc * dt, -430, 540);
+    this.by += this.vy * dt;
+    if (this.by > this.floorY - 12 && this.vy > 0 && (this.floorY - this.cam) < H + 60) {
+      this.by = this.floorY - 12; this.vy = 0;
+    }
+    const tgt = this.by - H * 0.62;
+    if (tgt < this.cam) this.cam = lerp(this.cam, tgt, Math.min(1, dt * 8));
+    if (this.by - this.cam > H + 60) return this.fail();
+    for (const r of this.rings) {
+      r.rot += r.sp * dt;
+      const d = Math.abs(this.by - r.y);
+      if (Math.abs(d - r.R) < 24) {
+        const theta = this.by < r.y ? -Math.PI / 2 : Math.PI / 2;
+        const seg = Math.floor(norm(theta - r.rot) / (Math.PI / 2)) % 4;
+        if (seg !== this.col) return this.fail();
+      }
+      if (!r.passed && this.by < r.y - r.R - 24) {
+        r.passed = true;
+        this.S.addScore(1);
+        this.S.snd('ok', 1 + Math.min(0.8, this.S.score * 0.012));
+      }
+      const c = r.changer;
+      if (!c.used && Math.abs(this.by - c.y) < 16) {
+        c.used = true;
+        let nc; do { nc = irnd(0, 3); } while (nc === this.col);
+        this.col = nc;
+        this.S.snd('perfect');
+        this.S.burst(W / 2, c.y - this.cam, CG_COLS[nc], 12, 150);
+      }
+    }
+    while (this.rings[this.rings.length - 1].y > this.by - 1500) this.addRing();
+    this.trail.push(this.by);
+    if (this.trail.length > 14) this.trail.shift();
+  }
+  press() { this.hold = true; this.vy -= 120; }
+  revive() {
+    // Nearest ring to where the ball died; its middle is the safe spot.
+    let best = this.rings[0];
+    for (const r of this.rings) if (Math.abs(r.y - this.by) < Math.abs(best.y - this.by)) best = r;
+    this.by = best.y; this.vy = 0; this.hold = false;
+    this.dying = 0; this.grace = 2.2; this.trail = [];
+    this.cam = this.by - H * 0.62;
+    this.S.burst(W / 2, this.by - this.cam, CG_COLS[this.col], 16, 200);
+  }
+  release() { this.hold = false; }
+  move() {}
+  fail() {
+    if (this.dying > 0) return;
+    this.S.snd('fail'); this.S.shake(10);
+    this.S.burst(W / 2, this.by - this.cam, CG_COLS[this.col], 18, 260);
+    this.dying = 0.4;
+  }
+  draw(g) {
+    g.save();
+    g.translate(0, -this.cam);
+    // sparse stars
+    const cs = 100;
+    const y0 = Math.floor(this.cam / cs), y1 = Math.floor((this.cam + H) / cs);
+    const nx = Math.ceil(W / cs);
+    for (let gy = y0; gy <= y1; gy++) for (let gx = 0; gx < nx; gx++) {
+      const h = Math.abs(Math.sin(gx * 91.7 + gy * 233.1) * 43758.5453) % 1;
+      if (h < 0.4) {
+        g.globalAlpha = 0.15 + ((h * 31) % 1) * 0.3;
+        g.fillStyle = '#F2EFFF';
+        g.beginPath(); g.arc(gx * cs + h * cs, gy * cs + ((h * 11) % 1) * cs, 1 + ((h * 17) % 1), 0, TAU); g.fill();
+      }
+    }
+    g.globalAlpha = 1;
+    // floor platform
+    g.fillStyle = 'rgba(242,239,255,.10)';
+    g.fillRect(W * 0.24, this.floorY, W * 0.52, 8);
+    // rings + changers
+    const HP = Math.PI / 2;
+    for (const r of this.rings) {
+      if (r.y - this.cam < -r.R - 40 || r.y - this.cam > H + r.R + 40) continue;
+      g.lineWidth = 26; g.lineCap = 'butt';
+      for (let k = 0; k < 4; k++) {
+        g.strokeStyle = CG_COLS[k];
+        g.beginPath();
+        g.arc(W / 2, r.y, r.R, r.rot + k * HP + 0.05, r.rot + (k + 1) * HP - 0.05);
+        g.stroke();
+      }
+      const c = r.changer;
+      if (!c.used) {
+        for (let k = 0; k < 4; k++) {
+          g.fillStyle = CG_COLS[k];
+          g.beginPath();
+          g.moveTo(W / 2, c.y);
+          g.arc(W / 2, c.y, 9, this.t * 2 + k * HP, this.t * 2 + (k + 1) * HP);
+          g.closePath(); g.fill();
+        }
+      }
+    }
+    // trail + ball
+    for (let i = 0; i < this.trail.length; i++) {
+      g.globalAlpha = (i / this.trail.length) * 0.35;
+      g.fillStyle = CG_COLS[this.col];
+      g.beginPath(); g.arc(W / 2, this.trail[i], 6, 0, TAU); g.fill();
+    }
+    g.globalAlpha = 1;
+    if (this.dying <= 0) {
+      if (this.grace > 0) {
+        // a soft halo so it's obvious where you are after a Second Chance
+        g.globalAlpha = 0.25 + 0.2 * Math.sin(this.t * 8);
+        g.strokeStyle = '#FFFFFF'; g.lineWidth = 3;
+        g.beginPath(); g.arc(W / 2, this.by, 22, 0, TAU); g.stroke();
+        g.globalAlpha = 1;
+      }
+      drawBall(g, W / 2, this.by, 11, CG_COLS[this.col], DATA.skin, this.t);
+    }
+    g.restore();
+  }
+}
+
+/* ══ ball skins ════════════════════════════════════════
+   Pure looks — every skin plays exactly the same. The first two are free,
+   the rest unlock forever by watching one optional ad each. */
+const SKINS = [
+  { id: 'dot',    name: 'Classic', free: true },
+  { id: 'ring',   name: 'Donut',   free: true },
+  { id: 'star',   name: 'Star' },
+  { id: 'heart',  name: 'Heart' },
+  { id: 'gem',    name: 'Gem' },
+  { id: 'smile',  name: 'Smiley' },
+  { id: 'flower', name: 'Flower' },
+  { id: 'planet', name: 'Planet' },
+  { id: 'comet',  name: 'Comet' }
+];
+const skinOwned = id => { const k = SKINS.find(s => s.id === id); return !!k && (k.free || DATA.skins.includes(id)); };
+if (!skinOwned(DATA.skin)) DATA.skin = 'dot';
+
+function drawBall(g, x, y, r, col, skin, t) {
+  g.save();
+  g.translate(x, y);
+  g.shadowColor = col; g.shadowBlur = 16;
+  g.fillStyle = col; g.strokeStyle = col;
+  g.beginPath();
+  switch (skin) {
+    case 'ring':
+      g.lineWidth = r * 0.55; g.arc(0, 0, r * 0.75, 0, TAU); g.stroke(); break;
+    case 'star': {
+      g.rotate(t * 1.5);
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.55 : r * 1.3;
+        g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+      }
+      g.closePath(); g.fill(); break;
+    }
+    case 'heart': {
+      const s = r / 11;
+      g.moveTo(0, 10 * s);
+      g.bezierCurveTo(-16 * s, -1 * s, -9 * s, -15 * s, 0, -7 * s);
+      g.bezierCurveTo(9 * s, -15 * s, 16 * s, -1 * s, 0, 10 * s);
+      g.fill(); break;
+    }
+    case 'gem':
+      g.rotate(Math.PI / 4 + Math.sin(t * 2) * 0.2);
+      g.rect(-r * 0.85, -r * 0.85, r * 1.7, r * 1.7); g.fill();
+      g.shadowBlur = 0; g.fillStyle = 'rgba(255,255,255,.45)';
+      g.beginPath(); g.rect(-r * 0.85, -r * 0.85, r * 0.85, r * 0.85); g.fill(); break;
+    case 'smile':
+      g.arc(0, 0, r, 0, TAU); g.fill();
+      g.shadowBlur = 0; g.fillStyle = '#0B0B14'; g.strokeStyle = '#0B0B14';
+      g.beginPath(); g.arc(-r * 0.35, -r * 0.2, r * 0.14, 0, TAU); g.arc(r * 0.35, -r * 0.2, r * 0.14, 0, TAU); g.fill();
+      g.lineWidth = r * 0.14; g.beginPath(); g.arc(0, r * 0.05, r * 0.45, 0.2 * Math.PI, 0.8 * Math.PI); g.stroke(); break;
+    case 'flower':
+      g.rotate(t);
+      for (let i = 0; i < 5; i++) {
+        const a = i * TAU / 5;
+        g.moveTo(Math.cos(a) * r * 0.6 + r * 0.45, Math.sin(a) * r * 0.6);
+        g.arc(Math.cos(a) * r * 0.6, Math.sin(a) * r * 0.6, r * 0.45, 0, TAU);
+      }
+      g.fill();
+      g.shadowBlur = 0; g.fillStyle = '#FFFFFF';
+      g.beginPath(); g.arc(0, 0, r * 0.35, 0, TAU); g.fill(); break;
+    case 'planet':
+      g.arc(0, 0, r * 0.75, 0, TAU); g.fill();
+      g.shadowBlur = 0; g.lineWidth = r * 0.18; g.strokeStyle = '#FFFFFF';
+      g.beginPath(); g.ellipse(0, 0, r * 1.35, r * 0.42, -0.4, 0, TAU); g.stroke(); break;
+    case 'comet':
+      for (let i = 4; i >= 1; i--) {
+        g.globalAlpha = 0.18 * (5 - i);
+        g.beginPath(); g.arc(0, i * r * 0.55, r * (1 - i * 0.16), 0, TAU); g.fill();
+      }
+      g.globalAlpha = 1;
+      g.beginPath(); g.arc(0, 0, r, 0, TAU); g.fill(); break;
+    default:
+      g.arc(0, 0, r, 0, TAU); g.fill();
+  }
+  g.restore();
+}
+
+let skinsWasPlaying = false, skinTimer = 0;
+function openSkins() {
+  if (S.state === 'playing') { S.state = 'paused'; skinsWasPlaying = true; }
+  else skinsWasPlaying = false;
+  S.skinsOpen = true;
+  renderSkins(DATA.skin);
+}
+function renderSkins(sel) {
+  const sk = SKINS.find(k => k.id === sel);
+  const owned = skinOwned(sel);
+  card(
+    '<div class="go-label">Ball skins</div>' +
+    '<div class="skins">' + SKINS.map(k =>
+      '<button class="skin' + (k.id === sel ? ' on' : '') + (skinOwned(k.id) ? '' : ' locked') +
+      '" type="button" data-act="skin" data-id="' + k.id + '" aria-label="' + k.name + '">' +
+      '<canvas width="80" height="80" data-skin="' + k.id + '"></canvas>' +
+      (skinOwned(k.id) ? '' : '<span class="lk">🔒</span>') + '</button>').join('') +
+    '</div>' +
+    '<div class="skin-name">' + sk.name + (owned ? (DATA.skin === sel ? ' · equipped' : '') : ' · locked') + '</div>' +
+    (owned ? '' : '<button class="ad-btn" type="button" data-act="skin" data-id="' + sel + '" data-unlock="1">▶ Watch an ad to unlock</button>') +
+    '<button class="play-btn" type="button" data-act="closeskins">Done</button>'
+  );
+  drawSkinPreviews(sel);
+}
+function drawSkinPreviews(sel) {
+  cancelAnimationFrame(skinTimer);
+  const cvs = [...ovl.querySelectorAll('canvas[data-skin]')];
+  const t0 = performance.now();
+  const frame = now => {
+    if (!S.skinsOpen) return;
+    const t = (now - t0) / 1000;
+    cvs.forEach((c, i) => {
+      const x = c.getContext('2d');
+      x.clearRect(0, 0, 80, 80);
+      drawBall(x, 40, 40, 17, CG_COLS[i % 4], c.dataset.skin, t);
+    });
+    skinTimer = requestAnimationFrame(frame);
+  };
+  skinTimer = requestAnimationFrame(frame);
+}
+async function pickSkin(id, unlock) {
+  AU.play('ui');
+  const wantUnlock = !skinOwned(id) && !!unlock;
+  if (skinOwned(id)) { DATA.skin = id; save(); renderSkins(id); return; }
+  if (!wantUnlock) { renderSkins(id); return; }
+  const ok = await showRewardedAd();
+  if (!S.skinsOpen) return;
+  if (ok) {
+    DATA.skins.push(id); DATA.skin = id; save();
+    AU.play('best');
+    toast(SKINS.find(k => k.id === id).name + ' unlocked! 🎉');
+  }
+  renderSkins(id);
+}
+function closeSkins() {
+  S.skinsOpen = false;
+  cancelAnimationFrame(skinTimer);
+  if (skinsWasPlaying) showPaused();
+  else if (S.state === 'ready') showReady();
+  else if (S.state === 'paused') showPaused();
+  else if (S.state === 'over') { if (S.overCardUp) showOver(S.score, DATA.best, false); else showSecondChance(S.score); }
+}
+
+/* ══ ads ═══════════════════════════════════════════════
+   Every ad in this game is optional and rewarded: the player chooses to
+   watch one to get something (a Second Chance or a skin). Nothing ever
+   interrupts play.
+
+   In a normal browser the ad is a 3-second fake so the flow can be tested.
+   Inside the Android app the AdMob plugin shows a real rewarded video.
+
+   BEFORE RELEASE: put your real AdMob rewarded unit ID below and set
+   TESTING to false. Until then Google's TEST ads are shown. */
+const ADS = {
+  TESTING: true,
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917' // Google's TEST rewarded ID — replace with yours
+};
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => (isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null);
+let adBusy = false, toastT = 0;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600);
+}
+function showRewardedAd() {
+  if (adBusy) return Promise.resolve(false);
+  adBusy = true;
+  const wasMuted = !DATA.sound;
+  const done = r => { adBusy = false; return r; };
+  const A = AdMobP();
+  if (!A) return demoAd().then(done);
+  return new Promise(async res => {
+    let earned = false, finished = false;
+    const hs = [];
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      hs.forEach(h => { try { h.remove(); } catch (e) {} });
+      res(earned);
+    };
+    try {
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      await A.prepareRewardVideoAd({ adId: ADS.REWARDED_ID, isTesting: ADS.TESTING });
+      const item = await A.showRewardVideoAd();
+      if (item && item.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    } catch (e) { finish(); }
+  }).then(r => {
+    if (!r) toast('No ad right now — try again in a minute');
+    return done(r);
+  });
+}
+function demoAd() {
+  return new Promise(res => {
+    const prev = ovl.innerHTML, prevHidden = ovl.hidden;
+    let n = 3;
+    card(
+      '<div class="go-label">Ad preview</div>' +
+      '<div class="ad-count" id="adCount">' + n + '</div>' +
+      '<p class="tip">A real video ad plays here in the app.</p>' +
+      '<button class="link-btn" type="button" id="adSkip">Close (no reward)</button>'
+    );
+    const end = r => { clearInterval(iv); ovl.innerHTML = prev; ovl.hidden = prevHidden; res(r); };
+    const iv = setInterval(() => {
+      n--; const c = $('#adCount'); if (c) c.textContent = n;
+      if (n <= 0) end(true);
+    }, 1000);
+    $('#adSkip').addEventListener('click', e => { e.stopPropagation(); end(false); });
+  });
+}
+(async () => {
+  const A = AdMobP();
+  if (!A) return;
+  try { await A.initialize({ initializeForTesting: ADS.TESTING }); } catch (e) {}
+})();
+
+/* ══ buttons ═══════════════════════════════════════════ */
+$('#btnSkins').addEventListener('click', e => {
+  unfocus(e);
+  AU.ensure(); AU.play('ui');
+  if (S.skinsOpen) closeSkins(); else openSkins();
+});
+function syncSound() {
+  const b = $('#btnSnd');
+  b.textContent = DATA.sound ? '🔊' : '🔇';
+  b.setAttribute('aria-label', DATA.sound ? 'Mute' : 'Unmute');
+}
+$('#btnSnd').addEventListener('click', e => {
+  unfocus(e);
+  DATA.sound = !DATA.sound; save(); syncSound();
+  AU.ensure(); AU.play('ui');
+});
+$('#btnPause').addEventListener('click', e => {
+  unfocus(e);
+  if (S.skinsOpen) return;
+  if (S.state === 'playing') S.pause();
+  else if (S.state === 'paused') { S.state = 'playing'; ovl.hidden = true; }
+});
+
+/* ══ boot ══════════════════════════════════════════════ */
+syncSound();
+resize();
+window.addEventListener('resize', resize);
+S.game = new ColorGate(S);
+hudBest.textContent = 'BEST ' + DATA.best;
+showReady();
+requestAnimationFrame(loop);
+
+/* Small hook so a MOS page embedding this in an iframe can read the score
+   without scraping the DOM. */
+window.addEventListener('message', e => {
+  if (e.data === 'stws:best' && e.source) {
+    try { e.source.postMessage({ source: 'stws-game', game: GAME.id, best: DATA.best, plays: DATA.plays }, '*'); } catch (err) {}
+  }
+});
+
+})();
+</script>
+</body>
+</html>

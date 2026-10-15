@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Boxy Dots</title>
+<style>
+:root{
+  --bg1:#FFF8E7; --bg2:#FFE8D6;
+  --ink:#41352B;
+  --paper:#FFFDF6;
+  --dotc:#41352B;
+  --p1:#E85D75; --p1soft:#FAD4DC;
+  --p2:#3E8FB0; --p2soft:#CFE7F0;
+  --panel:#FFFFFF;
+  --accent:#F4A259;
+  --shadow:0 5px 0 rgba(65,53,43,.15);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:'Baloo 2','Comic Sans MS','Chalkboard SE','Segoe UI',system-ui,sans-serif;
+  background:linear-gradient(160deg,var(--bg1),var(--bg2));
+  color:var(--ink);min-height:100%;
+  display:flex;flex-direction:column;align-items:center;
+  padding:max(14px,env(safe-area-inset-top)) 10px max(24px,env(safe-area-inset-bottom));user-select:none;-webkit-user-select:none;overflow-x:hidden;
+}
+header{width:100%;max-width:520px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+h1{font-size:clamp(21px,5.5vw,29px);}
+.btn{border:none;cursor:pointer;font-family:inherit;font-weight:700;color:var(--ink);
+  background:var(--panel);border-radius:999px;padding:8px 14px;font-size:14px;
+  box-shadow:var(--shadow);transition:transform .1s;}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(65,53,43,.15);}
+.btn.small{padding:6px 10px;font-size:13px;}
+.btn.primary{background:var(--accent);color:#fff;}
+.topbtns{display:flex;gap:6px;}
+.controls{width:100%;max-width:520px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:8px;}
+.seg{display:flex;background:var(--segbg,rgba(255,255,255,.7));border-radius:999px;padding:4px;gap:4px;box-shadow:inset 0 2px 4px rgba(65,53,43,.08);}
+.seg button{border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;color:var(--ink);
+  background:transparent;border-radius:999px;padding:6px 12px;opacity:.65;}
+.seg button.on{background:var(--panel);opacity:1;box-shadow:0 3px 0 rgba(65,53,43,.12);}
+#scorebar{
+  width:100%;max-width:520px;display:flex;justify-content:center;gap:14px;align-items:center;
+  font-weight:800;margin-bottom:4px;
+}
+.scorecard{display:flex;align-items:center;gap:7px;background:var(--panel);border-radius:16px;padding:7px 14px;
+  box-shadow:var(--shadow);font-size:16px;transition:transform .15s;}
+.scorecard.active{transform:scale(1.08);outline:3px solid var(--accent);}
+.swatch{width:16px;height:16px;border-radius:5px;}
+.swatch.s1{background:var(--p1);} .swatch.s2{background:var(--p2);}
+#status{width:100%;max-width:520px;text-align:center;font-weight:800;font-size:clamp(15px,4.2vw,19px);
+  min-height:30px;margin-bottom:6px;}
+#boardWrap{width:min(94vw,470px);background:var(--paper);border-radius:22px;padding:10px;box-shadow:var(--shadow);}
+svg{display:block;width:100%;height:auto;}
+.edge{stroke:transparent;stroke-width:22;stroke-linecap:round;cursor:pointer;}
+.edge:hover{stroke:rgba(244,162,89,.3);}
+.edge.taken{cursor:default;}
+.edgeline{stroke-linecap:round;pointer-events:none;}
+.boxfill{opacity:0;transition:opacity .25s;}
+.boxfill.own{opacity:1;}
+.boxinit{font-family:inherit;font-weight:800;pointer-events:none;}
+.dot{fill:var(--dotc);}
+#thinking{display:inline-block;animation:think 1s infinite;}
+@keyframes think{0%,100%{opacity:.3;}50%{opacity:1;}}
+footer{margin-top:14px;font-size:12px;opacity:.5;font-weight:600;}
+/* ===== app extras: ads, undo, hint, themes ===== */
+.ad{font-style:normal;font-size:11px;font-weight:800;background:var(--accent);color:#fff;border-radius:8px;padding:2px 6px;margin-left:4px}
+#tools{width:min(94vw,470px);display:flex;gap:10px;margin-top:12px}
+#tools .btn{flex:1;min-height:50px;font-size:16px;border-radius:18px}
+#tools .btn:disabled,#endBar .btn:disabled{opacity:.35}
+#endBar{width:100%;max-width:520px;display:none;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:8px}
+#endBar.show{display:flex}
+#endBar .btn{min-height:46px;font-size:15px}
+.hintline{stroke:#FACC15;stroke-width:18;stroke-linecap:round;pointer-events:none;animation:hint 0.9s ease-in-out infinite}
+@keyframes hint{0%,100%{opacity:.35}50%{opacity:.9}}
+.overlay{position:fixed;inset:0;background:rgba(40,30,25,.45);display:none;align-items:center;justify-content:center;z-index:20;padding:20px}
+.overlay.show{display:flex}
+.card{background:var(--panel);color:var(--ink);border-radius:24px;padding:22px 18px;width:min(360px,100%);text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.card h2{font-size:24px;margin-bottom:12px}
+#themeGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.th{border:3px solid transparent;border-radius:16px;padding:10px 6px;font:700 14px inherit;font-family:inherit;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;gap:6px}
+.th.sel{border-color:var(--accent)}
+.th .sw{display:flex;gap:5px}.th .sw i{width:18px;height:18px;border-radius:6px;display:block}
+.th .lock{position:absolute;top:-8px;right:-4px;font-size:10px;background:#000a;color:#fff;border-radius:8px;padding:2px 6px}
+#adCount{font-size:56px;font-weight:800;color:var(--accent)}
+#toast{position:fixed;left:50%;bottom:40px;transform:translateX(-50%);background:#2a2140;color:#fff;padding:10px 16px;border-radius:14px;font-weight:700;opacity:0;transition:opacity .25s;z-index:30;pointer-events:none;text-align:center}
+#toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){#thinking{animation:none;}.boxfill{transition:none;}}
+</style>
+</head>
+<body>
+<header>
+  <h1>✏️ <span data-i18n="title">Boxy Dots</span></h1>
+  <div class="topbtns">
+    <button class="btn small" id="langBtn">FR</button>
+    <button class="btn small" id="soundBtn">🔊</button>
+    <button class="btn small" id="themeBtn">🎨</button>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="seg" id="modeSeg">
+    <button data-mode="1p" class="on">🤖 <span data-i18n="vsBot">vs Bot</span></button>
+    <button data-mode="2p">👥 <span data-i18n="twoP">2 Players</span></button>
+  </div>
+  <div class="seg" id="diffSeg">
+    <button data-diff="easy" class="on" data-i18n="easy">Easy</button>
+    <button data-diff="medium" data-i18n="medium">Medium</button>
+    <button data-diff="hard" data-i18n="hard">Hard</button>
+  </div>
+  <div class="seg" id="sizeSeg">
+    <button data-size="3" class="on">3×3</button>
+    <button data-size="4">4×4</button>
+    <button data-size="5">5×5</button>
+  </div>
+  <button class="btn primary" id="newBtn" data-i18n="new">New Game</button>
+</div>
+
+<div id="scorebar">
+  <div class="scorecard" id="card1"><span class="swatch s1"></span><span id="name1"></span> <span id="sc1">0</span></div>
+  <div class="scorecard" id="card2"><span class="swatch s2"></span><span id="name2"></span> <span id="sc2">0</span></div>
+</div>
+<div id="status"></div>
+<div id="endBar">
+  <button class="btn primary" id="rewindBtn">↺ <span data-i18n="rewind">Rewind 3 moves</span> <i class="ad">▶ AD</i></button>
+  <button class="btn" id="newBtn2" data-i18n="new">New Game</button>
+</div>
+<div id="boardWrap"><svg id="board" xmlns="http://www.w3.org/2000/svg"></svg></div>
+<div id="tools">
+  <button class="btn" id="undoBtn">↶ <span data-i18n="undo">Undo</span> <i class="ad">▶ AD</i></button>
+  <button class="btn" id="hintBtn">💡 <span data-i18n="hint">Hint</span> <i class="ad">▶ AD</i></button>
+</div>
+<footer>STeamWorkS · Boxy Dots</footer>
+
+<div class="overlay" id="themePanel"><div class="card">
+  <h2>🎨 <span data-i18n="themes">Themes</span></h2>
+  <div id="themeGrid"></div>
+  <button class="btn" id="themeClose" data-i18n="close">Close</button>
+</div></div>
+
+<div class="overlay" id="adPanel"><div class="card">
+  <h2>📺 <span data-i18n="adPlaying">Ad playing…</span></h2>
+  <div id="adCount">3</div>
+  <div style="opacity:.6;font-size:13px" data-i18n="adDemo">Demo ad. Real ads show in the phone app.</div>
+</div></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* =====================================================================
+   APP CONFIG — tweak these without reading the engine.
+   ===================================================================== */
+const CONFIG={
+  rewindMoves:3,          // "Rewind" after losing: how many of YOUR moves go back
+  botDelayMs:400,         // pause before the bot plays
+  hintDifficulty:"hard",  // how smart the hint is: "medium" or "hard"
+  // Google's TEST rewarded ad id. Swap for your real one before public launch.
+  rewardedAdId:"ca-app-pub-3940256099942544/5224354917",
+  demoAdSeconds:3         // fake ad length in a browser
+};
+/* Themes: first two are free, the rest unlock with an ad. */
+const THEMES=[
+  {id:"classic",name:"Classic",free:true,bg1:"#FFF8E7",bg2:"#FFE8D6",ink:"#41352B",paper:"#FFFDF6",dotc:"#41352B",p1:"#E85D75",p1soft:"#FAD4DC",p2:"#3E8FB0",p2soft:"#CFE7F0",panel:"#FFFFFF",accent:"#F4A259"},
+  {id:"mint",name:"Mint",free:true,bg1:"#ECFDF5",bg2:"#E0F2FE",ink:"#2F4F45",paper:"#FBFFFD",dotc:"#2F4F45",p1:"#10B981",p1soft:"#C9F2E2",p2:"#F97316",p2soft:"#FDE0C8",panel:"#FFFFFF",accent:"#14B8A6"},
+  {id:"lavender",name:"Lavender",bg1:"#F5F0FF",bg2:"#FDE7F3",ink:"#4A3F6B",paper:"#FFFDFF",dotc:"#4A3F6B",p1:"#A855F7",p1soft:"#EBD9FD",p2:"#EC4899",p2soft:"#FBD5E8",panel:"#FFFFFF",accent:"#A78BFA"},
+  {id:"ocean",name:"Ocean",bg1:"#E0F7FA",bg2:"#E0E7FF",ink:"#23455E",paper:"#FBFEFF",dotc:"#23455E",p1:"#0891B2",p1soft:"#C8EEF5",p2:"#F59E0B",p2soft:"#FDEBC4",panel:"#FFFFFF",accent:"#06B6D4"},
+  {id:"lemon",name:"Lemonade",bg1:"#FEFCE8",bg2:"#FCE7F3",ink:"#5B4A14",paper:"#FFFEF7",dotc:"#5B4A14",p1:"#CA8A04",p1soft:"#FBEFB8",p2:"#DB2777",p2soft:"#FBD0E4",panel:"#FFFFFF",accent:"#EAB308"},
+  {id:"night",name:"Night",bg1:"#2A2140",bg2:"#1B1530",ink:"#F1ECFF",paper:"#352A52",dotc:"#E9E3FF",p1:"#F9A8D4",p1soft:"#6B3D63",p2:"#93C5FD",p2soft:"#34507A",panel:"#463A68",accent:"#F472B6",segbg:"rgba(0,0,0,.28)"}
+];
+const STR={
+  en:{title:"Boxy Dots",vsBot:"vs Bot",twoP:"2 Players",easy:"Easy",medium:"Medium",hard:"Hard",new:"New Game",
+      you:"You",bot:"Bot",p1:"Pink",p2:"Blue",
+      turnYou:"Your turn",turnBot:"Bot is thinking",turnP1:"Pink's turn",turnP2:"Blue's turn",
+      box:"Box! Go again 🎁",
+      winYou:"You win {a}–{b}! 🎉",winBot:"Bot wins {a}–{b} 🤖",winP1:"Pink wins {a}–{b}! 🎉",winP2:"Blue wins {a}–{b}! 🎉",draw:"Draw {a}–{b}!",
+      undo:"Undo",hint:"Hint",rewind:"Rewind 3 moves",themes:"Themes",close:"Close",
+      adPlaying:"Ad playing…",adDemo:"Demo ad. Real ads show in the phone app.",noAd:"No ad ready. Try again in a moment.",
+      undone:"Move undone",rewound:"Rewound! Keep going 💪",unlocked:"unlocked!"},
+  fr:{title:"Boxy Dots",vsBot:"vs Robot",twoP:"2 Joueurs",easy:"Facile",medium:"Moyen",hard:"Difficile",new:"Nouvelle partie",
+      you:"Toi",bot:"Robot",p1:"Rose",p2:"Bleu",
+      turnYou:"À toi",turnBot:"Le robot réfléchit",turnP1:"Aux roses",turnP2:"Aux bleus",
+      box:"Carré ! Rejoue 🎁",
+      winYou:"Tu gagnes {a}–{b} ! 🎉",winBot:"Le robot gagne {a}–{b} 🤖",winP1:"Rose gagne {a}–{b} ! 🎉",winP2:"Bleu gagne {a}–{b} ! 🎉",draw:"Égalité {a}–{b} !",
+      undo:"Annuler",hint:"Indice",rewind:"Reculer de 3 coups",themes:"Thèmes",close:"Fermer",
+      adPlaying:"Pub en cours…",adDemo:"Pub de démo. Les vraies pubs sont dans l'appli.",noAd:"Pas de pub prête. Réessaie dans un moment.",
+      undone:"Coup annulé",rewound:"Retour en arrière ! Continue 💪",unlocked:"débloqué !"}
+};
+const SKEY="stws_dotsboxes_v1";
+
+let save=load();
+let lang=save.lang||"en";
+let soundOn=save.sound!==false;
+let mode=save.mode||"1p";
+let diff=save.diff||"easy";
+let N=save.size||3; // boxes per side
+
+let st=null, busy=false, msgExtra="";
+let hist=[], hintE=null, botTimer=0;           // undo history (your moves only), hint, bot timer
+if(!Array.isArray(save.unlocked))save.unlocked=["classic","mint"];
+let themeId=save.theme||"classic";
+
+function load(){try{return JSON.parse(localStorage.getItem(SKEY))||{};}catch(e){return {};}}
+function persist(){save.lang=lang;save.sound=soundOn;save.mode=mode;save.diff=diff;save.size=N;save.theme=themeId;
+  try{localStorage.setItem(SKEY,JSON.stringify(save));}catch(e){}}
+
+let AC=null;
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}return AC;}
+function tone(f,t,dur,type,vol){
+  if(!soundOn)return;const c=ac();if(!c)return;
+  const o=c.createOscillator(),g=c.createGain();
+  o.type=type||"sine";o.frequency.setValueAtTime(f,c.currentTime+t);
+  g.gain.setValueAtTime(0,c.currentTime+t);
+  g.gain.linearRampToValueAtTime(vol||.13,c.currentTime+t+.01);
+  g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+dur);
+  o.connect(g);g.connect(c.destination);
+  o.start(c.currentTime+t);o.stop(c.currentTime+t+dur+.05);
+}
+const sLine=()=>tone(600,0,.07,"triangle",.1);
+const sBox=()=>{tone(523,0,.1);tone(784,.09,.16);};
+const sWin=()=>{[523,659,784,1047,1319].forEach((f,i)=>tone(f,i*.11,.15,"triangle",.13));};
+const sLose=()=>{[392,330,262].forEach((f,i)=>tone(f,i*.14,.2,"sawtooth",.06));};
+
+/* ============ pure game state ============
+   edge id: "h,r,c" for horizontal edges (r: 0..N, c: 0..N-1)
+             "v,r,c" for vertical   (r: 0..N-1, c: 0..N)
+   box (r,c) edges: h,r,c (top) h,r+1,c (bottom) v,r,c (left) v,r,c+1 (right) */
+function newState(n){
+  return {
+    n,
+    h:Array.from({length:n+1},()=>Array(n).fill(false)),
+    v:Array.from({length:n},()=>Array(n+1).fill(false)),
+    owner:Array.from({length:n},()=>Array(n).fill(0)),
+    turn:1, score:{1:0,2:0}, over:false
+  };
+}
+function cloneState(s){
+  return {n:s.n,h:s.h.map(r=>r.slice()),v:s.v.map(r=>r.slice()),
+    owner:s.owner.map(r=>r.slice()),turn:s.turn,score:{1:s.score[1],2:s.score[2]},over:s.over};
+}
+function allEdges(s){
+  const e=[];
+  for(let r=0;r<=s.n;r++)for(let c=0;c<s.n;c++)e.push(["h",r,c]);
+  for(let r=0;r<s.n;r++)for(let c=0;c<=s.n;c++)e.push(["v",r,c]);
+  return e;
+}
+function freeEdges(s){return allEdges(s).filter(([t,r,c])=>!(t==="h"?s.h[r][c]:s.v[r][c]));}
+function boxSides(s,r,c){
+  return (s.h[r][c]?1:0)+(s.h[r+1][c]?1:0)+(s.v[r][c]?1:0)+(s.v[r][c+1]?1:0);
+}
+function boxesOfEdge(s,t,r,c){
+  const b=[];
+  if(t==="h"){ if(r>0)b.push([r-1,c]); if(r<s.n)b.push([r,c]); }
+  else { if(c>0)b.push([r,c-1]); if(c<s.n)b.push([r,c]); }
+  return b;
+}
+/* play edge in-place; returns number of boxes completed */
+function playEdge(s,t,r,c){
+  if(t==="h"){if(s.h[r][c])return -1;s.h[r][c]=true;}
+  else {if(s.v[r][c])return -1;s.v[r][c]=true;}
+  let made=0;
+  for(const[br,bc]of boxesOfEdge(s,t,r,c)){
+    if(boxSides(s,br,bc)===4&&s.owner[br][bc]===0){s.owner[br][bc]=s.turn;s.score[s.turn]++;made++;}
+  }
+  if(made===0)s.turn=3-s.turn;
+  if(s.score[1]+s.score[2]===s.n*s.n)s.over=true;
+  return made;
+}
+/* ============ AI ============ */
+function completingEdges(s){
+  return freeEdges(s).filter(([t,r,c])=>boxesOfEdge(s,t,r,c).some(([br,bc])=>boxSides(s,br,bc)===3));
+}
+function safeEdgesOf(s){
+  return freeEdges(s).filter(([t,r,c])=>boxesOfEdge(s,t,r,c).every(([br,bc])=>boxSides(s,br,bc)<=1));
+}
+/* greedy: current player takes every available box; returns boxes gained */
+function greedyTakeAll(s){
+  let gained=0;
+  for(;;){
+    const comp=completingEdges(s);
+    if(comp.length===0)break;
+    const[t,r,c]=comp[0];
+    const made=playEdge(s,t,r,c);
+    gained+=made;
+    if(made===0)break; // shouldn't happen
+  }
+  return gained;
+}
+/* cost of sacrificing edge e: boxes the opponent then takes greedily */
+function sacrificeCost(s,e){
+  const sim=cloneState(s);
+  const[t,r,c]=e;
+  playEdge(sim,t,r,c);           // our sacrificing move (completes nothing by definition)
+  return greedyTakeAll(sim);     // opponent (now sim.turn) hoovers the chain
+}
+function aiPick(s,difficulty){
+  const comp=completingEdges(s);
+  const safe=safeEdgesOf(s);
+  const free=freeEdges(s);
+  const rnd=a=>a[Math.floor(Math.random()*a.length)];
+
+  if(difficulty==="easy"){
+    // takes boxes most of the time, otherwise random (often unsafe — beatable)
+    if(comp.length&&Math.random()<.8)return rnd(comp);
+    return rnd(free);
+  }
+
+  if(comp.length){
+    if(difficulty==="hard"&&safe.length===0){
+      /* double-cross: if the chain we're eating has length ≥ 2 and there are
+         boxes left beyond it, leave the last two by playing the "handback". */
+      const sim=cloneState(s);
+      const chainLen=greedyTakeAll(sim);
+      const remaining=sim.n*sim.n-sim.score[1]-sim.score[2];
+      if(chainLen>=2&&remaining>0){
+        // eat chain until exactly 2 boxes of it remain, then hand back
+        const sim2=cloneState(s);
+        let eaten=0;
+        const eatenTarget=chainLen-2;
+        while(eaten<eatenTarget){
+          const ce=completingEdges(sim2);
+          const[t,r,c]=ce[0];
+          eaten+=playEdge(sim2,t,r,c);
+        }
+        // find the handback: a free edge whose play gives opponent exactly the last 2 boxes
+        const ce=completingEdges(sim2);
+        if(ce.length){
+          // the double-cross move is the edge that would close the far end:
+          // choose the free edge adjacent to a 3-sided box that does NOT complete it for us
+          // i.e. play the edge "across" — the edge of the 3-sided box that is NOT its missing side
+          // Simplest correct handback: among free edges touching a 3-sided box, pick one
+          // that completes 0 boxes when played. If none, just take everything.
+          const hb=freeEdges(sim2).find(([t,r,c])=>{
+            const test=cloneState(sim2);
+            return playEdge(test,t,r,c)===0&&boxesOfEdge(sim2,t,r,c).some(([br,bc])=>boxSides(sim2,br,bc)===2);
+          });
+          if(hb){
+            // replay the plan on the real board: if we've eaten none yet, first completing edge; else handback
+            if(eatenTarget>0)return completingEdges(s)[0];
+            return hb;
+          }
+        }
+      }
+    }
+    return comp[0];
+  }
+  if(safe.length){
+    if(difficulty==="medium")return rnd(safe);
+    // hard: prefer safe edges that keep parity of future chains (light heuristic: random is fine here)
+    return rnd(safe);
+  }
+  // forced sacrifice: open the cheapest chain
+  let best=null,bestCost=Infinity;
+  const cand=free.slice();
+  for(const e of cand){
+    const cost=sacrificeCost(s,e);
+    if(cost<bestCost){bestCost=cost;best=e;}
+  }
+  return best||rnd(free);
+}
+
+/* ============ rendering ============ */
+const M=34, GAP=100;
+function svgSize(){return M*2+GAP*N;}
+function render(){
+  const svg=document.getElementById("board");
+  const size=svgSize();
+  svg.setAttribute("viewBox",`0 0 ${size} ${size}`);
+  let s="";
+  // box fills + initials
+  for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+    const o=st.owner[r][c];
+    const x=M+c*GAP,y=M+r*GAP;
+    s+=`<rect class="boxfill ${o?"own":""}" x="${x+8}" y="${y+8}" width="${GAP-16}" height="${GAP-16}" rx="14" fill="${o===1?"var(--p1soft)":o===2?"var(--p2soft)":"none"}"/>`;
+    if(o)s+=`<text class="boxinit" x="${x+GAP/2}" y="${y+GAP/2+9}" text-anchor="middle" font-size="30" fill="${o===1?"var(--p1)":"var(--p2)"}">${o===1?"♥":"★"}</text>`;
+  }
+  // drawn edges
+  const line=(x1,y1,x2,y2,who)=>`<line class="edgeline" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${who===1?"var(--p1)":"var(--p2)"}" stroke-width="8"/>`;
+  for(let r=0;r<=N;r++)for(let c=0;c<N;c++)if(st.h[r][c])s+=line(M+c*GAP,M+r*GAP,M+(c+1)*GAP,M+r*GAP,st.hWho[r][c]);
+  for(let r=0;r<N;r++)for(let c=0;c<=N;c++)if(st.v[r][c])s+=line(M+c*GAP,M+r*GAP,M+c*GAP,M+(r+1)*GAP,st.vWho[r][c]);
+  // hint glow
+  if(hintE){const[t,r,c]=hintE.split(",");const R=+r,C=+c;
+    if(t==="h"&&!st.h[R][C])s+=`<line class="hintline" x1="${M+C*GAP}" y1="${M+R*GAP}" x2="${M+(C+1)*GAP}" y2="${M+R*GAP}"/>`;
+    if(t==="v"&&!st.v[R][C])s+=`<line class="hintline" x1="${M+C*GAP}" y1="${M+R*GAP}" x2="${M+C*GAP}" y2="${M+(R+1)*GAP}"/>`;}
+  // clickable hit areas for free edges
+  for(let r=0;r<=N;r++)for(let c=0;c<N;c++)if(!st.h[r][c])
+    s+=`<line class="edge" data-e="h,${r},${c}" x1="${M+c*GAP+8}" y1="${M+r*GAP}" x2="${M+(c+1)*GAP-8}" y2="${M+r*GAP}"/>`;
+  for(let r=0;r<N;r++)for(let c=0;c<=N;c++)if(!st.v[r][c])
+    s+=`<line class="edge" data-e="v,${r},${c}" x1="${M+c*GAP}" y1="${M+r*GAP+8}" x2="${M+c*GAP}" y2="${M+(r+1)*GAP-8}"/>`;
+  // dots
+  for(let r=0;r<=N;r++)for(let c=0;c<=N;c++)
+    s+=`<circle class="dot" cx="${M+c*GAP}" cy="${M+r*GAP}" r="9"/>`;
+  svg.innerHTML=s;
+  svg.querySelectorAll(".edge").forEach(el=>{
+    el.addEventListener("click",()=>{
+      const[t,r,c]=el.dataset.e.split(",");
+      humanPlay(t,+r,+c);
+    });
+  });
+  document.getElementById("sc1").textContent=st.score[1];
+  document.getElementById("sc2").textContent=st.score[2];
+  document.getElementById("card1").classList.toggle("active",!st.over&&st.turn===1);
+  document.getElementById("card2").classList.toggle("active",!st.over&&st.turn===2);
+}
+function setStatus(){
+  updateTools();
+  const el=document.getElementById("status"),S=STR[lang];
+  if(st.over){
+    const a=st.score[1],b=st.score[2];
+    let t;
+    if(a===b)t=S.draw;
+    else if(mode==="1p")t=a>b?S.winYou:S.winBot;
+    else t=a>b?S.winP1:S.winP2;
+    el.textContent=t.replace("{a}",Math.max(a,b)).replace("{b}",Math.min(a,b));
+    return;
+  }
+  let base;
+  if(mode==="1p")base=st.turn===1?S.turnYou:S.turnBot+' <span id="thinking">…</span>';
+  else base=st.turn===1?S.turnP1:S.turnP2;
+  el.innerHTML=(msgExtra?`<span style="color:var(--accent)">${msgExtra}</span> · `:"")+base;
+}
+
+/* ============ flow ============ */
+function newGame(){
+  st=newState(N);
+  st.hWho=Array.from({length:N+1},()=>Array(N).fill(0));
+  st.vWho=Array.from({length:N},()=>Array(N+1).fill(0));
+  clearTimeout(botTimer);busy=false;msgExtra="";hist=[];hintE=null;
+  document.getElementById("name1").textContent=mode==="1p"?STR[lang].you:STR[lang].p1;
+  document.getElementById("name2").textContent=mode==="1p"?STR[lang].bot:STR[lang].p2;
+  render();setStatus();
+}
+function humanPlay(t,r,c){
+  if(st.over||busy)return;
+  if(mode==="1p"&&st.turn!==1)return;
+  if((t==="h"?st.h[r][c]:st.v[r][c]))return;
+  if(mode==="1p")hist.push(snap());
+  hintE=null;
+  applyUI(t,r,c);
+}
+function applyUI(t,r,c){
+  const who=st.turn;
+  const made=playEdge(st,t,r,c);
+  if(made<0)return;
+  if(t==="h")st.hWho[r][c]=who;else st.vWho[r][c]=who;
+  msgExtra="";
+  if(made>0){sBox();if(!st.over)msgExtra=STR[lang].box;}
+  else sLine();
+  render();setStatus();
+  if(st.over){
+    if(mode==="1p")(st.score[1]>=st.score[2]?sWin:sLose)();else sWin();
+    return;
+  }
+  if(mode==="1p"&&st.turn===2)queueBot();
+}
+function queueBot(){
+  busy=true;setStatus();
+  clearTimeout(botTimer);
+  botTimer=setTimeout(()=>{
+    const e=aiPick(st,diff);
+    busy=false;
+    if(e)applyUI(e[0],e[1],e[2]);
+  },CONFIG.botDelayMs);
+}
+
+/* ============ ui ============ */
+document.getElementById("newBtn").addEventListener("click",newGame);
+document.getElementById("modeSeg").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("#modeSeg button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");mode=b.dataset.mode;persist();
+  document.getElementById("diffSeg").style.visibility=mode==="1p"?"visible":"hidden";
+  newGame();
+});
+document.getElementById("diffSeg").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("#diffSeg button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");diff=b.dataset.diff;persist();newGame();
+});
+document.getElementById("sizeSeg").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  document.querySelectorAll("#sizeSeg button").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on");N=+b.dataset.size;persist();newGame();
+});
+document.getElementById("langBtn").addEventListener("click",()=>{lang=lang==="en"?"fr":"en";persist();applyLang();newGame();});
+document.getElementById("soundBtn").addEventListener("click",e=>{
+  soundOn=!soundOn;persist();e.currentTarget.textContent=soundOn?"🔊":"🔇";});
+function applyLang(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{if(STR[lang][el.dataset.i18n])el.textContent=STR[lang][el.dataset.i18n];});
+  document.getElementById("langBtn").textContent=lang==="en"?"FR":"EN";
+}
+document.querySelectorAll("#modeSeg button").forEach(b=>b.classList.toggle("on",b.dataset.mode===mode));
+document.querySelectorAll("#diffSeg button").forEach(b=>b.classList.toggle("on",b.dataset.diff===diff));
+document.querySelectorAll("#sizeSeg button").forEach(b=>b.classList.toggle("on",+b.dataset.size===N));
+document.getElementById("diffSeg").style.visibility=mode==="1p"?"visible":"hidden";
+document.getElementById("soundBtn").textContent=soundOn?"🔊":"🔇";
+applyLang();newGame();
+
+/* =====================================================================
+   APP EXTRAS: undo / rewind / hint / themes / ads
+   ===================================================================== */
+function snap(){return {s:cloneState(st),h:st.hWho.map(r=>r.slice()),v:st.vWho.map(r=>r.slice())};}
+function restore(k){                         // go back k of YOUR moves
+  let p=null;
+  for(let i=0;i<k&&hist.length;i++)p=hist.pop();
+  if(!p)return;
+  clearTimeout(botTimer);busy=false;msgExtra="";hintE=null;
+  st=p.s;st.hWho=p.h;st.vWho=p.v;
+  render();setStatus();
+}
+function updateTools(){
+  if(!st)return;
+  const bot=mode==="1p", myTurn=bot&&!st.over&&!busy&&st.turn===1;
+  document.getElementById("tools").style.display=bot?"flex":"none";
+  document.getElementById("undoBtn").disabled=!(myTurn&&hist.length);
+  document.getElementById("hintBtn").disabled=!myTurn;
+  const lost=bot&&st.over&&st.score[1]<st.score[2];
+  document.getElementById("endBar").classList.toggle("show",lost);
+  document.getElementById("rewindBtn").disabled=!hist.length;
+}
+function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");
+  clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),1800);}
+
+document.getElementById("undoBtn").addEventListener("click",()=>rewarded(ok=>{if(ok){restore(1);toast(STR[lang].undone);}}));
+document.getElementById("rewindBtn").addEventListener("click",()=>rewarded(ok=>{if(ok){restore(CONFIG.rewindMoves);toast(STR[lang].rewound);}}));
+document.getElementById("newBtn2").addEventListener("click",newGame);
+document.getElementById("hintBtn").addEventListener("click",()=>rewarded(ok=>{
+  if(!ok||st.over||st.turn!==1)return;
+  const e=aiPick(st,CONFIG.hintDifficulty); if(e){hintE=e.join(",");render();}
+}));
+
+/* ---- themes ---- */
+function applyTheme(id){
+  const t=THEMES.find(x=>x.id===id)||THEMES[0];themeId=t.id;
+  const S=document.documentElement.style;
+  ["bg1","bg2","ink","paper","dotc","p1","p1soft","p2","p2soft","panel","accent"].forEach(k=>S.setProperty("--"+k,t[k]));
+  S.setProperty("--segbg",t.segbg||"rgba(255,255,255,.7)");
+}
+function drawThemes(){
+  const g=document.getElementById("themeGrid");g.innerHTML="";
+  THEMES.forEach(t=>{
+    const own=t.free||save.unlocked.includes(t.id);
+    const b=document.createElement("button");
+    b.className="th"+(themeId===t.id?" sel":"");
+    b.style.background=`linear-gradient(160deg,${t.bg1},${t.bg2})`;b.style.color=t.ink;
+    b.innerHTML=`<div class="sw"><i style="background:${t.p1}"></i><i style="background:${t.p2}"></i><i style="background:${t.dotc}"></i></div>${t.name}`+(own?"":'<span class="lock">🔒 ▶ AD</span>');
+    b.onclick=()=>{
+      if(own){applyTheme(t.id);persist();drawThemes();return;}
+      rewarded(ok=>{if(!ok)return;save.unlocked.push(t.id);applyTheme(t.id);persist();drawThemes();toast("🎨 "+t.name+" "+STR[lang].unlocked);});
+    };
+    g.appendChild(b);
+  });
+}
+document.getElementById("themeBtn").addEventListener("click",()=>{drawThemes();document.getElementById("themePanel").classList.add("show");});
+document.getElementById("themeClose").addEventListener("click",()=>document.getElementById("themePanel").classList.remove("show"));
+
+/* ---- ads: AdMob on the phone, a fake demo ad in a browser ----
+   rewarded(cb) → cb(true) only if the player watched the whole ad. */
+const Ads={
+  plugin(){const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.AdMob;},
+  loaded:false,
+  async init(){const A=this.plugin();if(!A)return;try{await A.initialize({});this.prep();}catch(e){}},
+  async prep(){const A=this.plugin();if(!A)return;try{await A.prepareRewardVideoAd({adId:CONFIG.rewardedAdId});this.loaded=true;}catch(e){this.loaded=false;}},
+  async show(){
+    const A=this.plugin();
+    if(!A)return demoAd();
+    let earned=false,h=null;
+    try{
+      if(!this.loaded)await this.prep();
+      if(!this.loaded){toast(STR[lang].noAd);return false;}
+      h=await A.addListener("onRewardedVideoAdReward",()=>{earned=true;});
+      const r=await A.showRewardVideoAd();
+      if(r&&(r.amount!==undefined||r.type))earned=true;
+    }catch(e){toast(STR[lang].noAd);}
+    try{h&&h.remove();}catch(e){}
+    this.loaded=false;this.prep();
+    return earned;
+  }
+};
+let adBusy=false;
+async function rewarded(cb){
+  if(adBusy)return;adBusy=true;
+  const ok=await Ads.show();
+  adBusy=false;cb(ok);
+}
+function demoAd(){
+  return new Promise(res=>{
+    const P=document.getElementById("adPanel"),C=document.getElementById("adCount");
+    let n=CONFIG.demoAdSeconds;C.textContent=n;P.classList.add("show");
+    const iv=setInterval(()=>{n--;C.textContent=n;if(n<=0){clearInterval(iv);P.classList.remove("show");res(true);}},1000);
+  });
+}
+/* Android back button closes panels; on the main screen it exits */
+try{const App=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App;
+  if(App)App.addListener("backButton",()=>{
+    const tp=document.getElementById("themePanel");
+    if(tp.classList.contains("show"))tp.classList.remove("show");else App.exitApp();
+  });}catch(e){}
+/* silence sound when the app is minimized */
+document.addEventListener("visibilitychange",()=>{if(!AC)return;if(document.hidden)AC.suspend();else if(soundOn)AC.resume();});
+applyTheme(themeId);
+Ads.init();
+
+window.__test={newState,cloneState,playEdge,boxSides,boxesOfEdge,freeEdges,completingEdges,
+  safeEdgesOf,greedyTakeAll,sacrificeCost,aiPick,
+  getState:()=>st,setState:(s)=>{st=s;},applyUI,newGame,restore,getHist:()=>hist,humanPlay};
+</script>
+</body>
+</html>

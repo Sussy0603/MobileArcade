@@ -1,0 +1,2439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#bfe8a6">
+<title>Sheep Hills</title>
+<style>
+/* =====================================================================
+   SHEEP HILLS — styles
+   Fresh green theme. Change the colors here to restyle the whole game.
+===================================================================== */
+@font-face{font-family:"Nunito";src:url(fonts/nunito-700.woff2) format("woff2");font-weight:400 700;font-display:swap}
+@font-face{font-family:"Nunito";src:url(fonts/nunito-800.woff2) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:"Nunito";src:url(fonts/nunito-900.woff2) format("woff2");font-weight:900;font-display:swap}
+:root{
+  --grass:#8fd46f; --grass2:#5fb64a; --cream:#fff8ea; --cream2:#f6e9cf;
+  --pink:#ffd0dc; --pink2:#ff8fac; --mint:#d3f4dc; --mint2:#47b96c;
+  --lemon:#fff3b8; --lemon2:#ffcf3d; --sky:#d6efff; --sky2:#5fb2f0;
+  --lav:#e8defd; --lav2:#9d86f0; --peach:#ffe2cc; --coral:#ff8a7a;
+  --ink:#3f4a3a; --ink2:#6f7a68; --card:#fffdf6; --line:#e7eedb;
+  --gold:#ffc83d; --good:#3fb877; --bad:#ff6b81;
+  --r:18px; --font:"Nunito","Varela Round","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+  --fs:1;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#eef8e4;color:var(--ink);font-family:var(--font);font-weight:700;font-size:calc(16px * var(--fs))}
+button{font-family:inherit;font-size:inherit;font-weight:inherit;color:inherit;border:0;cursor:pointer;background:none}
+input{font-family:inherit;font-size:16px;font-weight:800}
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+/* ---------- top bar ---------- */
+#top{display:flex;align-items:center;gap:6px;padding:calc(6px + env(safe-area-inset-top)) 8px 6px;background:linear-gradient(#fbfff4,#e6f6d6);border-bottom:2px solid #cfe8b8;z-index:20}
+.pill{display:flex;align-items:center;gap:4px;background:#fff;border-radius:99px;padding:5px 11px 5px 7px;font-weight:900;box-shadow:0 2px 0 #cfe2bd;white-space:nowrap;min-width:0}
+.pill .ic{font-size:19px}
+#boosts{display:flex;gap:4px;flex-wrap:nowrap;overflow:hidden;flex:1;min-width:0}
+.bst{font-size:12px;font-weight:900;background:var(--lemon);border-radius:99px;padding:4px 8px;white-space:nowrap}
+.topBtn{width:40px;height:40px;border-radius:50%;background:#fff;box-shadow:0 2px 0 #cfe2bd;display:grid;place-items:center;flex:none;font-size:20px}
+@media (max-width:400px){.pill{padding:4px 8px 4px 5px}.bst{font-size:11px;padding:3px 6px}#boosts .bst:nth-child(n+3){display:none}}
+/* ---------- body / nav ---------- */
+#body{flex:1;display:flex;flex-direction:column;min-height:0;position:relative}
+#main{flex:1;position:relative;min-width:0;overflow:hidden}
+#nav{display:flex;justify-content:space-around;background:#fff;border-top:2px solid #cfe8b8;padding:4px 2px calc(4px + env(safe-area-inset-bottom));z-index:20}
+#nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 0;border-radius:14px;font-size:12px;font-weight:900;color:var(--ink2);position:relative}
+#nav button .e{font-size:25px;line-height:1.1}
+#nav button.on{background:var(--mint);color:var(--ink)}
+.dot{position:absolute;top:2px;right:20%;width:11px;height:11px;border-radius:50%;background:var(--bad);border:2px solid #fff;display:none}
+.dot.show{display:block}
+@media (min-width:820px){
+  #body{flex-direction:row-reverse}
+  #nav{flex-direction:column;justify-content:flex-start;gap:6px;border-top:0;border-right:2px solid #cfe8b8;padding:10px 8px;width:96px}
+  #nav button{flex:none;padding:10px 0;font-size:13px}
+  #nav button .e{font-size:30px}
+  .view .inner{max-width:760px;margin:0 auto}
+}
+/* ---------- views ---------- */
+.view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;padding:12px 12px 30px;-webkit-overflow-scrolling:touch;background:#f5fbee}
+.view.on{display:block}
+#vHills{padding:0;overflow:hidden;background:#bfe6ff}
+h2{margin:4px 0 10px;font-size:1.4em;font-weight:900}
+h3{margin:16px 0 8px;font-size:1.1em;font-weight:900}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;padding:9px 14px;border-radius:99px;background:#fff;font-weight:900;box-shadow:0 2px 0 var(--line)}
+.tabs button.on{background:var(--mint);box-shadow:0 2px 0 #a9dcb8}
+.card{background:var(--card);border-radius:var(--r);padding:10px;display:flex;align-items:center;gap:10px;margin-bottom:9px;box-shadow:0 3px 0 var(--line);position:relative}
+.card .art{width:60px;height:60px;flex:none;border-radius:16px;background:var(--mint);display:grid;place-items:center;font-size:32px;overflow:hidden;position:relative}
+.card .art svg{width:58px;height:58px}
+.card .info{flex:1;min-width:0}
+.nm{font-weight:900}
+.sub{font-size:.86em;color:var(--ink2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.tile{background:var(--card);border-radius:16px;padding:8px 4px 6px;text-align:center;box-shadow:0 3px 0 var(--line);position:relative;font-size:.82em;font-weight:900}
+.tile svg{width:76px;height:70px;display:block;margin:0 auto}
+.tile .big{font-size:40px;line-height:70px;height:70px}
+.tile.lock{opacity:.45}
+.tile.lock svg{filter:grayscale(1) brightness(.75)}
+.tile.lockI{opacity:.5}
+.tile.lockI svg{opacity:.45}
+.btn{background:var(--mint2);color:#fff;font-weight:900;padding:10px 15px;border-radius:14px;box-shadow:0 3px 0 #2f8f52;white-space:nowrap;min-height:44px}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #2f8f52}
+.btn.pink{background:var(--pink2);box-shadow:0 3px 0 #db6a88}
+.btn.lav{background:var(--lav2);box-shadow:0 3px 0 #7660d0}
+.btn.gold{background:var(--gold);color:#5a3b00;box-shadow:0 3px 0 #d79d12}
+.btn.sky{background:var(--sky2);box-shadow:0 3px 0 #3f86c4}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--line)}
+.btn.wide{display:block;width:100%;margin-top:9px;padding:13px}
+.btn[disabled],.btn.off{opacity:.45;pointer-events:none}
+.btn.sm{padding:7px 11px;font-size:.88em;min-height:40px}
+.tag{display:inline-block;font-size:.74em;font-weight:900;padding:2px 8px;border-radius:99px;background:var(--lemon);vertical-align:middle}
+.r0{background:#eceff3}.r1{background:#cfe9ff}.r2{background:#e2d6ff}.r3{background:#ffe7a8}
+.bar{height:11px;border-radius:9px;background:#e9efe0;overflow:hidden;flex:1}
+.bar i{display:block;height:100%;border-radius:9px}
+.mood{display:flex;align-items:center;gap:6px;margin:6px 0;font-size:.92em;font-weight:900}
+.mood span{width:26px;text-align:center}
+.row{display:flex;align-items:center;gap:8px}
+.muted{color:var(--ink2);font-size:.86em}
+.center{text-align:center}
+.hearts{letter-spacing:1px}
+.sw{display:inline-block;width:16px;height:16px;border-radius:50%;vertical-align:middle;border:2px solid #fff;box-shadow:0 0 0 1px #0002}
+.seg{display:flex;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 0 var(--line)}
+.seg button{flex:1;padding:10px 6px;font-weight:900}
+.seg button.on{background:var(--mint)}
+/* ---------- hills scene ---------- */
+#scene{position:absolute;inset:0;overflow:hidden;touch-action:none}
+#sceneBg{position:absolute;inset:0;width:100%;height:100%}
+#props,#sheep{position:absolute;inset:0}
+#props{pointer-events:none;z-index:0}
+#sheep{z-index:2}
+.prop{position:absolute;transform:translate(-50%,-85%);pointer-events:none;line-height:1}
+.prop svg{display:block}
+.sheep{position:absolute;width:76px;height:68px;margin:-60px 0 0 -38px;will-change:left,top;touch-action:none}
+.sheep .flip{width:100%;height:100%;transform-origin:50% 85%}
+.sheep .bob{width:100%;height:100%;transform-origin:50% 85%}
+.sheep svg{width:100%;height:100%;overflow:visible;display:block}
+.sheep.idle .bob{animation:breathe 2.4s ease-in-out infinite}
+.sheep.walk .bob{animation:waddle .45s ease-in-out infinite alternate}
+.sheep.graze .bob{animation:graze 1.6s ease-in-out infinite}
+.sheep.bounce .bob{animation:hop .5s cubic-bezier(.3,.0,.4,1) infinite alternate}
+.sheep.nap .bob{animation:breathe 3.6s ease-in-out infinite}
+.sheep.roll .bob{animation:roll .7s linear infinite}
+.sheep.sulk .bob{animation:sulk 1.2s ease-in-out infinite}
+.sheep.pop .bob{animation:pop .35s ease}
+.sheep.shorn .bob{animation:shiver .12s linear 6}
+.sheep .zz{position:absolute;top:-6px;right:4px;font-size:16px;font-weight:900;color:#6a7ac9;animation:zz 2s infinite;pointer-events:none}
+.sheep .bub{position:absolute;top:-6px;left:50%;transform:translateX(-50%);font-size:15px;font-weight:900;background:#fff;border-radius:12px;padding:1px 7px;box-shadow:0 2px 0 #0001;white-space:nowrap;pointer-events:none}
+.sheep .ready{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:18px;animation:wob .6s ease-in-out infinite alternate;pointer-events:none}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.03,.97)}}
+@keyframes waddle{from{transform:translateY(0) rotate(-3deg)}to{transform:translateY(-3px) rotate(3deg)}}
+@keyframes graze{0%,100%{transform:rotate(0)}50%{transform:rotate(7deg) translateY(2px)}}
+@keyframes hop{from{transform:translateY(0) scale(1.06,.94)}to{transform:translateY(-18px) scale(.96,1.05)}}
+@keyframes roll{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes sulk{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.22,.82)}70%{transform:scale(.92,1.12)}100%{transform:scale(1)}}
+@keyframes shiver{0%{transform:translateX(-2px)}50%{transform:translateX(2px)}100%{transform:translateX(0)}}
+@keyframes zz{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(8px,-14px)}}
+@keyframes wob{from{transform:translateX(-50%) rotate(-8deg)}to{transform:translateX(-50%) rotate(8deg)}}
+.fx{position:absolute;pointer-events:none;font-size:22px;font-weight:900;z-index:900;animation:fxup 1s ease-out forwards;white-space:nowrap}
+@keyframes fxup{from{opacity:1;transform:translate(-50%,0) scale(.7)}30%{transform:translate(-50%,-14px) scale(1.15)}to{opacity:0;transform:translate(-50%,-50px) scale(1)}}
+.puff{position:absolute;pointer-events:none;width:16px;height:16px;border-radius:50%;z-index:901;animation:puff .9s ease-out forwards}
+@keyframes puff{to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.5)}}
+.decoItem{position:absolute;transform:translate(-50%,-85%);font-size:34px;line-height:1;touch-action:none}
+.decoItem svg{display:block}
+body.decoMode .decoItem{outline:3px dashed #fff;outline-offset:3px;border-radius:12px;animation:wob2 .8s ease-in-out infinite alternate}
+@keyframes wob2{from{transform:translate(-50%,-85%) rotate(-3deg)}to{transform:translate(-50%,-85%) rotate(3deg)}}
+#careBar{position:absolute;left:8px;bottom:12px;display:flex;flex-direction:column;gap:9px;z-index:950}
+#sideR{position:absolute;right:8px;bottom:12px;display:flex;flex-direction:column;gap:9px;z-index:950}
+.fab{width:58px;height:58px;border-radius:50%;background:#fff;box-shadow:0 3px 0 #0002;font-size:27px;display:grid;place-items:center;position:relative}
+.fab small{position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);font-size:10.5px;font-weight:900;background:#fff;border-radius:7px;padding:0 5px;white-space:nowrap}
+.fab .bdg{position:absolute;top:-3px;right:-3px;background:var(--bad);color:#fff;font-size:12px;font-weight:900;border-radius:99px;min-width:20px;height:20px;display:grid;place-items:center;padding:0 4px}
+#areaName{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#fffd;border-radius:99px;padding:6px 14px;font-weight:900;z-index:950;white-space:nowrap;display:flex;gap:8px;align-items:center;box-shadow:0 2px 0 #0001}
+#areaName button{font-size:18px;width:30px;height:30px;border-radius:50%;background:var(--mint)}
+#decoDone{position:absolute;top:56px;left:50%;transform:translateX(-50%);z-index:960;display:none}
+body.decoMode #decoDone{display:block}
+#nightTint{position:absolute;inset:0;pointer-events:none;background:linear-gradient(#141c4acc,#2b2a66aa);mix-blend-mode:multiply;opacity:0;transition:opacity 2s;z-index:1}
+#weather{position:absolute;inset:0;pointer-events:none;z-index:810;overflow:hidden}
+.flake{position:absolute;top:-30px;font-size:14px;animation:fall linear infinite}
+@keyframes fall{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(30px,110vh) rotate(300deg)}}
+/* ---------- modal ---------- */
+#modalBg{position:fixed;inset:0;background:#2f3a2a66;display:none;z-index:1050;align-items:center;justify-content:center;padding:14px}
+#modalBg.on{display:flex}
+#modal{background:#fff;border-radius:24px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto;padding:16px;box-shadow:0 10px 40px #0003;animation:mIn .25s ease;position:relative}
+@keyframes mIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+#modal h2{text-align:center;margin-top:0;padding:0 30px}
+#mClose{position:absolute;top:8px;right:10px;font-size:22px;width:40px;height:40px;border-radius:50%;background:#f1f6ea}
+.reward{text-align:center}
+.reward .big{font-size:62px;line-height:1.1}
+.reward .big svg{width:120px;height:108px}
+.reward .amt{font-size:1.5em;font-weight:900;margin:6px 0}
+#toast{position:fixed;left:50%;top:76px;transform:translateX(-50%);z-index:1200;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:92%}
+.tst{background:#fff;border-radius:14px;padding:10px 15px;font-weight:900;box-shadow:0 4px 14px #0002;animation:tIn .3s ease;max-width:100%;text-align:center}
+.tst.gold{background:var(--lemon)}.tst.err{background:#ffe0e5}
+@keyframes tIn{from{transform:translateY(-12px);opacity:0}to{transform:none;opacity:1}}
+/* ---------- knit screen ---------- */
+.slot{background:var(--card);border-radius:18px;padding:10px;box-shadow:0 3px 0 var(--line);display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.slot .art{width:56px;height:56px;border-radius:14px;background:var(--lav);display:grid;place-items:center;font-size:30px;flex:none;position:relative}
+.slot.done .art{background:var(--lemon);animation:wob3 .6s ease-in-out infinite alternate}
+@keyframes wob3{from{transform:rotate(-5deg)}to{transform:rotate(5deg)}}
+.yarn{display:inline-flex;align-items:center;gap:5px;background:#fff;border-radius:99px;padding:5px 10px 5px 5px;margin:0 6px 6px 0;font-weight:900;box-shadow:0 2px 0 var(--line);font-size:.92em}
+.yarn.sel{outline:3px solid var(--mint2)}
+.ball{width:22px;height:22px;border-radius:50%;display:inline-block;position:relative;box-shadow:inset -3px -3px 0 #0002;flex:none}
+.ball:after{content:"";position:absolute;inset:4px 3px;border-top:2px solid #fff8;border-bottom:2px solid #fff6;border-radius:50%}
+.pick{display:flex;flex-wrap:wrap}
+.dyeB{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;width:72px;height:76px;border-radius:16px;background:#fff;box-shadow:0 2px 0 var(--line);margin:0 6px 6px 0;font-size:.78em;font-weight:900;position:relative}
+.dyeB .e{font-size:28px}
+.dyeB.sel{outline:3px solid var(--mint2);background:var(--mint)}
+.dyeB .n{position:absolute;top:3px;right:6px;font-size:.9em}
+/* ---------- mini games ---------- */
+#game{position:fixed;inset:0;z-index:1100;background:#bfe6ff;display:none;touch-action:none}
+#game.on{display:block}
+#gCanvas{position:absolute;inset:0;width:100%;height:100%}
+#gHud{position:absolute;top:calc(8px + env(safe-area-inset-top));left:8px;right:8px;display:flex;justify-content:space-between;align-items:center;z-index:2;font-weight:900;font-size:1.1em;gap:6px}
+#gAns{position:absolute;left:0;right:0;bottom:calc(24px + env(safe-area-inset-bottom));display:none;justify-content:center;gap:10px;z-index:3;flex-wrap:wrap;padding:0 10px}
+#gAns.on{display:flex}
+#gAns button{min-width:70px;font-size:1.5em}
+#gOver{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#2f3a2a55;z-index:4;padding:16px}
+#gOver.on{display:flex}
+#gOver .box{background:#fff;border-radius:24px;padding:18px;width:100%;max-width:360px;text-align:center}
+/* ---------- loading ---------- */
+#load{position:fixed;inset:0;z-index:2000;background:linear-gradient(#d9f1ff,#dff5cf);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .6s}
+#load .logo{font-size:2.6em;font-weight:900;color:#4fae5a;text-shadow:0 3px 0 #fff;letter-spacing:.02em}
+#load .wd{width:130px;height:117px;animation:hop .45s ease-in-out infinite alternate}
+#load .wd svg{width:100%;height:100%}
+#load .tip{max-width:300px;text-align:center;font-weight:800;color:var(--ink2);padding:0 20px}
+#load .lbar{width:200px;height:12px;background:#fff;border-radius:9px;overflow:hidden}
+#load .lbar i{display:block;height:100%;width:0;background:var(--mint2);transition:width .3s}
+/* ---------- guide (tutorial) ---------- */
+#tut{position:fixed;left:8px;right:8px;top:calc(110px + env(safe-area-inset-top));z-index:1000;display:none;pointer-events:none}
+#tut.on{display:flex;justify-content:center}
+#tut .box{pointer-events:auto;background:#fff;border-radius:20px;padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 6px 24px #0003;max-width:470px;width:100%;border:3px solid var(--lemon2)}
+#tut .gd{width:64px;height:58px;flex:none}
+#tut .gd svg{width:100%;height:100%}
+#tut .tx{flex:1;font-weight:900;font-size:.98em;line-height:1.35}
+.hl{outline:4px solid var(--lemon2)!important;outline-offset:2px;animation:hlp 1s infinite alternate;z-index:999}
+@keyframes hlp{from{outline-color:var(--lemon2)}to{outline-color:var(--pink2)}}
+.spinW{width:250px;height:250px;margin:6px auto;position:relative}
+.spinW svg{width:100%;height:100%;transition:transform 3.2s cubic-bezier(.15,.9,.2,1)}
+.spinW .ptr{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:28px}
+</style>
+</head>
+<body>
+<div id="load">
+  <div class="logo">Sheep Hills</div>
+  <div class="wd" id="loadSheep"></div>
+  <div class="lbar"><i id="loadBar"></i></div>
+  <div class="tip" id="loadTip"></div>
+</div>
+<div id="app">
+  <div id="top">
+    <button class="pill" id="pCoin"><span class="ic">🪙</span><span id="vCoin">0</span></button>
+    <button class="pill" id="pYarn"><span class="ic">🧶</span><span id="vYarn">0</span></button>
+    <div id="boosts"></div>
+    <button class="topBtn" id="muteBtn" aria-label="Sound">🔊</button>
+    <button class="topBtn" id="setBtn" aria-label="Settings">⚙️</button>
+  </div>
+  <div id="body">
+    <div id="main">
+      <div class="view on" id="vHills">
+        <div id="scene">
+          <svg id="sceneBg" preserveAspectRatio="none" viewBox="0 0 100 100"></svg>
+          <div id="props"></div>
+          <div id="sheep"></div>
+          <div id="nightTint"></div>
+          <div id="weather"></div>
+        </div>
+        <div id="areaName"></div>
+        <button class="btn gold" id="decoDone">✔ Done</button>
+        <div id="careBar"></div>
+        <div id="sideR"></div>
+      </div>
+      <div class="view" id="vKnit"><div class="inner" id="iKnit"></div></div>
+      <div class="view" id="vMarket"><div class="inner" id="iMarket"></div></div>
+      <div class="view" id="vFarm"><div class="inner" id="iFarm"></div></div>
+      <div class="view" id="vBook"><div class="inner" id="iBook"></div></div>
+      <div class="view" id="vShop"><div class="inner" id="iShop"></div></div>
+    </div>
+    <div id="nav"></div>
+  </div>
+</div>
+<div id="modalBg"><div id="modal"><button id="mClose" aria-label="Close">✕</button><div id="mBody"></div></div></div>
+<div id="toast"></div>
+<div id="tut"><div class="box"><div class="gd" id="tutGd"></div><div class="tx" id="tutTx"></div><button class="btn sm ghost" id="tutBtn">Skip</button></div></div>
+<div id="game">
+  <canvas id="gCanvas"></canvas>
+  <div id="gHud"></div>
+  <div id="gAns"></div>
+  <div id="gOver"><div class="box" id="gOverBox"></div></div>
+</div>
+<script>
+/* =====================================================================
+   SHEEP HILLS  —  a cozy sheep idle game by MOS Arcade
+   ---------------------------------------------------------------------
+   HOW THIS FILE IS ORGANISED (same as Quackipelago)
+     1. CONFIG        ← all the tuning numbers. Change feel here.
+     2. DATA          ← areas, sheep, foods, dyes, items, upgrades...
+     3. LANGUAGE      ← English / French: T('English','Français')
+     4. STATE + SAVE  ← what the game remembers (on the phone only)
+     5. ECONOMY       ← wool, yarn, knitting, coins, costs
+     6. ART           ← sheep drawn in code (SVG)
+     7. SOUND         ← baas + music box made in code
+     8. HILLS VIEW    ← sheep graze, bounce, roll and nap
+     9. SCREENS       ← Knit, Market, Farm, Book, Shop
+    10. MINI GAMES    ← Fence Count, Yarn Catch
+    11. MONEY         ← ads + purchase (demo in browser)
+    12. MAIN LOOP     ← ticks, offline, guide, start-up
+===================================================================== */
+
+/* =====================================================================
+   1. CONFIG — tune the game here. Numbers only, no code knowledge needed.
+===================================================================== */
+const CONFIG = {
+  /* ---- start ---- */
+  START_COINS: 120,
+  START_SHEEP: 2,
+
+  /* ---- wool ---- */
+  WOOL_FULL_SEC: [600, 900, 1200, 1800],  // time for a happy sheep to grow full wool (Common, Rare, Epic, Legendary)
+  WOOL_YIELD: [3, 4, 5, 7],               // wool you get from one full shear
+  SHEAR_MIN: 0.6,                         // wool must be 60%+ to shear (it's ready at 100%)
+  FRIEND_WOOL_BONUS: 0.10,                // +10% wool speed per friendship heart
+  LAMB_GROW_HOURS: 24,                    // a lamb grows up in 1 day
+  LAMB_EVERY_MIN: 40,                     // every 40 min, a happy sheep may bring a lamb
+  LAMB_CHANCE: 0.30,
+
+  /* ---- moods (0..100) ---- */
+  MOOD_EMPTY_HOURS: 4,     // full -> empty in about 4 hours (same as Quackipelago)
+  SAD_MIN: 0.5,            // a sad sheep still grows wool at 50%
+  PET_LOVE: 4, PET_JOY: 8, PET_COOLDOWN_MS: 2500,
+  LOVE_PER_HEART: 100, MAX_HEARTS: 5,
+
+  /* ---- spinning + knitting ---- */
+  SPIN_SEC: 8,             // seconds to spin 1 wool into 1 yarn (Spinning Wheel upgrades cut this)
+  KNIT_SLOTS: 3,           // knitting queue at start (Knitting Chair adds more)
+  FIRST_KNIT_SEC: 10,      // your very first scarf only takes 10 seconds
+  DYED_BONUS: 1.3,         // dyed items sell for 30% more
+  DYE_BATCH: 5,            // one dye colors up to 5 yarn
+
+  /* ---- pasture ---- */
+  PASTURE_START: 6, PASTURE_STEP: 3, PASTURE_MAX_LV: 8,   // 6 sheep at start, +3 per level, up to 30
+  AREA_COST: [4000, 20000, 90000, 400000],                // 1st, 2nd, 3rd, 4th new area (any order)
+  INVITE_BASE: 150, INVITE_GROWTH: 1.28,
+
+  /* ---- ads & timers (same as Quackipelago) ---- */
+  AD_2X_MIN: 30, AD_2X_MAX_H: 4,     // each ad adds 30 min of 2x coins, up to 4 h
+  GIFT_EVERY_MIN: 30,                // free gift box
+  FREE_TRIES: 3,                     // mini game tries per day (an ad gives 1 more)
+  NIGHT_START: 20, NIGHT_END: 6,     // real clock hours
+  OFFLINE_MAX_DAYS: 7,               // time away that counts (wool stops when full anyway)
+  DECOR_BONUS: 0.03, DECOR_MAX: 10,  // each decoration: +3% wool in its area (max 10 count)
+  SEASON_TEST: null,                 // set to 'spring' / 'summer' / 'autumn' / 'winter' to preview a season
+
+  /* ---- mini games ---- */
+  CATCH_SPEED: 170, CATCH_RAMP: 7,
+};
+
+/* =====================================================================
+   2. DATA — everything that exists in the world. Names have en + fr.
+===================================================================== */
+const RARITY = [
+  {en:'Common',fr:'Commun',c:'#9aa3ad'},
+  {en:'Rare',fr:'Rare',c:'#4f9fe8'},
+  {en:'Epic',fr:'Épique',c:'#9a7cf0'},
+  {en:'Legendary',fr:'Légendaire',c:'#f0a51c'},
+];
+const WOOL = {
+  soft:{e:'☁️',en:'Soft',fr:'Douce',mult:1},
+  curly:{e:'🌀',en:'Curly',fr:'Frisée',mult:1.6},
+  sparkly:{e:'✨',en:'Sparkly',fr:'Scintillante',mult:2.6},
+  rainbow:{e:'🌈',en:'Rainbow',fr:'Arc-en-ciel',mult:5},
+};
+const WOOL_IDS = Object.keys(WOOL);
+
+/* yarn + wool colors. nat = natural sheep color. */
+const COLORS = {
+  white:{c:'#fbf8f1',en:'White',fr:'Blanc',nat:1}, cream:{c:'#f6e6c4',en:'Cream',fr:'Crème',nat:1},
+  black:{c:'#4b4752',en:'Black',fr:'Noir',nat:1}, brown:{c:'#a87a55',en:'Cocoa',fr:'Cacao',nat:1},
+  grey:{c:'#c9ccd6',en:'Misty grey',fr:'Gris brume',nat:1}, ginger:{c:'#d98b4c',en:'Ginger',fr:'Roux',nat:1},
+  moss:{c:'#b9d39a',en:'Moss',fr:'Mousse',nat:1}, snow:{c:'#eef6ff',en:'Snow',fr:'Neige',nat:1},
+  gold:{c:'#ffd45e',en:'Gold',fr:'Or',nat:1}, peachy:{c:'#ffd3b5',en:'Peach',fr:'Pêche',nat:1},
+  blossom:{c:'#ffd6e6',en:'Blossom',fr:'Fleur',nat:1}, sun:{c:'#fff0a0',en:'Sunshine',fr:'Soleil',nat:1},
+  maple:{c:'#f2a35e',en:'Maple',fr:'Érable',nat:1}, frost:{c:'#d9ecff',en:'Frost',fr:'Givre',nat:1},
+  cloud:{c:'#f3f8ff',en:'Cloud',fr:'Nuage',nat:1}, rainbow:{c:'#ff9ad5',en:'Rainbow',fr:'Arc-en-ciel',nat:1,rb:1},
+  candy:{c:'#ffc1dc',en:'Cotton candy',fr:'Barbe à papa',nat:1}, mallow:{c:'#fffaf4',en:'Marshmallow',fr:'Guimauve',nat:1},
+  gum:{c:'#9be3a8',en:'Gumdrop',fr:'Jujube',nat:1}, lolly:{c:'#ff9fbd',en:'Lollipop',fr:'Sucette',nat:1},
+  // dyed colors
+  red:{c:'#f2545b',en:'Red',fr:'Rouge'}, yellow:{c:'#ffd23f',en:'Yellow',fr:'Jaune'},
+  blue:{c:'#4f8ff0',en:'Blue',fr:'Bleu'}, pink:{c:'#ff8fbf',en:'Pink',fr:'Rose'},
+  orange:{c:'#ff9a3c',en:'Orange',fr:'Orange'}, purple:{c:'#9a5fd6',en:'Purple',fr:'Mauve'},
+  green:{c:'#5cc46a',en:'Green',fr:'Vert'}, lilac:{c:'#c3a6ff',en:'Lilac',fr:'Lilas'},
+  coral:{c:'#ff9e8a',en:'Coral',fr:'Corail'}, rose:{c:'#e8607e',en:'Rose',fr:'Framboise'},
+};
+const DYE_COLORS = ['red','yellow','blue','pink','orange','purple','green','lilac','coral','rose'];
+
+/* dyes: buy at the Market. Mix 2 different dyes for a new color! */
+const DYES = {
+  poppy:{e:'🌺',en:'Poppy',fr:'Coquelicot',col:'red',price:25},
+  sunflower:{e:'🌻',en:'Sunflower',fr:'Tournesol',col:'yellow',price:25},
+  blueberry:{e:'🫐',en:'Blueberry',fr:'Bleuet',col:'blue',price:30},
+  blossomD:{e:'🌸',en:'Cherry blossom',fr:'Fleur de cerisier',col:'pink',price:30},
+};
+const DYE_IDS = Object.keys(DYES);
+const MIXES = {'poppy+sunflower':'orange','poppy+blueberry':'purple','sunflower+blueberry':'green',
+  'blueberry+blossomD':'lilac','sunflower+blossomD':'coral','poppy+blossomD':'rose'};
+function mixColor(a, b){
+  if(!a) return null; if(!b || a === b) return DYES[a].col;
+  return MIXES[a + '+' + b] || MIXES[b + '+' + a] || DYES[a].col;
+}
+
+/* ---------- areas ---------- */
+const AREAS = [
+  {id:'hills',e:'🌄',en:'Green Hills',fr:'Collines Vertes',sky:['#a9dcff','#e6f6ff'],far:'#a6d98a',mid:'#8ccd6b',near:'#79c25a',ground:'#86cb64',
+   pool:['white','black','brown','spotty'],props:['oak','bush','rock'],music:[0,2,4,7,9]},
+  {id:'meadow',e:'🌼',en:'Flower Meadow',fr:'Prairie Fleurie',sky:['#b7e3ff','#fff4fb'],far:'#b4dd8f',mid:'#a2d77b',near:'#93cf6a',ground:'#9ad272',
+   pool:['cream','curly','posy'],props:['tulips','daisy','bush'],music:[0,2,4,5,7,9]},
+  {id:'highlands',e:'⛰️',en:'Misty Highlands',fr:'Hautes-Terres Brumeuses',sky:['#c5d6e6','#eef3f7'],far:'#9fb8a6',mid:'#86ad87',near:'#79a675',ground:'#7fae79',
+   pool:['misty','highland','mossy'],props:['heather','stone','pine'],music:[0,2,3,7,9]},
+  {id:'snowy',e:'❄️',en:'Snowy Hill',fr:'Colline Enneigée',sky:['#cfe3ff','#f6fbff'],far:'#e3eef9',mid:'#eef5fc',near:'#f7fbff',ground:'#f1f7fd',
+   pool:['snowball','frost'],props:['pine','snowman','stone'],music:[0,2,4,7,11]},
+  {id:'orchard',e:'🍎',en:'Sunny Orchard',fr:'Verger Ensoleillé',sky:['#9fd8ff','#fff3cf'],far:'#b9df8a',mid:'#a6d873',near:'#96d063',ground:'#a0d46a',
+   pool:['peach','apple','golden'],props:['appletree','peartree','basket'],music:[0,4,5,7,9]},
+];
+const AREA = id => AREAS.find(a => a.id === id);
+const CANDY_THEME = {sky:['#ffd1e8','#e6f2ff'],far:'#ffc6e0',mid:'#c7e3ff',near:'#ffdcec',ground:'#fbe4f1'};
+
+/* ---------- sheep breeds ----------
+   r = rarity, wool = wool type, col = wool color, face = face color,
+   area = where they live, season = only in that season, ad = only from an ad, paid = Candy pack */
+const BREEDS = {
+  white:{en:'Fluffy White',fr:'Blanc Duveteux',r:0,wool:'soft',col:'white',face:'#4b4550',area:'hills'},
+  black:{en:'Black Sheep',fr:'Mouton Noir',r:0,wool:'soft',col:'black',face:'#2f2b33',area:'hills'},
+  brown:{en:'Cocoa',fr:'Cacao',r:0,wool:'soft',col:'brown',face:'#5c3f2b',area:'hills'},
+  spotty:{en:'Spotty',fr:'Tacheté',r:1,wool:'soft',col:'white',face:'#3e3a42',area:'hills',spots:1},
+  cream:{en:'Cream Puff',fr:'Chou à la Crème',r:0,wool:'soft',col:'cream',face:'#f2d9c2',area:'meadow'},
+  curly:{en:'Curly',fr:'Frisé',r:1,wool:'curly',col:'white',face:'#f0cdb4',area:'meadow',curl:1},
+  posy:{en:'Posy',fr:'Bouquet',r:2,wool:'curly',col:'blossom',face:'#f4cdb8',area:'meadow',curl:1,crown:1},
+  misty:{en:'Misty',fr:'Brumeux',r:0,wool:'soft',col:'grey',face:'#5b5f6e',area:'highlands'},
+  highland:{en:'Highland',fr:'Montagnard',r:1,wool:'curly',col:'ginger',face:'#b5683a',area:'highlands',fringe:1,horns:1},
+  mossy:{en:'Mossy',fr:'Mousse',r:2,wool:'curly',col:'moss',face:'#6c7f55',area:'highlands',curl:1,leaf:1},
+  snowball:{en:'Snowball',fr:'Boule de Neige',r:0,wool:'sparkly',col:'snow',face:'#7d8ca3',area:'snowy',spark:1},
+  frost:{en:'Frost Curl',fr:'Frisé Givré',r:2,wool:'sparkly',col:'frost',face:'#8ea3c2',area:'snowy',curl:1,spark:1},
+  peach:{en:'Peachy',fr:'Pêche',r:0,wool:'soft',col:'peachy',face:'#e9b08d',area:'orchard'},
+  apple:{en:'Applecheek',fr:'Joue-de-Pomme',r:1,wool:'curly',col:'cream',face:'#f3cbb0',area:'orchard',curl:1,apple:1},
+  golden:{en:'Golden Fleece',fr:'Toison d’Or',r:3,wool:'sparkly',col:'gold',face:'#c98d3a',area:'orchard',spark:1},
+  // seasonal (only in their season)
+  blossomS:{en:'Blossom',fr:'Fleur de Cerisier',r:2,wool:'sparkly',col:'blossom',face:'#e8b2c3',season:'spring',spark:1,crown:1},
+  sunny:{en:'Sunny',fr:'Soleil',r:2,wool:'sparkly',col:'sun',face:'#e3a447',season:'summer',spark:1,shades:1},
+  maple:{en:'Maple',fr:'Érable',r:2,wool:'sparkly',col:'maple',face:'#8f5a33',season:'autumn',spark:1,leaf:1},
+  flurry:{en:'Flurry',fr:'Flocon',r:2,wool:'sparkly',col:'frost',face:'#6f87ad',season:'winter',spark:1,flake:1},
+  // rare: only from the "call a rare sheep" ad
+  rainbow:{en:'Rainbow',fr:'Arc-en-ciel',r:3,wool:'rainbow',col:'rainbow',face:'#5a4a66',ad:1,rb:1},
+  cloud:{en:'Cloud',fr:'Nuage',r:3,wool:'rainbow',col:'cloud',face:'#8fa6c8',ad:1,cloudy:1},
+  // Candy Cloud pack
+  cottoncandy:{en:'Cotton Candy',fr:'Barbe à Papa',r:3,wool:'rainbow',col:'candy',face:'#d97aa6',paid:1,swirl:1},
+  marshmallow:{en:'Marshmallow',fr:'Guimauve',r:3,wool:'rainbow',col:'mallow',face:'#e6b8a0',paid:1},
+  gumdrop:{en:'Gumdrop Lamb',fr:'Agneau Jujube',r:3,wool:'rainbow',col:'gum',face:'#5d9a69',paid:1,sugar:1,tiny:1},
+  lollipop:{en:'Lollipop',fr:'Sucette',r:3,wool:'rainbow',col:'lolly',face:'#c9577e',paid:1,swirl:1},
+};
+const BREED_IDS = Object.keys(BREEDS);
+
+/* ---------- personalities ---------- */
+const PERS = {
+  sleepy:{e:'😴',en:'Sleepy',fr:'Dormeur',d:{en:'Naps a lot. Wool grows faster while napping.',fr:'Fait souvent la sieste. La laine pousse plus vite en dormant.'}},
+  bouncy:{e:'🐇',en:'Bouncy',fr:'Sautillant',d:{en:'Bounces around. Stays happy longer.',fr:'Saute partout. Reste joyeux plus longtemps.'}},
+  greedy:{e:'🍎',en:'Greedy',fr:'Gourmand',d:{en:'Always hungry. Food boosts last 2× longer.',fr:'Toujours affamé. Les bonus de nourriture durent 2× plus.'}},
+  shy:{e:'😊',en:'Shy',fr:'Timide',d:{en:'Blushes when you pet it. Friendship grows faster.',fr:'Rougit quand tu le flattes. L’amitié grandit plus vite.'}},
+  dramatic:{e:'🎭',en:'Dramatic',fr:'Dramatique',d:{en:'Big “BAAA!” when sheared, then sulks. +1 wool.',fr:'Gros « BÊÊÊ! » à la tonte, puis boude. +1 laine.'}},
+};
+const PERS_IDS = Object.keys(PERS);
+
+/* ---------- favorite spots (x, y in % of the scene) ---------- */
+const SPOTS = {
+  oak:{e:'🌳',en:'the big tree',fr:'le gros arbre',p:[20,62]},
+  hilltop:{e:'⛰️',en:'the hilltop',fr:'le haut de la colline',p:[30,51]},
+  sunny:{e:'☀️',en:'the sunny rock',fr:'la roche au soleil',p:[76,63]},
+  flowers:{e:'🌼',en:'the flower patch',fr:'le coin des fleurs',p:[40,86]},
+  pond:{e:'💧',en:'the pond',fr:'l’étang',p:[66,80]},
+};
+const SPOT_IDS = Object.keys(SPOTS);
+const WALK = {x0:16, x1:84, y0:56, y1:91};   // where sheep can walk
+const HILL_TOP = [30, 51], HILL_BOTTOM = [52, 78];   // sheep roll down from here
+
+/* ---------- food ---------- */
+const FOODS = {
+  grass:{e:'🌿',en:'Grass',fr:'Herbe',food:40,joy:0,price:0,boost:0,mins:0,lv:0,free:1},
+  clover:{e:'☘️',en:'Clover',fr:'Trèfle',food:55,joy:10,price:15,boost:0.3,mins:10,lv:1},
+  apple:{e:'🍎',en:'Apple',fr:'Pomme',food:65,joy:20,price:40,boost:0.5,mins:15,lv:2},
+  carrot:{e:'🥕',en:'Carrot',fr:'Carotte',food:80,joy:25,price:90,boost:1,mins:20,lv:3},
+};
+const FOOD_IDS = Object.keys(FOODS);
+
+/* ---------- knitted items ---------- */
+const ITEMS = {
+  scarf:{e:'🧣',en:'Scarf',fr:'Foulard',yarn:2,sec:60,price:40,slot:'neck'},
+  mittens:{e:'🧤',en:'Mittens',fr:'Mitaines',yarn:2,sec:120,price:70,slot:'feet'},
+  hat:{e:'🧢',en:'Hat',fr:'Tuque',yarn:3,sec:300,price:120,slot:'head'},
+  plushie:{e:'🧸',en:'Sheep Plushie',fr:'Peluche Mouton',yarn:4,sec:600,price:220,decor:1},
+  sweater:{e:'🧥',en:'Sweater',fr:'Chandail',yarn:6,sec:900,price:380,slot:'body'},
+  blanket:{e:'🛏️',en:'Blanket',fr:'Couverture',yarn:8,sec:1800,price:700,decor:1},
+};
+const ITEM_IDS = Object.keys(ITEMS);
+const MAX_WORN = 2;
+
+/* ---------- decorations (bought with coins, placed anywhere) ---------- */
+const DECOR = {
+  flowerpot:{e:'🌷',en:'Flower Pot',fr:'Pot de fleurs',price:150},
+  bench:{e:'🪑',en:'Bench',fr:'Banc',price:400},
+  birdhouse:{e:'🏠',en:'Birdhouse',fr:'Nichoir',price:700},
+  wheelbarrow:{e:'🛒',en:'Wheelbarrow',fr:'Brouette',price:1200},
+  lantern:{e:'🏮',en:'Lantern',fr:'Lanterne',price:2000},
+  scarecrow:{e:'🎃',en:'Pumpkin',fr:'Citrouille',price:3500},
+  mushrooms:{e:'🍄',en:'Mushrooms',fr:'Champignons',price:6000},
+  sunflowers:{e:'🌻',en:'Sunflowers',fr:'Tournesols',price:10000},
+  // Candy Cloud pack
+  lollytree:{e:'🍭',en:'Lollipop Tree',fr:'Arbre à Sucettes',paid:1},
+  cupcake:{e:'🧁',en:'Cupcake House',fr:'Maison Cupcake',paid:1},
+  donut:{e:'🍩',en:'Donut Ring',fr:'Anneau Beigne',paid:1},
+  candycloud:{e:'☁️',en:'Candy Cloud',fr:'Nuage Sucré',paid:1},
+};
+
+/* ---------- farm upgrades ---------- */
+const UPGRADES = {
+  pasture:{e:'🌱',en:'More Pasture',fr:'Plus de pâturage',base:400,grow:2.6,max:CONFIG.PASTURE_MAX_LV,
+    d:{en:'+3 sheep spots',fr:'+3 places de moutons'}},
+  barn:{e:'🛖',en:'Barn',fr:'Grange',base:600,grow:2.4,max:5,d:{en:'+10% wool speed per level',fr:'+10% vitesse de laine par niveau'}},
+  fence:{e:'🪵',en:'Cozy Fence',fr:'Clôture Douillette',base:500,grow:2.4,max:5,d:{en:'Sheep stay happy 10% longer per level',fr:'Joie qui dure 10% plus longtemps par niveau'}},
+  hay:{e:'🌾',en:'Hay Bales',fr:'Balles de Foin',base:450,grow:2.4,max:5,d:{en:'Sheep stay full 10% longer per level',fr:'Ventres pleins 10% plus longtemps par niveau'}},
+  windmill:{e:'🌬️',en:'Windmill',fr:'Moulin à Vent',base:1500,grow:2.5,max:5,d:{en:'+6% coins at the market per level',fr:'+6% de pièces au marché par niveau'}},
+  pond:{e:'💧',en:'Pond',fr:'Étang',base:2500,grow:2.5,max:5,d:{en:'+15% friendship per level',fr:'+15% d’amitié par niveau'}},
+  wheel:{e:'🎡',en:'Spinning Wheel',fr:'Rouet',base:300,grow:2.3,max:8,d:{en:'Spins yarn 18% faster per level',fr:'File 18% plus vite par niveau'}},
+  chair:{e:'🪑',en:'Knitting Chair',fr:'Chaise à Tricot',base:400,grow:2.3,max:8,d:{en:'Knits 15% faster per level. +1 slot at Lv 4 and Lv 8',fr:'Tricote 15% plus vite par niveau. +1 place au Nv 4 et Nv 8'}},
+  food:{e:'🥕',en:'Better Food',fr:'Meilleure Nourriture',cost:[800,4000,15000],max:3,d:{en:'Unlocks clover, then apples, then carrots',fr:'Débloque le trèfle, puis les pommes, puis les carottes'}},
+};
+const UPG_IDS = Object.keys(UPGRADES);
+
+/* ---------- seasons (by the real calendar) ---------- */
+const SEASONS = {
+  spring:{e:'🌸',en:'Spring',fr:'Printemps',d:{en:'Spring flowers bloom!',fr:'Les fleurs du printemps éclosent!'},fall:['🌸','🌸','🦋']},
+  summer:{e:'☀️',en:'Summer',fr:'Été',d:{en:'Summer sun: +10% wool',fr:'Soleil d’été : +10% de laine'},fall:['🦋','🐝']},
+  autumn:{e:'🍂',en:'Autumn',fr:'Automne',d:{en:'Autumn leaves are falling.',fr:'Les feuilles d’automne tombent.'},fall:['🍂','🍁','🍂']},
+  winter:{e:'❄️',en:'Winter',fr:'Hiver',d:{en:'Snow! Sheep wear cozy sweaters.',fr:'De la neige! Les moutons portent des chandails.'},fall:['❄','❄','❅']},
+};
+
+/* ---------- names (French names are translated) ---------- */
+const NAMES = [
+  ['Biscuit','Galette'],['Pepper','Poivre'],['Marshmallow','Guimauve'],['Daisy','Marguerite'],['Button','Bouton'],
+  ['Pudding','Pouding'],['Muffin','Brioche'],['Pebble','Caillou'],['Clover','Trèfle'],['Honey','Miel'],
+  ['Maple','Érable'],['Pumpkin','Citrouille'],['Cookie','Biscotte'],['Butter','Beurre'],['Peanut','Arachide'],
+  ['Snowflake','Flocon'],['Cloudy','Nuageux'],['Bubbles','Bulle'],['Sunny','Soleil'],['Poppy','Coquelicot'],
+  ['Sprout','Pousse'],['Waffle','Gaufre'],['Noodle','Nouille'],['Dumpling','Raviole'],['Acorn','Gland'],
+  ['Hazel','Noisette'],['Cinnamon','Cannelle'],['Toffee','Caramel'],['Plum','Prune'],['Bean','Fève'],
+  ['Pickle','Cornichon'],['Fluffy','Frisette'],['Mittens','Mitaine'],['Bramble','Ronce'],['Lily','Lys'],
+  ['Mochi','Mochi'],['Teacup','Tasse'],['Sugar','Sucre'],['Velvet','Velours'],['Wooly','Laineux'],
+  ['Pompom','Pompon'],['Truffle','Truffe'],['Cupcake','Petit-Gâteau'],['Juniper','Genièvre'],['Moonbeam','Rayon-de-Lune'],
+];
+const GUIDE = {en:'Nana Pearl',fr:'Mamie Perle'};
+const TIPS = [
+  {en:'Tap a fluffy sheep to shear it!',fr:'Touche un mouton tout duveteux pour le tondre!'},
+  {en:'Happy sheep grow wool faster.',fr:'Les moutons heureux font pousser leur laine plus vite.'},
+  {en:'Hold your finger on a sheep to see its card.',fr:'Garde ton doigt sur un mouton pour voir sa fiche.'},
+  {en:'Mix two dyes to make a new color.',fr:'Mélange deux teintures pour une nouvelle couleur.'},
+  {en:'Wool keeps growing while you are away.',fr:'La laine pousse même quand tu n’es pas là.'},
+  {en:'Dyed items sell for more coins.',fr:'Les objets teints se vendent plus cher.'},
+];
+
+/* =====================================================================
+   3. LANGUAGE — T('English', 'Français') picks the player's language.
+   L(obj) reads {en, fr} from the data above.
+===================================================================== */
+function T(en, fr){ return (S && S.lang === 'fr') ? fr : en; }
+function L(o){ if(!o) return ''; return (S && S.lang === 'fr' && o.fr) ? o.fr : (o.en || ''); }
+
+/* =====================================================================
+   4. STATE + SAVE  — and small helpers
+===================================================================== */
+const $ = id => document.getElementById(id);
+const now = () => Date.now();
+const rnd = (a, b) => a + Math.random() * (b - a);
+const rint = (a, b) => Math.floor(rnd(a, b + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function weighted(odds){ let s = odds.reduce((a, b) => a + b, 0), r = Math.random() * s; for(let i=0;i<odds.length;i++){ r -= odds[i]; if(r < 0) return i; } return odds.length - 1; }
+function fmt(n){
+  n = Math.floor(n || 0); if(n < 1000) return String(n);
+  const u = ['K','M','B','T','Qa']; let i = -1;
+  while(n >= 1000 && i < u.length - 1){ n /= 1000; i++; }
+  return (n >= 100 ? Math.floor(n) : n >= 10 ? (Math.floor(n * 10) / 10) : (Math.floor(n * 100) / 100)) + u[i];
+}
+function fmtTime(sec){
+  sec = Math.max(0, Math.ceil(sec));
+  if(sec < 60) return sec + 's';
+  const m = Math.floor(sec / 60), s = sec % 60;
+  if(m < 60) return m + 'm' + (s ? ' ' + s + 's' : '');
+  const h = Math.floor(m / 60); if(h < 48) return h + 'h ' + (m % 60) + 'm';
+  return Math.floor(h / 24) + 'd ' + (h % 24) + 'h';
+}
+function dayNum(t){ const d = new Date(t); return Math.floor((t - d.getTimezoneOffset() * 60000) / 86400000); }
+
+const SAVE_KEY = 'sheephills_v1';
+let S = null;
+
+function newState(){
+  const t = now();
+  const s = {
+    v:1, created:t, lastSeen:t, lang:(navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en',
+    snd:true, mus:true, fs:1,
+    coins:CONFIG.START_COINS,
+    sheep:[], nextId:1, areas:['hills'], cur:'hills',
+    upg:{}, raw:{}, yarn:{}, spinP:0, knit:[], items:[],
+    inv:{clover:0, apple:0, carrot:0}, dyes:{poppy:2, sunflower:2, blueberry:1, blossomD:1},
+    decorOwn:{}, decor:[], book:{}, ibook:{},
+    daily:{streak:0, last:null}, giftAt:t, ad2x:0, rareDay:null,
+    tries:{day:null, used:0, extra:0}, visit:null, lambAt:t + CONFIG.LAMB_EVERY_MIN * 60000,
+    tut:0, paid:false, theme:'farm', firstKnit:false, iapDone:{},
+    stats:{coins:0, sheared:0, knit:0, sold:0, pets:0, feeds:0, play:0, lambs:0, best:{fence:0, catch:0}},
+  };
+  UPG_IDS.forEach(k => s.upg[k] = 0);
+  return s;
+}
+function load(){
+  try{ const raw = localStorage.getItem(SAVE_KEY); if(raw){ const o = JSON.parse(raw); if(o && o.v) return fixState(o); } }catch(e){}
+  return null;
+}
+/* fills in anything missing from an older save */
+function fixState(o){
+  const d = newState();
+  for(const k in d) if(o[k] === undefined) o[k] = d[k];
+  for(const k in d.stats) if(o.stats[k] === undefined) o.stats[k] = d.stats[k];
+  for(const k in d.upg) if(o.upg[k] === undefined) o.upg[k] = 0;
+  return o;
+}
+function saveNow(){
+  if(!S) return;
+  S.lastSeen = now();
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
+}
+
+/* ---------- time + seasons ---------- */
+function isNight(t){ const h = new Date(t || now()).getHours(); return h >= CONFIG.NIGHT_START || h < CONFIG.NIGHT_END; }
+function seasonOf(t){
+  if(CONFIG.SEASON_TEST) return CONFIG.SEASON_TEST;
+  const m = new Date(t || now()).getMonth();
+  return m >= 2 && m <= 4 ? 'spring' : m >= 5 && m <= 7 ? 'summer' : m >= 8 && m <= 10 ? 'autumn' : 'winter';
+}
+
+/* =====================================================================
+   5. ECONOMY — wool, yarn, knitting, coins, costs
+===================================================================== */
+const B = s => BREEDS[s.b] || BREEDS.white;
+const sheepById = id => S.sheep.find(s => s.id === id);
+const sheepIn = area => S.sheep.filter(s => s.a === area);
+const cap = () => CONFIG.PASTURE_START + CONFIG.PASTURE_STEP * S.upg.pasture;
+const herd = () => S.sheep.filter(s => !B(s).paid).length;   // Candy pack sheep are a bonus: they don't take pasture spots
+const roomLeft = () => cap() - herd();
+const hearts = s => Math.min(CONFIG.MAX_HEARTS, Math.floor(s.love / CONFIG.LOVE_PER_HEART));
+const moodAvg = s => (s.m.food + s.m.joy) / 2;
+const isLamb = s => !!s.lamb;
+const sheepName = s => s.nm ? s.nm : (NAMES[s.n] ? NAMES[s.n][S && S.lang === 'fr' ? 1 : 0] : 'Sheep');
+const MOOD_RATE = () => 100 / (CONFIG.MOOD_EMPTY_HOURS * 3600);
+const yarnKey = (w, c) => w + '|' + c;
+const splitKey = k => { const [w, c] = k.split('|'); return {w, c}; };
+const colorName = c => L(COLORS[c]);
+const isDyed = c => DYE_COLORS.includes(c);
+const yarnTotal = () => Object.values(S.yarn).reduce((a, b) => a + b, 0);
+const rawTotal = () => Object.values(S.raw).reduce((a, b) => a + b, 0);
+const has2x = () => S.ad2x > now();
+
+function decorBonus(area){ return Math.min(CONFIG.DECOR_MAX, S.decor.filter(d => d.a === area).length) * CONFIG.DECOR_BONUS; }
+/* wool per second (0..1 scale) */
+function woolRate(s, t){
+  if(isLamb(s)) return 0;
+  let r = 1 / CONFIG.WOOL_FULL_SEC[B(s).r];
+  r *= CONFIG.SAD_MIN + (1 - CONFIG.SAD_MIN) * moodAvg(s) / 100;
+  r *= 1 + CONFIG.FRIEND_WOOL_BONUS * hearts(s);
+  r *= 1 + 0.10 * S.upg.barn;
+  r *= 1 + decorBonus(s.a);
+  if(s.boost && s.boost.until > t) r *= 1 + s.boost.m;
+  if(seasonOf(t) === 'summer') r *= 1.1;
+  if(s.p === 'sleepy' && s.nap > t) r *= 1.25;
+  return r;
+}
+function addCoins(n){ n = Math.round(n); S.coins += n; if(n > 0) S.stats.coins += n; }
+function pay(n){ if(S.coins < n){ toast('🪙 ' + T('Not enough coins', 'Pas assez de pièces'), 'err'); sfx('err'); return false; } S.coins -= n; return true; }
+function addLove(s, n){
+  const before = hearts(s);
+  s.love = Math.min(CONFIG.MAX_HEARTS * CONFIG.LOVE_PER_HEART, s.love + n * (1 + 0.15 * S.upg.pond) * (s.p === 'shy' ? 1.5 : 1));
+  if(hearts(s) > before){ fxAtSheep(s, '💖'); toast('💖 ' + esc(sheepName(s)) + ' ' + T('loves you more!', 't’aime encore plus!') + ' ' + '❤️'.repeat(hearts(s)), 'gold'); }
+}
+function itemValue(it){ return Math.round(ITEMS[it.k].price * WOOL[it.w].mult * (isDyed(it.c) ? CONFIG.DYED_BONUS : 1) * (1 + 0.06 * S.upg.windmill)); }
+function upgCost(k){
+  const U = UPGRADES[k], lv = S.upg[k];
+  if(U.cost) return U.cost[lv] || 0;
+  return Math.round(U.base * Math.pow(U.grow, lv));
+}
+const spinSec = () => CONFIG.SPIN_SEC * Math.pow(0.82, S.upg.wheel);
+const knitSpeed = () => 1 + 0.15 * S.upg.chair;
+const knitSlots = () => CONFIG.KNIT_SLOTS + (S.upg.chair >= 4 ? 1 : 0) + (S.upg.chair >= 8 ? 1 : 0);
+const areaCost = () => CONFIG.AREA_COST[S.areas.length - 1] || 1e9;
+const areaTier = id => Math.max(0, S.areas.indexOf(id));
+function inviteCost(area){ return Math.round(CONFIG.INVITE_BASE * Math.pow(CONFIG.INVITE_GROWTH, Math.max(0, S.sheep.length - CONFIG.START_SHEEP)) * (1 + 0.6 * areaTier(area))); }
+
+/* ---------- making sheep ---------- */
+function freeName(){
+  const used = S.sheep.map(s => s.n);
+  const free = NAMES.map((_, i) => i).filter(i => !used.includes(i));
+  return free.length ? pick(free) : rint(0, NAMES.length - 1);
+}
+function makeSheep(opt){
+  const s = {
+    id: S.nextId++, n: opt.n !== undefined ? opt.n : freeName(), b: opt.b, p: opt.p || pick(PERS_IDS), spot: opt.spot || pick(SPOT_IDS),
+    a: opt.a || S.cur, w: opt.w !== undefined ? opt.w : rnd(0.2, 0.6), dye: null, m: {food: 80, joy: 80}, love: opt.love || 0,
+    o: [], lamb: opt.lamb || null, mom: opt.mom || null, born: now(), nap: 0, sulk: 0, boost: null,
+  };
+  if(opt.nm) s.nm = opt.nm;
+  S.sheep.push(s);
+  addToBook(s.b);
+  return s;
+}
+const BOOK_COINS = [100, 300, 800, 2000];
+function addToBook(b){
+  if(S.book[b]) return;
+  S.book[b] = 1;
+  if(S.tut === 0) return;   // the first sheep don't pay out
+  const c = BOOK_COINS[BREEDS[b].r]; addCoins(c);
+  setTimeout(() => toast('📖 ' + T('New in your book', 'Nouveau dans ton livre') + ': ' + L(BREEDS[b]) + ' +' + fmt(c) + ' 🪙', 'gold'), 600);
+}
+function addToItemBook(it){
+  const key = it.k + ':' + (isDyed(it.c) ? it.c : 'natural');
+  if(S.ibook[key]) return;
+  S.ibook[key] = 1; addCoins(50);
+  setTimeout(() => toast('📖 ' + T('New pattern', 'Nouveau patron') + ': ' + itemName(it) + ' +50 🪙', 'gold'), 900);
+}
+function itemName(it){
+  const nm = L(ITEMS[it.k]);
+  if(!isDyed(it.c)) return nm;
+  return S.lang === 'fr' ? nm + ' ' + colorName(it.c).toLowerCase() : colorName(it.c) + ' ' + nm.toLowerCase();
+}
+/* which breeds can come from an area right now */
+function poolFor(area){
+  let pool = AREA(area).pool.slice();
+  return pool;
+}
+function rollBreed(area){
+  const ssn = seasonOf();
+  if(Math.random() < 0.12){ const sb = BREED_IDS.find(b => BREEDS[b].season === ssn); if(sb) return sb; }
+  const pool = poolFor(area);
+  const odds = [70, 22, 7, 1];
+  for(let tries = 0; tries < 20; tries++){
+    const r = weighted(odds);
+    const ok = pool.filter(b => BREEDS[b].r === r);
+    if(ok.length) return pick(ok);
+  }
+  return pool[0];
+}
+
+/* ---------- shearing, spinning, knitting ---------- */
+function shear(s){
+  if(isLamb(s)) return 0;
+  if(s.w < CONFIG.SHEAR_MIN) return 0;
+  const n = Math.max(1, Math.round(CONFIG.WOOL_YIELD[B(s).r] * s.w)) + (s.p === 'dramatic' ? 1 : 0);
+  const col = s.dye || B(s).col, key = yarnKey(B(s).wool, col);
+  S.raw[key] = (S.raw[key] || 0) + n;
+  s.w = 0; s.dye = null;
+  s.m.food = Math.max(0, s.m.food - 25);
+  S.stats.sheared++;
+  return n;
+}
+function stepSpin(dt){
+  const sec = spinSec();
+  if(rawTotal() <= 0){ S.spinP = 0; return 0; }
+  S.spinP += dt; let made = 0;
+  while(S.spinP >= sec){
+    const k = Object.keys(S.raw).find(k => S.raw[k] > 0);
+    if(!k){ S.spinP = 0; break; }
+    S.raw[k]--; if(S.raw[k] <= 0) delete S.raw[k];
+    S.yarn[k] = (S.yarn[k] || 0) + 1; S.spinP -= sec; made++;
+  }
+  return made;
+}
+function startKnit(k, key){
+  const I = ITEMS[k];
+  if((S.yarn[key] || 0) < I.yarn){ toast(T('Not enough yarn', 'Pas assez de fil'), 'err'); sfx('err'); return false; }
+  if(S.knit.length >= knitSlots()){ toast(T('The knitting queue is full', 'La file de tricot est pleine'), 'err'); sfx('err'); return false; }
+  S.yarn[key] -= I.yarn; if(S.yarn[key] <= 0) delete S.yarn[key];
+  const {w, c} = splitKey(key);
+  const dur = S.firstKnit ? I.sec : CONFIG.FIRST_KNIT_SEC;
+  S.firstKnit = true;
+  S.knit.push({id: now() + Math.random(), k, w, c, dur, prog: 0});
+  sfx('knit');
+  return true;
+}
+/* knitting is a queue: the first item is worked on, the rest wait */
+function stepKnit(dt, offline){
+  let done = [];
+  let left = dt * knitSpeed();
+  while(left > 0 && S.knit.length){
+    const j = S.knit[0], need = j.dur - j.prog;
+    if(left >= need){ left -= need; S.knit.shift(); done.push(finishKnit(j, offline)); }
+    else { j.prog += left; left = 0; }
+  }
+  return done;
+}
+function finishKnit(j, offline){
+  const it = {id: S.nextId++, k: j.k, c: j.c, w: j.w};
+  S.items.push(it); S.stats.knit++;
+  addToItemBook(it);
+  if(!offline){ toast(itemIcon(it, 26) + ' ' + itemName(it) + ' ' + T('is ready!', 'est prêt!'), 'gold'); sfx('coin'); }
+  return it;
+}
+function knitLeft(i){ // seconds left until item i in the queue is done
+  let t = 0; for(let n = 0; n <= i && n < S.knit.length; n++) t += S.knit[n].dur - S.knit[n].prog;
+  return t / knitSpeed();
+}
+function sellItem(it){
+  const v = itemValue(it) * (has2x() ? 2 : 1);
+  S.items = S.items.filter(x => x !== it);
+  addCoins(v); S.stats.sold++;
+  return v;
+}
+function dyeYarn(key, dA, dB){
+  const col = mixColor(dA, dB); if(!col) return 0;
+  if((S.dyes[dA] || 0) < 1 || (dB && dB !== dA && (S.dyes[dB] || 0) < 1)){ toast(T('You need more dye', 'Il te faut plus de teinture'), 'err'); return 0; }
+  const have = S.yarn[key] || 0; if(!have) return 0;
+  const n = Math.min(have, CONFIG.DYE_BATCH), {w} = splitKey(key), nk = yarnKey(w, col);
+  if(nk === key){ toast(T('That yarn is already this color', 'Ce fil est déjà de cette couleur'), 'err'); return 0; }
+  S.dyes[dA]--; if(dB && dB !== dA) S.dyes[dB]--;
+  S.yarn[key] -= n; if(S.yarn[key] <= 0) delete S.yarn[key];
+  S.yarn[nk] = (S.yarn[nk] || 0) + n;
+  return n;
+}
+
+/* =====================================================================
+   6. ART — every sheep and item is drawn in code (SVG). No image files.
+===================================================================== */
+function shade(hex, amt){ // amt -1..1 (darker..lighter)
+  let c = hex.replace('#', ''); if(c.length === 3) c = c.split('').map(x => x + x).join('');
+  let r = parseInt(c.substr(0, 2), 16), g = parseInt(c.substr(2, 2), 16), b = parseInt(c.substr(4, 2), 16);
+  const f = v => Math.round(amt < 0 ? v * (1 + amt) : v + (255 - v) * amt);
+  return '#' + [f(r), f(g), f(b)].map(v => clamp(v, 0, 255).toString(16).padStart(2, '0')).join('');
+}
+function mix(a, b, p){
+  const h = x => [1, 3, 5].map(i => parseInt(x.substr(i, 2), 16));
+  const A = h(a), Bc = h(b);
+  return '#' + A.map((v, i) => Math.round(v + (Bc[i] - v) * p).toString(16).padStart(2, '0')).join('');
+}
+const lum = hex => { const c = hex.replace('#', ''); return (parseInt(c.substr(0, 2), 16) * 0.3 + parseInt(c.substr(2, 2), 16) * 0.59 + parseInt(c.substr(4, 2), 16) * 0.11) / 255; };
+const RB = ['#ff8a8a', '#ffc36b', '#ffe76b', '#8fe08a', '#7cc4ff', '#c59bff'];
+let svgUid = 0;
+function star4(x, y, r, c){ return '<path d="M'+x+' '+(y-r)+' Q'+x+' '+y+' '+(x+r)+' '+y+' Q'+x+' '+y+' '+x+' '+(y+r)+' Q'+x+' '+y+' '+(x-r)+' '+y+' Q'+x+' '+y+' '+x+' '+(y-r)+'Z" fill="'+c+'"/>'; }
+function leafPath(x, y, s, rot, c){ return '<path transform="translate('+x+' '+y+') rotate('+rot+') scale('+s+')" d="M0 0 C4 -6 10 -6 12 0 C10 6 4 6 0 0Z" fill="'+c+'" stroke="'+shade(c, -0.3)+'" stroke-width=".8"/>'; }
+const wornOf = (s, slot) => (s.o || []).find(it => ITEMS[it.k] && ITEMS[it.k].slot === slot);
+
+/* the sheep. s = {b, w, dye, o, p}. opt: sleep, sulk, blush, noShadow, winter, glasses, size */
+function sheepSVG(s, opt){
+  opt = opt || {};
+  const Bd = BREEDS[s.b] || BREEDS.white, id = 'sh' + (svgUid++);
+  const w = clamp(opt.w !== undefined ? opt.w : (s.w !== undefined ? s.w : 1), 0, 1);
+  const shorn = w < 0.12;
+  const woolC = s.dye ? COLORS[s.dye].c : COLORS[Bd.col].c;
+  const rainbow = !s.dye && Bd.rb;
+  const face = Bd.face, dark = lum(face) < 0.42;
+  const R = shorn ? 14 : 13 + 17 * w;
+  const cx = 44, cy = shorn ? 60 : 55 - w * 9;
+  const legC = dark ? shade(face, -0.15) : shade(face, -0.45);
+  const sweater = wornOf(s, 'body') || (opt.winter ? {k:'sweater', c:'red', auto:1} : null);
+  const mitt = wornOf(s, 'feet'), hat = wornOf(s, 'head'), scarf = wornOf(s, 'neck');
+  const sz = opt.size ? ' width="'+opt.size+'" height="'+Math.round(opt.size * 0.9)+'"' : '';
+  let h = '<svg viewBox="0 0 100 90"'+sz+' xmlns="http://www.w3.org/2000/svg">';
+  if(!opt.noShadow) h += '<ellipse cx="'+(cx+5)+'" cy="83.5" rx="'+(R*0.85+8)+'" ry="4.5" fill="#0002"/>';
+  // legs
+  const legTop = cy + R * 0.35, lx = shorn ? [34, 40, 50, 56] : [cx - R*0.5, cx - R*0.18, cx + R*0.22, cx + R*0.5];
+  lx.forEach((x, i) => {
+    const back = i === 1 || i === 3;
+    h += '<rect x="'+(x-2.6)+'" y="'+(legTop - (back ? 2 : 0))+'" width="5.2" height="'+(81 - legTop + (back ? 0 : 1))+'" rx="2.6" fill="'+(back ? shade(legC, -0.12) : legC)+'"/>';
+    if(mitt) h += '<rect x="'+(x-3.6)+'" y="75" width="7.2" height="7.5" rx="3" fill="'+colFill(mitt.c, id)+'" stroke="'+shade(COLORS[mitt.c].c, -0.25)+'" stroke-width=".8"/>';
+  });
+  if(rainbow || (mitt && COLORS[mitt.c].rb) || (sweater && COLORS[sweater.c] && COLORS[sweater.c].rb) || (hat && COLORS[hat.c].rb) || (scarf && COLORS[scarf.c].rb))
+    h += '<defs><linearGradient id="'+id+'rb" x1="0" y1="0" x2="1" y2="1">'+RB.map((c, i) => '<stop offset="'+(i/5)+'" stop-color="'+c+'"/>').join('')+'</linearGradient></defs>';
+  // body
+  if(shorn){
+    h += '<ellipse cx="'+cx+'" cy="'+cy+'" rx="17" ry="12" fill="#ffd8cf" stroke="#f0b6aa" stroke-width="1"/>';
+    h += '<path d="M'+(cx-9)+' '+(cy+5)+' q9 4 18 0" stroke="#f0b6aa" stroke-width="1" fill="none"/>';
+    [[-8,-10],[0,-12],[8,-10],[13,-3]].forEach(([dx, dy], i) => h += '<circle cx="'+(cx+dx)+'" cy="'+(cy+dy)+'" r="3.6" fill="'+(rainbow ? RB[i] : woolC)+'"/>');
+  } else {
+    const N = 10, under = Bd.cloudy ? '#cfe2fb' : shade(woolC, -0.13);
+    const pts = []; for(let i=0;i<N;i++){ const a = i / N * Math.PI * 2; pts.push([cx + Math.cos(a) * R * 0.78, cy + Math.sin(a) * R * 0.56]); }
+    const pr = R * 0.42;
+    pts.forEach(([x, y]) => h += '<circle cx="'+x+'" cy="'+(y+2.6)+'" r="'+pr+'" fill="'+(rainbow ? '#e9d6ff' : under)+'"/>');
+    pts.forEach(([x, y], i) => h += '<circle cx="'+x+'" cy="'+y+'" r="'+pr+'" fill="'+(rainbow ? RB[i % 6] : woolC)+'"/>');
+    h += '<ellipse cx="'+cx+'" cy="'+cy+'" rx="'+(R*0.82)+'" ry="'+(R*0.6)+'" fill="'+(rainbow ? '#fff3fb' : woolC)+'"/>';
+    if(rainbow) [0,1,2].forEach(i => h += '<circle cx="'+(cx-R*0.3+i*R*0.3)+'" cy="'+(cy-R*0.05+(i%2)*R*0.2)+'" r="'+(R*0.22)+'" fill="'+RB[(i*2+1)%6]+'" opacity=".75"/>');
+    // little highlights
+    [[-0.45,-0.45],[-0.1,-0.58],[-0.62,-0.1]].forEach(([dx, dy]) => h += '<circle cx="'+(cx+dx*R)+'" cy="'+(cy+dy*R)+'" r="'+(R*0.13)+'" fill="#fff" opacity=".55"/>');
+    if(Bd.curl) pts.forEach(([x, y], i) => { if(i % 2) return; const r = pr * 0.32; h += '<path d="M'+(x-r)+' '+y+' a'+r+' '+r+' 0 1 1 '+r+' '+r+' a'+(r*0.5)+' '+(r*0.5)+' 0 1 1 -'+(r*0.5)+' -'+(r*0.5)+'" stroke="'+shade(woolC, -0.25)+'" stroke-width="1.3" fill="none"/>'; });
+    if(Bd.spots) [[-0.3,-0.1,0.2],[0.28,0.12,0.16],[-0.02,-0.36,0.13],[0.05,0.3,0.12]].forEach(([dx, dy, r]) => h += '<ellipse cx="'+(cx+dx*R)+'" cy="'+(cy+dy*R)+'" rx="'+(r*R)+'" ry="'+(r*R*0.8)+'" fill="#3e3a42" opacity=".85"/>');
+    if(Bd.swirl){ const c2 = s.b === 'lollipop' ? '#fff' : '#9fd6ff'; h += '<path d="M'+(cx-R*0.55)+' '+cy+' a'+(R*0.55)+' '+(R*0.4)+' 0 1 1 '+(R*0.55)+' '+(R*0.4)+' a'+(R*0.35)+' '+(R*0.25)+' 0 1 1 -'+(R*0.3)+' -'+(R*0.4)+' a'+(R*0.15)+' '+(R*0.12)+' 0 1 1 '+(R*0.2)+' '+(R*0.1)+'" stroke="'+c2+'" stroke-width="'+(R*0.12)+'" fill="none" stroke-linecap="round" opacity=".9"/>'; }
+    if(Bd.sugar) [[-0.5,-0.2],[-0.2,0.25],[0.15,-0.3],[0.45,0.1],[0.05,0.05],[-0.35,-0.45],[0.35,-0.1]].forEach(([dx, dy]) => h += '<circle cx="'+(cx+dx*R)+'" cy="'+(cy+dy*R)+'" r="1.3" fill="#fff"/>');
+    if(Bd.spark && !s.dye) [[-0.5,-0.3,4],[0.4,-0.35,3.2],[0.1,0.25,2.6]].forEach(([dx, dy, r]) => h += star4(cx+dx*R, cy+dy*R, r, s.b === 'golden' ? '#fff8d0' : '#ffffff'));
+    if(Bd.leaf) [[-0.4,-0.62,-30],[0.1,-0.7,20]].forEach(([dx, dy, rot]) => h += leafPath(cx+dx*R, cy+dy*R, 0.7, rot, s.b === 'maple' ? '#e8742f' : '#6fae4f'));
+    if(Bd.flake) [[-0.35,-0.25],[0.3,0.05]].forEach(([dx, dy]) => { const x = cx+dx*R, y = cy+dy*R; h += '<g stroke="#7fb2ff" stroke-width="1.2" stroke-linecap="round"><path d="M'+(x-4)+' '+y+' h8 M'+x+' '+(y-4)+' v8 M'+(x-3)+' '+(y-3)+' l6 6 M'+(x+3)+' '+(y-3)+' l-6 6"/></g>'; });
+  }
+  // sweater
+  if(sweater){
+    const sc = colFill(sweater.c, id), sR = shorn ? 15 : R;
+    const top = cy - sR*0.38, bot = cy + sR*0.62, L0 = cx - sR*0.95, R0 = cx + sR*0.95;
+    h += '<path d="M'+L0+' '+(cy+sR*0.05)+' Q'+L0+' '+top+' '+cx+' '+top+' Q'+R0+' '+top+' '+R0+' '+(cy+sR*0.05)+' L'+(R0-1)+' '+(bot-3)+' Q'+cx+' '+(bot+3)+' '+(L0+1)+' '+(bot-3)+'Z" fill="'+sc+'" stroke="'+shade(COLORS[sweater.c].c, -0.25)+'" stroke-width="1"/>';
+    h += '<path d="M'+(L0+1)+' '+(bot-4)+' Q'+cx+' '+(bot+2)+' '+(R0-1)+' '+(bot-4)+'" stroke="'+shade(COLORS[sweater.c].c, -0.2)+'" stroke-width="'+(sR*0.14)+'" fill="none" stroke-dasharray="1.4 1.4"/>';
+    h += '<path d="M'+(L0+2)+' '+(cy+sR*0.02)+' Q'+cx+' '+(cy-sR*0.12)+' '+(R0-2)+' '+(cy+sR*0.02)+'" stroke="#fff" stroke-width="'+(sR*0.09)+'" fill="none" opacity=".9" stroke-dasharray="2.6 2"/>';
+    h += '<path d="M'+(L0+1)+' '+(cy+sR*0.25)+' Q'+cx+' '+(cy+sR*0.12)+' '+(R0-1)+' '+(cy+sR*0.25)+'" stroke="#fff" stroke-width="'+(sR*0.06)+'" fill="none" opacity=".75"/>';
+  }
+  // head
+  const hx = shorn ? cx + 19 : cx + R * 0.78 + 6, hy = shorn ? cy - 6 : cy - R * 0.32 - 2;
+  if(Bd.horns) h += '<path d="M'+(hx-6)+' '+(hy-7)+' q-12 -4 -11 8 q1 5 5 3" stroke="#d9c7a3" stroke-width="3.4" fill="none" stroke-linecap="round"/><path d="M'+(hx+6)+' '+(hy-7)+' q12 -4 11 8 q-1 5 -5 3" stroke="#d9c7a3" stroke-width="3.4" fill="none" stroke-linecap="round"/>';
+  const earC = shade(face, -0.08);
+  h += '<ellipse cx="'+(hx-9)+'" cy="'+(hy-6)+'" rx="6.5" ry="3.2" fill="'+earC+'" transform="rotate(-28 '+(hx-9)+' '+(hy-6)+')"/><ellipse cx="'+(hx-9)+'" cy="'+(hy-6)+'" rx="3.6" ry="1.5" fill="#ffb7c4" transform="rotate(-28 '+(hx-9)+' '+(hy-6)+')"/>';
+  h += '<ellipse cx="'+(hx+9)+'" cy="'+(hy-6)+'" rx="6.5" ry="3.2" fill="'+earC+'" transform="rotate(28 '+(hx+9)+' '+(hy-6)+')"/><ellipse cx="'+(hx+9)+'" cy="'+(hy-6)+'" rx="3.6" ry="1.5" fill="#ffb7c4" transform="rotate(28 '+(hx+9)+' '+(hy-6)+')"/>';
+  // scarf goes under the chin
+  if(scarf){ const sc = colFill(scarf.c, id), st = shade(COLORS[scarf.c].c, -0.25);
+    h += '<path d="M'+(hx-11)+' '+(hy+8)+' Q'+hx+' '+(hy+14)+' '+(hx+10)+' '+(hy+7)+' L'+(hx+11)+' '+(hy+12)+' Q'+hx+' '+(hy+19)+' '+(hx-11)+' '+(hy+13)+'Z" fill="'+sc+'" stroke="'+st+'" stroke-width=".9"/>';
+    h += '<path d="M'+(hx-7)+' '+(hy+14)+' l-3 11 l6 0 l1 -10Z" fill="'+sc+'" stroke="'+st+'" stroke-width=".9"/><path d="M'+(hx-9.5)+' '+(hy+25)+' v2.5 M'+(hx-7.5)+' '+(hy+25)+' v2.5 M'+(hx-5.5)+' '+(hy+25)+' v2.5" stroke="'+st+'" stroke-width="1"/>'; }
+  h += '<ellipse cx="'+hx+'" cy="'+hy+'" rx="10.5" ry="12" fill="'+face+'"/>';
+  // tuft on the head (or a hat)
+  if(hat){ const hc = colFill(hat.c, id), hs = shade(COLORS[hat.c].c, -0.25);
+    h += '<path d="M'+(hx-11)+' '+(hy-5)+' Q'+(hx-10)+' '+(hy-20)+' '+hx+' '+(hy-20)+' Q'+(hx+10)+' '+(hy-20)+' '+(hx+11)+' '+(hy-5)+'Z" fill="'+hc+'" stroke="'+hs+'" stroke-width=".9"/>';
+    h += '<rect x="'+(hx-12)+'" y="'+(hy-8)+'" width="24" height="5" rx="2.5" fill="'+hc+'" stroke="'+hs+'" stroke-width=".9"/><circle cx="'+hx+'" cy="'+(hy-21)+'" r="3.6" fill="#fff" stroke="#ddd" stroke-width=".7"/>';
+  } else if(Bd.fringe){
+    h += '<path d="M'+(hx-11)+' '+(hy-3)+' Q'+(hx-12)+' '+(hy-16)+' '+hx+' '+(hy-15)+' Q'+(hx+12)+' '+(hy-16)+' '+(hx+11)+' '+(hy-3)+' l-3 4 l-2 -3 l-3 4 l-3 -4 l-3 4 l-2 -4 l-3 3Z" fill="'+woolC+'" stroke="'+shade(woolC, -0.2)+'" stroke-width=".8"/>';
+  } else {
+    const tr2 = shorn ? 2.4 : 4.6;
+    [[-4.5,-10],[0,-12.5],[4.5,-10]].forEach(([dx, dy], i) => h += '<circle cx="'+(hx+dx)+'" cy="'+(hy+dy)+'" r="'+tr2+'" fill="'+(rainbow ? RB[i*2] : woolC)+'"/>');
+  }
+  if(Bd.crown && !hat) [[-6,-12,'#ff8fbf'],[0,-15,'#ffd23f'],[6,-12,'#ff8fbf']].forEach(([dx, dy, c]) => h += '<circle cx="'+(hx+dx)+'" cy="'+(hy+dy)+'" r="2.6" fill="'+c+'" stroke="#fff" stroke-width="1"/>');
+  // eyes
+  const eyeC = dark ? '#ffffff' : '#2b2630', ey = Bd.fringe && !hat ? hy + 1 : hy - 1;
+  if(opt.sleep) h += '<path d="M'+(hx-6)+' '+ey+' q2 2 4 0 M'+(hx+2)+' '+ey+' q2 2 4 0" stroke="'+eyeC+'" stroke-width="1.5" fill="none" stroke-linecap="round"/>';
+  else if(opt.sulk) h += '<path d="M'+(hx-6.5)+' '+(ey-1.5)+' l4 1.5 M'+(hx+6.5)+' '+(ey-1.5)+' l-4 1.5" stroke="'+eyeC+'" stroke-width="1.6" stroke-linecap="round"/>';
+  else if(!(Bd.fringe && !hat)) h += '<circle cx="'+(hx-4)+'" cy="'+ey+'" r="2.1" fill="'+eyeC+'"/><circle cx="'+(hx+4)+'" cy="'+ey+'" r="2.1" fill="'+eyeC+'"/><circle cx="'+(hx-3.3)+'" cy="'+(ey-0.8)+'" r=".7" fill="'+(dark ? '#2b2630' : '#fff')+'"/><circle cx="'+(hx+4.7)+'" cy="'+(ey-0.8)+'" r=".7" fill="'+(dark ? '#2b2630' : '#fff')+'"/>';
+  if(Bd.shades && !opt.sleep) h += '<rect x="'+(hx-8.5)+'" y="'+(ey-2.5)+'" width="7" height="4.6" rx="2" fill="#2b2630"/><rect x="'+(hx+1.5)+'" y="'+(ey-2.5)+'" width="7" height="4.6" rx="2" fill="#2b2630"/><path d="M'+(hx-1.5)+' '+(ey-1)+' h3" stroke="#2b2630" stroke-width="1"/>';
+  if(opt.glasses) h += '<circle cx="'+(hx-4)+'" cy="'+ey+'" r="3.6" fill="none" stroke="#b07a3a" stroke-width="1.1"/><circle cx="'+(hx+4)+'" cy="'+ey+'" r="3.6" fill="none" stroke="#b07a3a" stroke-width="1.1"/><path d="M'+(hx-0.4)+' '+ey+' h.8" stroke="#b07a3a" stroke-width="1.1"/>';
+  // cheeks + mouth
+  const blush = opt.blush || Bd.apple;
+  h += '<ellipse cx="'+(hx-6.5)+'" cy="'+(hy+4)+'" rx="'+(blush ? 3.2 : 2.4)+'" ry="'+(blush ? 2.1 : 1.5)+'" fill="'+(Bd.apple ? '#ff5d5d' : '#ff8fa8')+'" opacity="'+(blush ? 0.9 : 0.5)+'"/>';
+  h += '<ellipse cx="'+(hx+6.5)+'" cy="'+(hy+4)+'" rx="'+(blush ? 3.2 : 2.4)+'" ry="'+(blush ? 2.1 : 1.5)+'" fill="'+(Bd.apple ? '#ff5d5d' : '#ff8fa8')+'" opacity="'+(blush ? 0.9 : 0.5)+'"/>';
+  const mC = dark ? '#ffd9d9' : '#7a4a4a';
+  if(opt.sulk) h += '<path d="M'+(hx-2.5)+' '+(hy+7)+' q2.5 -2.5 5 0" stroke="'+mC+'" stroke-width="1.3" fill="none" stroke-linecap="round"/>';
+  else h += '<path d="M'+(hx-3)+' '+(hy+5)+' q1.5 2 3 0 q1.5 2 3 0" stroke="'+mC+'" stroke-width="1.2" fill="none" stroke-linecap="round"/>';
+  h += '</svg>';
+  return h;
+}
+function colFill(c, id){ return COLORS[c] && COLORS[c].rb ? 'url(#' + id + 'rb)' : (COLORS[c] ? COLORS[c].c : '#ccc'); }
+
+/* knitted items */
+function itemSVG(k, c, size){
+  const id = 'it' + (svgUid++), C = COLORS[c] || COLORS.white;
+  const f = C.rb ? 'url(#' + id + 'g)' : C.c, st = C.rb ? '#9a7cd0' : lum(C.c) > 0.84 ? '#b3a993' : shade(C.c, -0.3), sw = 'stroke="'+st+'" stroke-width="1.4" stroke-linejoin="round"';
+  const sz = size ? ' width="'+size+'" height="'+size+'"' : '';
+  let h = '<svg viewBox="0 0 40 40"'+sz+' xmlns="http://www.w3.org/2000/svg">';
+  if(C.rb) h += '<defs><linearGradient id="'+id+'g" x1="0" y1="0" x2="1" y2="1">'+RB.map((x, i) => '<stop offset="'+(i/5)+'" stop-color="'+x+'"/>').join('')+'</linearGradient></defs>';
+  const knitV = (x, y, n, dx) => { let s = ''; for(let i=0;i<n;i++) s += '<path d="M'+(x+i*dx)+' '+y+' l1.5 2 l1.5 -2" stroke="'+st+'" stroke-width=".8" fill="none" opacity=".6"/>'; return s; };
+  switch(k){
+    case 'scarf':
+      h += '<path d="M23 14 L29 35 L22.5 36.5 L18 15Z" fill="'+f+'" '+sw+'/><path d="M15 14 L10 33 L16.5 34.5 L21 15Z" fill="'+f+'" '+sw+'/>';
+      h += '<path d="M22.5 36.5 l-.6 3 M25.5 35.8 l.2 3 M28.4 35.1 l.8 3 M10 33 l-.8 3 M13 33.7 l-.2 3 M16 34.4 l.4 3" stroke="'+st+'" stroke-width="1.2"/>';
+      h += '<ellipse cx="20" cy="11" rx="13" ry="6" fill="none" stroke="'+st+'" stroke-width="8.6"/><ellipse cx="20" cy="11" rx="13" ry="6" fill="none" stroke="'+f+'" stroke-width="6"/>';
+      h += '<path d="M10 9 l1.5 2 l1.5 -2 M16 7 l1.5 2 l1.5 -2 M22 7 l1.5 2 l1.5 -2 M28 9 l1.5 2 l1.5 -2" stroke="'+st+'" stroke-width=".8" fill="none" opacity=".7"/>'; break;
+    case 'mittens':
+      h += '<path d="M5 30 L5 15 Q5 8 11 8 Q17 8 17 15 L17 30Z" fill="'+f+'" '+sw+'/><path d="M17 18 Q21 16 20 22 L17 24" fill="'+f+'" '+sw+'/>';
+      h += '<path d="M21 32 L21 17 Q21 10 27 10 Q33 10 33 17 L33 32Z" fill="'+f+'" '+sw+'/><path d="M21 20 Q17 18 18 24 L21 26" fill="'+f+'" '+sw+'/>';
+      h += '<rect x="4" y="27" width="14" height="5" rx="2" fill="#fff" '+sw+'/><rect x="20" y="29" width="14" height="5" rx="2" fill="#fff" '+sw+'/>'; break;
+    case 'hat':
+      h += '<path d="M6 28 Q6 9 20 9 Q34 9 34 28Z" fill="'+f+'" '+sw+'/><rect x="4" y="26" width="32" height="8" rx="3" fill="'+f+'" '+sw+'/>';
+      h += '<circle cx="20" cy="8" r="5" fill="#fff" '+sw+'/>' + knitV(9, 17, 7, 3.2) + '<path d="M8 30 h24" stroke="#fff" stroke-width="1.6" stroke-dasharray="2 2"/>'; break;
+    case 'plushie':
+      [[13,20],[20,15],[27,20],[24,26],[16,26],[20,21]].forEach(([x, y]) => h += '<circle cx="'+x+'" cy="'+y+'" r="7" fill="'+f+'" '+(x===20&&y===21?'':sw)+'/>');
+      h += '<rect x="13" y="29" width="4" height="6" rx="2" fill="#5a4f5f"/><rect x="23" y="29" width="4" height="6" rx="2" fill="#5a4f5f"/>';
+      h += '<ellipse cx="31" cy="15" rx="5.5" ry="6" fill="#f3d5c4" stroke="#c9a08c" stroke-width="1"/><circle cx="29.5" cy="14.5" r="1" fill="#2b2630"/><circle cx="32.5" cy="14.5" r="1" fill="#2b2630"/>';
+      h += '<path d="M14 33 l6 -2 l6 2" stroke="#ff8fa8" stroke-width="1.2" fill="none"/>'; break;
+    case 'sweater':
+      h += '<path d="M12 7 L28 7 L37 14 L33 21 L29 18 L29 35 L11 35 L11 18 L7 21 L3 14Z" fill="'+f+'" '+sw+'/>';
+      h += '<path d="M15 7 Q20 12 25 7" fill="#fff" '+sw+'/><path d="M11 24 h18 M11 29 h18" stroke="#fff" stroke-width="1.6" stroke-dasharray="2.4 1.6" opacity=".9"/>'; break;
+    case 'blanket':
+      h += '<path d="M4 9 L36 9 L36 30 Q30 34 20 31 Q10 34 4 30Z" fill="'+f+'" '+sw+'/>';
+      for(let i=0;i<4;i++) h += '<path d="M'+(8+i*8)+' 9 v22" stroke="#fff" stroke-width="2" opacity=".55"/>';
+      for(let i=0;i<3;i++) h += '<path d="M4 '+(15+i*6)+' h32" stroke="#fff" stroke-width="2" opacity=".45"/>';
+      h += '<path d="M6 32 l-1 4 M12 33 l0 4 M20 32 l0 4 M28 33 l0 4 M34 32 l1 4" stroke="'+st+'" stroke-width="1.2"/>'; break;
+  }
+  return h + '</svg>';
+}
+const itemIcon = (it, px) => '<span style="display:inline-block;width:'+px+'px;height:'+px+'px;vertical-align:middle">' + itemSVG(it.k, it.c, px) + '</span>';
+function ballHtml(c, px){
+  const C = COLORS[c] || COLORS.white, s = px ? 'width:'+px+'px;height:'+px+'px;' : '';
+  return '<span class="ball" style="'+s+'background:'+(C.rb ? 'conic-gradient('+RB.concat(RB[0]).join(',')+')' : C.c)+'"></span>';
+}
+function guideSVG(){ return sheepSVG({b:'white', w:0.85, o:[{k:'scarf', c:'lilac', w:'soft'}]}, {glasses:1, noShadow:1}); }
+
+/* =====================================================================
+   7. SOUND — baas, snips and a soft music box (WebAudio, no files)
+===================================================================== */
+let AC = null, musGain = null, sfxGain = null, musTimer = null, musKey = null, musStep = 0, musMotif = [];
+function audio(){
+  if(AC) return AC;
+  try{
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    sfxGain = AC.createGain(); sfxGain.gain.value = 0.5; sfxGain.connect(AC.destination);
+    musGain = AC.createGain(); musGain.gain.value = 0.16; musGain.connect(AC.destination);
+  }catch(e){ AC = null; }
+  return AC;
+}
+function tone(f, dur, type, vol, when, dest, slide){
+  const A = audio(); if(!A) return;
+  const t = (when || A.currentTime);
+  const o = A.createOscillator(), g = A.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(f, t);
+  if(slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.3, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(dest || sfxGain); o.start(t); o.stop(t + dur + 0.05);
+}
+function noise(dur, freq, vol, type){
+  const A = audio(); if(!A) return;
+  const n = A.createBufferSource(), b = A.createBuffer(1, Math.floor(A.sampleRate * dur), A.sampleRate), d = b.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+  const f = A.createBiquadFilter(); f.type = type || 'highpass'; f.frequency.value = freq;
+  const g = A.createGain(); g.gain.value = vol; n.buffer = b; n.connect(f); f.connect(g); g.connect(sfxGain); n.start();
+}
+/* a little "baa": buzzy voice + wobble + two formants */
+function baa(pitch, long){
+  const A = audio(); if(!A || !S || !S.snd) return;
+  const t = A.currentTime, p = pitch || rnd(0.9, 1.15), dur = long ? 0.95 : 0.5;
+  const o = A.createOscillator(), lfo = A.createOscillator(), lg = A.createGain(), g = A.createGain();
+  o.type = 'sawtooth'; o.frequency.setValueAtTime(300 * p, t); o.frequency.linearRampToValueAtTime(330 * p, t + 0.08); o.frequency.exponentialRampToValueAtTime(250 * p, t + dur);
+  lfo.frequency.value = 7.5; lg.gain.value = 16 * p; lfo.connect(lg); lg.connect(o.frequency);
+  const f1 = A.createBiquadFilter(); f1.type = 'bandpass'; f1.frequency.value = 850 * p; f1.Q.value = 4;
+  const f2 = A.createBiquadFilter(); f2.type = 'bandpass'; f2.frequency.value = 2300 * p; f2.Q.value = 6;
+  const m = A.createGain(); m.gain.value = 1;
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(long ? 0.9 : 0.6, t + 0.05); g.gain.setValueAtTime(long ? 0.8 : 0.5, t + dur * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(f1); o.connect(f2); f1.connect(g); f2.connect(m); m.connect(g); g.connect(sfxGain);
+  o.start(t); lfo.start(t); o.stop(t + dur + 0.05); lfo.stop(t + dur + 0.05);
+}
+function sfx(k){
+  if(!S || !S.snd || !audio()) return;
+  const A = AC, t = A.currentTime;
+  switch(k){
+    case 'tap': tone(700, 0.06, 'triangle', 0.14); break;
+    case 'pop': tone(900, 0.08, 'sine', 0.3, t, null, 1600); break;
+    case 'coin': tone(1047, 0.08, 'square', 0.1); tone(1397, 0.14, 'square', 0.1, t + 0.07); break;
+    case 'err': tone(240, 0.15, 'triangle', 0.2); tone(190, 0.18, 'triangle', 0.2, t + 0.1); break;
+    case 'snip': noise(0.07, 3000, 0.5); setTimeout(() => noise(0.07, 3500, 0.5), 110); break;
+    case 'knit': tone(1800, 0.03, 'square', 0.06); tone(1500, 0.03, 'square', 0.06, t + 0.09); tone(1800, 0.03, 'square', 0.06, t + 0.18); break;
+    case 'win': [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.3, 'sine', 0.25, t + i * 0.1)); break;
+    case 'whoosh': tone(300, 0.3, 'sine', 0.15, t, null, 900); break;
+    case 'boing': tone(220, 0.25, 'sine', 0.3, t, null, 520); break;
+    case 'gift': [784, 988, 1175, 1568].forEach((f, i) => bell(f, 0.6, 0.3, t + i * 0.08, sfxGain)); break;
+  }
+}
+/* music box: a bell-like note (plucked metal tine) */
+function bell(f, dur, vol, when, dest){
+  const A = audio(); if(!A) return;
+  const t = when || A.currentTime;
+  [[1, 1], [2.76, 0.25], [5.4, 0.08]].forEach(([m, v]) => {
+    const o = A.createOscillator(), g = A.createGain();
+    o.type = 'sine'; o.frequency.value = f * m;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol * v, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur / m * 1.4);
+    o.connect(g); g.connect(dest); o.start(t); o.stop(t + dur + 0.1);
+  });
+}
+function makeMotif(scale){
+  // a gentle tune that repeats, like a real music box
+  const m = []; let d = rint(2, 4);
+  for(let i=0;i<16;i++){
+    if(i % 4 === 3 && Math.random() < 0.5){ m.push(null); continue; }
+    d = clamp(d + pick([-1, -1, 1, 1, 2, -2, 0]), 0, scale.length + 3); m.push(d);
+  }
+  m[15] = null; m[0] = rint(0, 2) * 2;
+  return m;
+}
+function musicStart(){
+  if(!S || !S.mus || !audio()){ musicStop(); return; }
+  const key = S.cur + seasonOf();
+  if(musTimer && musKey === key) return;
+  musicStop(); musKey = key;
+  const scale = (AREA(S.cur) || AREAS[0]).music, root = 523 * Math.pow(2, ({spring:2, summer:4, autumn:0, winter:-3})[seasonOf()] / 12);
+  const step = 60 / 76 / 2;
+  musMotif = [makeMotif(scale), makeMotif(scale)]; musStep = 0;
+  const freq = deg => root * Math.pow(2, (scale[deg % scale.length] + 12 * Math.floor(deg / scale.length)) / 12);
+  musTimer = setInterval(() => {
+    if(!AC || AC.state !== 'running') return;
+    const t = AC.currentTime + 0.05, phrase = Math.floor(musStep / 16) % 4, i = musStep % 16;
+    const mot = musMotif[phrase === 2 ? 1 : 0], d = mot[i];
+    if(d !== null) bell(freq(d), 1.6, 0.5, t, musGain);
+    if(i % 8 === 0) bell(freq([0, 3, 4, 0][phrase]) / 2, 2.4, 0.35, t, musGain);
+    if(i % 8 === 4 && Math.random() < 0.6) bell(freq([2, 5, 6, 2][phrase]) / 2, 1.8, 0.2, t, musGain);
+    musStep++;
+    if(musStep % 128 === 0) musMotif[Math.random() < 0.5 ? 0 : 1] = makeMotif(scale);
+  }, step * 1000);
+}
+function musicStop(){ if(musTimer) clearInterval(musTimer); musTimer = null; musKey = null; }
+function audioUnlock(){ const A = audio(); if(A && A.state === 'suspended') A.resume(); musicStart(); }
+
+/* =====================================================================
+   8. HILLS VIEW — the main screen. Sheep graze, bounce, roll and nap.
+   Positions are in % of the scene (x: 0-100 left→right, y: 0-100 top→bottom).
+===================================================================== */
+let actors = {};          // sheep id -> actor
+const sceneEl = () => $('scene');
+const sceneScale = () => { const r = sceneEl().getBoundingClientRect(); return clamp(Math.min(r.width, r.height * 0.85) / 380, 0.85, 1.7); };
+function randSpot(){ return [rnd(WALK.x0, WALK.x1), rnd(WALK.y0 + 4, WALK.y1)]; }
+function themeCols(){
+  const A = AREA(S.cur), ssn = seasonOf();
+  let c = {sky:A.sky, far:A.far, mid:A.mid, near:A.near, ground:A.ground};
+  if(S.theme === 'candy' && S.paid) c = Object.assign({}, CANDY_THEME);
+  else if(ssn === 'winter' && S.cur !== 'snowy') c = {sky:['#cfe0f5','#f2f7ff'], far:mix(A.far, '#eef4fb', 0.75), mid:mix(A.mid, '#f4f8fd', 0.8), near:mix(A.near, '#f7fafe', 0.85), ground:mix(A.ground, '#f6f9fd', 0.85)};
+  else if(ssn === 'autumn') c = {sky:A.sky, far:mix(A.far, '#e0a85a', 0.35), mid:mix(A.mid, '#d9b25c', 0.3), near:mix(A.near, '#c9b35a', 0.25), ground:mix(A.ground, '#c9b35a', 0.25)};
+  else if(ssn === 'summer') c.ground = shade(A.ground, 0.04);
+  return c;
+}
+function renderBg(){
+  const night = isNight(), c = themeCols();
+  const sky = night ? ['#26306b', '#5a5aa0'] : c.sky;
+  let s = '<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+sky[0]+'"/><stop offset="1" stop-color="'+sky[1]+'"/></linearGradient>'+
+    '<linearGradient id="gnd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+shade(c.ground, 0.05)+'"/><stop offset="1" stop-color="'+shade(c.ground, -0.08)+'"/></linearGradient></defs>';
+  s += '<rect width="100" height="100" fill="url(#sky)"/>';
+  if(night) for(let i=0;i<22;i++) s += '<circle cx="'+((i*37+11)%100)+'" cy="'+((i*13)%34+2)+'" r="'+(i%3?0.3:0.5)+'" fill="#fff"/>';
+  else s += '<g fill="#fff" opacity=".9"><ellipse cx="20" cy="12" rx="8" ry="2.6"/><ellipse cx="25" cy="10.5" rx="5" ry="2.6"/><ellipse cx="66" cy="19" rx="7" ry="2.2"/><ellipse cx="70" cy="17.6" rx="4" ry="2"/></g>';
+  if(S.cur === 'highlands' && !night) s += '<rect y="28" width="100" height="14" fill="#fff" opacity=".35"/>';
+  // far + mid hills (soft waves)
+  s += '<path d="M0 40 Q12 30 25 37 T52 35 T78 33 T100 38 V100 H0Z" fill="'+c.far+'"/>';
+  s += '<path d="M0 47 Q15 40 32 45 T64 42 T100 46 V100 H0Z" fill="'+c.mid+'"/>';
+  // the big rolling hill on the left (sheep roll down it!) + the ground
+  s += '<path d="M0 60 Q12 47 30 49 Q46 51 58 62 Q66 68 100 60 V100 H0Z" fill="'+c.near+'"/>';
+  s += '<path d="M0 66 Q20 58 40 66 Q60 74 100 64 V100 H0Z" fill="url(#gnd)"/>';
+  // little grass tufts
+  for(let i=0;i<14;i++){ const x = (i * 23 + 7) % 100, y = 70 + (i * 17) % 28; s += '<path d="M'+x+' '+y+' l.6 -1.6 l.5 1.6 l.6 -1.3 l.4 1.3" stroke="'+shade(c.ground, -0.18)+'" stroke-width=".35" fill="none"/>'; }
+  if(seasonOf() === 'spring' || S.cur === 'meadow') for(let i=0;i<18;i++){ const x = (i * 31 + 3) % 100, y = 68 + (i * 13) % 30; s += '<circle cx="'+x+'" cy="'+y+'" r=".7" fill="'+['#ff9fc0','#fff','#ffe066','#c9a6ff'][i%4]+'"/>'; }
+  // pond
+  if(S.upg.pond > 0){
+    const [px, py] = SPOTS.pond.p;
+    s += '<ellipse cx="'+px+'" cy="'+(py+1.2)+'" rx="'+(9+S.upg.pond)+'" ry="4.2" fill="'+shade(c.ground, -0.15)+'"/>';
+    s += '<ellipse cx="'+px+'" cy="'+py+'" rx="'+(8.4+S.upg.pond)+'" ry="3.6" fill="'+(seasonOf() === 'winter' ? '#d7ecff' : '#7cc8f0')+'"/><ellipse cx="'+(px-3)+'" cy="'+(py-1)+'" rx="3" ry=".7" fill="#fff8"/>';
+  }
+  // fence along the back
+  if(S.upg.fence > 0){
+    const fc = '#c98f55';
+    s += '<path d="M2 58.5 Q30 55.5 60 60.5 T98 57.5" stroke="'+fc+'" stroke-width=".9" fill="none"/><path d="M2 61 Q30 58 60 63 T98 60" stroke="'+fc+'" stroke-width=".9" fill="none"/>';
+    for(let i=0;i<12;i++){ const x = 4 + i * 8.4, y = 57 + Math.sin(i * 0.8) * 1.5 + (x > 50 ? 2 : 0); s += '<rect x="'+(x-0.5)+'" y="'+(y-1)+'" width="1" height="5.5" rx=".4" fill="'+shade(fc, -0.1)+'"/>'; }
+  }
+  $('sceneBg').innerHTML = s;
+}
+function propEmoji(k){ return {oak:'🌳',bush:'🌿',rock:'🪨',tulips:'🌷',daisy:'🌼',heather:'🪻',stone:'🪨',pine:'🌲',snowman:'⛄',appletree:'🌳',peartree:'🌳',basket:'🧺'}[k] || '🌳'; }
+function windmillSVG(lv){ const t = (now() / 40) % 360;
+  return '<svg width="70" height="96" viewBox="0 0 70 96"><path d="M27 40 L43 40 L48 94 L22 94Z" fill="#f4e6d0" stroke="#c9a77a" stroke-width="1.5"/><rect x="31" y="74" width="8" height="20" rx="4" fill="#a8774d"/><circle cx="35" cy="54" r="4" fill="#8ec9ef" stroke="#c9a77a"/>'+
+    '<g class="blades" style="transform-origin:35px 34px;animation:roll '+(6 - lv * 0.6)+'s linear infinite">'+[0,90,180,270].map(a => '<rect x="32" y="4" width="6" height="30" rx="2" fill="#fffaf2" stroke="#c9a77a" transform="rotate('+a+' 35 34)"/>').join('')+'</g><circle cx="35" cy="34" r="3.4" fill="#c9a77a"/></svg>'; }
+function barnSVG(){ return '<svg width="86" height="74" viewBox="0 0 86 74"><path d="M6 32 L43 6 L80 32 L80 72 L6 72Z" fill="#e0605a" stroke="#a83c3a" stroke-width="2"/><path d="M2 34 L43 4 L84 34" stroke="#fff6ea" stroke-width="5" fill="none" stroke-linecap="round"/>'+
+  '<rect x="30" y="40" width="26" height="32" fill="#a83c3a"/><path d="M30 40 L56 72 M56 40 L30 72" stroke="#fff6ea" stroke-width="3"/><rect x="30" y="40" width="26" height="32" fill="none" stroke="#fff6ea" stroke-width="3"/><circle cx="43" cy="24" r="5" fill="#fff6ea"/></svg>'; }
+function renderProps(){
+  const A = AREA(S.cur), sc = sceneScale();
+  let h = '<div class="prop" style="left:84%;top:16%;font-size:'+Math.round(40*sc)+'px;opacity:.95">'+(isNight() ? '🌙' : '☀️')+'</div>';
+  const pos = [[8,63,62],[90,64,46],[60,58,30]];
+  const props = S.theme === 'candy' && S.paid ? ['lollytree','candycloud','cupcake'].map(k => DECOR[k].e) : A.props.map(propEmoji);
+  props.forEach((e, i) => { const [x, y, z] = pos[i]; h += '<div class="prop" style="left:'+x+'%;top:'+y+'%;font-size:'+Math.round(z*sc)+'px">'+e+'</div>'; });
+  if(S.cur === 'orchard') h += '<div class="prop" style="left:14%;top:52%;font-size:'+Math.round(16*sc)+'px">🍎</div><div class="prop" style="left:5%;top:56%;font-size:'+Math.round(14*sc)+'px">🍎</div>';
+  if(S.upg.barn > 0) h += '<div class="prop" style="left:22%;top:57%;transform:translate(-50%,-90%) scale('+(0.8*sc+S.upg.barn*0.04)+')">'+barnSVG()+'</div>';
+  if(S.upg.windmill > 0) h += '<div class="prop" style="left:74%;top:57%;transform:translate(-50%,-92%) scale('+(0.75*sc)+')">'+windmillSVG(S.upg.windmill)+'</div>';
+  if(S.upg.hay > 0) for(let i=0;i<Math.min(3, S.upg.hay);i++) h += '<div class="prop" style="left:'+(6+i*5)+'%;top:'+(80+i%2*3)+'%;font-size:'+Math.round(30*sc)+'px">🌾</div>';
+  if(seasonOf() === 'winter' && S.cur !== 'snowy' && !(S.theme === 'candy' && S.paid)) h += '<div class="prop" style="left:94%;top:86%;font-size:'+Math.round(32*sc)+'px">⛄</div>';
+  if(seasonOf() === 'autumn' && !(S.theme === 'candy' && S.paid)) h += '<div class="prop" style="left:46%;top:94%;font-size:'+Math.round(28*sc)+'px">🎃</div>';
+  $('props').innerHTML = h;
+}
+function sheepKey(s){ return [s.b, Math.round(s.w * 12), s.dye, JSON.stringify(s.o), napping(s) ? 1 : 0, s.sulk > now() ? 1 : 0, isLamb(s) ? 1 : 0, seasonOf(), s.blush > now() ? 1 : 0].join('|'); }
+const napping = s => s.nap > now() || (isNight() && s.p === 'sleepy');
+function sheepSize(s){ const base = 100 * sceneScale() * (isLamb(s) || B(s).tiny ? 0.6 : 1); return Math.round(base); }
+function renderSheep(){
+  const box = $('sheep'), here = sheepIn(S.cur), keep = {};
+  here.forEach(s => {
+    keep[s.id] = 1;
+    let a = actors[s.id];
+    if(!a){
+      const [x, y] = s.mom && actors[s.mom] ? [actors[s.mom].x - 6, actors[s.mom].y + 1] : randSpot();
+      const el = document.createElement('div');
+      el.className = 'sheep idle'; el.dataset.id = s.id;
+      el.innerHTML = '<div class="flip"><div class="bob"></div></div><div class="ready" style="display:none">✂️</div>';
+      box.appendChild(el);
+      a = actors[s.id] = {id:s.id, el, x, y, tx:x, ty:y, wait:rnd(0.5, 3), key:'', flip:Math.random() < 0.5, act:'idle', cls:''};
+      bindSheep(a);
+    }
+    const k = sheepKey(s);
+    if(a.key !== k){
+      a.key = k;
+      a.el.querySelector('.bob').innerHTML = sheepSVG(s, {sleep: napping(s), sulk: s.sulk > now(), winter: seasonOf() === 'winter', blush: s.blush > now()});
+      const z = sheepSize(s);
+      a.el.style.width = z + 'px'; a.el.style.height = Math.round(z * 0.9) + 'px';
+      a.el.style.marginLeft = -Math.round(z / 2) + 'px'; a.el.style.marginTop = -Math.round(z * 0.8) + 'px';
+      const zz = a.el.querySelector('.zz');
+      if(napping(s) && !zz){ const d = document.createElement('div'); d.className = 'zz'; d.textContent = 'z'; a.el.appendChild(d); }
+      if(!napping(s) && zz) zz.remove();
+    }
+    a.el.querySelector('.ready').style.display = s.w >= 1 && !isLamb(s) ? '' : 'none';
+  });
+  for(const id in actors) if(!keep[id]){ actors[id].el.remove(); delete actors[id]; }
+}
+function renderHills(){
+  if(!S) return;
+  renderBg(); renderProps(); renderDecor(); renderSheep(); renderCare(); renderSide(); renderAreaName(); renderWeather(); renderVisitor();
+  $('nightTint').style.opacity = isNight() ? 0.4 : 0;
+}
+function renderAreaName(){
+  const A = AREA(S.cur), many = S.areas.length > 1;
+  $('areaName').innerHTML = (many ? '<button id="arPrev" aria-label="Previous">◀</button>' : '') + '<span>' + A.e + ' ' + L(A) + ' <span class="muted">🐑 ' + herd() + '/' + cap() + '</span></span>' + (many ? '<button id="arNext" aria-label="Next">▶</button>' : '');
+  if(many){ const go = d => { const i = S.areas.indexOf(S.cur); goArea(S.areas[(i + d + S.areas.length) % S.areas.length]); }; $('arPrev').onclick = () => go(-1); $('arNext').onclick = () => go(1); }
+}
+function goArea(id){
+  if(!S.areas.includes(id)) return;
+  S.cur = id; for(const k in actors) actors[k].el.remove(); actors = {};
+  if(curView !== 'Hills') showView('Hills'); else renderHills();
+  sfx('whoosh'); if(S.mus){ musicStop(); musicStart(); }
+}
+
+/* ---------- side buttons ---------- */
+function fab(id, e, label, badge){ return '<button class="fab" id="'+id+'">'+e+(badge ? '<span class="bdg">'+badge+'</span>' : '')+'<small>'+label+'</small></button>'; }
+function renderCare(){
+  const hungry = sheepIn(S.cur).filter(s => s.m.food < 50).length;
+  $('careBar').innerHTML = fab('cFeed', '🌿', T('Feed', 'Nourrir'), hungry || '') + fab('cDeco', '🪴', T('Decorate', 'Décorer')) + fab('cGames', '🎮', T('Games', 'Jeux'), triesLeft() ? triesLeft() : '');
+  $('cFeed').onclick = openFeed; $('cDeco').onclick = openDecorate; $('cGames').onclick = openGames;
+}
+function renderSide(){
+  const giftReady = now() >= S.giftAt, fluffy = sheepIn(S.cur).filter(s => s.w >= 1 && !isLamb(s)).length;
+  $('sideR').innerHTML = fab('sShear', '✂️', T('Shear all', 'Tout tondre'), fluffy || '') + fab('sGift', '🎁', giftReady ? T('Gift', 'Cadeau') : fmtTime((S.giftAt - now()) / 1000), giftReady ? '!' : '') + fab('sBoost', '⚡', '2× 🪙', has2x() ? '✓' : '');
+  $('sShear').onclick = shearAll; $('sGift').onclick = openGift; $('sBoost').onclick = openBoosts;
+}
+
+/* ---------- tapping sheep: tap = pet (or shear when fluffy), hold = sheep card ---------- */
+function bindSheep(a){
+  let timer = null, down = false, sx = 0, sy = 0, held = false;
+  a.el.addEventListener('pointerdown', e => {
+    e.stopPropagation(); down = true; held = false; sx = e.clientX; sy = e.clientY;
+    timer = setTimeout(() => { if(!down) return; held = true; const s = sheepById(a.id); if(s){ sfx('tap'); openSheep(s); } }, 480);
+  });
+  a.el.addEventListener('pointermove', e => { if(down && Math.hypot(e.clientX - sx, e.clientY - sy) > 14){ clearTimeout(timer); down = false; } });
+  a.el.addEventListener('pointerup', e => {
+    e.stopPropagation(); clearTimeout(timer);
+    if(!down || held){ down = false; return; } down = false;
+    const s = sheepById(a.id); if(!s) return;
+    if(s.w >= 1 && !isLamb(s)) doShear(s); else petSheep(s);
+  });
+  a.el.addEventListener('pointercancel', () => { clearTimeout(timer); down = false; });
+  a.el.addEventListener('contextmenu', e => e.preventDefault());
+}
+function popActor(s, cls){
+  const a = actors[s.id]; if(!a) return;
+  a.el.classList.remove('pop', 'shorn'); void a.el.offsetWidth; a.el.classList.add(cls || 'pop');
+  setTimeout(() => a.el.classList.remove(cls || 'pop'), 700);
+}
+function petSheep(s){
+  const t = now(), a = actors[s.id];
+  baa(isLamb(s) ? 1.6 : rnd(0.9, 1.15));
+  popActor(s);
+  if(s.sulk > t){ fxAtSheep(s, '💢'); return; }
+  fxAtSheep(s, pick(['💛','💕','💖','💗']));
+  if(s.p === 'shy'){ s.blush = t + 3000; if(a) a.key = ''; renderSheep(); }
+  if(t - (s.petT || 0) < CONFIG.PET_COOLDOWN_MS) return;
+  s.petT = t;
+  if(s.nap > t) s.nap = 0;
+  addLove(s, CONFIG.PET_LOVE); s.m.joy = Math.min(100, s.m.joy + CONFIG.PET_JOY);
+  S.stats.pets++; tutEvent('pet');
+}
+function doShear(s){
+  const n = shear(s); if(!n) return;
+  sfx('snip'); fluffPuffs(s);
+  const a = actors[s.id]; if(a){ a.key = ''; }
+  renderSheep(); popActor(s, 'shorn');
+  fxAtSheep(s, '+' + n + ' ☁️');
+  if(s.p === 'dramatic'){
+    s.sulk = now() + 12000; setTimeout(() => baa(0.8, true), 150);
+    const ac = actors[s.id]; if(ac){ const b = document.createElement('div'); b.className = 'bub'; b.textContent = T('BAAA!', 'BÊÊÊ!'); ac.el.appendChild(b); setTimeout(() => b.remove(), 1800); }
+    if(a) a.key = '';
+  } else setTimeout(() => baa(isLamb(s) ? 1.5 : 1.25), 200);
+  renderSide(); renderCare(); refreshTop(); tutEvent('shear'); saveNow();
+}
+function shearAll(){
+  const ds = sheepIn(S.cur).filter(s => s.w >= CONFIG.SHEAR_MIN && !isLamb(s));
+  if(!ds.length){ toast(T('Nobody is fluffy yet', 'Personne n’est assez duveteux'), 'err'); sfx('err'); return; }
+  ds.forEach((s, i) => setTimeout(() => doShear(s), i * 180));
+}
+function fluffPuffs(s){
+  const a = actors[s.id]; if(!a) return;
+  const col = COLORS[s.dye || B(s).col];
+  for(let i=0;i<10;i++){
+    const p = document.createElement('div'); p.className = 'puff';
+    p.style.left = a.x + '%'; p.style.top = (a.y - 6) + '%';
+    p.style.background = col.rb ? RB[i % 6] : col.c; p.style.boxShadow = '0 1px 0 #0001';
+    const ang = Math.random() * Math.PI * 2; p.style.setProperty('--dx', Math.cos(ang) * rnd(20, 50) + 'px'); p.style.setProperty('--dy', (Math.sin(ang) * rnd(15, 40) - 20) + 'px');
+    sceneEl().appendChild(p); setTimeout(() => p.remove(), 900);
+  }
+}
+function fxAt(x, y, txt, delay){
+  setTimeout(() => { const f = document.createElement('div'); f.className = 'fx'; f.innerHTML = txt; f.style.left = x + '%'; f.style.top = y + '%'; sceneEl().appendChild(f); setTimeout(() => f.remove(), 1000); }, delay || 0);
+}
+function fxAtSheep(s, txt, delay){ const a = actors[s.id]; if(a && curView === 'Hills') fxAt(a.x, a.y - 12, txt, delay); }
+
+/* ---------- feeding ---------- */
+function foodUnlocked(k){ return FOODS[k].lv <= S.upg.food; }
+function openFeed(){
+  sfx('tap');
+  let h = '<p class="center muted">' + T('Pick a food. The hungriest sheep here eat first.', 'Choisis un aliment. Les moutons les plus affamés mangent en premier.') + '</p>';
+  FOOD_IDS.forEach(k => {
+    const F = FOODS[k], have = F.free ? '∞' : (S.inv[k] || 0), un = foodUnlocked(k);
+    h += '<div class="card"><div class="art">'+F.e+'</div><div class="info"><div class="nm">'+L(F)+' ×'+have+'</div><div class="sub">+'+F.food+' 🥣'+(F.joy ? ' +'+F.joy+' 😊' : '')+(F.boost ? ' · '+T('wool','laine')+' +'+Math.round(F.boost*100)+'% '+F.mins+'m' : '')+'</div></div>'+
+      (!un ? '<button class="btn ghost sm" disabled>🔒</button>' : (F.free || have > 0) ? '<button class="btn" data-feed="'+k+'">'+T('Feed','Nourrir')+'</button>' : '<button class="btn ghost sm" data-buy="'+k+'">'+T('Buy','Acheter')+'</button>')+'</div>';
+  });
+  openModal('🌿 ' + T('Feed the sheep', 'Nourrir les moutons'), h);
+  $('mBody').querySelectorAll('[data-feed]').forEach(b => b.onclick = () => { closeModal(); feedArea(b.dataset.feed); });
+  $('mBody').querySelectorAll('[data-buy]').forEach(b => b.onclick = () => { closeModal(); mTab = 'food'; showView('Market'); });
+  tutEvent('openFeed');
+}
+function feedOne(s, k){
+  const F = FOODS[k];
+  if(!F.free){ if((S.inv[k] || 0) <= 0) return false; S.inv[k]--; }
+  s.m.food = Math.min(100, s.m.food + F.food); s.m.joy = Math.min(100, s.m.joy + F.joy);
+  if(F.boost) s.boost = {m: F.boost, until: now() + F.mins * 60000 * (s.p === 'greedy' ? 2 : 1)};
+  addLove(s, k === 'grass' ? 2 : 6); fxAtSheep(s, F.e); S.stats.feeds++;
+  return true;
+}
+function feedArea(k){
+  const ds = sheepIn(S.cur).filter(s => s.m.food < 95).sort((a, b) => a.m.food - b.m.food);
+  if(!ds.length){ toast(T('Everyone is full!', 'Tout le monde a le ventre plein!')); return; }
+  let fed = 0;
+  for(const s of ds){ if(!feedOne(s, k)) break; fed++; setTimeout(() => baa(rnd(1, 1.3)), fed * 120); }
+  if(fed){ sfx('coin'); tutEvent('feed'); }
+  renderCare(); saveNow();
+}
+
+/* ---------- the animation loop for sheep ---------- */
+function placeActor(a){ a.el.style.left = a.x + '%'; a.el.style.top = a.y + '%'; a.el.style.zIndex = Math.round(a.y * 10); }
+function chooseAct(s, a){
+  const t = now();
+  if(isNight() && (s.p === 'sleepy' || Math.random() < 0.6)){ s.nap = t + rnd(20, 60) * 1000; a.act = 'nap'; a.wait = rnd(8, 20); a.key = ''; return; }
+  const w = {graze:30, walk:22, spot:20, bounce:s.p === 'bouncy' ? 30 : 5, nap:s.p === 'sleepy' ? 22 : (seasonOf() === 'summer' ? 8 : 4), roll:7};
+  const keys = Object.keys(w), k = keys[weighted(keys.map(x => w[x]))];
+  a.act = k;
+  if(k === 'graze'){ a.wait = rnd(2, 6); }
+  else if(k === 'walk'){ [a.tx, a.ty] = randSpot(); }
+  else if(k === 'spot'){ const p = SPOTS[s.spot].p; a.tx = p[0] + rnd(-5, 5); a.ty = p[1] + rnd(-2, 3); }
+  else if(k === 'bounce'){ [a.tx, a.ty] = randSpot(); a.bouncing = true; }
+  else if(k === 'nap'){ s.nap = t + rnd(10, 30) * 1000; a.wait = rnd(8, 16); a.key = ''; }
+  else if(k === 'roll'){ a.tx = HILL_TOP[0] + rnd(-3, 3); a.ty = HILL_TOP[1] + rnd(0, 2); a.rollNext = true; }
+}
+function stepActors(dt){
+  const t = now();
+  sheepIn(S.cur).forEach(s => {
+    const a = actors[s.id]; if(!a) return;
+    let cls = 'idle';
+    const mom = s.mom && isLamb(s) ? actors[s.mom] : null;
+    if(s.sulk > t){ cls = 'sulk'; a.tx = a.x; a.ty = a.y; }
+    else if(napping(s)){ cls = 'nap'; a.tx = a.x; a.ty = a.y; if(s.nap && s.nap <= t && !isNight()){ s.nap = 0; a.key = ''; } }
+    else if(mom){ const back = mom.flip ? 1 : -1; a.tx = mom.x + back * 7; a.ty = mom.y + 1.5; }
+    const dx = a.tx - a.x, dy = a.ty - a.y, dist = Math.hypot(dx, dy);
+    if(cls === 'idle' && dist > 0.5){
+      let sp = (isLamb(s) ? 8 : 5.5) * dt;
+      if(a.act === 'rolling') sp = 16 * dt;
+      const m = Math.min(dist, sp);
+      a.x += dx / dist * m; a.y += dy / dist * m;
+      if(a.act !== 'rolling') a.flip = dx < -0.1 ? true : dx > 0.1 ? false : a.flip;
+      cls = a.act === 'rolling' ? 'roll' : a.bouncing ? 'bounce' : 'walk';
+    } else if(cls === 'idle'){
+      if(a.rollNext){ a.rollNext = false; a.act = 'rolling'; a.tx = HILL_BOTTOM[0] + rnd(-4, 4); a.ty = HILL_BOTTOM[1] + rnd(-2, 3); a.flip = false; if(Math.random() < 0.5) setTimeout(() => baa(1.4), 100); }
+      else if(a.act === 'rolling'){ a.act = 'idle'; a.wait = 1.5; fxAtSheep(s, '💫'); }
+      else {
+        a.bouncing = false;
+        if(a.act === 'graze') cls = 'graze';
+        if(!mom){ a.wait -= dt; if(a.wait <= 0) chooseAct(s, a); }
+      }
+    }
+    if(a.cls !== cls){ a.el.classList.remove('idle','walk','graze','bounce','nap','roll','sulk'); a.el.classList.add(cls); a.cls = cls; }
+    a.el.querySelector('.flip').style.transform = a.flip ? 'scaleX(-1)' : '';
+    placeActor(a);
+  });
+}
+
+/* ---------- decorations (drag them anywhere) ---------- */
+function decorArt(d, px){
+  if(d.item) return itemSVG(d.item.k, d.item.c, px);
+  return '<span style="font-size:'+px+'px">' + DECOR[d.k].e + '</span>';
+}
+function renderDecor(){
+  const box = $('sheep'), sc = sceneScale();
+  box.querySelectorAll('.decoItem').forEach(e => e.remove());
+  S.decor.filter(d => d.a === S.cur).forEach(d => {
+    const el = document.createElement('div'); el.className = 'decoItem'; el.dataset.id = d.id;
+    el.style.left = d.x + '%'; el.style.top = d.y + '%'; el.style.zIndex = Math.round(d.y * 10);
+    el.innerHTML = decorArt(d, Math.round((d.item ? 46 : 38) * sc));
+    bindDecor(el, d); box.appendChild(el);
+  });
+}
+function bindDecor(el, d){
+  let down = false, moved = false, sx = 0, sy = 0;
+  el.addEventListener('pointerdown', e => { if(!document.body.classList.contains('decoMode')) return; e.stopPropagation(); down = true; moved = false; sx = e.clientX; sy = e.clientY; el.setPointerCapture && el.setPointerCapture(e.pointerId); });
+  el.addEventListener('pointermove', e => {
+    if(!down) return;
+    if(Math.hypot(e.clientX - sx, e.clientY - sy) > 8) moved = true;
+    if(moved){ const r = sceneEl().getBoundingClientRect(); d.x = clamp((e.clientX - r.left) / r.width * 100, 3, 97); d.y = clamp((e.clientY - r.top) / r.height * 100 + 4, WALK.y0 - 2, 98); el.style.left = d.x + '%'; el.style.top = d.y + '%'; el.style.zIndex = Math.round(d.y * 10); }
+  });
+  el.addEventListener('pointerup', e => {
+    if(!down) return; down = false;
+    if(!moved){
+      confirmBox(T('Put it away?', 'Ranger cet objet?'), T('It goes back to your storage.', 'Il retourne dans ton rangement.'), '📦 ' + T('Put away', 'Ranger'), () => {
+        S.decor = S.decor.filter(x => x !== d);
+        if(d.item) S.items.push(d.item); else S.decorOwn[d.k] = (S.decorOwn[d.k] || 0) + 1;
+        renderDecor(); saveNow();
+      });
+    } else saveNow();
+  });
+}
+function openDecorate(){
+  sfx('tap');
+  const own = Object.keys(S.decorOwn).filter(k => S.decorOwn[k] > 0);
+  const keep = S.items.filter(it => ITEMS[it.k].decor);
+  let h = '<p class="center muted">' + T('Each decoration makes sheep in this area grow wool 3% faster.', 'Chaque décoration fait pousser la laine 3% plus vite dans cette zone.') + '</p>';
+  if(!own.length && !keep.length) h += '<p class="center">' + T('Buy decorations at the Market, or knit a blanket or plushie!', 'Achète des décorations au Marché, ou tricote une couverture ou une peluche!') + '</p>';
+  own.forEach(k => h += '<div class="card"><div class="art">'+DECOR[k].e+'</div><div class="info"><div class="nm">'+L(DECOR[k])+' ×'+S.decorOwn[k]+'</div></div><button class="btn" data-place="'+k+'">'+T('Place','Placer')+'</button></div>');
+  keep.forEach(it => h += '<div class="card"><div class="art">'+itemSVG(it.k, it.c, 52)+'</div><div class="info"><div class="nm">'+esc(itemName(it))+'</div><div class="sub">'+L(WOOL[it.w])+'</div></div><button class="btn" data-pitem="'+it.id+'">'+T('Place','Placer')+'</button></div>');
+  h += '<button class="btn wide gold" id="dcMove">✋ ' + T('Move my decorations', 'Déplacer mes décorations') + '</button><button class="btn wide ghost" id="dcShop">🧺 ' + T('Buy decorations', 'Acheter des décorations') + '</button>';
+  openModal('🪴 ' + T('Decorate', 'Décorer'), h);
+  const place = d => { S.decor.push(d); closeModal(); decoMode(true); renderDecor(); saveNow(); };
+  $('mBody').querySelectorAll('[data-place]').forEach(b => b.onclick = () => { const k = b.dataset.place; S.decorOwn[k]--; place({id: S.nextId++, k, x: rnd(35, 65), y: rnd(70, 82), a: S.cur}); });
+  $('mBody').querySelectorAll('[data-pitem]').forEach(b => b.onclick = () => { const it = S.items.find(x => x.id === +b.dataset.pitem); if(!it) return; S.items = S.items.filter(x => x !== it); place({id: S.nextId++, item: it, x: rnd(35, 65), y: rnd(70, 82), a: S.cur}); });
+  $('dcMove').onclick = () => { closeModal(); decoMode(true); };
+  $('dcShop').onclick = () => { closeModal(); mTab = 'decor'; showView('Market'); };
+}
+function decoMode(on){
+  document.body.classList.toggle('decoMode', on);
+  $('decoDone').textContent = '✔ ' + T('Done', 'Terminé');
+  if(on) toast(T('Drag to move. Tap one to put it away.', 'Glisse pour déplacer. Touche-en un pour le ranger.'));
+}
+
+/* ---------- the daily visiting sheep ---------- */
+function renderVisitor(){
+  const old = $('visitorEl'); if(old) old.remove();
+  const v = S.visit; if(!v || v.gone || v.day !== dayNum(now())) return;
+  const el = document.createElement('button'); el.id = 'visitorEl'; el.className = 'sheep idle';
+  const z = Math.round(100 * sceneScale());
+  el.style.cssText = 'left:50%;top:60%;z-index:700;width:'+z+'px;height:'+Math.round(z*0.9)+'px;margin-left:'+(-z/2)+'px;margin-top:'+(-z*0.8)+'px';
+  el.innerHTML = '<div class="flip" style="transform:scaleX(-1)"><div class="bob">' + sheepSVG({b: v.b, w: 1, o: []}) + '</div></div><div class="bub">💭 ' + itemIcon({k: v.wish.k, c: v.wish.c}, 20) + '</div>';
+  el.onclick = e => { e.stopPropagation(); openVisitor(); };
+  $('sheep').appendChild(el);
+}
+function spawnVisitor(){
+  const ssn = seasonOf();
+  const pool = BREED_IDS.filter(b => !BREEDS[b].paid && !BREEDS[b].ad && (!BREEDS[b].season || BREEDS[b].season === ssn));
+  const b = pool[weighted(pool.map(x => [40, 25, 14, 4][BREEDS[x].r]))];
+  const kinds = ['scarf','mittens','hat','scarf','mittens'];
+  const cols = ['red','yellow','blue','pink', null, null];
+  const c = pick(cols);
+  S.visit = {day: dayNum(now()), b, n: freeName(), wish: {k: pick(kinds), c: c || 'natural'}, love: 0, gone: false};
+  renderVisitor(); toast('👋 ' + T('A visiting sheep came by!', 'Un mouton visiteur est arrivé!'));
+}
+function wishText(w){ return w.c === 'natural' ? L(ITEMS[w.k]) + ' (' + T('any color', 'n’importe quelle couleur') + ')' : itemName({k: w.k, c: w.c}); }
+function wishMatch(it, w){ return it.k === w.k && (w.c === 'natural' || it.c === w.c); }
+function openVisitor(){
+  const v = S.visit; if(!v) return;
+  const nm = NAMES[v.n][S.lang === 'fr' ? 1 : 0], Bd = BREEDS[v.b];
+  const match = S.items.find(it => wishMatch(it, v.wish));
+  let h = '<div class="reward"><div class="big">' + sheepSVG({b: v.b, w: 1, o: []}) + '</div><p><b>' + esc(nm) + '</b> · <span class="tag" style="background:'+RARITY[Bd.r].c+';color:#fff">'+L(RARITY[Bd.r])+'</span> ' + L(Bd) + '</p>';
+  h += '<p>“' + T('Hello! I’m visiting from far away. I would love a', 'Bonjour! Je viens de loin. J’aimerais tellement un') + ' <b>' + wishText(v.wish) + '</b>!”</p>';
+  h += '<div class="mood"><span>💛</span><div class="bar"><i style="width:'+v.love+'%;background:#ff9fb6"></i></div></div></div>';
+  if(v.love >= 100) h += '<p class="center"><b>“' + T('I love it here! Can I stay with you forever?', 'J’adore ça ici! Je peux rester avec toi pour toujours?') + '”</b></p><button class="btn wide pink" id="vsStay">💛 ' + T('Yes, stay!', 'Oui, reste!') + '</button>';
+  else {
+    h += match ? '<button class="btn wide gold" id="vsGive">🎁 ' + T('Give', 'Donner') + ' ' + itemIcon(match, 24) + '</button>' : '<p class="muted center">' + T('Knit it at the Knit tab, then come back!', 'Tricote-le dans l’onglet Tricot, puis reviens!') + '</p>';
+    h += '<button class="btn wide ghost" id="vsPet">💛 ' + T('Pet', 'Flatter') + '</button>';
+  }
+  openModal('👋 ' + T('Visitor', 'Visiteur'), h);
+  if($('vsGive')) $('vsGive').onclick = () => { S.items = S.items.filter(x => x !== match); v.love = 100; sfx('gift'); baa(1.3); addCoins(100); toast('+100 🪙 ' + T('Thank you!', 'Merci!'), 'gold'); saveNow(); openVisitor(); };
+  if($('vsPet')) $('vsPet').onclick = () => { if(v.petT && now() - v.petT < 2000) return; v.petT = now(); v.love = Math.min(100, v.love + 12); baa(); saveNow(); openVisitor(); };
+  if($('vsStay')) $('vsStay').onclick = () => {
+    if(roomLeft() <= 0){ toast(T('Your pasture is full! Get More Pasture at the Farm.', 'Ton pâturage est plein! Achète plus de pâturage à la Ferme.'), 'err'); return; }
+    const s = makeSheep({b: v.b, n: v.n, a: S.cur, w: 0.8, love: 200});
+    v.gone = true; closeModal(); renderHills(); fxAtSheep(s, '💛'); sfx('win'); saveNow();
+  };
+}
+
+/* ---------- seasons: falling petals, leaves and snow ---------- */
+let wxKey = '';
+function renderWeather(){
+  const ssn = seasonOf(), k = ssn + S.cur + (S.theme === 'candy' && S.paid ? 'c' : '');
+  if(k === wxKey) return; wxKey = k;
+  const list = S.theme === 'candy' && S.paid ? ['✨','🍬','✨'] : SEASONS[ssn].fall;
+  const n = ssn === 'winter' ? 26 : ssn === 'summer' ? 4 : 12;
+  let h = ''; for(let i=0;i<n;i++) h += '<i class="flake" style="left:'+rnd(-5, 100)+'%;font-size:'+rnd(11, 20)+'px;color:#fff;animation-duration:'+rnd(6, 13)+'s;animation-delay:-'+rnd(0, 13)+'s">'+pick(list)+'</i>';
+  $('weather').innerHTML = h;
+}
+
+/* =====================================================================
+   9. SCREENS — top bar, menu, pop-ups, sheep card, Knit, Market, Farm, Book, Shop
+===================================================================== */
+let curView = 'Hills';
+const NAV = [['Hills','🌄',{en:'Hills',fr:'Collines'}],['Knit','🧶',{en:'Knit',fr:'Tricot'}],['Market','🧺',{en:'Market',fr:'Marché'}],
+  ['Farm','🏡',{en:'Farm',fr:'Ferme'}],['Book','📖',{en:'Book',fr:'Livre'}],['Shop','🛍️',{en:'Shop',fr:'Boutique'}]];
+function renderNav(){
+  $('nav').innerHTML = NAV.map(([k, e, n]) => '<button id="nav'+k+'" class="'+(curView === k ? 'on' : '')+'"><span class="e">'+e+'</span>'+L(n)+'<i class="dot" id="dot'+k+'"></i></button>').join('');
+  NAV.forEach(([k]) => $('nav' + k).onclick = () => { sfx('tap'); showView(k); });
+}
+function showView(k){
+  curView = k;
+  if(k !== 'Hills') decoMode(false);
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  $('v' + k).classList.add('on');
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.id === 'nav' + k));
+  ({Hills:renderHills, Knit:renderKnit, Market:renderMarket, Farm:renderFarm, Book:renderBook, Shop:renderShop})[k]();
+  $('v' + k).scrollTop = 0;
+  tutEvent('view' + k);
+}
+function refresh(){ if(curView !== 'Hills' && !$('modalBg').classList.contains('on')){ const y = $('v' + curView).scrollTop; ({Knit:renderKnit, Market:renderMarket, Farm:renderFarm, Book:renderBook, Shop:renderShop})[curView](); $('v' + curView).scrollTop = y; if(S.tut >= 1 && S.tut < 99) tutHl(); } }
+let shownC = 0;
+function refreshTop(){
+  if(!S) return;
+  $('vYarn').textContent = fmt(yarnTotal());
+  const t = now(), ssn = seasonOf(t); let b = '';
+  b += '<span class="bst">' + SEASONS[ssn].e + ' ' + L(SEASONS[ssn]) + '</span>';
+  if(has2x()) b += '<span class="bst">2× 🪙 ' + fmtTime((S.ad2x - t) / 1000) + '</span>';
+  if(S.knit.length) b += '<span class="bst">🪡 ' + fmtTime(knitLeft(0)) + '</span>';
+  if(isNight(t)) b += '<span class="bst">🌙</span>';
+  if($('boosts').innerHTML !== b) $('boosts').innerHTML = b;
+  $('muteBtn').textContent = S.snd || S.mus ? '🔊' : '🔇';
+  const dk = $('dotKnit'); if(dk) dk.classList.toggle('show', S.knit.length < knitSlots() && Object.keys(S.yarn).some(k => S.yarn[k] >= 2));
+  const dm = $('dotMarket'); if(dm) dm.classList.toggle('show', S.items.length > 0);
+  const df = $('dotFarm'); if(df) df.classList.toggle('show', UPG_IDS.some(k => S.upg[k] < UPGRADES[k].max && S.coins >= upgCost(k)));
+  const ds = $('dotShop'); if(ds) ds.classList.toggle('show', S.rareDay !== dayNum(t));
+}
+function tickCoinDisplay(){ const d = S.coins - shownC; shownC = Math.abs(d) < 1 ? S.coins : shownC + d * 0.25; $('vCoin').textContent = fmt(shownC); }
+
+/* ---------- toast + modal ---------- */
+function toast(msg, kind){
+  const t = document.createElement('div'); t.className = 'tst' + (kind ? ' ' + kind : ''); t.innerHTML = msg;
+  const box = $('toast'); box.appendChild(t);
+  while(box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = 0; setTimeout(() => t.remove(), 400); }, 2600);
+}
+let modalOnClose = null, modalQueue = [];
+function openModal(title, html, onClose, noClose){
+  $('mBody').innerHTML = (title ? '<h2>' + title + '</h2>' : '') + html;
+  $('modalBg').classList.add('on'); $('mClose').style.display = noClose ? 'none' : '';
+  modalOnClose = onClose || null; $('modal').scrollTop = 0;
+}
+function closeModal(){
+  if(!$('modalBg').classList.contains('on')) return;
+  $('modalBg').classList.remove('on');
+  const f = modalOnClose; modalOnClose = null; if(f) f();
+  refreshTop(); refresh();
+  if(modalQueue.length) setTimeout(() => { if(!$('modalBg').classList.contains('on') && modalQueue.length) modalQueue.shift()(); }, 250);
+}
+const modalOpen = () => $('modalBg').classList.contains('on');
+function queueModal(fn){ if(modalOpen()) modalQueue.push(fn); else fn(); }
+function showReward(art, title, html, onClose){
+  openModal('', '<div class="reward"><div class="big">' + art + '</div><h2>' + title + '</h2><div>' + (html || '') + '</div><button class="btn wide" id="rwOk">' + T('Yay!', 'Youpi!') + '</button></div>', onClose);
+  $('rwOk').onclick = closeModal;
+}
+function confirmBox(title, msg, yes, cb){
+  openModal(title, '<p class="center">' + msg + '</p><button class="btn wide pink" id="cfY">' + yes + '</button><button class="btn wide ghost" id="cfN">' + T('Cancel', 'Annuler') + '</button>');
+  $('cfY').onclick = () => { closeModal(); cb(); }; $('cfN').onclick = closeModal;
+}
+const moodColor = v => v > 60 ? '#5cc98a' : v > 30 ? '#ffc83d' : '#ff7a8a';
+const heartsHtml = s => '<span class="hearts">' + '❤️'.repeat(hearts(s)) + '🤍'.repeat(CONFIG.MAX_HEARTS - hearts(s)) + '</span>';
+
+/* ---------- the sheep card (hold a sheep) ---------- */
+function openSheep(s){
+  const Bd = B(s), P = PERS[s.p], t = now();
+  let h = '<div class="reward"><div class="big">' + sheepSVG(s, {sulk: s.sulk > t, winter: seasonOf() === 'winter', blush: s.p === 'shy'}) + '</div>';
+  h += '<h2 style="margin:4px 0">' + esc(sheepName(s)) + (isLamb(s) ? ' <span class="tag">🍼 ' + T('Lamb', 'Agneau') + '</span>' : '') + '</h2>';
+  h += '<p style="margin:4px 0"><span class="tag" style="background:'+RARITY[Bd.r].c+';color:#fff">'+L(RARITY[Bd.r])+'</span> '+L(Bd)+' · '+WOOL[Bd.wool].e+' '+L(WOOL[Bd.wool])+'</p></div>';
+  h += '<div class="card" style="display:block"><b>' + P.e + ' ' + L(P) + '</b> — <span class="sub">' + L(P.d) + '</span><br><span class="sub">' + T('Favorite spot', 'Endroit préféré') + ': ' + SPOTS[s.spot].e + ' ' + L(SPOTS[s.spot]) + '</span></div>';
+  h += '<div class="mood"><span>☁️</span><div class="bar"><i style="width:'+(s.w*100)+'%;background:#9fd3ff"></i></div><b>'+Math.round(s.w*100)+'%</b></div>';
+  h += '<div class="mood"><span>🥣</span><div class="bar"><i style="width:'+s.m.food+'%;background:'+moodColor(s.m.food)+'"></i></div></div>';
+  h += '<div class="mood"><span>😊</span><div class="bar"><i style="width:'+s.m.joy+'%;background:'+moodColor(s.m.joy)+'"></i></div></div>';
+  h += '<p class="center" style="margin:6px 0">' + heartsHtml(s) + '</p>';
+  if(isLamb(s)) h += '<p class="center muted">🍼 ' + T('Grows up in', 'Devient grand dans') + ' ' + fmtTime((s.lamb + CONFIG.LAMB_GROW_HOURS * 3600000 - t) / 1000) + '</p>';
+  else if(s.w < 1) h += '<p class="center muted">☁️ ' + T('Full wool in about', 'Laine pleine dans environ') + ' ' + fmtTime((1 - s.w) / Math.max(1e-6, woolRate(s, t))) + '</p>';
+  if(s.dye) h += '<p class="center muted">🎨 ' + T('Dyed', 'Teint') + ': ' + ballHtml(s.dye, 16) + ' ' + colorName(s.dye) + '</p>';
+  h += '<div class="row" style="flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px">';
+  if(!isLamb(s) && s.w >= CONFIG.SHEAR_MIN) h += '<button class="btn" id="sdShear">✂️ ' + T('Shear', 'Tondre') + '</button>';
+  h += '<button class="btn pink" id="sdPet">💛 ' + T('Pet', 'Flatter') + '</button>';
+  FOOD_IDS.forEach(k => { if(foodUnlocked(k) && (FOODS[k].free || S.inv[k] > 0)) h += '<button class="btn ghost" data-sfeed="'+k+'">' + FOODS[k].e + (FOODS[k].free ? '' : ' ×' + S.inv[k]) + '</button>'; });
+  h += '</div><div class="row" style="flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px">';
+  h += '<button class="btn lav sm" id="sdDress">🎀 ' + T('Dress up', 'Habiller') + '</button>';
+  if(!isLamb(s) && s.w >= 0.3) h += '<button class="btn sky sm" id="sdDye">🎨 ' + T('Dye wool', 'Teindre') + '</button>';
+  h += '<button class="btn ghost sm" id="sdName">✏️ ' + T('Rename', 'Renommer') + '</button>';
+  if(S.areas.length > 1) h += '<button class="btn ghost sm" id="sdMove">🚚 ' + T('Move', 'Déménager') + '</button>';
+  h += '</div>';
+  openModal('', h);
+  if($('sdShear')) $('sdShear').onclick = () => { closeModal(); if(s.a !== S.cur) goArea(s.a); doShear(s); };
+  $('sdPet').onclick = () => { petSheep(s); openSheep(s); };
+  $('mBody').querySelectorAll('[data-sfeed]').forEach(b => b.onclick = () => { if(feedOne(s, b.dataset.sfeed)){ baa(); sfx('coin'); tutEvent('feed'); saveNow(); } openSheep(s); });
+  $('sdDress').onclick = () => openDress(s);
+  if($('sdDye')) $('sdDye').onclick = () => openDyeSheep(s);
+  $('sdName').onclick = () => {
+    openModal('✏️ ' + T('Rename', 'Renommer'), '<input id="rnIn" maxlength="14" value="'+esc(sheepName(s))+'" style="width:100%;padding:12px;border-radius:12px;border:2px solid #e3ead8;text-align:center"><button class="btn wide" id="rnOk">✔ OK</button>');
+    $('rnOk').onclick = () => { const v = $('rnIn').value.trim(); if(v) s.nm = v.slice(0, 14); saveNow(); openSheep(s); };
+  };
+  if($('sdMove')) $('sdMove').onclick = () => {
+    let m = ''; S.areas.forEach(id => { if(id !== s.a) m += '<button class="btn wide ghost" data-mv="'+id+'">' + AREA(id).e + ' ' + L(AREA(id)) + '</button>'; });
+    openModal('🚚 ' + T('Move to', 'Déménager vers'), m);
+    $('mBody').querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { s.a = b.dataset.mv; S.sheep.filter(x => x.mom === s.id && isLamb(x)).forEach(x => x.a = s.a); closeModal(); renderHills(); saveNow(); });
+  };
+}
+function openDress(s){
+  const worn = s.o || [];
+  let h = '<div class="reward"><div class="big">' + sheepSVG(s) + '</div><p class="muted">' + T('Up to 2 items. Tap to take off.', 'Jusqu’à 2 objets. Touche pour enlever.') + '</p></div>';
+  worn.forEach((it, i) => h += '<div class="card"><div class="art">'+itemSVG(it.k, it.c, 52)+'</div><div class="info"><div class="nm">'+esc(itemName(it))+'</div></div><button class="btn ghost sm" data-off="'+i+'">' + T('Take off', 'Enlever') + '</button></div>');
+  const can = S.items.filter(it => ITEMS[it.k].slot);
+  h += '<h3>🧺 ' + T('Your knitted items', 'Tes tricots') + '</h3>';
+  if(!can.length) h += '<p class="muted">' + T('Knit a scarf, mittens, a hat or a sweater first!', 'Tricote d’abord un foulard, des mitaines, une tuque ou un chandail!') + '</p>';
+  can.forEach(it => {
+    const slotUsed = worn.some(w => ITEMS[w.k].slot === ITEMS[it.k].slot), full = worn.length >= MAX_WORN && !slotUsed;
+    h += '<div class="card"><div class="art">'+itemSVG(it.k, it.c, 52)+'</div><div class="info"><div class="nm">'+esc(itemName(it))+'</div></div>'+(full ? '<button class="btn ghost sm" disabled>2/2</button>' : '<button class="btn sm" data-wear="'+it.id+'">' + T('Wear', 'Porter') + '</button>')+'</div>';
+  });
+  openModal('🎀 ' + T('Dress up', 'Habiller') + ' ' + esc(sheepName(s)), h, () => { const a = actors[s.id]; if(a) a.key = ''; renderSheep(); });
+  $('mBody').querySelectorAll('[data-off]').forEach(b => b.onclick = () => { const it = worn.splice(+b.dataset.off, 1)[0]; S.items.push(it); saveNow(); openDress(s); });
+  $('mBody').querySelectorAll('[data-wear]').forEach(b => b.onclick = () => {
+    const it = S.items.find(x => x.id === +b.dataset.wear); if(!it) return;
+    s.o = s.o || [];
+    const same = s.o.findIndex(w => ITEMS[w.k].slot === ITEMS[it.k].slot);
+    if(same >= 0) S.items.push(s.o.splice(same, 1)[0]);
+    S.items = S.items.filter(x => x !== it); s.o.push(it); addLove(s, 10); baa(1.2); fxAtSheep(s, '✨'); saveNow(); openDress(s);
+  });
+}
+function openDyeSheep(s){
+  let h = '<p class="center muted">' + T('Pick 1 dye, or 2 to mix. The wool you shear will be this color!', 'Choisis 1 teinture, ou 2 pour mélanger. La laine tondue sera de cette couleur!') + '</p><div class="pick" id="dsPick"></div><div class="center" id="dsPrev" style="margin:8px 0"></div><button class="btn wide sky" id="dsGo">🎨 ' + T('Dye', 'Teindre') + '</button>';
+  openModal('🎨 ' + esc(sheepName(s)), h);
+  let sel = [];
+  const draw = () => {
+    $('dsPick').innerHTML = DYE_IDS.map(k => '<button class="dyeB'+(sel.includes(k) ? ' sel' : '')+'" data-d="'+k+'"><span class="n">×'+(S.dyes[k]||0)+'</span><span class="e">'+DYES[k].e+'</span>'+L(DYES[k])+'</button>').join('');
+    const col = mixColor(sel[0], sel[1]);
+    $('dsPrev').innerHTML = col ? sheepSVG(Object.assign({}, s, {dye: col}), {size: 110}) + '<br><b>' + colorName(col) + '</b>' : '';
+    $('dsGo').disabled = !col;
+    $('dsPick').querySelectorAll('[data-d]').forEach(b => b.onclick = () => { const k = b.dataset.d; if((S.dyes[k] || 0) < 1){ toast(T('Buy dyes at the Market', 'Achète des teintures au Marché'), 'err'); return; } sel = sel.includes(k) ? sel.filter(x => x !== k) : sel.concat(k).slice(-2); sfx('tap'); draw(); });
+  };
+  draw();
+  $('dsGo').onclick = () => {
+    const col = mixColor(sel[0], sel[1]); if(!col) return;
+    sel.forEach(k => S.dyes[k]--); s.dye = col; addLove(s, 4); sfx('pop'); baa(1.2);
+    const a = actors[s.id]; if(a) a.key = ''; closeModal(); renderSheep(); fxAtSheep(s, '🎨'); saveNow();
+  };
+}
+
+/* ---------- KNIT screen ---------- */
+let dyeSel = {y: null, d: []};
+function renderKnit(){
+  const t = now(); let h = '<h2>🧶 ' + T('Knitting corner', 'Coin tricot') + '</h2>';
+  // spinning wheel
+  const raw = rawTotal(), sp = spinSec();
+  h += '<div class="card"><div class="art" style="background:var(--peach)">🎡</div><div class="info"><div class="nm">' + T('Spinning wheel', 'Rouet') + ' <span class="tag">' + T('Lv', 'Nv') + ' ' + S.upg.wheel + '</span></div>';
+  h += raw ? '<div class="sub">☁️ ' + raw + ' ' + T('wool waiting', 'laine en attente') + ' · ' + fmtTime(raw * sp - S.spinP) + '</div><div class="bar" style="margin-top:5px"><i style="width:'+(S.spinP / sp * 100)+'%;background:var(--pink2)"></i></div>'
+    : '<div class="sub">' + T('Shear sheep: wool turns into yarn here by itself.', 'Tonds les moutons : la laine devient du fil ici toute seule.') + '</div>';
+  h += '</div></div>';
+  // yarn basket
+  h += '<h3>🧺 ' + T('Yarn basket', 'Panier de fil') + '</h3>';
+  const keys = Object.keys(S.yarn).filter(k => S.yarn[k] > 0).sort();
+  h += keys.length ? '<div>' + keys.map(k => { const {w, c} = splitKey(k); return '<button class="yarn'+(dyeSel.y === k ? ' sel' : '')+'" data-y="'+k+'">'+ballHtml(c)+colorName(c)+' <span class="muted">'+WOOL[w].e+'</span> ×'+S.yarn[k]+'</button>'; }).join('') + '</div>'
+    : '<p class="muted">' + T('No yarn yet. Go shear a fluffy sheep! ✂️', 'Pas encore de fil. Va tondre un mouton duveteux! ✂️') + '</p>';
+  // knitting queue
+  h += '<h3>🪡 ' + T('Knitting', 'Tricot') + ' <span class="tag">' + S.knit.length + '/' + knitSlots() + '</span></h3>';
+  S.knit.forEach((j, i) => {
+    const I = ITEMS[j.k], it = {k: j.k, c: j.c};
+    h += '<div class="slot"><div class="art">'+itemSVG(j.k, j.c, 48)+'</div><div class="info" style="flex:1;min-width:0"><div class="nm">'+esc(itemName(it))+'</div>';
+    h += i === 0 ? '<div class="bar" style="margin:5px 0"><i style="width:'+(j.prog / j.dur * 100)+'%;background:var(--lav2)"></i></div><div class="sub">⏱️ ' + fmtTime(knitLeft(0)) + '</div>' : '<div class="sub">⏳ ' + T('Waiting', 'En attente') + ' · ' + fmtTime(knitLeft(i)) + '</div>';
+    h += '</div>' + (i === 0 ? '<button class="btn mint sm" id="knAd">' + adIcon() + ' ' + T('Finish now', 'Finir') + '</button>' : '') + '</div>';
+  });
+  for(let i = S.knit.length; i < knitSlots(); i++) h += '<div class="slot" style="opacity:.6"><div class="art" style="background:#eef3e6">➕</div><div class="sub">' + T('Empty — pick a pattern below', 'Vide — choisis un patron plus bas') + '</div></div>';
+  // patterns
+  h += '<h3>📜 ' + T('Patterns', 'Patrons') + '</h3>';
+  ITEM_IDS.forEach(k => {
+    const I = ITEMS[k], ok = keys.some(y => S.yarn[y] >= I.yarn);
+    h += '<div class="card" data-pat="'+k+'"><div class="art" style="background:var(--lav)">'+itemSVG(k, 'coral', 52)+'</div><div class="info"><div class="nm">'+L(I)+'</div><div class="sub">🧶 '+I.yarn+' · ⏱️ '+fmtTime(I.sec / knitSpeed())+' · 🪙 '+I.price+'+</div><div class="sub">'+(I.slot ? '🎀 ' + T('Sheep can wear it', 'Les moutons peuvent le porter') : '🪴 ' + T('Decoration', 'Décoration'))+'</div></div>';
+    h += '<button class="btn" data-knit="'+k+'"'+(ok && S.knit.length < knitSlots() ? '' : ' disabled')+'>' + T('Knit', 'Tricoter') + '</button></div>';
+  });
+  // dye station
+  h += '<h3>🎨 ' + T('Dye station', 'Atelier de teinture') + '</h3><div class="card" style="display:block">';
+  h += '<p class="sub" style="margin:0 0 6px">' + T('1) Tap a yarn in the basket. 2) Pick 1 dye, or 2 to mix.', '1) Touche un fil dans le panier. 2) Choisis 1 teinture, ou 2 pour mélanger.') + '</p>';
+  h += '<div class="pick">' + DYE_IDS.map(k => '<button class="dyeB'+(dyeSel.d.includes(k) ? ' sel' : '')+'" data-dye="'+k+'"><span class="n">×'+(S.dyes[k]||0)+'</span><span class="e">'+DYES[k].e+'</span>'+L(DYES[k])+'</button>').join('') + '</div>';
+  const col = mixColor(dyeSel.d[0], dyeSel.d[1]), yk = dyeSel.y && S.yarn[dyeSel.y] ? dyeSel.y : null;
+  h += '<div class="row" style="justify-content:center;margin:6px 0;font-weight:900">' + (yk ? ballHtml(splitKey(yk).c) + ' ' + colorName(splitKey(yk).c) : '❔') + ' ➜ ' + (col ? ballHtml(col) + ' ' + colorName(col) : '❔') + '</div>';
+  h += '<button class="btn wide sky" id="dyGo"'+(yk && col ? '' : ' disabled')+'>🎨 ' + T('Dye up to', 'Teindre jusqu’à') + ' ' + CONFIG.DYE_BATCH + ' 🧶</button>';
+  h += '<button class="btn wide ghost" id="dyShop">🧺 ' + T('Buy dyes', 'Acheter des teintures') + '</button></div>';
+  h += '<p class="muted center">🌺+🌻=' + colorName('orange') + ' · 🌺+🫐=' + colorName('purple') + ' · 🌻+🫐=' + colorName('green') + '<br>🫐+🌸=' + colorName('lilac') + ' · 🌻+🌸=' + colorName('coral') + ' · 🌺+🌸=' + colorName('rose') + '</p>';
+  $('iKnit').innerHTML = h;
+  $('iKnit').querySelectorAll('[data-y]').forEach(b => b.onclick = () => { dyeSel.y = dyeSel.y === b.dataset.y ? null : b.dataset.y; sfx('tap'); refresh(); });
+  $('iKnit').querySelectorAll('[data-dye]').forEach(b => b.onclick = () => { const k = b.dataset.dye; if((S.dyes[k] || 0) < 1){ toast(T('Buy dyes at the Market', 'Achète des teintures au Marché'), 'err'); return; } dyeSel.d = dyeSel.d.includes(k) ? dyeSel.d.filter(x => x !== k) : dyeSel.d.concat(k).slice(-2); sfx('tap'); refresh(); });
+  $('iKnit').querySelectorAll('[data-knit]').forEach(b => b.onclick = () => pickYarn(b.dataset.knit));
+  if($('knAd')) $('knAd').onclick = async () => { const j = S.knit[0]; if(!j) return; if(await rewardAd()){ if(S.knit[0] === j){ j.prog = j.dur; stepKnit(0.001); } saveNow(); refresh(); } };
+  $('dyGo').onclick = () => { const n = dyeYarn(yk, dyeSel.d[0], dyeSel.d[1]); if(n){ sfx('pop'); toast('🎨 ' + n + ' 🧶 → ' + colorName(col), 'gold'); dyeSel.y = yarnKey(splitKey(yk).w, col); dyeSel.d = []; saveNow(); refresh(); } };
+  $('dyShop').onclick = () => { mTab = 'dyes'; showView('Market'); };
+}
+function pickYarn(k){
+  const I = ITEMS[k], keys = Object.keys(S.yarn).filter(y => S.yarn[y] >= I.yarn);
+  if(dyeSel.y && S.yarn[dyeSel.y] >= I.yarn && keys.length === 1){ doKnit(k, dyeSel.y); return; }
+  let h = '<p class="center muted">' + T('Pick the yarn', 'Choisis le fil') + ' (🧶 ' + I.yarn + ')</p>';
+  keys.forEach(y => { const {w, c} = splitKey(y), it = {k, c, w};
+    h += '<div class="card"><div class="art" style="background:var(--lav)">'+itemSVG(k, c, 52)+'</div><div class="info"><div class="nm">'+esc(itemName(it))+'</div><div class="sub">'+WOOL[w].e+' '+L(WOOL[w])+' · ×'+S.yarn[y]+' · 🪙 '+itemValue(it)+'</div></div><button class="btn" data-ky="'+y+'">' + T('Knit', 'Tricoter') + '</button></div>'; });
+  openModal('🪡 ' + L(I), h);
+  $('mBody').querySelectorAll('[data-ky]').forEach(b => b.onclick = () => { closeModal(); doKnit(k, b.dataset.ky); });
+}
+function doKnit(k, y){ if(startKnit(k, y)){ toast('🪡 ' + L(ITEMS[k]) + ' — ' + fmtTime(S.knit[S.knit.length - 1].dur / knitSpeed()), 'gold'); tutEvent('knit'); saveNow(); refresh(); } }
+
+/* ---------- MARKET screen ---------- */
+let mTab = 'sell';
+function renderMarket(){
+  const tabs = [['sell','🧺',{en:'Sell',fr:'Vendre'}],['food','🌿',{en:'Food',fr:'Nourriture'}],['dyes','🎨',{en:'Dyes',fr:'Teintures'}],['decor','🪴',{en:'Decor',fr:'Déco'}],['invite','🐑',{en:'Invite',fr:'Inviter'}]];
+  let h = '<h2>🧺 ' + T('Market stall', 'Kiosque du marché') + '</h2><div class="tabs">' + tabs.map(([k, e, n]) => '<button class="'+(mTab === k ? 'on' : '')+'" data-mt="'+k+'">'+e+' '+L(n)+'</button>').join('') + '</div>';
+  if(mTab === 'sell'){
+    if(has2x()) h += '<div class="card" style="background:var(--lemon)"><div class="art" style="background:#fff">⚡</div><div class="info"><div class="nm">2× ' + T('coins!', 'pièces!') + '</div><div class="sub">' + fmtTime((S.ad2x - now()) / 1000) + '</div></div></div>';
+    if(!S.items.length) h += '<p class="center muted">' + T('Nothing to sell yet. Knit something in the Knit tab! 🧶', 'Rien à vendre pour l’instant. Tricote quelque chose dans l’onglet Tricot! 🧶') + '</p>';
+    else {
+      const total = S.items.reduce((a, it) => a + itemValue(it), 0) * (has2x() ? 2 : 1);
+      h += '<button class="btn wide gold" id="mkAll">🪙 ' + T('Sell all', 'Tout vendre') + ' · ' + fmt(total) + '</button><div style="height:8px"></div>';
+      S.items.slice().reverse().forEach(it => {
+        const I = ITEMS[it.k];
+        h += '<div class="card"><div class="art" style="background:var(--lav)">'+itemSVG(it.k, it.c, 52)+'</div><div class="info"><div class="nm">'+esc(itemName(it))+'</div><div class="sub">'+WOOL[it.w].e+' '+L(WOOL[it.w])+(isDyed(it.c) ? ' · 🎨 +30%' : '')+'</div></div>';
+        h += '<div style="display:flex;flex-direction:column;gap:5px">' + (I.decor ? '<button class="btn ghost sm" data-place="'+it.id+'">🪴 ' + T('Place', 'Placer') + '</button>' : '<button class="btn ghost sm" data-wear="'+it.id+'">🎀 ' + T('Wear', 'Porter') + '</button>') + '<button class="btn gold sm" data-sell="'+it.id+'">🪙 ' + fmt(itemValue(it) * (has2x() ? 2 : 1)) + '</button></div></div>';
+      });
+    }
+  } else if(mTab === 'food'){
+    FOOD_IDS.forEach(k => { const F = FOODS[k], un = foodUnlocked(k);
+      h += '<div class="card"><div class="art">'+F.e+'</div><div class="info"><div class="nm">'+L(F)+(F.free ? '' : ' <span class="tag">×'+(S.inv[k]||0)+'</span>')+'</div><div class="sub">+'+F.food+' 🥣'+(F.joy ? ' +'+F.joy+' 😊' : '')+(F.boost ? ' · '+T('wool','laine')+' +'+Math.round(F.boost*100)+'% '+F.mins+'m' : '')+'</div></div>';
+      h += F.free ? '<span class="tag" style="background:var(--mint)">' + T('Free', 'Gratuit') + '</span>' : !un ? '<button class="btn ghost sm" data-gofarm="1">🔒 ' + T('Farm', 'Ferme') + '</button>' : '<div style="display:flex;flex-direction:column;gap:5px"><button class="btn gold sm" data-bf="'+k+'" data-n="1">×1 · '+F.price+' 🪙</button><button class="btn gold sm" data-bf="'+k+'" data-n="5">×5 · '+(F.price*5)+' 🪙</button></div>';
+      h += '</div>'; });
+    h += '<p class="muted center">' + T('Unlock better food with “Better Food” at the Farm.', 'Débloque de la meilleure nourriture avec « Meilleure Nourriture » à la Ferme.') + '</p>';
+  } else if(mTab === 'dyes'){
+    DYE_IDS.forEach(k => { const D = DYES[k];
+      h += '<div class="card"><div class="art" style="background:'+COLORS[D.col].c+'33">'+D.e+'</div><div class="info"><div class="nm">'+L(D)+' <span class="tag">×'+(S.dyes[k]||0)+'</span></div><div class="sub">'+ballHtml(D.col, 14)+' '+colorName(D.col)+'</div></div><div style="display:flex;flex-direction:column;gap:5px"><button class="btn gold sm" data-bd="'+k+'" data-n="1">×1 · '+D.price+' 🪙</button><button class="btn gold sm" data-bd="'+k+'" data-n="5">×5 · '+(D.price*5)+' 🪙</button></div></div>'; });
+    h += '<p class="muted center">' + T('Mix 2 dyes for 6 more colors!', 'Mélange 2 teintures pour 6 autres couleurs!') + '</p>';
+  } else if(mTab === 'decor'){
+    Object.keys(DECOR).forEach(k => { const D = DECOR[k]; if(D.paid && !S.paid) return;
+      h += '<div class="card"><div class="art">'+D.e+'</div><div class="info"><div class="nm">'+L(D)+(S.decorOwn[k] ? ' <span class="tag">×'+S.decorOwn[k]+'</span>' : '')+'</div><div class="sub">+3% '+T('wool in its area','laine dans sa zone')+(D.paid ? ' · 🍭 ' + T('Candy pack', 'Pack Bonbon') : '')+'</div></div>'+(D.paid ? '' : '<button class="btn gold sm" data-bdc="'+k+'">'+fmt(D.price)+' 🪙</button>')+'</div>'; });
+    h += '<button class="btn wide" id="mkPlace">🪴 ' + T('Place decorations', 'Placer les décorations') + '</button>';
+  } else if(mTab === 'invite'){
+    h += '<p class="center muted">🐑 ' + herd() + '/' + cap() + ' · ' + T('Each area has its own sheep.', 'Chaque zone a ses propres moutons.') + '</p>';
+    S.areas.forEach(id => { const A = AREA(id), c = inviteCost(id);
+      h += '<div class="card"><div class="art">'+A.e+'</div><div class="info"><div class="nm">'+L(A)+'</div><div class="sub">'+A.pool.map(b => (S.book[b] ? '' : '❔') + L(BREEDS[b])).join(', ')+'</div></div><button class="btn gold sm" data-inv="'+id+'"'+(roomLeft() > 0 ? '' : ' disabled')+'>'+fmt(c)+' 🪙</button></div>'; });
+    const sb = BREED_IDS.find(b => BREEDS[b].season === seasonOf());
+    if(sb) h += '<p class="center muted">' + SEASONS[seasonOf()].e + ' ' + T('This season, you may meet a', 'Cette saison, tu pourrais rencontrer un') + ' <b>' + L(BREEDS[sb]) + '</b>!</p>';
+    if(roomLeft() <= 0) h += '<button class="btn wide" id="mkFarm">🌱 ' + T('Get More Pasture', 'Plus de pâturage') + '</button>';
+  }
+  $('iMarket').innerHTML = h;
+  const q = s => $('iMarket').querySelectorAll(s);
+  q('[data-mt]').forEach(b => b.onclick = () => { mTab = b.dataset.mt; sfx('tap'); renderMarket(); });
+  q('[data-sell]').forEach(b => b.onclick = () => { const it = S.items.find(x => x.id === +b.dataset.sell); if(!it) return; const v = sellItem(it); sfx('coin'); toast('+' + fmt(v) + ' 🪙', 'gold'); tutEvent('sell'); saveNow(); refresh(); });
+  q('[data-wear]').forEach(b => b.onclick = () => pickWearer(+b.dataset.wear));
+  q('[data-place]').forEach(b => b.onclick = () => { const it = S.items.find(x => x.id === +b.dataset.place); if(!it) return; S.items = S.items.filter(x => x !== it); S.decor.push({id: S.nextId++, item: it, x: rnd(35, 65), y: rnd(70, 82), a: S.cur}); showView('Hills'); decoMode(true); saveNow(); });
+  if($('mkAll')) $('mkAll').onclick = () => confirmBox(T('Sell everything?', 'Tout vendre?'), T('All your knitted items will be sold.', 'Tous tes tricots seront vendus.'), '🪙 ' + T('Sell all', 'Tout vendre'), () => { let v = 0; S.items.slice().forEach(it => v += sellItem(it)); sfx('coin'); toast('+' + fmt(v) + ' 🪙', 'gold'); tutEvent('sell'); saveNow(); refresh(); });
+  q('[data-bf]').forEach(b => b.onclick = () => { const k = b.dataset.bf, n = +b.dataset.n; if(!pay(FOODS[k].price * n)) return; S.inv[k] = (S.inv[k] || 0) + n; sfx('coin'); saveNow(); refresh(); });
+  q('[data-bd]').forEach(b => b.onclick = () => { const k = b.dataset.bd, n = +b.dataset.n; if(!pay(DYES[k].price * n)) return; S.dyes[k] = (S.dyes[k] || 0) + n; sfx('coin'); saveNow(); refresh(); });
+  q('[data-bdc]').forEach(b => b.onclick = () => { const k = b.dataset.bdc; if(!pay(DECOR[k].price)) return; S.decorOwn[k] = (S.decorOwn[k] || 0) + 1; sfx('coin'); toast(DECOR[k].e + ' ' + T('Tap Decorate on the hills to place it!', 'Touche Décorer sur les collines pour le placer!'), 'gold'); saveNow(); refresh(); });
+  q('[data-gofarm]').forEach(b => b.onclick = () => showView('Farm'));
+  q('[data-inv]').forEach(b => b.onclick = () => inviteSheep(b.dataset.inv));
+  if($('mkPlace')) $('mkPlace').onclick = () => { showView('Hills'); openDecorate(); };
+  if($('mkFarm')) $('mkFarm').onclick = () => showView('Farm');
+}
+function pickWearer(itemId){
+  const it = S.items.find(x => x.id === itemId); if(!it) return;
+  let h = '<p class="center muted">' + T('Who should wear it?', 'Qui va le porter?') + '</p><div class="grid">';
+  S.sheep.forEach(s => h += '<button class="tile" data-who="'+s.id+'">'+sheepSVG(s, {noShadow:1})+esc(sheepName(s))+'</button>');
+  openModal('🎀 ' + esc(itemName(it)), h + '</div>');
+  $('mBody').querySelectorAll('[data-who]').forEach(b => b.onclick = () => openDress(sheepById(+b.dataset.who)));
+}
+function inviteSheep(area){
+  if(roomLeft() <= 0){ toast(T('Your pasture is full!', 'Ton pâturage est plein!'), 'err'); return; }
+  if(!pay(inviteCost(area))) return;
+  const b = rollBreed(area), isNew = !S.book[b];
+  const s = makeSheep({b, a: area, w: 0.3});
+  sfx('win'); setTimeout(() => baa(), 300);
+  showReward(sheepSVG(s), T('Welcome', 'Bienvenue') + ', ' + esc(sheepName(s)) + '!', '<span class="tag" style="background:'+RARITY[B(s).r].c+';color:#fff">'+L(RARITY[B(s).r])+'</span> '+L(B(s))+(isNew ? ' · 📖 ' + T('New!', 'Nouveau!') : '')+'<br>'+PERS[s.p].e+' '+L(PERS[s.p]), () => { if(S.cur !== area) goArea(area); });
+  saveNow(); refresh();
+}
+
+/* ---------- FARM screen ---------- */
+function renderFarm(){
+  let h = '<h2>🏡 ' + T('My farm', 'Ma ferme') + '</h2>';
+  const ssn = seasonOf();
+  h += '<div class="card" style="background:var(--lemon)"><div class="art" style="background:#fff">'+SEASONS[ssn].e+'</div><div class="info"><div class="nm">'+L(SEASONS[ssn])+'</div><div class="sub">'+L(SEASONS[ssn].d)+'</div></div></div>';
+  h += '<h3>🐑 ' + T('My sheep', 'Mes moutons') + ' <span class="tag">' + herd() + '/' + cap() + '</span></h3><div class="grid">';
+  S.sheep.forEach(s => h += '<button class="tile" data-sh="'+s.id+'">'+sheepSVG(s, {noShadow:1, winter: ssn === 'winter'})+esc(sheepName(s))+'<br><span class="hearts" style="font-size:.8em">'+'❤️'.repeat(hearts(s))+'</span>'+(isLamb(s) ? ' 🍼' : '')+'</button>');
+  h += '</div><h3>🛠️ ' + T('Upgrades', 'Améliorations') + '</h3>';
+  UPG_IDS.forEach(k => {
+    const U = UPGRADES[k], lv = S.upg[k], max = lv >= U.max, c = upgCost(k);
+    h += '<div class="card"><div class="art" style="background:var(--peach)">'+U.e+'</div><div class="info"><div class="nm">'+L(U)+' <span class="tag">'+T('Lv','Nv')+' '+lv+'/'+U.max+'</span></div><div class="sub">'+L(U.d)+'</div>'+(k === 'pasture' ? '<div class="sub">🐑 ' + cap() + (max ? '' : ' → ' + (cap() + CONFIG.PASTURE_STEP)) + '</div>' : '')+'</div>';
+    h += max ? '<span class="tag" style="background:var(--mint)">MAX</span>' : '<button class="btn gold sm" data-up="'+k+'">'+fmt(c)+' 🪙</button>';
+    h += '</div>';
+  });
+  h += '<h3>🗺️ ' + T('Areas', 'Zones') + '</h3><p class="muted">' + T('Open new areas in any order. Each one has its own sheep!', 'Ouvre de nouvelles zones dans l’ordre que tu veux. Chacune a ses propres moutons!') + '</p>';
+  AREAS.forEach(A => {
+    const open = S.areas.includes(A.id);
+    h += '<div class="card"><div class="art" style="background:'+A.ground+'">'+A.e+'</div><div class="info"><div class="nm">'+L(A)+'</div><div class="sub">'+A.pool.map(b => L(BREEDS[b])).join(', ')+'</div></div>';
+    h += open ? (S.cur === A.id ? '<span class="tag" style="background:var(--mint)">' + T('Here', 'Ici') + '</span>' : '<button class="btn sm" data-go="'+A.id+'">' + T('Visit', 'Visiter') + '</button>') : '<button class="btn gold sm" data-buyA="'+A.id+'">'+fmt(areaCost())+' 🪙</button>';
+    h += '</div>';
+  });
+  $('iFarm').innerHTML = h;
+  const q = s => $('iFarm').querySelectorAll(s);
+  q('[data-sh]').forEach(b => b.onclick = () => openSheep(sheepById(+b.dataset.sh)));
+  q('[data-up]').forEach(b => b.onclick = () => { const k = b.dataset.up; if(!pay(upgCost(k))) return; S.upg[k]++; sfx('win'); toast(UPGRADES[k].e + ' ' + L(UPGRADES[k]) + ' ' + T('Lv', 'Nv') + ' ' + S.upg[k] + '!', 'gold'); tutEvent('upgrade'); saveNow(); refresh(); });
+  q('[data-go]').forEach(b => b.onclick = () => goArea(b.dataset.go));
+  q('[data-buya]').forEach(b => b.onclick = () => {
+    const id = b.dataset.buya; if(!pay(areaCost())) return;
+    S.areas.push(id); sfx('win');
+    showReward(AREA(id).e, L(AREA(id)) + '!', T('A new area is open. Invite sheep that live here at the Market!', 'Une nouvelle zone est ouverte. Invite les moutons d’ici au Marché!'), () => goArea(id));
+    saveNow();
+  });
+}
+
+/* ---------- BOOK screen ---------- */
+let bTab = 'sheep';
+function renderBook(){
+  let h = '<h2>📖 ' + T('Collection book', 'Livre de collection') + '</h2><div class="tabs"><button class="'+(bTab === 'sheep' ? 'on' : '')+'" data-bt="sheep">🐑 ' + T('Sheep', 'Moutons') + '</button><button class="'+(bTab === 'items' ? 'on' : '')+'" data-bt="items">🧣 ' + T('Patterns', 'Patrons') + '</button></div>';
+  if(bTab === 'sheep'){
+    const all = BREED_IDS.filter(b => !BREEDS[b].paid || S.paid), got = all.filter(b => S.book[b]).length;
+    h += '<p class="muted">' + got + '/' + all.length + ' · ' + T('Each new sheep gives coins!', 'Chaque nouveau mouton donne des pièces!') + '</p>';
+    const groups = AREAS.map(A => [A.e + ' ' + L(A), A.pool]);
+    groups.push(['🗓️ ' + T('Seasonal', 'Saisonniers'), BREED_IDS.filter(b => BREEDS[b].season)]);
+    groups.push(['🌈 ' + T('Rare (from “Call a rare sheep”)', 'Rares (avec « Appeler un mouton rare »)'), BREED_IDS.filter(b => BREEDS[b].ad)]);
+    groups.push(['🍭 ' + T('Candy Cloud pack', 'Pack Nuage Bonbon'), BREED_IDS.filter(b => BREEDS[b].paid)]);
+    groups.forEach(([title, list]) => {
+      h += '<h3>' + title + '</h3><div class="grid">';
+      list.forEach(b => { const Bd = BREEDS[b], has = S.book[b];
+        h += '<div class="tile'+(has ? '' : ' lock')+'">'+sheepSVG({b, w:1, o:[]}, {noShadow:1})+(has ? L(Bd) : '❔ ' + L(Bd))+'<br><span class="tag" style="background:'+RARITY[Bd.r].c+';color:#fff;font-size:.8em">'+L(RARITY[Bd.r])+'</span>'+(Bd.season ? '<br><span class="muted">'+SEASONS[Bd.season].e+' '+T('only in','seulement en')+' '+L(SEASONS[Bd.season]).toLowerCase()+'</span>' : '')+'</div>'; });
+      h += '</div>';
+    });
+  } else {
+    const cols = ['natural'].concat(DYE_COLORS), total = ITEM_IDS.length * cols.length, got = Object.keys(S.ibook).length;
+    h += '<p class="muted">' + got + '/' + total + ' · ' + T('Each new pattern gives 50 coins!', 'Chaque nouveau patron donne 50 pièces!') + '</p>';
+    ITEM_IDS.forEach(k => {
+      h += '<h3>' + L(ITEMS[k]) + '</h3><div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(70px,1fr))">';
+      cols.forEach(c => { const has = S.ibook[k + ':' + c];
+        h += '<div class="tile'+(has ? '' : ' lockI')+'" style="padding:6px 2px">'+itemSVG(k, c === 'natural' ? 'cream' : c, 50)+'<div style="font-size:.85em">'+(c === 'natural' ? T('Natural', 'Naturel') : colorName(c))+'</div></div>'; });
+      h += '</div>';
+    });
+  }
+  $('iBook').innerHTML = h;
+  $('iBook').querySelectorAll('[data-bt]').forEach(b => b.onclick = () => { bTab = b.dataset.bt; sfx('tap'); renderBook(); });
+}
+
+/* ---------- SHOP screen (ads you choose + the Candy Cloud pack) ---------- */
+function renderShop(){
+  let h = '<h2>🛍️ ' + T('Shop', 'Boutique') + '</h2>';
+  // the paid pack
+  h += '<div class="card" style="display:block;background:linear-gradient(135deg,#ffe0ef,#dff0ff);border:3px solid #ffb3d6">';
+  h += '<div class="center" style="font-size:1.25em;font-weight:900">🍭 ' + T('Candy Cloud Farm', 'Ferme Nuage Bonbon') + '</div>';
+  h += '<div class="row" style="justify-content:center;flex-wrap:wrap">' + ['cottoncandy','marshmallow','gumdrop','lollipop'].map(b => '<div style="width:72px">'+sheepSVG({b, w:1, o:[]}, {noShadow:1})+'</div>').join('') + '</div>';
+  h += '<ul style="margin:6px 0 8px;padding-left:22px;line-height:1.5"><li>🎨 ' + T('A pastel candy theme for your hills', 'Un thème bonbon pastel pour tes collines') + '</li><li>🐑 ' + T('4 exclusive candy sheep (Legendary)', '4 moutons bonbons exclusifs (Légendaires)') + '</li><li>🍭 ' + T('4 candy decorations', '4 décorations bonbons') + '</li><li>⚡ ' + T('2× coins without watching ads', '2× pièces sans regarder de pubs') + '</li></ul>';
+  if(S.paid){
+    h += '<div class="seg"><button id="thFarm" class="'+(S.theme !== 'candy' ? 'on' : '')+'">🌄 ' + T('Farm theme', 'Thème ferme') + '</button><button id="thCandy" class="'+(S.theme === 'candy' ? 'on' : '')+'">🍭 ' + T('Candy theme', 'Thème bonbon') + '</button></div>';
+  } else h += '<button class="btn wide pink" id="buyPack">' + priceOf(PACK.sku, PACK.price) + '</button><p class="muted center" style="margin:6px 0 0">' + T('One-time purchase. Totally optional!', 'Achat unique. Totalement facultatif!') + '</p>';
+  h += '</div>';
+  // free rewards with ads
+  h += '<h3>📺 ' + T('Free rewards (your choice)', 'Récompenses gratuites (ton choix)') + '</h3>';
+  const t = now(), left = Math.max(0, S.ad2x - t), maxMs = CONFIG.AD_2X_MAX_H * 3600000;
+  h += '<div class="card"><div class="art" style="background:var(--lemon)">⚡</div><div class="info"><div class="nm">2× ' + T('coins', 'pièces') + '</div><div class="sub">' + (left ? T('Active', 'Actif') + ': ' + fmtTime(left / 1000) : T('+30 min each time, up to 4 h', '+30 min chaque fois, jusqu’à 4 h')) + '</div></div><button class="btn mint sm" id="shX2"' + (left + CONFIG.AD_2X_MIN * 60000 > maxMs ? ' disabled' : '') + '>' + (S.paid ? '✨' : '▶️') + ' +30m</button></div>';
+  const rareOk = S.rareDay !== dayNum(t);
+  h += '<div class="card"><div class="art" style="background:linear-gradient(135deg,#ffd6e0,#d6efff)">🌈</div><div class="info"><div class="nm">' + T('Call a rare sheep', 'Appeler un mouton rare') + '</div><div class="sub">' + (rareOk ? T('A Rainbow or Cloud sheep! Once a day.', 'Un mouton Arc-en-ciel ou Nuage! Une fois par jour.') : T('Come back tomorrow!', 'Reviens demain!')) + '</div></div><button class="btn mint sm" id="shRare"' + (rareOk ? '' : ' disabled') + '>▶️ ' + T('Call', 'Appeler') + '</button></div>';
+  h += '<div class="card"><div class="art" style="background:var(--lav)">🪡</div><div class="info"><div class="nm">' + T('Finish knitting now', 'Finir le tricot maintenant') + '</div><div class="sub">' + (S.knit.length ? itemName(S.knit[0]) + ' · ' + fmtTime(knitLeft(0)) : T('Nothing is knitting', 'Rien en cours')) + '</div></div><button class="btn mint sm" id="shKnit"' + (S.knit.length ? '' : ' disabled') + '>▶️ ' + T('Finish', 'Finir') + '</button></div>';
+  h += '<div class="card"><div class="art" style="background:var(--sky)">🎮</div><div class="info"><div class="nm">' + T('Extra mini game try', 'Essai de mini-jeu en plus') + '</div><div class="sub">' + T('Tries left today', 'Essais restants aujourd’hui') + ': ' + triesLeft() + '</div></div><button class="btn mint sm" id="shTry">▶️ +1</button></div>';
+  h += '<p class="muted center">' + T('Ads are always your choice. Nothing plays by itself.', 'Les pubs sont toujours ton choix. Rien ne joue tout seul.') + '</p>';
+  h += '<button class="btn wide ghost" id="shRestore">🔄 ' + T('Restore purchases', 'Restaurer les achats') + '</button>';
+  h += '<p class="muted center" style="font-size:.75em">' + T('Payments are handled securely by Google Play.', 'Les paiements sont gérés en sécurité par Google Play.') + '</p>';
+  $('iShop').innerHTML = h;
+  if($('buyPack')) $('buyPack').onclick = () => buy(PACK.sku, T('Candy Cloud Farm', 'Ferme Nuage Bonbon'), PACK.price);
+  if($('thFarm')) $('thFarm').onclick = () => { S.theme = 'farm'; wxKey = ''; saveNow(); refresh(); toast('🌄'); };
+  if($('thCandy')) $('thCandy').onclick = () => { S.theme = 'candy'; wxKey = ''; saveNow(); refresh(); toast('🍭'); };
+  $('shX2').onclick = () => ad2x();
+  $('shRare').onclick = () => callRare();
+  $('shKnit').onclick = async () => { const j = S.knit[0]; if(!j) return; if(await rewardAd()){ if(S.knit[0] === j){ j.prog = j.dur; stepKnit(0.001); } saveNow(); refresh(); } };
+  $('shTry').onclick = async () => { if(await rewardAd()){ S.tries.extra++; toast('+1 🎮', 'gold'); saveNow(); refresh(); renderCare(); } };
+  $('shRestore').onclick = restorePurchases;
+}
+async function ad2x(){
+  const maxMs = CONFIG.AD_2X_MAX_H * 3600000;
+  if(Math.max(0, S.ad2x - now()) + CONFIG.AD_2X_MIN * 60000 > maxMs){ toast(T('Already at the max (4 h)', 'Déjà au maximum (4 h)')); return; }
+  const ok = S.paid ? true : await rewardAd();
+  if(!ok) return;
+  S.ad2x = Math.min(now() + maxMs, Math.max(now(), S.ad2x) + CONFIG.AD_2X_MIN * 60000);
+  toast('⚡ 2× ' + T('coins', 'pièces') + '!', 'gold'); sfx('coin'); refreshTop(); renderSide(); saveNow(); refresh();
+}
+async function callRare(){
+  if(S.rareDay === dayNum(now())) return;
+  if(roomLeft() <= 0){ toast(T('Your pasture is full! Get More Pasture at the Farm.', 'Ton pâturage est plein! Achète plus de pâturage à la Ferme.'), 'err'); return; }
+  if(!await rewardAd()) return;
+  S.rareDay = dayNum(now());
+  const b = !S.book.rainbow ? 'rainbow' : !S.book.cloud ? 'cloud' : pick(['rainbow', 'cloud']);
+  const s = makeSheep({b, a: S.cur, w: 0.5, love: 100});
+  sfx('win'); showReward(sheepSVG(s), T('A rare sheep came!', 'Un mouton rare est venu!'), esc(sheepName(s)) + ' · ' + L(B(s)) + ' 🌈', () => { if(curView === 'Hills') renderHills(); });
+  saveNow(); refresh();
+}
+function openBoosts(){
+  sfx('tap');
+  const t = now(), left = Math.max(0, S.ad2x - t), maxMs = CONFIG.AD_2X_MAX_H * 3600000;
+  let h = '<div class="card"><div class="art" style="background:var(--lemon)">⚡</div><div class="info"><div class="nm">2× ' + T('coins', 'pièces') + '</div><div class="sub">' + (left ? T('Active', 'Actif') + ': ' + fmtTime(left / 1000) : T('Market sales and mini game coins', 'Ventes au marché et pièces des mini-jeux')) + '</div></div><button class="btn mint sm" id="bxAd"' + (left + CONFIG.AD_2X_MIN * 60000 > maxMs ? ' disabled' : '') + '>' + (S.paid ? '✨' : '▶️') + ' +30m</button></div>';
+  h += '<p class="muted center">' + T('Ads are always your choice.', 'Les pubs sont toujours ton choix.') + '</p><button class="btn wide ghost" id="bxShop">🛍️ ' + T('More in the Shop', 'Plus dans la Boutique') + '</button>';
+  openModal('⚡ ' + T('Boost', 'Bonus'), h);
+  $('bxAd').onclick = () => { closeModal(); ad2x(); };
+  $('bxShop').onclick = () => { closeModal(); showView('Shop'); };
+}
+
+/* ---------- free gift box (every 30 min) ---------- */
+function rollGift(){
+  const r = Math.random();
+  if(r < 0.3){ const d = pick(DYE_IDS); return {dye: d, n: rint(1, 3)}; }
+  if(r < 0.55 && S.upg.food > 0){ const pool = FOOD_IDS.filter(k => !FOODS[k].free && foodUnlocked(k)); return {food: pick(pool), n: rint(2, 4)}; }
+  if(r < 0.7){ return {yarn: rint(2, 4)}; }
+  return {coins: Math.round(rnd(60, 120) * (1 + S.sheep.length * 0.25))};
+}
+function giveGift(g){
+  if(g.dye){ S.dyes[g.dye] = (S.dyes[g.dye] || 0) + g.n; return '+' + g.n + ' ' + DYES[g.dye].e + ' ' + L(DYES[g.dye]); }
+  if(g.food){ S.inv[g.food] = (S.inv[g.food] || 0) + g.n; return '+' + g.n + ' ' + FOODS[g.food].e + ' ' + L(FOODS[g.food]); }
+  if(g.yarn){ const k = yarnKey('soft', 'white'); S.yarn[k] = (S.yarn[k] || 0) + g.yarn; return '+' + g.yarn + ' 🧶 ' + colorName('white'); }
+  addCoins(g.coins); return '+' + fmt(g.coins) + ' 🪙';
+}
+function openGift(){
+  sfx('tap');
+  if(now() < S.giftAt){ openModal('🎁 ' + T('Gift box', 'Boîte cadeau'), '<div class="reward"><div class="big">🎁</div><p>' + T('Next gift in', 'Prochain cadeau dans') + ' <b>' + fmtTime((S.giftAt - now()) / 1000) + '</b></p></div>'); return; }
+  S.giftAt = now() + CONFIG.GIFT_EVERY_MIN * 60000;
+  const msg = giveGift(rollGift()); sfx('gift'); showReward('🎁', T('A gift!', 'Un cadeau!'), msg + '<p class="muted">' + T('A new box every 30 minutes.', 'Une nouvelle boîte toutes les 30 minutes.') + '</p>'); renderSide(); saveNow();
+}
+
+/* ---------- daily gift (streak) ---------- */
+function streakReward(n){ return {c: Math.round(100 * Math.min(n, 10) * (1 + S.sheep.length * 0.15)), dye: n % 7 === 0 ? 3 : n % 3 === 0 ? 1 : 0}; }
+function checkDaily(){
+  const today = dayNum(now());
+  if(S.visit === null || S.visit.day !== today){ if(S.tut >= 99) spawnVisitor(); }
+  if(S.daily.last === today) return;
+  if(S.daily.last !== null && today - S.daily.last > 1) S.daily.streak = 0;
+  queueModal(dailyClaimModal);
+}
+function dailyClaimModal(){
+  const today = dayNum(now()); if(S.daily.last === today) return;
+  const n = S.daily.streak + 1, r = streakReward(n);
+  let days = '<div class="row" style="justify-content:center;gap:4px;flex-wrap:wrap;margin:8px 0">';
+  for(let i = Math.max(1, n - 3); i <= n + 3; i++) days += '<div class="tag" style="padding:6px 8px;'+(i === n ? 'background:var(--pink2);color:#fff' : i < n ? 'background:var(--mint)' : '')+'">'+T('Day', 'Jour')+' '+i+'</div>';
+  days += '</div>';
+  openModal('🎁 ' + T('Daily gift', 'Cadeau du jour'), '<div class="reward"><div class="big">' + guideSVG() + '</div><p>' + T('Streak', 'Série') + ': <b>' + n + '</b> 🔥</p>' + days + '<div class="amt">+' + fmt(r.c) + ' 🪙' + (r.dye ? ' +' + r.dye + ' 🎨' : '') + '</div></div><button class="btn wide gold" id="dyGo2">' + T('Claim', 'Réclamer') + '</button>', null, true);
+  $('dyGo2').onclick = () => { S.daily.streak = n; S.daily.last = today; addCoins(r.c); for(let i=0;i<r.dye;i++){ const d = pick(DYE_IDS); S.dyes[d] = (S.dyes[d] || 0) + 1; } sfx('gift'); closeModal(); saveNow(); };
+}
+
+/* ---------- settings ---------- */
+function openSettings(){
+  sfx('tap');
+  let h = '<h3>🌐 ' + T('Language', 'Langue') + '</h3><div class="seg"><button id="stEn" class="'+(S.lang === 'en' ? 'on' : '')+'">English</button><button id="stFr" class="'+(S.lang === 'fr' ? 'on' : '')+'">Français</button></div>';
+  h += '<h3>🎵 ' + T('Sound', 'Son') + '</h3><div class="seg"><button id="stMus" class="'+(S.mus ? 'on' : '')+'">🎵 ' + T('Music', 'Musique') + ' ' + (S.mus ? T('on', 'oui') : T('off', 'non')) + '</button><button id="stSnd" class="'+(S.snd ? 'on' : '')+'">🔔 ' + T('Sounds', 'Bruits') + ' ' + (S.snd ? T('on', 'oui') : T('off', 'non')) + '</button></div>';
+  h += '<h3>🔠 ' + T('Text size', 'Taille du texte') + '</h3><div class="seg"><button id="stN" class="'+(S.fs === 1 ? 'on' : '')+'">' + T('Normal', 'Normal') + '</button><button id="stB" class="'+(S.fs > 1 ? 'on' : '')+'" style="font-size:1.2em">' + T('Big', 'Gros') + '</button></div>';
+  h += '<h3>📊 ' + T('Stats', 'Stats') + '</h3><p class="muted">✂️ ' + S.stats.sheared + ' · 🧶 ' + S.stats.knit + ' · 🪙 ' + fmt(S.stats.coins) + ' · 💛 ' + S.stats.pets + ' · 🍼 ' + S.stats.lambs + '</p>';
+  h += '<button class="btn wide ghost" id="stRestore">🔄 ' + T('Restore purchases', 'Restaurer les achats') + '</button>';
+  h += '<button class="btn wide ghost" id="stPriv">🔒 ' + T('Privacy policy', 'Politique de confidentialité') + '</button>';
+  h += '<button class="btn wide ghost" id="stReset" style="color:var(--bad)">🗑️ ' + T('Reset my farm', 'Recommencer ma ferme') + '</button>';
+  h += '<p class="muted center" style="font-size:.78em">Sheep Hills · MOS Arcade · ' + T('Saved on this phone only.', 'Sauvegardé sur ce téléphone seulement.') + '</p>';
+  openModal('⚙️ ' + T('Settings', 'Réglages'), h);
+  const re = () => { applySettings(); renderNav(); showView(curView); openSettings(); };
+  $('stEn').onclick = () => { S.lang = 'en'; re(); }; $('stFr').onclick = () => { S.lang = 'fr'; re(); };
+  $('stMus').onclick = () => { S.mus = !S.mus; if(S.mus) audioUnlock(); else musicStop(); saveNow(); openSettings(); refreshTop(); };
+  $('stSnd').onclick = () => { S.snd = !S.snd; saveNow(); openSettings(); refreshTop(); };
+  $('stN').onclick = () => { S.fs = 1; re(); }; $('stB').onclick = () => { S.fs = 1.18; re(); };
+  $('stRestore').onclick = restorePurchases;
+  $('stPriv').onclick = () => { window.open('https://sussy0603.github.io/Arcade/Privacy%20SheepHills/privacy.html', '_blank'); };
+  $('stReset').onclick = () => confirmBox('🗑️ ' + T('Reset?', 'Recommencer?'), T('Your whole farm will be erased. This cannot be undone.', 'Toute ta ferme sera effacée. Impossible d’annuler.'), T('Yes, erase', 'Oui, effacer'), () =>
+    confirmBox('⚠️ ' + T('Are you sure?', 'Es-tu certain?'), T('Last chance! Everything goes away.', 'Dernière chance! Tout disparaît.'), T('Erase my farm', 'Effacer ma ferme'), () => {
+      const paid = S.paid, done = S.iapDone; try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+      for(const k in actors) actors[k].el.remove(); actors = {};
+      startNewGame(); S.paid = paid; S.iapDone = done; if(paid) grantPackContents(); saveNow(); applySettings(); renderNav(); showView('Hills');
+    }));
+}
+function applySettings(){
+  document.documentElement.style.setProperty('--fs', S.fs || 1);
+  document.documentElement.lang = S.lang;
+  $('decoDone').textContent = '✔ ' + T('Done', 'Terminé');
+}
+
+/* =====================================================================
+   10. MINI GAMES — Fence Count + Yarn Catch (3 free tries a day)
+===================================================================== */
+let G = null;
+const cv = () => $('gCanvas');
+function svgImg(svg){ const i = new Image(); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); return i; }
+function triesLeft(){
+  const today = dayNum(now());
+  if(S.tries.day !== today) S.tries = {day: today, used: 0, extra: 0};
+  return Math.max(0, CONFIG.FREE_TRIES + S.tries.extra - S.tries.used);
+}
+const GAMES = [
+  {id:'fence', e:'🐑', en:'Fence Count', fr:'Compte les moutons', d:{en:'Count the sheep that jump over the fence. Careful, some turn back!', fr:'Compte les moutons qui sautent la clôture. Attention, certains font demi-tour!'}},
+  {id:'catch', e:'🧶', en:'Yarn Catch', fr:'Attrape les pelotes', d:{en:'Move the basket to catch yarn balls. Avoid the pinecones!', fr:'Bouge le panier pour attraper les pelotes. Évite les cocottes!'}},
+];
+function openGames(){
+  sfx('tap');
+  const left = triesLeft();
+  let h = '<p class="center"><b>🎟️ ' + T('Tries left today', 'Essais restants aujourd’hui') + ': ' + left + '</b></p>';
+  GAMES.forEach(g => h += '<div class="card"><div class="art" style="background:var(--sky)">'+g.e+'</div><div class="info"><div class="nm">'+L(g)+'</div><div class="sub">'+L(g.d)+'</div><div class="sub">🏆 '+(S.stats.best[g.id] || 0)+'</div></div><button class="btn" data-g="'+g.id+'"'+(left ? '' : ' disabled')+'>'+T('Play', 'Jouer')+'</button></div>');
+  h += '<p class="muted center">' + T('Win coins and yarn!', 'Gagne des pièces et du fil!') + '</p>';
+  if(!left) h += '<button class="btn wide mint" id="gmAd">▶️ ' + T('Watch an ad for 1 more try', 'Regarde une pub pour 1 essai de plus') + '</button>';
+  openModal('🎮 ' + T('Mini games', 'Mini-jeux'), h);
+  $('mBody').querySelectorAll('[data-g]').forEach(b => b.onclick = () => { closeModal(); startGame(b.dataset.g); });
+  if($('gmAd')) $('gmAd').onclick = async () => { closeModal(); if(await rewardAd()){ S.tries.extra++; saveNow(); renderCare(); openGames(); } };
+}
+function startGame(id){
+  if(triesLeft() <= 0){ openGames(); return; }
+  S.tries.used++; saveNow();
+  const c = cv(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  c.width = innerWidth * dpr; c.height = innerHeight * dpr;
+  G = {id, W: innerWidth, H: innerHeight, dpr, ctx: c.getContext('2d'), t: 0, score: 0, last: performance.now(), parts: [], over: false};
+  $('game').classList.add('on'); $('gOver').classList.remove('on'); $('gAns').classList.remove('on');
+  musicStop();
+  ({fence: fenceInit, catch: catchInit})[id]();
+  requestAnimationFrame(gameLoop);
+}
+function gameLoop(ts){
+  if(!G) return;
+  const dt = Math.min(0.05, (ts - G.last) / 1000); G.last = ts; G.t += dt;
+  const ctx = G.ctx; ctx.setTransform(G.dpr, 0, 0, G.dpr, 0, 0);
+  G.step(dt, ctx);
+  G.parts = G.parts.filter(p => (p.life -= dt) > 0);
+  G.parts.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 300 * dt; ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); });
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(gameLoop);
+}
+function burst(x, y, c, n){ for(let i=0;i<(n || 10);i++){ const a = Math.random() * 7, s = rnd(60, 220); G.parts.push({x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 80, r: rnd(2, 5), c: c || '#fff', life: 0.7, max: 0.7}); } }
+function hud(html){ $('gHud').innerHTML = html + '<button class="pill" id="gQuit" aria-label="Quit">✕</button>'; $('gQuit').onclick = () => gameOver(true); }
+function emoji(ctx, e, x, y, size){ ctx.font = size + 'px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(e, x, y); }
+function hillsBg(ctx, groundY){
+  const W = G.W, H = G.H, g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#a9dcff'); g.addColorStop(1, '#e6f6ff'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#fff'; [[0.2,0.15],[0.7,0.22]].forEach(([x, y]) => { ctx.beginPath(); ctx.ellipse(W*x, H*y, 50, 16, 0, 0, 7); ctx.ellipse(W*x+30, H*y-8, 30, 14, 0, 0, 7); ctx.fill(); });
+  ctx.fillStyle = '#a6d98a'; ctx.beginPath(); ctx.moveTo(0, groundY - 60); ctx.quadraticCurveTo(W * 0.3, groundY - 120, W * 0.6, groundY - 50); ctx.quadraticCurveTo(W * 0.85, groundY - 10, W, groundY - 70); ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.fill();
+  ctx.fillStyle = '#86cb64'; ctx.fillRect(0, groundY, W, H - groundY);
+}
+function roundRect(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function gameImgs(){
+  const owned = S.sheep.length ? S.sheep : [{b:'white'}];
+  return owned.slice(0, 8).map(s => svgImg(sheepSVG({b: s.b, w: 1, o: []}, {noShadow: 1})));
+}
+
+/* ---- Fence Count: count the sheep that jump over ---- */
+function fenceInit(){
+  G.imgs = gameImgs(); G.round = 0; G.rounds = 3; G.right = 0;
+  G.groundY = G.H * 0.68; G.fx = G.W * 0.5;
+  newFenceRound();
+  G.step = (dt, ctx) => {
+    hillsBg(ctx, G.groundY);
+    // fence
+    ctx.fillStyle = '#c98f55'; ctx.strokeStyle = '#a8703c'; ctx.lineWidth = 3;
+    for(let i=-1;i<=1;i++){ roundRect(ctx, G.fx - 6 + i * 26, G.groundY - 74, 12, 80, 4); ctx.fill(); ctx.stroke(); }
+    roundRect(ctx, G.fx - 50, G.groundY - 62, 100, 10, 4); ctx.fill(); ctx.stroke();
+    roundRect(ctx, G.fx - 50, G.groundY - 34, 100, 10, 4); ctx.fill(); ctx.stroke();
+    // sheep
+    G.list.forEach(s => {
+      if(G.t < s.at) return;
+      const sp = s.v * dt;
+      if(s.fake){
+        if(s.phase === 0){ s.x += sp; if(s.x >= G.fx - 90){ s.phase = 1; s.wait = 0.6; } }
+        else if(s.phase === 1){ s.wait -= dt; if(s.wait <= 0){ s.phase = 2; s.flip = true; } }
+        else s.x -= sp * 1.2;
+      } else {
+        s.x += sp;
+        const d = s.x - (G.fx - 70);
+        s.y = d > 0 && d < 140 ? -Math.sin(d / 140 * Math.PI) * 110 : 0;
+        if(d > 0 && d < 140) s.rot = (d / 140 - 0.5) * 0.5; else s.rot = 0;
+        if(d > 0 && !s.boing){ s.boing = 1; sfx('boing'); }
+      }
+      const size = 80 * (s.lamb ? 0.65 : 1), bob = s.y === 0 ? Math.abs(Math.sin(G.t * 10 + s.at)) * 3 : 0;
+      ctx.save(); ctx.translate(s.x, G.groundY - size * 0.42 + s.y - bob); ctx.rotate(s.rot || 0); if(s.flip) ctx.scale(-1, 1);
+      if(s.img.complete) ctx.drawImage(s.img, -size / 2, -size * 0.45, size, size * 0.9);
+      ctx.restore();
+    });
+    const done = G.list.every(s => G.t > s.at && (s.fake ? s.x < -80 : s.x > G.W + 80));
+    if(done && !G.asking && !G.over) askFence();
+  };
+}
+function newFenceRound(){
+  G.round++; G.asking = false; G.t = 0;
+  const r = G.round, n = [rint(4, 6), rint(6, 9), rint(8, 12)][r - 1], fakes = [1, 2, 3][r - 1];
+  G.answer = n; G.list = [];
+  let at = 0.8;
+  const all = Array(n).fill(0).concat(Array(fakes).fill(1)).sort(() => Math.random() - 0.5);
+  all.forEach(f => {
+    G.list.push({at, x: -70, y: 0, v: rnd(150, 230) * (1 + r * 0.15) * (G.W / 400 < 1 ? 0.85 : 1), fake: !!f, img: pick(G.imgs), lamb: Math.random() < 0.2, phase: 0});
+    at += rnd(0.5, 1.3) / (1 + r * 0.25);
+  });
+  hud('<span class="pill">🐑 ' + T('Round', 'Manche') + ' ' + r + '/' + G.rounds + '</span><span class="pill">✅ ' + G.right + '</span>');
+}
+function askFence(){
+  G.asking = true;
+  const opts = new Set([G.answer]); while(opts.size < 4){ const o = G.answer + rint(-3, 3); if(o > 0) opts.add(o); }
+  const box = $('gAns');
+  box.innerHTML = '<div class="pill" style="width:100%;justify-content:center;font-size:1.15em;padding:10px">' + T('How many jumped over?', 'Combien ont sauté?') + '</div>' + [...opts].sort((a, b) => a - b).map(o => '<button class="btn" data-a="'+o+'">'+o+'</button>').join('');
+  box.classList.add('on');
+  box.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+    box.classList.remove('on');
+    const ok = +b.dataset.a === G.answer;
+    if(ok){ G.right++; sfx('win'); burst(G.W / 2, G.H / 3, '#ffd23f', 24); }
+    else sfx('err');
+    hud('<span class="pill">' + (ok ? '✅ ' + T('Yes!', 'Oui!') : '❌ ' + T('It was', 'C’était') + ' ' + G.answer) + '</span>');
+    setTimeout(() => { if(!G) return; if(G.round >= G.rounds){ G.score = G.right; gameOver(); } else newFenceRound(); }, 1400);
+  });
+}
+
+/* ---- Yarn Catch ---- */
+function catchInit(){
+  Object.assign(G, {x: G.W / 2, tx: G.W / 2, items: [], spawn: 0, lives: 3, speed: CONFIG.CATCH_SPEED, groundY: G.H - 40});
+  const move = e => { const p = e.touches ? e.touches[0] : e; G.tx = p.clientX; };
+  G.c = cv(); G.c.onpointermove = move; G.c.onpointerdown = move;
+  G.step = (dt, ctx) => {
+    hillsBg(ctx, G.H - 90);
+    G.speed += CONFIG.CATCH_RAMP * dt;
+    G.spawn -= dt;
+    if(G.spawn <= 0 && !G.over){
+      G.spawn = Math.max(0.35, 0.95 - G.t * 0.012);
+      const r = Math.random(), k = r < 0.07 ? 'gold' : r < 0.27 ? 'bad' : 'yarn';
+      G.items.push({k, x: rnd(30, G.W - 30), y: -30, c: pick(DYE_COLORS.concat(['white','white','cream'])), v: G.speed * rnd(0.85, 1.2), rot: rnd(0, 6)});
+    }
+    G.x += (G.tx - G.x) * Math.min(1, dt * 14);
+    const by = G.H - 90;
+    G.items.forEach(it => {
+      it.y += it.v * dt; it.rot += dt * 2;
+      if(it.k === 'bad') emoji(ctx, '🌰', it.x, it.y, 38);
+      else {
+        const col = it.k === 'gold' ? '#ffd23f' : COLORS[it.c].c, R = it.k === 'gold' ? 22 : 18;
+        ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(it.rot);
+        ctx.fillStyle = col; ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.fill();
+        ctx.strokeStyle = shade(col, -0.25); ctx.lineWidth = 2;
+        for(let i=-1;i<=1;i++){ ctx.beginPath(); ctx.ellipse(0, i * 7, R * 0.9, R * 0.35, 0, 0, 7); ctx.stroke(); }
+        if(it.k === 'gold'){ emoji(ctx, '✨', 0, 0, 18); }
+        ctx.restore();
+      }
+      if(!it.hit && it.y > by - 30 && it.y < by + 10 && Math.abs(it.x - G.x) < 52){
+        it.hit = 1;
+        if(it.k === 'bad'){ G.lives--; sfx('err'); burst(it.x, it.y, '#8a5a3a', 12); if(G.lives <= 0) gameOver(); }
+        else { G.score += it.k === 'gold' ? 5 : 1; sfx(it.k === 'gold' ? 'win' : 'pop'); burst(it.x, it.y, it.k === 'gold' ? '#ffd23f' : COLORS[it.c].c, 10); }
+      }
+    });
+    G.items = G.items.filter(it => !it.hit && it.y < G.H + 40);
+    // basket
+    ctx.fillStyle = '#c98f55'; ctx.strokeStyle = '#8f5f33'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(G.x - 55, by - 20); ctx.lineTo(G.x + 55, by - 20); ctx.lineTo(G.x + 42, by + 26); ctx.lineTo(G.x - 42, by + 26); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#e3b17c'; ctx.lineWidth = 2;
+    for(let i=0;i<3;i++){ ctx.beginPath(); ctx.moveTo(G.x - 52 + i * 3, by - 8 + i * 12); ctx.lineTo(G.x + 52 - i * 3, by - 8 + i * 12); ctx.stroke(); }
+    hud('<span class="pill">🧶 ' + G.score + '</span><span class="pill">' + '❤️'.repeat(Math.max(0, G.lives)) + '</span>');
+  };
+}
+
+function gameOver(quit){
+  if(!G || G.over) return; G.over = true;
+  $('gAns').classList.remove('on');
+  const id = G.id, sc = G.score, best = S.stats.best[id] || 0, nb = sc > best;
+  if(nb) S.stats.best[id] = sc;
+  let coins, yarn = {};
+  if(id === 'fence'){ coins = sc * 60 + (sc === 3 ? 80 : 10); yarn[yarnKey('soft', 'white')] = sc * 2; if(sc === 3) yarn[yarnKey('soft', pick(['red','blue','yellow','pink']))] = 2; }
+  else { coins = sc * 6; yarn[yarnKey('soft', 'white')] = Math.floor(sc / 5); const dc = Math.floor(sc / 12); if(dc) yarn[yarnKey('soft', pick(['red','blue','yellow','pink']))] = dc; }
+  coins = Math.round(coins * (1 + S.sheep.length * 0.05)) * (has2x() ? 2 : 1);
+  let yl = ''; for(const k in yarn){ if(!yarn[k]) continue; S.yarn[k] = (S.yarn[k] || 0) + yarn[k]; yl += ' +' + yarn[k] + ' ' + ballHtml(splitKey(k).c, 16); }
+  addCoins(coins); saveNow();
+  $('gOverBox').innerHTML = '<div style="font-size:50px">' + (sc ? '🎉' : '🐑') + '</div><h2>' + (id === 'fence' ? T('You counted', 'Tu as compté') + ' ' + sc + '/3' : T('Score', 'Score') + ': ' + sc) + '</h2>' +
+    (nb && sc ? '<p><b>🏆 ' + T('New best!', 'Nouveau record!') + '</b></p>' : '<p class="muted">🏆 ' + Math.max(best, sc) + '</p>') +
+    '<div class="amt" style="font-size:1.3em;font-weight:900">+' + fmt(coins) + ' 🪙' + yl + '</div>' +
+    (triesLeft() ? '<button class="btn wide" id="goAgain">🔁 ' + T('Play again', 'Rejouer') + ' (' + triesLeft() + ')</button>' : '') +
+    '<button class="btn wide ghost" id="goClose">' + T('Back to the hills', 'Retour aux collines') + '</button>';
+  $('gOver').classList.add('on'); sfx(sc ? 'win' : 'tap');
+  if($('goAgain')) $('goAgain').onclick = () => { const g = G.id; closeGame(); startGame(g); };
+  $('goClose').onclick = closeGame;
+}
+function closeGame(){ G = null; $('game').classList.remove('on'); $('gOver').classList.remove('on'); $('gAns').classList.remove('on'); if(S.mus) musicStart(); renderCare(); refreshTop(); }
+
+/* =====================================================================
+   11. MONEY — rewarded ads (AdMob) + one purchase (Google Play Billing)
+   ---------------------------------------------------------------------
+   FAKE FOR NOW: in a browser, ads are a 3-second pretend ad, and the
+   purchase is pretend (a "Demo" box gives you the pack).
+   Inside the Android app (Capacitor) with the plugins installed, the
+   real ones take over automatically:
+     • @capacitor-community/admob   → rewarded video ads
+     • cordova-plugin-purchase      → Google Play purchase
+   BEFORE RELEASE: put your real AdMob rewarded unit ID below,
+   set MONEY.TESTING to false, and set MONEY.DEMO_BUY to false.
+   Ads are ALWAYS the player's choice. Nothing plays on its own.
+===================================================================== */
+const MONEY = {
+  TESTING: true,
+  DEMO_BUY: true,   // browser only: pretend purchase gives the pack (for testing)
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917', // Google's TEST rewarded ID — replace with yours
+};
+const PACK = {sku: 'candy_cloud_pack', price: '$4.99'};
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null;
+let adBusy = false;
+const adIcon = () => '▶️';
+
+/* the one function the game calls. Resolves true if the player earned the reward. */
+async function rewardAd(){
+  if(adBusy) return false;
+  adBusy = true; musicStop();
+  let ok = false;
+  try{ ok = AdMobP() ? await nativeAd() : await demoAd(); }catch(e){ ok = false; }
+  adBusy = false;
+  if(S.mus) musicStart();
+  if(!ok) toast(T('No reward this time', 'Pas de récompense cette fois'), 'err');
+  return ok;
+}
+function nativeAd(){
+  const A = AdMobP();
+  return new Promise(async res => {
+    let earned = false, finished = false, hs = [];
+    const finish = () => { if(finished) return; finished = true; hs.forEach(h => { try{ h.remove(); }catch(e){} }); res(earned); };
+    try{
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToLoad', finish));
+      await A.prepareRewardVideoAd({adId: MONEY.REWARDED_ID, isTesting: MONEY.TESTING});
+      const item = await A.showRewardVideoAd();
+      if(item && item.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    }catch(e){ finish(); }
+  });
+}
+/* browser preview: a 3-second pretend ad */
+function demoAd(){
+  return new Promise(res => {
+    let n = 3;
+    const wasOpen = modalOpen();
+    openModal('📺 ' + T('Ad preview', 'Aperçu de pub'), '<div class="reward"><div class="big">📺</div><p>' + T('A real video ad plays here in the app.', 'Une vraie pub vidéo joue ici dans l’appli.') + '</p><div class="amt" id="adCd">' + n + '</div>' +
+      '<button class="btn wide ghost" id="adSkip">' + T('Close (no reward)', 'Fermer (sans récompense)') + '</button></div>', null, true);
+    const iv = setInterval(() => { n--; const el = $('adCd'); if(el) el.textContent = n; if(n <= 0){ clearInterval(iv); modalOnClose = null; closeModal(); res(true); } }, 1000);
+    $('adSkip').onclick = () => { clearInterval(iv); closeModal(); res(false); };
+  });
+}
+async function adsInit(){ const A = AdMobP(); if(!A) return; try{ await A.initialize({initializeForTesting: MONEY.TESTING}); }catch(e){} }
+
+/* ---------- what the pack gives ---------- */
+function grantPackContents(){
+  ['cottoncandy','marshmallow','gumdrop','lollipop'].forEach(b => { if(!S.sheep.some(s => s.b === b)) makeSheep({b, a: S.cur, w: 0.7, love: 100}); });
+  ['lollytree','cupcake','donut','candycloud'].forEach(k => { if(!S.decorOwn[k] && !S.decor.some(d => d.k === k)) S.decorOwn[k] = 1; });
+}
+function grantSku(sku){
+  if(sku !== PACK.sku || S.paid) return '';
+  S.paid = true; S.theme = 'candy'; wxKey = '';
+  grantPackContents();
+  return '🍭 ' + T('Candy theme, 4 candy sheep, 4 decorations and 2× coins without ads!', 'Thème bonbon, 4 moutons bonbons, 4 décorations et 2× pièces sans pubs!');
+}
+const PRICES = {};
+const priceOf = (sku, fallback) => PRICES[sku] || fallback;
+let iapReady = false;
+function iapStore(){ return window.CdvPurchase && CdvPurchase.store; }
+function iapInit(){
+  const C = window.CdvPurchase; if(!C || iapReady) return;
+  const {store, ProductType, Platform} = C; iapReady = true;
+  store.register([{id: PACK.sku, type: ProductType.NON_CONSUMABLE, platform: Platform.GOOGLE_PLAY}]);
+  store.when()
+    .productUpdated(p => { if(p.pricing && p.pricing.price) PRICES[p.id] = p.pricing.price; })
+    .approved(tx => {
+      if(!S.iapDone) S.iapDone = {};
+      const tid = tx.transactionId || ('t' + now());
+      if(!S.iapDone[tid]){
+        S.iapDone[tid] = now();
+        (tx.products || []).forEach(it => { const msg = grantSku(it.id); if(msg) queueModal(() => showReward('🍭', T('Thank you!', 'Merci!'), msg)); });
+        saveNow(); refreshTop(); renderHills(); refresh();
+      }
+      tx.finish();
+    });
+  store.error(e => { if(e && e.code !== C.ErrorCode.PAYMENT_CANCELLED) toast(T('Store error — please try again', 'Erreur de la boutique — réessaie'), 'err'); });
+  store.initialize([Platform.GOOGLE_PLAY]);
+}
+document.addEventListener('deviceready', iapInit, false);
+function buy(sku, label, fallbackPrice){
+  sfx('tap');
+  const st = iapStore();
+  if(st){ const p = st.get(sku), offer = p && p.getOffer(); if(!offer){ toast(T('Store is still loading — try again in a moment', 'La boutique charge — réessaie dans un instant'), 'err'); return; } offer.order(); return; }
+  openModal('💳 ' + label, '<div class="reward"><div class="big">🍭</div><p><b>' + fallbackPrice + '</b></p><p class="muted">' + T('Demo mode: real payments work in the Android app through Google Play.', 'Mode démo : les vrais paiements fonctionnent dans l’appli Android avec Google Play.') + '</p></div>' +
+    (MONEY.DEMO_BUY ? '<button class="btn wide gold" id="dmBuy">' + T('Demo: get it free', 'Démo : l’obtenir gratuitement') + '</button>' : '') + '<button class="btn wide ghost" id="dmNo">' + T('Close', 'Fermer') + '</button>');
+  if($('dmBuy')) $('dmBuy').onclick = () => { closeModal(); const msg = grantSku(sku); saveNow(); refreshTop(); refresh(); if(msg) showReward('🍭', T('Thank you!', 'Merci!'), msg); };
+  $('dmNo').onclick = closeModal;
+}
+function restorePurchases(){
+  const st = iapStore();
+  if(st && st.restorePurchases){ st.restorePurchases(); toast(T('Checking your purchases...', 'Vérification de tes achats...')); }
+  else toast(T('Restore works in the Android app.', 'La restauration fonctionne dans l’appli Android.'));
+}
+
+/* =====================================================================
+   12. MAIN LOOP — game ticks, away time, guide, start-up
+   tick(): once a second — moods, wool, yarn, knitting, lambs
+   frame(): every screen frame — sheep move
+===================================================================== */
+function stepWorld(dt, t, offline){
+  const rate = MOOD_RATE();
+  S.sheep.forEach(s => {
+    s.m.food = Math.max(0, s.m.food - rate * dt * (s.p === 'greedy' ? 1.5 : 1) * (1 - 0.1 * S.upg.hay));
+    s.m.joy = Math.max(0, s.m.joy - rate * dt * (s.p === 'bouncy' ? 0.7 : 1) * (1 - 0.1 * S.upg.fence));
+    if(!isLamb(s)) s.w = Math.min(1, s.w + woolRate(s, t) * dt);
+    else if(t - s.lamb >= CONFIG.LAMB_GROW_HOURS * 3600000){
+      s.lamb = null; s.w = Math.max(s.w, 0.5); if(actors[s.id]) actors[s.id].key = '';
+      if(!offline) toast('🐑 ' + esc(sheepName(s)) + ' ' + T('is all grown up!', 'est maintenant grand!'), 'gold');
+    }
+  });
+  const yarn = stepSpin(dt);
+  const items = stepKnit(dt, offline);
+  return {yarn, items};
+}
+function tryLamb(t){
+  S.lambAt = t + CONFIG.LAMB_EVERY_MIN * 60000;
+  if(roomLeft() <= 0 || S.tut < 99) return null;
+  const moms = S.sheep.filter(s => !isLamb(s) && !B(s).paid && !B(s).ad && hearts(s) >= 2 && moodAvg(s) >= 60 && !S.sheep.some(x => x.mom === s.id && isLamb(x)));
+  if(!moms.length || Math.random() > CONFIG.LAMB_CHANCE) return null;
+  const mom = pick(moms);
+  const l = makeSheep({b: mom.b, a: mom.a, lamb: t, mom: mom.id, w: 0.2, love: 100, spot: mom.spot});
+  S.stats.lambs++;
+  return l;
+}
+let tickN = 0, wasNight = null;
+function tick(){
+  const t = now();
+  stepWorld(1, t);
+  S.stats.play++; tickN++;
+  if(t > S.lambAt){ const l = tryLamb(t); if(l){ toast('🍼 ' + T('A baby lamb arrived!', 'Un bébé agneau est arrivé!') + ' ' + esc(sheepName(l)), 'gold'); sfx('gift'); setTimeout(() => baa(1.7), 300); if(curView === 'Hills') renderSheep(); } }
+  if(S.tut >= 99 && tickN % 30 === 0 && !modalOpen() && !G) checkDaily();
+  if(tickN % 10 === 0) saveNow();
+  refreshTop();
+  const night = isNight();
+  if(curView === 'Hills' && !G){
+    renderSheep();
+    if(night !== wasNight){ wasNight = night; renderBg(); renderProps(); $('nightTint').style.opacity = night ? 0.4 : 0; }
+    if(tickN % 3 === 0){ renderSide(); renderCare(); }
+    if(S.upg.windmill && tickN % 2 === 0){}
+  }
+  if(curView === 'Knit' && (S.knit.length || rawTotal()) && !modalOpen()) refresh();
+  if(curView === 'Shop' && tickN % 5 === 0) refresh();
+}
+let lastFrame = performance.now();
+function frame(ts){
+  const dt = Math.min(0.1, (ts - lastFrame) / 1000); lastFrame = ts;
+  if(S && curView === 'Hills' && !G) stepActors(dt);
+  if(S) tickCoinDisplay();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- away time ---------- */
+function catchUp(){
+  const t = now(), away = (t - (S.lastSeen || t)) / 1000;
+  if(away < 30) return;
+  const fluffy0 = S.sheep.filter(s => s.w >= 1).length;
+  const steps = Math.min(Math.floor(away / 60), CONFIG.OFFLINE_MAX_DAYS * 24 * 60);
+  let sim = S.lastSeen, yarn = 0, items = [];
+  for(let i=0;i<steps;i++){ sim += 60000; const r = stepWorld(60, sim, true); yarn += r.yarn; items = items.concat(r.items); }
+  const rest = away - steps * 60;
+  if(rest > 0 && rest < 600){ const r = stepWorld(rest, t, true); yarn += r.yarn; items = items.concat(r.items); }
+  if(t > S.lambAt) tryLamb(t);
+  S.lastSeen = t;
+  const fluffy = S.sheep.filter(s => s.w >= 1 && !isLamb(s)).length;
+  if(away >= 60 && (yarn || items.length || fluffy > fluffy0)){
+    let h = '<div class="reward"><div class="big">' + guideSVG() + '</div><p>' + T('You were away for', 'Temps d’absence :') + ' <b>' + fmtTime(away) + '</b></p>';
+    if(fluffy) h += '<p>☁️ <b>' + fluffy + '</b> ' + T('sheep are fluffy and ready to shear!', 'moutons sont tout duveteux et prêts à tondre!') + '</p>';
+    if(yarn) h += '<p>🧶 +' + yarn + ' ' + T('yarn spun', 'fils filés') + '</p>';
+    if(items.length) h += '<p>🪡 ' + items.map(it => itemIcon(it, 26)).join(' ') + '<br>' + items.length + ' ' + T('items knitted', 'objets tricotés') + '</p>';
+    h += '</div><button class="btn wide" id="wbOk">' + T('Let’s go!', 'C’est parti!') + '</button>';
+    queueModal(() => { openModal('🌅 ' + T('Welcome back!', 'Bon retour!'), h); $('wbOk').onclick = closeModal; });
+  }
+  saveNow();
+}
+
+/* ---------- guide: Nana Pearl ---------- */
+const TUT = [
+  null,
+  {ev:'pet', hl:['#sheep .sheep'], en:'Hello dear! I’m Nana Pearl. Tap a sheep to pet it! 💛', fr:'Bonjour mon chou! Je suis Mamie Perle. Touche un mouton pour le flatter! 💛'},
+  {ev:'shear', hl:['#sShear'], en:'Biscuit is SO fluffy! Tap a sheep with ✂️ above it, or tap “Shear all”.', fr:'Galette est TELLEMENT duveteuse! Touche un mouton avec ✂️ au-dessus, ou « Tout tondre ».'},
+  {ev:'feed', hl:['#cFeed'], en:'Shorn sheep get hungry. Tap Feed and give them grass! 🌿', fr:'Les moutons tondus ont faim. Touche Nourrir et donne-leur de l’herbe! 🌿'},
+  {ev:'viewKnit', hl:['#navKnit'], en:'The wool turns into yarn on the spinning wheel all by itself. Open Knit! 🧶', fr:'La laine devient du fil sur le rouet toute seule. Ouvre Tricot! 🧶'},
+  {ev:'knit', hl:['[data-knit="scarf"]'], en:'When you have 2 yarn, tap Knit on the Scarf! 🧣', fr:'Quand tu as 2 fils, touche Tricoter sur le Foulard! 🧣'},
+  {ev:'sell', hl:['[data-sell]','#navMarket'], en:'Your scarf will be ready in a few seconds. Then sell it at the Market! 🪙', fr:'Ton foulard sera prêt dans quelques secondes. Puis vends-le au Marché! 🪙'},
+];
+function tutHl(){
+  document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl'));
+  const st = TUT[S.tut]; if(!st) return;
+  for(const sel of st.hl){ const el = document.querySelector(sel); if(el){ el.classList.add('hl'); break; } }
+}
+function tutShow(){
+  const st = TUT[S.tut];
+  if(!st){ $('tut').classList.remove('on'); document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl')); return; }
+  $('tutGd').innerHTML = guideSVG();
+  $('tutTx').textContent = S.lang === 'fr' ? st.fr : st.en;
+  $('tutBtn').textContent = T('Skip', 'Passer');
+  $('tutBtn').onclick = () => { S.tut = 99; $('tut').classList.remove('on'); document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl')); saveNow(); checkDaily(); };
+  $('tut').classList.add('on');
+  const top = curView === 'Hills';
+  $('tut').style.top = top ? '' : 'auto'; $('tut').style.bottom = top ? '' : 'calc(92px + env(safe-area-inset-bottom))';
+  setTimeout(tutHl, 200);
+}
+function tutEvent(ev){
+  if(!S || S.tut < 1 || S.tut >= 99) return;
+  const st = TUT[S.tut];
+  if(ev.startsWith('view')) setTimeout(tutShow, 60);
+  if(!st || st.ev !== ev) return;
+  S.tut++; sfx('coin');
+  if(!TUT[S.tut]){
+    S.tut = 99; $('tut').classList.remove('on'); document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl'));
+    addCoins(200); DYE_IDS.forEach(k => S.dyes[k] = (S.dyes[k] || 0) + 2);
+    queueModal(() => showReward(guideSVG(), T('You’re a natural!', 'Bravo, c’est parfait!'), T('Here’s a gift to start your farm:', 'Voici un cadeau pour commencer ta ferme :') + '<br>+200 🪙 · +8 🎨<br><span class="muted">' + T('Tip: hold your finger on a sheep to see its card.', 'Astuce : garde ton doigt sur un mouton pour voir sa fiche.') + '</span>', () => checkDaily()));
+  } else setTimeout(tutShow, 300);
+  saveNow();
+}
+
+/* ---------- new game ---------- */
+function startNewGame(){
+  S = newState();
+  const a = makeSheep({b:'white', n:0, p:'bouncy', spot:'oak', a:'hills', w:1});
+  const b = makeSheep({b:'black', n:1, p:'sleepy', spot:'sunny', a:'hills', w:0.45});
+  a.m = {food: 70, joy: 70}; b.m = {food: 60, joy: 75};
+  S.tut = 0;
+  saveNow();
+  askName(a, sheepName(a));
+}
+function askName(first, val){
+  openModal('', '<div class="reward"><div class="big">' + sheepSVG(first) + '</div><h2>' + T('Welcome to Sheep Hills!', 'Bienvenue à Sheep Hills!') + '</h2><p>' + T('This fluffy sheep is yours. What’s its name?', 'Ce mouton duveteux est à toi. Comment s’appelle-t-il?') + '</p>' +
+    '<input id="fnIn" maxlength="14" value="' + esc(val) + '" style="width:80%;padding:12px;border-radius:12px;border:2px solid #e3ead8;text-align:center;font-size:18px">' +
+    '<div class="seg" style="margin:12px auto;max-width:260px"><button id="nlEn" class="' + (S.lang === 'en' ? 'on' : '') + '">English</button><button id="nlFr" class="' + (S.lang === 'fr' ? 'on' : '') + '">Français</button></div>' +
+    '<button class="btn wide" id="fnGo">🐑 ' + T('Let’s go!', 'C’est parti!') + '</button></div>', null, true);
+  const relang = l => { const v = $('fnIn').value, same = v === sheepName(first); S.lang = l; applySettings(); renderNav(); renderHills(); closeModal(); askName(first, same ? sheepName(first) : v); };
+  $('nlEn').onclick = () => relang('en'); $('nlFr').onclick = () => relang('fr');
+  $('fnGo').onclick = () => { const v = $('fnIn').value.trim(); if(v && v !== sheepName(first)) first.nm = v.slice(0, 14); closeModal(); S.tut = 1; renderHills(); tutShow(); audioUnlock(); baa(); saveNow(); };
+}
+
+/* ---------- start-up ---------- */
+function boot(){
+  $('loadSheep').innerHTML = sheepSVG({b:'white', w:1, o:[{k:'scarf', c:'red', w:'soft'}]}, {noShadow:1});
+  const saved0 = load(), lang0 = (saved0 || {}).lang || ((navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en');
+  $('loadTip').textContent = '💡 ' + pick(TIPS)[lang0];
+  let p = 0; const iv = setInterval(() => { p = Math.min(100, p + rnd(12, 28)); $('loadBar').style.width = p + '%'; }, 140);
+  setTimeout(() => {
+    clearInterval(iv); $('loadBar').style.width = '100%';
+    const saved = load();
+    if(saved){ S = saved; catchUp(); } else startNewGame();
+    shownC = S.coins;
+    applySettings(); renderNav(); showView('Hills');
+    if(S.tut >= 1 && S.tut < 99) tutShow();
+    else if(S.tut >= 99) checkDaily();
+    $('load').style.opacity = 0; setTimeout(() => $('load').remove(), 600);
+    setInterval(tick, 1000);
+    requestAnimationFrame(frame);
+    adsInit();
+  }, 1300);
+  $('mClose').onclick = closeModal;
+  $('modalBg').addEventListener('pointerdown', e => { if(e.target === $('modalBg') && $('mClose').style.display !== 'none') closeModal(); });
+  $('pCoin').onclick = openBoosts;
+  $('pYarn').onclick = () => { sfx('tap'); showView('Knit'); };
+  $('setBtn').onclick = openSettings;
+  $('muteBtn').onclick = () => { const on = !(S.snd || S.mus); S.snd = on; S.mus = on; if(on){ audioUnlock(); sfx('tap'); } else musicStop(); refreshTop(); saveNow(); };
+  $('decoDone').onclick = () => { decoMode(false); saveNow(); };
+  document.addEventListener('pointerdown', audioUnlock, {once: true});
+  document.addEventListener('visibilitychange', () => {
+    if(!S) return;
+    if(document.hidden){ saveNow(); musicStop(); }
+    else { catchUp(); if(S.mus && !G) musicStart(); if(curView === 'Hills') renderHills(); }
+  });
+  document.addEventListener('pause', () => { if(S){ saveNow(); musicStop(); } }, false);
+  window.addEventListener('resize', () => { if(S && curView === 'Hills'){ for(const k in actors) actors[k].key = ''; renderHills(); } });
+}
+window.addEventListener('load', boot);
+</script>
+</body>
+</html>

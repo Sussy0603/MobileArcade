@@ -1,0 +1,2511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#bdeeed">
+<title>Axolotl Lagoon</title>
+<style>
+/* =====================================================================
+   AXOLOTL LAGOON — styles
+   Soft pastel aqua + pink. Change the colors here to restyle the game.
+===================================================================== */
+:root{
+  --aqua:#c9f1f0; --aqua2:#3fc1b8; --pink:#ffd9e4; --pink2:#ff8fb1;
+  --lav:#e6dcff; --lav2:#a58cff; --lemon:#fff3b8; --lemon2:#ffd34d;
+  --sky:#d6efff; --sky2:#5fb2f0; --coral:#ff8a7a;
+  --ink:#30506a; --ink2:#6b8296; --card:#fffefb; --line:#d7eeee;
+  --gold:#ffc83d; --good:#3fbf8f; --bad:#ff6b81;
+  --r:18px; --font:"Nunito","Trebuchet MS","Segoe UI",system-ui,sans-serif;
+  --fs:1;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#eafaf9;color:var(--ink);font-family:var(--font);font-size:calc(15px * var(--fs))}
+body.easy{--font:Verdana,"Segoe UI",Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.12em;line-height:1.5}
+button{font-family:inherit;font-size:inherit;color:inherit;border:0;cursor:pointer;background:none}
+input{font-family:inherit;font-size:16px}
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+/* pearl icon (drawn with CSS, no image) */
+.pl{display:inline-block;width:.95em;height:.95em;border-radius:50%;vertical-align:-.13em;
+  background:radial-gradient(circle at 35% 30%,#fff 0 16%,#fff6fb 28%,#ecdcea 68%,#c9b6d2);box-shadow:0 1px 0 #0002,inset 0 0 0 1px #fff8}
+/* ---------- top bar ---------- */
+#top{display:flex;align-items:center;gap:6px;padding:calc(6px + env(safe-area-inset-top)) 8px 6px;background:linear-gradient(#f4fffe,#d9f5f3);border-bottom:2px solid #b9e6e3;z-index:20}
+.pill{display:flex;align-items:center;gap:4px;background:#fff;border-radius:99px;padding:5px 10px 5px 7px;font-weight:900;box-shadow:0 2px 0 #b9e2e0;white-space:nowrap;min-width:0;font-size:1em}
+.pill .ic{font-size:18px;line-height:1}
+.pill .pl{width:18px;height:18px}
+.pill.lv{flex:1;max-width:200px;min-width:70px}
+.xpbar{flex:1;height:9px;background:#e4f3f2;border-radius:9px;overflow:hidden;min-width:30px}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--aqua2),var(--pink2));border-radius:9px;transition:width .4s}
+#boosts{display:flex;gap:3px;overflow:hidden;flex-wrap:nowrap}
+.bst{font-size:11px;font-weight:900;background:var(--lemon);border-radius:99px;padding:3px 7px;white-space:nowrap}
+.roundBtn{width:40px;height:40px;border-radius:50%;background:#fff;box-shadow:0 2px 0 #b9e2e0;display:grid;place-items:center;flex:none;font-size:20px;overflow:hidden}
+#muteBtn{margin-left:auto}
+#profBtn svg{width:40px;height:34px}
+@media (max-width:420px){#boosts .bst:nth-child(n+2){display:none}.pill{padding:4px 8px 4px 5px}}
+/* ---------- body / nav ---------- */
+#body{flex:1;display:flex;flex-direction:column;min-height:0;position:relative}
+#main{flex:1;position:relative;min-width:0;overflow:hidden}
+#nav{display:flex;justify-content:space-around;background:#fff;border-top:2px solid #b9e6e3;padding:4px 2px calc(4px + env(safe-area-inset-bottom));z-index:20}
+#nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 0;border-radius:14px;font-size:12px;font-weight:900;color:var(--ink2);position:relative;min-height:54px}
+#nav button .e{font-size:25px;line-height:1.1}
+#nav button.on{background:var(--aqua);color:var(--ink)}
+.dot{position:absolute;top:3px;right:24%;width:11px;height:11px;border-radius:50%;background:var(--bad);border:2px solid #fff;display:none}
+.dot.show{display:block}
+@media (min-width:820px){
+  #body{flex-direction:row-reverse}
+  #nav{flex-direction:column;justify-content:flex-start;gap:6px;border-top:0;border-right:2px solid #b9e6e3;padding:10px 8px;width:96px}
+  #nav button{flex:none;padding:10px 0}
+  .view .inner{max-width:760px;margin:0 auto}
+}
+/* ---------- views ---------- */
+.view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;display:none;padding:12px 12px 30px;-webkit-overflow-scrolling:touch;background:#f0fbfa}
+.view.on{display:block}
+#vLagoon{padding:0;overflow:hidden;background:#9fdcec}
+h2{margin:4px 0 10px;font-size:1.35em}
+h3{margin:14px 0 8px;font-size:1.08em}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;padding:9px 14px;border-radius:99px;background:#fff;font-weight:900;box-shadow:0 2px 0 var(--line)}
+.tabs button.on{background:var(--pink);box-shadow:0 2px 0 #f5b8c9}
+.card{background:var(--card);border-radius:var(--r);padding:10px;display:flex;align-items:center;gap:10px;margin-bottom:8px;box-shadow:0 3px 0 var(--line);position:relative}
+.card .art{width:62px;height:62px;flex:none;border-radius:14px;background:var(--aqua);display:grid;place-items:center;font-size:32px;overflow:hidden}
+.card .art svg{width:60px;height:46px}
+.card .info{flex:1;min-width:0}
+.nm{font-weight:900}
+.sub{font-size:.86em;color:var(--ink2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.tile{background:var(--card);border-radius:16px;padding:8px 4px 6px;text-align:center;box-shadow:0 3px 0 var(--line);position:relative;font-size:.84em;font-weight:900}
+.tile svg{width:84px;height:62px;display:block;margin:0 auto}
+.tile .big{font-size:38px;line-height:62px;height:62px}
+.tile.lock{background:#eef4f4}
+.tile.lock svg{filter:brightness(0) opacity(.18)}
+.btn{background:var(--pink2);color:#fff;font-weight:900;padding:10px 15px;border-radius:14px;box-shadow:0 3px 0 #dd6f92;white-space:nowrap;min-height:42px}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #dd6f92}
+.btn.mint{background:var(--aqua2);box-shadow:0 3px 0 #2a9790}
+.btn.lav{background:var(--lav2);box-shadow:0 3px 0 #7c62dd}
+.btn.gold{background:var(--gold);color:#5a3b00;box-shadow:0 3px 0 #d79d12}
+.btn.sky{background:var(--sky2);box-shadow:0 3px 0 #3f8ad6}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 3px 0 var(--line)}
+.btn.wide{display:block;width:100%;margin-top:8px;padding:13px}
+.btn[disabled],.btn.off{opacity:.45;pointer-events:none}
+.btn.sm{padding:7px 11px;font-size:.88em;min-height:38px}
+.tag{display:inline-block;font-size:.74em;font-weight:900;padding:2px 7px;border-radius:99px;background:var(--lemon);vertical-align:middle}
+.r0{background:#e9f1f1}.r1{background:#d6ecff}.r2{background:linear-gradient(90deg,#ffd3e4,#d4f7ff,#fff3b0)}.r3{background:linear-gradient(90deg,#ffe4f1,#e7dcff)}
+.bar{height:11px;border-radius:9px;background:#e6f2f2;overflow:hidden;flex:1}
+.bar i{display:block;height:100%;border-radius:9px}
+.mood{display:flex;align-items:center;gap:6px;margin:5px 0;font-size:.92em;font-weight:900}
+.mood span{width:26px;text-align:center}
+.row{display:flex;align-items:center;gap:8px}
+.muted{color:var(--ink2);font-size:.86em}
+.center{text-align:center}
+.hearts{letter-spacing:-1px}
+.swatch{display:inline-block;width:16px;height:16px;border-radius:50%;vertical-align:-3px;border:2px solid #fff;box-shadow:0 1px 0 #0002}
+.seg{display:flex;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 0 var(--line)}
+.seg button{flex:1;padding:9px 6px;font-weight:900}
+.seg button.on{background:var(--aqua)}
+/* ---------- lagoon scene ---------- */
+#scene{position:absolute;inset:0;overflow:hidden;touch-action:none}
+#sceneBg{position:absolute;inset:0;width:100%;height:100%}
+#props,#glowL{position:absolute;inset:0;pointer-events:none}
+.prop{position:absolute;transform:translate(-50%,-100%)}
+.prop svg{width:100%;height:100%;display:block;overflow:visible}
+.prop.glowp svg{filter:drop-shadow(0 0 4px var(--gc)) drop-shadow(0 0 10px var(--gc))}
+.halo{position:absolute;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,var(--gc) 0,transparent 68%);opacity:.35;mix-blend-mode:screen;animation:halo 3s ease-in-out infinite alternate}
+@keyframes halo{from{opacity:.25}to{opacity:.45}}
+.ray{animation:ray 6s ease-in-out infinite alternate}
+@keyframes ray{from{opacity:.25}to{opacity:.6}}
+.speck{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--gc);box-shadow:0 0 8px var(--gc);animation:speck 7s ease-in-out infinite alternate;pointer-events:none}
+@keyframes speck{from{transform:translate(0,0);opacity:.2}to{transform:translate(14px,-30px);opacity:.9}}
+.petal{position:absolute;top:-20px;font-size:14px;pointer-events:none;animation:petal linear infinite}
+@keyframes petal{to{transform:translate(40px,110vh) rotate(360deg)}}
+#dark{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 30%,#1d2a5a,#0b1030);opacity:0;transition:opacity 1.2s}
+#axos,#fxL{position:absolute;inset:0}
+#fxL{pointer-events:none;z-index:9}
+.axo{position:absolute;width:90px;height:63px;margin:-40px 0 0 -45px;will-change:left,top,transform;touch-action:none;z-index:3}
+.axo .flip{width:100%;height:100%;transition:transform .35s}
+.axo svg{width:100%;height:100%;overflow:visible;display:block}
+.axo .bob{transform-origin:50% 60%;animation:float 2.6s ease-in-out infinite}
+.axo.swim .bob{animation:swimA .9s ease-in-out infinite}
+.axo.nap .bob{animation:breathe 3.6s ease-in-out infinite}
+.axo.pop .bob{animation:pop .4s ease}
+.axo .gills{transform-box:fill-box;transform-origin:85% 85%;animation:gill 2.4s ease-in-out infinite}
+.axo.happy .gills{animation:gillFast .18s ease-in-out 8 alternate}
+.axo .tail{transform-box:fill-box;transform-origin:100% 50%;animation:tail 1.8s ease-in-out infinite}
+.axo.swim .tail{animation-duration:.6s}
+.axo .zz{position:absolute;top:-8px;right:4px;font-size:15px;font-weight:900;color:#7a6ac9;animation:zz 2s infinite}
+.axo .bub{position:absolute;top:-24px;left:50%;transform:translateX(-50%);font-size:18px;background:#fff;border-radius:12px;padding:0 5px;box-shadow:0 2px 0 #0002;white-space:nowrap}
+.axo.sel::after{content:"";position:absolute;left:15%;right:15%;bottom:-6px;height:8px;border-radius:50%;background:#fff8;box-shadow:0 0 10px #fff}
+.axo.baby{width:62px;height:44px;margin:-28px 0 0 -31px}
+.axo.visitor .bob{filter:drop-shadow(0 0 6px #fff)}
+.axo .bob svg{filter:brightness(var(--dim,1))}
+.glowOn .axo.glowy .bob svg{filter:drop-shadow(0 0 7px var(--gc)) drop-shadow(0 0 14px var(--gc))}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-5px) rotate(1.5deg)}}
+@keyframes swimA{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(3px) rotate(3deg)}}
+@keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.03,.96)}}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.22,.82)}70%{transform:scale(.92,1.12)}100%{transform:scale(1)}}
+@keyframes gill{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+@keyframes gillFast{from{transform:rotate(-12deg) scale(1)}to{transform:rotate(12deg) scale(1.08)}}
+@keyframes tail{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(7deg)}}
+@keyframes zz{0%{opacity:0;transform:translate(0,0)}30%{opacity:1}100%{opacity:0;transform:translate(8px,-14px)}}
+.fx{position:absolute;pointer-events:none;font-size:21px;font-weight:900;z-index:9;animation:fxup 1.1s ease-out forwards;white-space:nowrap;text-shadow:0 2px 0 #fff}
+@keyframes fxup{from{opacity:1;transform:translate(-50%,0) scale(.7)}30%{transform:translate(-50%,-14px) scale(1.15)}to{opacity:0;transform:translate(-50%,-56px) scale(1)}}
+.bbl{position:absolute;bottom:-20px;border-radius:50%;border:2px solid #ffffffaa;background:radial-gradient(circle at 30% 30%,#fff9 0 20%,#fff2 50%,transparent 70%);pointer-events:none;animation:rise linear forwards}
+@keyframes rise{to{transform:translate(var(--dx),-110vh)}}
+#areaName{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#fffd;border-radius:99px;padding:3px 6px;font-weight:900;z-index:10;white-space:nowrap;display:flex;gap:4px;align-items:center;box-shadow:0 2px 0 #0001}
+#areaName button{font-size:20px;width:38px;height:38px;border-radius:50%}
+#areaName button[disabled]{opacity:.25}
+#eggs{position:absolute;top:58px;left:8px;display:flex;flex-direction:column;gap:7px;z-index:10}
+.eggslot{width:58px;height:66px;background:#fffd;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;font-weight:900;position:relative;box-shadow:0 3px 0 #0002}
+.eggslot svg{width:36px;height:42px}
+.eggslot.ready{animation:wob .6s ease-in-out infinite alternate;background:var(--lemon)}
+@keyframes wob{from{transform:rotate(-6deg)}to{transform:rotate(6deg)}}
+.eggslot .pb{position:absolute;bottom:4px;left:6px;right:6px;height:5px;background:#e8eef0;border-radius:4px;overflow:hidden}
+.eggslot .pb i{display:block;height:100%;background:var(--aqua2)}
+#sideR{position:absolute;top:58px;right:8px;display:flex;flex-direction:column;gap:8px;z-index:10}
+.fab{width:56px;height:56px;border-radius:50%;background:#fff;box-shadow:0 3px 0 #0002;font-size:26px;display:grid;place-items:center;position:relative}
+.fab small{position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:900;background:#fff;border-radius:6px;padding:0 4px;white-space:nowrap}
+.fab .bdg{position:absolute;top:-3px;right:-3px;background:var(--bad);color:#fff;font-size:11px;font-weight:900;border-radius:99px;min-width:19px;height:19px;display:grid;place-items:center;padding:0 4px}
+.fab.on{background:#2b2e66;color:#fff}
+.fab.on small{color:var(--ink)}
+.fab.glow{animation:wob .6s ease-in-out infinite alternate}
+#careBar{position:absolute;left:8px;right:8px;bottom:10px;z-index:10;display:flex;justify-content:center}
+#careBar .cb{background:#fffe;border-radius:20px;padding:8px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 0 #0002;max-width:520px;width:100%}
+#careBar .cb .who{flex:1;min-width:0;font-weight:900;line-height:1.2}
+#careBar .cb .who small{display:block;font-weight:700;color:var(--ink2);font-size:.8em}
+#careBar .cbtn{display:flex;flex-direction:column;align-items:center;font-size:11px;font-weight:900;background:var(--aqua);border-radius:14px;padding:5px 6px;min-width:56px;min-height:52px;justify-content:center}
+#careBar .cbtn b{font-size:22px;line-height:1}
+#careBar .hint{background:#fffd;border-radius:99px;padding:8px 14px;font-weight:900;box-shadow:0 3px 0 #0002}
+/* ---------- modal ---------- */
+#modalBg{position:fixed;inset:0;background:#1d3a4a66;display:none;z-index:50;align-items:center;justify-content:center;padding:14px}
+#modalBg.on{display:flex}
+#modal{background:#fff;border-radius:24px;width:100%;max-width:430px;max-height:88vh;overflow-y:auto;padding:16px;box-shadow:0 10px 40px #0003;animation:mIn .25s ease;position:relative}
+@keyframes mIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+#modal h2{text-align:center;margin-top:0;padding:0 30px}
+#mClose{position:absolute;top:8px;right:10px;font-size:22px;width:40px;height:40px;border-radius:50%;background:#eef7f7}
+.reward{text-align:center}
+.reward .big{font-size:60px;line-height:1.1}
+.reward .big svg{width:180px;height:126px}
+.reward .amt{font-size:1.5em;font-weight:900;margin:6px 0}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:92%}
+.tst{background:#fff;border-radius:14px;padding:10px 15px;font-weight:900;box-shadow:0 4px 14px #0002;animation:tIn .3s ease;max-width:100%;text-align:center}
+.tst.gold{background:var(--lemon)}.tst.err{background:#ffe0e5}
+@keyframes tIn{from{transform:translateY(-12px);opacity:0}to{transform:none;opacity:1}}
+.pickGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;max-height:44vh;overflow-y:auto;padding:2px}
+.pickGrid button{background:#f2fbfb;border-radius:14px;padding:4px;font-weight:900;font-size:.8em;border:3px solid transparent}
+.pickGrid button svg{width:80px;height:56px;display:block;margin:0 auto}
+.pickGrid button.on{border-color:var(--pink2);background:var(--pink)}
+.pickGrid button[disabled]{opacity:.35}
+/* ---------- mini games ---------- */
+#game{position:fixed;inset:0;z-index:60;background:#9fdcec;display:none;touch-action:none}
+#game.on{display:block}
+#gCanvas{position:absolute;inset:0;width:100%;height:100%}
+#gHud{position:absolute;top:calc(8px + env(safe-area-inset-top));left:8px;right:8px;display:flex;justify-content:space-between;align-items:center;z-index:2;font-weight:900;font-size:1.1em;gap:6px}
+#gOver{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#1d3a4a55;z-index:3;padding:16px}
+#gOver.on{display:flex}
+#gOver .box{background:#fff;border-radius:24px;padding:18px;width:100%;max-width:360px;text-align:center}
+#gIntro{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:3;padding:16px;background:#1d3a4a44}
+#gIntro.on{display:flex}
+#gIntro .box{background:#fff;border-radius:24px;padding:18px;width:100%;max-width:360px;text-align:center}
+/* ---------- loading ---------- */
+#load{position:fixed;inset:0;z-index:100;background:linear-gradient(#dff8f6,#ffe3ec);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .6s}
+#load .logo{font-size:2.3em;font-weight:900;color:#ff7fa6;text-shadow:0 3px 0 #fff;text-align:center;line-height:1.05}
+#load .wd{width:150px;height:105px;animation:float 1.2s ease-in-out infinite}
+#load .wd svg{width:100%;height:100%}
+#load .tip{max-width:300px;text-align:center;font-weight:800;color:var(--ink2);padding:0 20px}
+#load .lbar{width:200px;height:11px;background:#fff;border-radius:9px;overflow:hidden}
+#load .lbar i{display:block;height:100%;width:0;background:var(--pink2);transition:width .3s}
+/* ---------- tutorial ---------- */
+#tut{position:fixed;left:8px;right:8px;z-index:45;display:none;pointer-events:none}
+#tut.on{display:flex;justify-content:center}
+#tut .box{pointer-events:auto;background:#fff;border-radius:20px;padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 6px 24px #0003;max-width:460px;width:100%;border:3px solid var(--lemon2)}
+#tut #tutCap svg{width:64px;height:45px;flex:none}
+#tut .tx{flex:1;font-weight:900;font-size:.95em}
+.hl{outline:4px solid var(--lemon2)!important;outline-offset:2px;animation:hlp 1s infinite alternate;z-index:44}
+@keyframes hlp{from{outline-color:var(--lemon2)}to{outline-color:var(--pink2)}}
+</style>
+</head>
+<body>
+<div id="load">
+  <div class="logo">Axolotl<br>Lagoon</div>
+  <div class="wd" id="loadAxo"></div>
+  <div class="lbar"><i id="loadBar"></i></div>
+  <div class="tip" id="loadTip"></div>
+</div>
+<div id="app">
+  <div id="top">
+    <button class="pill" id="pPearl"><i class="pl"></i><span id="vPearl">0</span></button>
+    <button class="pill" id="pCrys"><span class="ic">💎</span><span id="vCrys">0</span></button>
+    <button class="pill lv" id="pLevel"><span class="ic">⭐</span><span id="vLevel">1</span><span class="xpbar"><i id="vXp"></i></span></button>
+    <div id="boosts"></div>
+    <button class="roundBtn" id="muteBtn" aria-label="Sound">🔊</button>
+    <button class="roundBtn" id="profBtn" aria-label="Profile"></button>
+  </div>
+  <div id="body">
+    <div id="main">
+      <div class="view on" id="vLagoon">
+        <div id="scene">
+          <svg id="sceneBg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+          <div id="props"></div>
+          <div id="dark"></div>
+          <div id="glowL"></div>
+          <div id="axos"></div>
+          <div id="fxL"></div>
+        </div>
+        <div id="areaName"></div>
+        <div id="eggs"></div>
+        <div id="sideR"></div>
+        <div id="careBar"></div>
+      </div>
+      <div class="view" id="vAxolotls"><div class="inner" id="iAxos"></div></div>
+      <div class="view" id="vShop"><div class="inner" id="iShop"></div></div>
+      <div class="view" id="vGames"><div class="inner" id="iGames"></div></div>
+      <div class="view" id="vMore"><div class="inner" id="iMore"></div></div>
+    </div>
+    <div id="nav"></div>
+  </div>
+</div>
+<div id="modalBg"><div id="modal"><button id="mClose" aria-label="Close">✕</button><div id="mBody"></div></div></div>
+<div id="toast"></div>
+<div id="tut"><div class="box"><div id="tutCap"></div><div class="tx" id="tutTx"></div><button class="btn sm" id="tutBtn">OK</button></div></div>
+<div id="game">
+  <canvas id="gCanvas"></canvas>
+  <div id="gHud"></div>
+  <div id="gIntro"><div class="box" id="gIntroBox"></div></div>
+  <div id="gOver"><div class="box" id="gOverBox"></div></div>
+</div>
+<script>
+/* =====================================================================
+   AXOLOTL LAGOON  —  a cozy axolotl idle game  (MOS Arcade)
+   ---------------------------------------------------------------------
+   HOW THIS FILE IS ORGANISED
+     1. CONFIG        ← all the tuning numbers. Change feel here.
+     2. DATA          ← colors, areas, decor, food, toys...
+     3. LANGUAGE      ← English / French words
+     4. STATE + SAVE  ← what the game remembers (on the phone only)
+     5. ECONOMY       ← how pearls are made, eggs, colors
+     6. ART           ← axolotls + lagoon drawn in code (SVG)
+     7. SOUND         ← bubbles + soft music made in code
+     8. LAGOON VIEW   ← axolotls swimming, petting, care
+     9. SCREENS       ← Axolotls, Shop, Games, More
+    10. MINI GAMES    ← Worm Catch, Hide & Seek, Bubble Pop
+    11. MONEY         ← ads + purchases (demo in browser)
+    12. MAIN LOOP     ← ticks, away time, tutorial, start-up
+===================================================================== */
+
+/* =====================================================================
+   1. CONFIG — tune the game here. Numbers only, no code knowledge needed.
+===================================================================== */
+const CONFIG = {
+  /* ---- start ---- */
+  START_PEARLS: 120,
+  START_CRYSTALS: 10,
+  START_WORMS: 8,
+
+  /* ---- pearls (idle money) ---- */
+  BASE_RATE: 1,               // pearls per second for one happy common grown-up axolotl
+  RARITY_MULT: [1, 2, 4, 6],  // Common, Uncommon, Rare, Exclusive
+  AREA_MULT: 3,               // each deeper area makes its axolotls earn x3 more
+  BABY_EARN: 0.3,             // babies earn 30% of a grown-up
+  SAD_MIN: 0.4,               // a very unhappy axolotl still makes 40% (it never leaves)
+  OFFLINE_HOURS: 8,           // pearls keep coming while the app is closed, up to this many hours
+  OFFLINE_UP_HOURS: 2,        // each "Pearl jars" upgrade adds this many hours
+  CRYSTAL_CHANCE: 0.012,      // each minute, chance that a grown-up axolotl finds a crystal
+
+  /* ---- care ---- */
+  MOOD_EMPTY_HOURS: 5,        // full -> empty in about 5 hours
+  PET_FUN: 8, PET_FRIEND: 3, PET_COOLDOWN_MS: 1500,
+  TOY_COOLDOWN_SEC: 20,
+  FRIEND_LEVELS: [0, 15, 45, 90, 150, 230, 330, 450, 600, 800],  // friendship points for 1..10 hearts
+  FRIEND_BONUS: 0.06,         // +6% pearls per heart
+
+  /* ---- growing + eggs ---- */
+  GROW_SEC: 900,              // baby -> grown-up in 15 min (happy babies grow faster)
+  EGG_SEC: 300,               // an egg takes 5 min to hatch
+  FIRST_EGG_SEC: 45,          // the very first egg
+  NEST_SLOTS: 3,              // eggs at the same time
+  PAIR_COOLDOWN_MIN: 10,      // an axolotl can make a new egg every 10 min
+  RECIPE_CHANCE: 0.35,        // chance a baby gets the NEW color when the pair is right
+  MUTATION_CHANCE: 0.04,      // tiny chance of a surprise color
+
+  /* ---- lagoon ---- */
+  SPOTS_START: 4,             // axolotls per area at start
+  SPOTS_PER_PLANT: 2,         // each "Plants & hiding spots" upgrade adds room for 2 more
+  PLANTS_MAX: 6,
+  AREA_COST: [0, 4000, 60000, 900000],
+  AREA_LEVEL: [1, 4, 8, 12],
+  DECOR_BONUS: 0.10,          // each decor piece: +10% pearls in its area
+  FOOD_UP_BONUS: 0.25,        // each "Better food" level: +25% pearls everywhere
+  FOOD_UP_MAX: 25,
+  CAVE_DARK: 0.66,            // how dark a cave is with no glow items
+  GLOW_LIGHT: 0.17,           // each glow item lights it up this much
+  CAVE_DARK_PENALTY: 0.5,     // a fully dark cave earns 50% (light it up to earn 100%)
+
+  /* ---- day + night (real clock) ---- */
+  NIGHT_START: 20, NIGHT_END: 7,
+
+  /* ---- visitors ---- */
+  VISITOR_MIN: [12, 25],      // a random visitor every 12-25 minutes
+  VISITOR_STAY_MIN: 6,
+
+  /* ---- player ---- */
+  XP_BASE: 40, XP_POW: 1.5,
+
+  /* ---- optional ads ---- */
+  AD_2X_MIN: 30, AD_2X_MAX_H: 4,
+  TICKETS_MAX: 5, TICKET_MIN: 15, AD_TICKETS: 3,
+
+  /* ---- mini games ---- */
+  CATCH_SPEED: 170, CATCH_RAMP: 5,
+  SEEK_TIME: 45,
+  POP_TIME: 30,
+};
+
+/* =====================================================================
+   2. DATA — everything that exists in the lagoon
+===================================================================== */
+const RARITY = [
+  {en:'Common', fr:'Commun', c:'#7d9aa0'},
+  {en:'Uncommon', fr:'Peu commun', c:'#3f86d0'},
+  {en:'Rare', fr:'Rare', c:'#c04fd0'},
+  {en:'Exclusive', fr:'Exclusif', c:'#e0679a'},
+];
+/* axolotl colors. body / belly / gills / eye. pat = pattern drawn on top.
+   cave:true  = can only be born or found in the caves.
+   paid:true  = comes with the Lagoon Pack. */
+const COLORS = {
+  pink:     {en:'Pink',        fr:'Rose',          r:0, body:'#ffc8d6', belly:'#fff0f4', gill:'#ff6f9a', eye:'#3a2a3a'},
+  wild:     {en:'Wild brown',  fr:'Brun sauvage',  r:0, body:'#8f7f58', belly:'#c9bb8c', gill:'#6b5a38', eye:'#1e1a14', pat:'spots', pc:'#5f5236'},
+  black:    {en:'Black',       fr:'Noir',          r:0, body:'#3f3c4e', belly:'#5d5970', gill:'#2a2737', eye:'#0e0d14', hi:'#fff'},
+  golden:   {en:'Golden',      fr:'Doré',          r:1, body:'#ffd85a', belly:'#fff4c2', gill:'#ffa63d', eye:'#d77b6a'},
+  copper:   {en:'Copper',      fr:'Cuivré',        r:1, body:'#e0955f', belly:'#f7cfa8', gill:'#c4623a', eye:'#7a3a26', pat:'freckles', pc:'#b8683c'},
+  lavender: {en:'Lavender',    fr:'Lavande',       r:1, body:'#cbb8f2', belly:'#efe8ff', gill:'#9d7fe6', eye:'#3b2f5a'},
+  freckled: {en:'White freckled', fr:'Blanc tacheté', r:1, body:'#fff7f2', belly:'#ffffff', gill:'#ff8aae', eye:'#2b2230', pat:'freckles', pc:'#5d4b5a'},
+  blue:     {en:'Blue',        fr:'Bleu',          r:2, body:'#86bdff', belly:'#d5e8ff', gill:'#4a7ee8', eye:'#1c2a4a'},
+  mosaic:   {en:'Mosaic',      fr:'Mosaïque',      r:2, body:'#ffd0dc', belly:'#fff2f5', gill:'#7b5a9a', eye:'#2b2230', pat:'mosaic', pc:'#4b4560'},
+  glowing:  {en:'Glowing',     fr:'Lumineux',      r:2, body:'#bfffe0', belly:'#eafff5', gill:'#3df0a8', eye:'#174a38', glow:'#4dffb5', cave:true},
+  galaxy:   {en:'Galaxy',      fr:'Galaxie',       r:2, body:'#33306a', belly:'#4f4a8f', gill:'#9a7cff', eye:'#ffffff', pat:'galaxy', glow:'#a58cff', cave:true, hi:'#fff'},
+  rainbow:  {en:'Rainbow',     fr:'Arc-en-ciel',   r:2, body:'#ffb3c6', belly:'#fffaf0', gill:'#ff9f45', eye:'#2b2230', pat:'rainbow'},
+  sakura:   {en:'Sakura',      fr:'Sakura',        r:3, body:'#ffe3ee', belly:'#ffffff', gill:'#ff92c2', eye:'#4a2a3a', pat:'petals', pc:'#ff9ec8', paid:true},
+  moonlight:{en:'Moonlight',   fr:'Clair de lune', r:3, body:'#e3e9ff', belly:'#ffffff', gill:'#9fbaff', eye:'#2a3560', glow:'#b8ccff', pat:'stars', paid:true},
+};
+const COLOR_IDS = Object.keys(COLORS);
+/* pair two colors -> chance of a NEW color (order does not matter) */
+const RECIPES = [
+  ['pink','wild','copper'],
+  ['pink','black','lavender'],
+  ['wild','black','golden'],
+  ['pink','golden','freckled'],
+  ['black','lavender','blue'],
+  ['copper','lavender','mosaic'],
+  ['golden','freckled','glowing'],   // caves only
+  ['blue','glowing','galaxy'],       // caves only
+  ['mosaic','galaxy','rainbow'],
+];
+const recipeFor = c => RECIPES.find(r => r[2] === c);
+
+const PERSONALITIES = {
+  sleepy:  {e:'😴', en:'Sleepy',  fr:'Endormi',  d:{en:'Naps a lot. Gets bored slowly.', fr:'Fait plein de siestes. S’ennuie lentement.'}},
+  curious: {e:'🔍', en:'Curious', fr:'Curieux',  d:{en:'Finds crystals more often.', fr:'Trouve des cristaux plus souvent.'}},
+  greedy:  {e:'😋', en:'Greedy',  fr:'Gourmand', d:{en:'Earns +20% pearls, but gets hungry fast.', fr:'Gagne +20% de perles, mais a vite faim.'}},
+  shy:     {e:'🙈', en:'Shy',     fr:'Timide',   d:{en:'Slow to make friends, but each heart gives more.', fr:'Lent à devenir ami, mais chaque cœur rapporte plus.'}},
+  silly:   {e:'🤪', en:'Silly',   fr:'Rigolo',   d:{en:'Loves pets and toys: double fun!', fr:'Adore les caresses et les jouets : double plaisir!'}},
+};
+const PERS_IDS = Object.keys(PERSONALITIES);
+/* favorite spots (where they love to nap). x,y = place in the lagoon (in %) */
+const SPOTS = {
+  plant: {e:'🌿', en:'Water plant', fr:'Plante d’eau',   x:9,  y:80},
+  rock:  {e:'🪨', en:'Big rock',    fr:'Gros rocher',    x:28, y:86},
+  sand:  {e:'🏖️', en:'Soft sand',   fr:'Sable doux',     x:49, y:91},
+  hole:  {e:'🕳️', en:'Hiding hole', fr:'Petite cachette', x:70, y:86},
+  shell: {e:'🐚', en:'Big shell',   fr:'Grand coquillage', x:89, y:85},
+};
+const SPOT_IDS = Object.keys(SPOTS);
+
+const AREAS = [
+  {id:'shallows', e:'☀️', en:'Sunny Shallows', fr:'Eaux peu profondes', cave:false, top:'#c6f6f2', bot:'#7fd2df', floor:'#f6e3b4', floor2:'#ead09a', rock:'#b9c4c9', plant:'#5fcf9a', music:[[0,2,4,7,9], 72, 'triangle']},
+  {id:'kelp',     e:'🌿', en:'Kelp Forest',    fr:'Forêt de varech',    cave:false, top:'#b2ead8', bot:'#3fa596', floor:'#d6cc9a', floor2:'#bfb47f', rock:'#8fa5a0', plant:'#3e9f6a', music:[[0,2,3,7,9], 66, 'sine']},
+  {id:'crystal',  e:'💎', en:'Crystal Cave',   fr:'Grotte de cristal',  cave:true,  top:'#6d5fa8', bot:'#2f2b62', floor:'#4d4278', floor2:'#3d3466', rock:'#6a5d9a', plant:'#7f6fd0', music:[[0,3,5,7,10], 60, 'sine']},
+  {id:'grotto',   e:'✨', en:'Deep Glowing Grotto', fr:'Grotte lumineuse', cave:true, top:'#2c3e72', bot:'#0e1736', floor:'#283058', floor2:'#1d2446', rock:'#3b4878', plant:'#3d6f9a', music:[[0,2,5,7,9], 54, 'sine']},
+];
+const AREA_IDS = AREAS.map(a => a.id);
+const AREA = id => AREAS.find(a => a.id === id);
+
+/* decor: bought once per area. glow:true = lights up caves */
+const DECOR = {
+  lily:    {e:'🪷', en:'Lily pads',     fr:'Nénuphars',         p:300,  where:['shallows','kelp']},
+  mosslog: {e:'🪵', en:'Mossy log',     fr:'Bûche moussue',     p:800,  where:['shallows','kelp','crystal']},
+  bubbler: {e:'🫧', en:'Bubble stone',  fr:'Pierre à bulles',   p:1500, where:['shallows','kelp','crystal','grotto']},
+  castle:  {e:'🏰', en:'Little castle', fr:'Petit château',     p:3000, where:['shallows','kelp','crystal','grotto']},
+  arch:    {e:'🌈', en:'Crystal arch',  fr:'Arche de cristal',  p:6000, where:['shallows','kelp','crystal','grotto']},
+  glowplant:{e:'🌱', en:'Glow plants',  fr:'Plantes lumineuses', p:1200, c:5,  where:['crystal','grotto'], glow:'#5dffc1'},
+  shroom:  {e:'🍄', en:'Glow mushrooms', fr:'Champignons lumineux', p:2500, c:10, where:['crystal','grotto'], glow:'#ff8fe0'},
+  gem:     {e:'💎', en:'Glow crystals', fr:'Cristaux lumineux', p:5000, c:20, where:['crystal','grotto'], glow:'#8fd8ff'},
+};
+const DECOR_IDS = Object.keys(DECOR);
+
+const FOODS = {
+  worm:   {e:'🪱', en:'Worms',   fr:'Vers',        food:35,  fun:0,  fr_:4, p:30},
+  shrimp: {e:'🦐', en:'Shrimp',  fr:'Crevettes',   food:60,  fun:10, fr_:6, p:80},
+  pellet: {e:'🧆', en:'Pellets', fr:'Granulés',    food:100, fun:5,  fr_:8, p:200},
+};
+const FOOD_IDS = Object.keys(FOODS);
+const TOYS = {
+  ball: {e:'🏐', en:'Floating ball', fr:'Balle flottante',      fun:30, fr_:6,  p:0},
+  ring: {e:'🛟', en:'Bubble ring',   fr:'Anneau à bulles',      fun:45, fr_:8,  p:900},
+  duck: {e:'🦆', en:'Rubber duck',   fr:'Canard en caoutchouc', fun:60, fr_:10, p:4000},
+};
+const TOY_IDS = Object.keys(TOYS);
+
+const TITLES = [
+  [1,  {en:'Pond Newbie', fr:'Débutant de l’étang'}],
+  [4,  {en:'Gill Friend', fr:'Ami des branchies'}],
+  [8,  {en:'Lagoon Keeper', fr:'Gardien du lagon'}],
+  [12, {en:'Cave Explorer', fr:'Explorateur des grottes'}],
+  [18, {en:'Glow Master', fr:'Maître de la lumière'}],
+  [25, {en:'Axolotl Legend', fr:'Légende axolotl'}],
+];
+const GIFT_DAYS = [   // daily gift, day 1..7 then repeats. p = minutes of pearls, c = crystals
+  {p:20, worm:3}, {p:30, shrimp:2}, {p:40, c:5}, {p:50, pellet:1}, {p:60, worm:5}, {p:80, shrimp:3}, {p:120, c:15},
+];
+const NAMES = ['Bubbles','Mochi','Peach','Noodle','Pip','Lulu','Wiggles','Momo','Pearl','Biscuit','Sunny','Pickle','Dumpling','Kiki',
+  'Tofu','Gummy','Squish','Puff','Olive','Maple','Nori','Boba','Taro','Luna','Ziggy','Poppy','Bean','Sprout','Mango','Fig','Plum','Cocoa',
+  'Daisy','Jelly','Kiwi','Miso','Opal','Pebble','Ripple','Sago','Tilly','Waffle','Yuzu','Gizmo','Button','Lychee','Marsh','Sushi','Toffee'];
+const TIPS = [
+  {en:'Pair two grown-ups to get an egg. Babies can be a brand new color!', fr:'Mets deux adultes ensemble pour avoir un œuf. Le bébé peut être d’une nouvelle couleur!'},
+  {en:'Happy axolotls find more pearls. Pet them and feed them!', fr:'Les axolotls heureux trouvent plus de perles. Flatte-les et nourris-les!'},
+  {en:'Caves are dark. Place glow items to light them up.', fr:'Les grottes sont sombres. Place des objets lumineux pour les éclairer.'},
+  {en:'Tap the moon button to see glowing axolotls shine.', fr:'Touche le bouton lune pour voir briller les axolotls lumineux.'},
+  {en:'Your axolotls keep finding pearls while the app is closed.', fr:'Tes axolotls trouvent des perles même quand l’app est fermée.'},
+  {en:'Each axolotl has a favorite spot where it loves to nap.', fr:'Chaque axolotl a un endroit préféré pour faire la sieste.'},
+  {en:'Ads are always your choice. Nothing plays on its own.', fr:'Les pubs sont toujours ton choix. Rien ne joue tout seul.'},
+];
+
+/* =====================================================================
+   4. STATE + SAVE — and small helpers
+   Everything is saved on this phone only (no account, no internet).
+===================================================================== */
+const $ = id => document.getElementById(id);
+const now = () => Date.now();
+const rnd = (a, b) => a + Math.random() * (b - a);
+const rint = (a, b) => Math.floor(rnd(a, b + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const PL = '<i class="pl"></i>';
+function weighted(odds){ let s = odds.reduce((a, b) => a + b, 0), r = Math.random() * s; for(let i=0;i<odds.length;i++){ r -= odds[i]; if(r < 0) return i; } return odds.length - 1; }
+function fmt(n){
+  n = Math.floor(n || 0); if(n < 1000) return String(n);
+  const u = ['K','M','B','T','Qa','Qi','Sx','Sp']; let i = -1;
+  while(n >= 1000 && i < u.length - 1){ n /= 1000; i++; }
+  return (n >= 100 ? Math.floor(n) : n >= 10 ? (Math.floor(n * 10) / 10) : (Math.floor(n * 100) / 100)) + u[i];
+}
+function fmtTime(sec){
+  sec = Math.max(0, Math.ceil(sec));
+  if(sec < 60) return sec + 's';
+  const m = Math.floor(sec / 60), s = sec % 60;
+  if(m < 60) return m + 'm' + (s ? ' ' + s + 's' : '');
+  const h = Math.floor(m / 60); if(h < 48) return h + 'h ' + (m % 60) + 'm';
+  return Math.floor(h / 24) + 'd ' + (h % 24) + 'h';
+}
+function dayNum(t){ const d = new Date(t); return Math.floor((t - d.getTimezoneOffset() * 60000) / 86400000); }
+function isNight(t){ const h = new Date(t || now()).getHours(); return h >= CONFIG.NIGHT_START || h < CONFIG.NIGHT_END; }
+
+const SAVE_KEY = 'axolotllagoon_v1';
+let S = null;
+
+function newArea(){ return {plants:0, decor:{}}; }
+function newState(){
+  const t = now();
+  return {
+    v:1, created:t, lastSeen:t, name:'', avatar:null,
+    lang:(navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en',
+    snd:true, mus:true, easy:false, fsz:1,
+    p:CONFIG.START_PEARLS, c:CONFIG.START_CRYSTALS, xp:0, lv:1,
+    cur:'shallows', open:['shallows'], ar:{shallows:newArea()},
+    axos:[], nextId:1, eggs:[],
+    inv:{worm:CONFIG.START_WORMS, shrimp:0, pellet:0}, toys:{ball:1},
+    up:{food:0, nest:0, jar:0},
+    book:{}, daily:{streak:0, last:null}, dvDay:null,
+    visitor:null, visitorAt:t + 8 * 60000,
+    ad2x:0, tickets:CONFIG.TICKETS_MAX, tkT:t, glowMode:false, theme:'classic',
+    stats:{pearls:0, play:0, hatched:0, games:0, pets:0, feeds:0, toys:0, crystals:0, best:{catch:0, seek:0, pop:0}},
+    tut:0, noAds:false, pack:false, iapDone:{}, awayLast:0,
+  };
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(raw){ const o = JSON.parse(raw); if(o && o.v) return fixState(o); }
+  }catch(e){}
+  return null;
+}
+/* fills in anything missing from an older save */
+function fixState(o){
+  const d = newState();
+  for(const k in d) if(o[k] === undefined) o[k] = d[k];
+  for(const k in d.stats) if(o.stats[k] === undefined) o.stats[k] = d.stats[k];
+  for(const k in d.inv) if(o.inv[k] === undefined) o.inv[k] = 0;
+  for(const k in d.up) if(o.up[k] === undefined) o.up[k] = 0;
+  o.open.forEach(id => { if(!o.ar[id]) o.ar[id] = newArea(); });
+  return o;
+}
+function saveNow(){
+  if(!S) return;
+  S.lastSeen = now();
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){}
+}
+
+/* =====================================================================
+   3. LANGUAGE — tr('English text') gives French when French is chosen.
+   To fix a French word, change it in FR (near the end of the file).
+===================================================================== */
+function L(o){ if(!o) return ''; return (S && S.lang === 'fr' && o.fr) ? o.fr : (o.en || ''); }
+function tr(s, vars){
+  let out = (S && S.lang === 'fr' && FR[s]) ? FR[s] : s;
+  if(vars) for(const k in vars) out = out.split('{' + k + '}').join(vars[k]);
+  return out;
+}
+
+/* =====================================================================
+   5. ECONOMY — pearls, crystals, levels, eggs, colors
+===================================================================== */
+const MOOD_RATE = () => 100 / (CONFIG.MOOD_EMPTY_HOURS * 3600);
+const axoById = id => S.axos.find(x => x.id === id);
+const axosIn = a => S.axos.filter(x => x.a === a);
+const isAdult = x => x.grow >= CONFIG.GROW_SEC;
+const moodAvg = x => (x.m.food + x.m.fun) / 2;
+const tierOf = a => AREA_IDS.indexOf(a);
+const roomIn = a => CONFIG.SPOTS_START + CONFIG.SPOTS_PER_PLANT * (S.ar[a] ? S.ar[a].plants : 0);
+const hasRoom = a => axosIn(a).length < roomIn(a);
+const decorCount = a => S.ar[a] ? Object.keys(S.ar[a].decor).length : 0;
+const lightOf = a => S.ar[a] ? DECOR_IDS.filter(k => DECOR[k].glow && S.ar[a].decor[k]).length : 0;
+function caveDark(a){ return AREA(a).cave ? Math.max(0.1, CONFIG.CAVE_DARK - CONFIG.GLOW_LIGHT * lightOf(a)) : 0; }
+function caveFactor(a){ return AREA(a).cave ? 1 - CONFIG.CAVE_DARK_PENALTY * (1 - lightOf(a) / 3) : 1; }
+function areaMult(a){ return Math.pow(CONFIG.AREA_MULT, tierOf(a)) * (1 + CONFIG.DECOR_BONUS * decorCount(a)) * caveFactor(a); }
+function hearts(x){ let h = 0; CONFIG.FRIEND_LEVELS.forEach(v => { if(x.f >= v) h++; }); return h; }
+function nextHeartAt(x){ return CONFIG.FRIEND_LEVELS.find(v => v > x.f); }
+function globalMult(t){ return (1 + CONFIG.FOOD_UP_BONUS * S.up.food) * (S.ad2x > (t || now()) ? 2 : 1); }
+function axoRate(x, t){
+  const C = COLORS[x.c] || COLORS.pink, h = hearts(x);
+  const mood = CONFIG.SAD_MIN + (1 - CONFIG.SAD_MIN) * moodAvg(x) / 100;
+  const friend = 1 + h * (CONFIG.FRIEND_BONUS + (x.t === 'shy' ? 0.03 : 0));
+  return CONFIG.BASE_RATE * CONFIG.RARITY_MULT[C.r] * areaMult(x.a) * (isAdult(x) ? 1 : CONFIG.BABY_EARN) * mood * friend * (x.t === 'greedy' ? 1.2 : 1) * globalMult(t);
+}
+function incomePerSec(){ return S.axos.reduce((s, x) => s + axoRate(x), 0); }
+function areaIncome(a){ return axosIn(a).reduce((s, x) => s + axoRate(x), 0); }
+const incomeFloor = () => Math.max(2, incomePerSec());
+const priceScale = () => Math.pow(3, S.open.length - 1);
+
+function addP(n){ S.p += n; if(n > 0) S.stats.pearls += n; }
+function canPay(cur, n){ return cur === 'c' ? S.c >= n : S.p >= n; }
+function pay(cur, n){
+  if(!canPay(cur, n)){ toast((cur === 'c' ? '💎 ' + tr('Not enough crystals') : PL + ' ' + tr('Not enough pearls')), 'err'); sfx('err'); return false; }
+  if(cur === 'c') S.c -= n; else S.p -= n;
+  return true;
+}
+const xpNeed = lv => Math.round(CONFIG.XP_BASE * Math.pow(lv, CONFIG.XP_POW));
+function titleOf(lv){ let t = TITLES[0][1]; TITLES.forEach(([l, n]) => { if(lv >= l) t = n; }); return t; }
+function addXP(n){
+  S.xp += n;
+  while(S.xp >= xpNeed(S.lv)){
+    S.xp -= xpNeed(S.lv); S.lv++;
+    const pr = Math.round(Math.max(200, incomeFloor() * 300)), cr = 2 + Math.floor(S.lv / 3);
+    addP(pr); S.c += cr; sfx('level');
+    const opens = AREAS.filter((a, i) => CONFIG.AREA_LEVEL[i] === S.lv && i > 0);
+    queueModal(() => showReward('⭐', tr('Level {n}!', {n: S.lv}), '+' + fmt(pr) + ' ' + PL + ' +' + cr + ' 💎<br>' + L(titleOf(S.lv)) +
+      opens.map(a => '<br>🔓 ' + a.e + ' ' + L(a) + ' ' + tr('can be opened in the Shop!')).join('')));
+  }
+}
+
+/* ---------- making axolotls ---------- */
+function randName(){ const used = new Set(S.axos.map(x => x.n)); const free = NAMES.filter(n => !used.has(n)); return pick(free.length ? free : NAMES); }
+function makeAxo(o){
+  const x = {id: S.nextId++, n: o.n || randName(), c: o.c || 'pink', t: o.t || pick(PERS_IDS), s: o.s || pick(SPOT_IDS),
+    a: o.a || S.cur, grow: o.adult ? CONFIG.GROW_SEC : 0, m: {food: 80, fun: 80}, f: 0, pc: 0, pet: 0, toyAt: 0, born: now()};
+  S.axos.push(x);
+  addToBook(x.c);
+  return x;
+}
+/* first time a color is seen = discovery reward */
+function addToBook(c){
+  if(S.book[c]) return false;
+  S.book[c] = now();
+  if(S.tut === 0) return true;   // the starting axolotls
+  const C = COLORS[c], cr = [3, 8, 20, 30][C.r];
+  S.c += cr; addXP(20 + C.r * 15);
+  queueModal(() => {
+    sfx('new');
+    showReward(axoSVG(c, {size: 180}), '✨ ' + tr('New color discovered!'),
+      '<b style="color:' + RARITY[C.r].c + '">' + L(C) + ' · ' + L(RARITY[C.r]) + '</b><br>+' + cr + ' 💎<br><span class="muted">' + tr('It’s now in your Color book.') + '</span>');
+  });
+  return true;
+}
+/* which color will a baby be? */
+function babyColor(pa, pb, area){
+  const cave = AREA(area).cave;
+  const rec = RECIPES.find(r => (r[0] === pa && r[1] === pb) || (r[0] === pb && r[1] === pa));
+  if(rec && (!COLORS[rec[2]].cave || cave) && Math.random() < CONFIG.RECIPE_CHANCE) return rec[2];
+  if(Math.random() < CONFIG.MUTATION_CHANCE){
+    const pool = COLOR_IDS.filter(k => COLORS[k].r === 1);
+    return pick(pool);
+  }
+  return Math.random() < 0.5 ? pa : pb;
+}
+/* is a new color possible from this pair, here? (shown as a hint) */
+function pairHint(pa, pb, area){
+  const rec = RECIPES.find(r => (r[0] === pa && r[1] === pb) || (r[0] === pb && r[1] === pa));
+  if(!rec) return 0;
+  if(COLORS[rec[2]].cave && !AREA(area).cave) return 2;   // right pair, wrong place
+  return 1;
+}
+const eggTime = () => Math.round(CONFIG.EGG_SEC * 1000 * Math.pow(0.88, S.up.nest));   // in ms
+const nestFree = () => S.eggs.length < CONFIG.NEST_SLOTS;
+const eggLeft = e => Math.max(0, (e.t0 + e.dur - now()) / 1000);
+const skipCrystals = sec => Math.max(1, Math.ceil(sec / 90));
+function addEgg(o){
+  const e = {id: 'e' + (S.nextId++), a: o.a || S.cur, pa: o.pa, pb: o.pb, force: o.force || null, t0: now(), dur: o.dur || eggTime()};
+  S.eggs.push(e);
+  return e;
+}
+function canPair(x){ return isAdult(x) && now() >= (x.pc || 0); }
+function pairUp(x, y){
+  if(!nestFree()){ toast('🥚 ' + tr('All nests are full'), 'err'); return false; }
+  const cd = now() + CONFIG.PAIR_COOLDOWN_MIN * 60000;
+  x.pc = cd; y.pc = cd;
+  addEgg({a: x.a, pa: x.c, pb: y.c});
+  addXP(5); sfx('pop'); saveNow();
+  toast('💞🥚 ' + esc(x.n) + ' & ' + esc(y.n) + ' ' + tr('made an egg!'), 'gold');
+  return true;
+}
+function hatchEgg(e){
+  let area = e.a;
+  if(!hasRoom(area)){ area = S.open.find(a => hasRoom(a)); }
+  if(!area){ toast('🌿 ' + tr('No room! Buy more plants & hiding spots in the Shop.'), 'err'); sfx('err'); return null; }
+  S.eggs = S.eggs.filter(q => q !== e);
+  const c = e.force || babyColor(e.pa, e.pb, e.a);
+  const isNew = !S.book[c];
+  const x = makeAxo({c, a: area});
+  S.stats.hatched++; addXP(15); sfx('hatch');
+  if(!isNew){
+    queueModal(() => {
+      openModal('', '<div class="reward"><div class="big">' + axoSVG(c, {baby: true, size: 180}) + '</div><h2>🐣 ' + tr('{n} hatched!', {n: esc(x.n)}) + '</h2><p><b style="color:' + RARITY[COLORS[c].r].c + '">' + L(COLORS[c]) + '</b> · ' + PERSONALITIES[x.t].e + ' ' + L(PERSONALITIES[x.t]) + '</p>' +
+        (area !== e.a ? '<p class="muted">' + tr('It moved to {a} (more room there).', {a: L(AREA(area))}) + '</p>' : '') +
+        '<button class="btn wide" id="hOk">' + tr('Yay!') + '</button><button class="btn wide ghost" id="hName">✏️ ' + tr('Rename') + '</button></div>');
+      $('hOk').onclick = closeModal; $('hName').onclick = () => { closeModal(); renameAxo(x); };
+    });
+  }
+  tutEvent('hatch');
+  saveNow(); renderLagoon();
+  return x;
+}
+
+/* ---------- visitors ---------- */
+function rollVisitorColor(kind, area){
+  const cave = AREA(area).cave, lit = lightOf(area);
+  const odds = kind === 'rare' ? [0, 60, 40] : kind === 'daily' ? [50, 40, 10] : [70, 25, 5];
+  const r = weighted(odds);
+  let pool = COLOR_IDS.filter(k => COLORS[k].r === r && !COLORS[k].paid && (!COLORS[k].cave || (cave && lit >= 1)));
+  if(r === 2 && cave && lit >= 1 && Math.random() < 0.5) pool = ['glowing'];   // caves are home to glowing ones
+  if(!pool.length) pool = COLOR_IDS.filter(k => COLORS[k].r === 1);
+  return pick(pool);
+}
+function spawnVisitor(kind){
+  const a = S.cur, c = rollVisitorColor(kind, a);
+  const cost = kind === 'random' ? Math.round(Math.max(250, incomeFloor() * 150) * (1 + COLORS[c].r)) : 0;
+  S.visitor = {c, t: pick(PERS_IDS), s: pick(SPOT_IDS), a, kind, cost, n: randName(), until: now() + (kind === 'random' ? CONFIG.VISITOR_STAY_MIN : 30) * 60000};
+  sfx('chime'); renderLagoon(); saveNow();
+  toast('👋 ' + tr('A visitor is in the lagoon!'), 'gold');
+}
+function adoptVisitor(){
+  const v = S.visitor; if(!v) return;
+  const area = hasRoom(v.a) ? v.a : S.open.find(a => hasRoom(a));
+  if(!area){ toast('🌿 ' + tr('No room! Buy more plants & hiding spots in the Shop.'), 'err'); return; }
+  if(v.cost && !pay('p', v.cost)) return;
+  const x = makeAxo({c: v.c, t: v.t, s: v.s, a: area, adult: true, n: v.n});
+  S.visitor = null; S.visitorAt = now() + rnd(...CONFIG.VISITOR_MIN) * 60000;
+  addXP(10); sfx('hatch'); saveNow(); renderLagoon();
+  toast('💗 ' + esc(x.n) + ' ' + tr('lives in your lagoon now!'), 'gold');
+}
+
+/* ---------- care ---------- */
+function petAxo(x, silent){
+  const t = now();
+  if(t - (x.pet || 0) < CONFIG.PET_COOLDOWN_MS) return false;
+  x.pet = t;
+  x.m.fun = Math.min(100, x.m.fun + CONFIG.PET_FUN * (x.t === 'silly' ? 2 : 1));
+  addFriend(x, CONFIG.PET_FRIEND);
+  S.stats.pets++; addXP(1);
+  if(!silent) sfx('pet');
+  tutEvent('pet');
+  return true;
+}
+function addFriend(x, n){
+  const h0 = hearts(x);
+  x.f += n * (x.t === 'shy' ? 0.7 : 1);
+  if(hearts(x) > h0){ toast('💗 ' + esc(x.n) + ' ' + tr('likes you more!') + ' ' + '❤️'.repeat(hearts(x)), 'gold'); sfx('level'); }
+}
+function feedAxo(x, k){
+  if(S.inv[k] < 1){ toast(FOODS[k].e + ' ' + tr('You have none. Buy some in the Shop.'), 'err'); sfx('err'); return false; }
+  const F = FOODS[k];
+  S.inv[k]--; x.m.food = Math.min(100, x.m.food + F.food); x.m.fun = Math.min(100, x.m.fun + F.fun);
+  addFriend(x, F.fr_); S.stats.feeds++; addXP(2); sfx('eat');
+  tutEvent('feed'); saveNow();
+  return true;
+}
+function toyAxo(x, k){
+  const T = TOYS[k], t = now();
+  if(t < (x.toyAt || 0)){ toast('⏳ ' + tr('Let it rest a moment'), 'err'); return false; }
+  x.toyAt = t + CONFIG.TOY_COOLDOWN_SEC * 1000;
+  x.m.fun = Math.min(100, x.m.fun + T.fun * (x.t === 'silly' ? 2 : 1));
+  addFriend(x, T.fr_); S.stats.toys++; addXP(2); sfx('boing'); saveNow();
+  return true;
+}
+
+/* ---------- costs ---------- */
+const foodPrice = k => Math.round(FOODS[k].p * priceScale());
+const toyPrice = k => Math.round(TOYS[k].p * priceScale());
+const foodUpCost = () => Math.round(300 * Math.pow(1.9, S.up.food));
+const plantCost = a => Math.round(500 * Math.pow(2.3, S.ar[a].plants) * Math.pow(CONFIG.AREA_MULT, tierOf(a)));
+const nestCost = () => Math.round(800 * Math.pow(3, S.up.nest));
+const jarCost = () => Math.round(2000 * Math.pow(4, S.up.jar));
+const decorCost = (k, a) => Math.round(DECOR[k].p * Math.pow(CONFIG.AREA_MULT, tierOf(a)));
+const offlineCapH = () => CONFIG.OFFLINE_HOURS + CONFIG.OFFLINE_UP_HOURS * S.up.jar;
+function areaCost(i){ return CONFIG.AREA_COST[i]; }
+function canOpenArea(i){ return !S.open.includes(AREAS[i].id) && S.open.length === i && S.lv >= CONFIG.AREA_LEVEL[i]; }
+
+/* =====================================================================
+   6. ART — every axolotl and every lagoon thing is drawn in code (SVG).
+   No image files needed.
+===================================================================== */
+function shade(hex, amt){ // amt -1..1 (darker..lighter)
+  let c = hex.replace('#', ''); if(c.length === 3) c = c.split('').map(x => x + x).join('');
+  let r = parseInt(c.substr(0, 2), 16), g = parseInt(c.substr(2, 2), 16), b = parseInt(c.substr(4, 2), 16);
+  const f = v => Math.round(amt < 0 ? v * (1 + amt) : v + (255 - v) * amt);
+  return '#' + [f(r), f(g), f(b)].map(v => clamp(v, 0, 255).toString(16).padStart(2, '0')).join('');
+}
+let svgUid = 0;
+/* stable pseudo-random numbers, so patterns look the same every time */
+function seeded(n){ const out = []; let s = n * 9301 + 49297; for(let i=0;i<60;i++){ s = (s * 9301 + 49297) % 233280; out.push(s / 233280); } return out; }
+
+/* one gill frond: a soft curved stalk with little feathery bumps */
+function frond(x0, y0, x1, y1, col, w){
+  const mx = (x0 + x1) / 2, my = (y0 + y1) / 2, dx = x1 - x0, dy = y1 - y0, len = Math.hypot(dx, dy) || 1;
+  const nx = -dy / len, ny = dx / len, cx = mx + nx * 3, cy = my + ny * 3;
+  const P = t => [(1-t)*(1-t)*x0 + 2*(1-t)*t*cx + t*t*x1, (1-t)*(1-t)*y0 + 2*(1-t)*t*cy + t*t*y1];
+  let s = '<path d="M' + x0 + ' ' + y0 + ' Q' + cx.toFixed(1) + ' ' + cy.toFixed(1) + ' ' + x1 + ' ' + y1 + '" stroke="' + col + '" stroke-width="' + w + '" stroke-linecap="round" fill="none"/>';
+  const fc = shade(col, 0.18);
+  [0.32, 0.5, 0.68, 0.84].forEach((t, i) => {
+    const [px, py] = P(t), sd = i % 2 ? 1 : -1;
+    s += '<circle cx="' + (px + nx * sd * w * 0.62).toFixed(1) + '" cy="' + (py + ny * sd * w * 0.62).toFixed(1) + '" r="' + (w * 0.48).toFixed(1) + '" fill="' + fc + '"/>';
+    s += '<circle cx="' + (px - nx * sd * w * 0.62).toFixed(1) + '" cy="' + (py - ny * sd * w * 0.62).toFixed(1) + '" r="' + (w * 0.4).toFixed(1) + '" fill="' + fc + '"/>';
+  });
+  s += '<circle cx="' + x1 + '" cy="' + y1 + '" r="' + (w * 0.62).toFixed(1) + '" fill="' + fc + '"/>';
+  return s;
+}
+
+/* the axolotl. c = color id. opt: baby, sleep, size (px, optional) */
+function axoSVG(c, opt){
+  opt = opt || {};
+  const C = COLORS[c] || COLORS.pink, b = !!opt.baby, u = 'ax' + (++svgUid);
+  const hx = b ? 86 : 88, hy = 40, hrx = b ? 24 : 21, hry = b ? 19.5 : 17;
+  const bx = b ? 64 : 59, by = 50, brx = b ? 19 : 25, bry = b ? 11 : 12.5;
+  const body = C.pat === 'rainbow' ? 'url(#' + u + 'rb)' : C.body;
+  const dark = shade(C.body, -0.18), gw = b ? 4.6 : 4.2;
+  const sz = opt.size ? ' width="' + opt.size + '" height="' + Math.round(opt.size * 0.7) + '"' : '';
+  const glowSt = opt.halo && C.glow ? ' style="filter:drop-shadow(0 0 5px ' + C.glow + ')"' : '';
+  let s = '<svg viewBox="0 0 120 84"' + sz + glowSt + ' xmlns="http://www.w3.org/2000/svg"><defs>';
+  if(C.pat === 'rainbow') s += '<linearGradient id="' + u + 'rb" x1="0" x2="1" y1="0" y2="0.4"><stop offset="0" stop-color="#ffa0b4"/><stop offset=".25" stop-color="#ffd27a"/><stop offset=".45" stop-color="#fff28c"/><stop offset=".62" stop-color="#9ef0b4"/><stop offset=".8" stop-color="#8fd2ff"/><stop offset="1" stop-color="#cba6ff"/></linearGradient>';
+  const x0 = bx - brx + 4;
+  const tailD = 'M' + x0 + ' ' + (by - 7) + ' C' + (x0 - 14) + ' ' + (by - 14) + ' ' + (x0 - 29) + ' ' + (by - 11) + ' ' + (x0 - (b ? 28 : 36)) + ' ' + (by - 2) + ' C' + (x0 - 27) + ' ' + (by + 6) + ' ' + (x0 - 14) + ' ' + (by + 9) + ' ' + x0 + ' ' + (by + 6) + ' Z';
+  s += '<clipPath id="' + u + 'c"><path d="' + tailD + '"/><ellipse cx="' + bx + '" cy="' + by + '" rx="' + brx + '" ry="' + bry + '"/><ellipse cx="' + hx + '" cy="' + hy + '" rx="' + hrx + '" ry="' + hry + '"/></clipPath></defs>';
+  // far legs
+  s += '<ellipse cx="' + (bx - 9) + '" cy="' + (by + 9) + '" rx="3.2" ry="6" fill="' + dark + '" transform="rotate(20 ' + (bx - 9) + ' ' + (by + 9) + ')"/>';
+  s += '<ellipse cx="' + (bx + 15) + '" cy="' + (by + 9) + '" rx="3.2" ry="6" fill="' + dark + '" transform="rotate(-15 ' + (bx + 15) + ' ' + (by + 9) + ')"/>';
+  // tail
+  s += '<g class="tail"><path d="' + tailD + '" fill="' + body + '"/><path d="' + tailD + '" fill="none" stroke="' + C.belly + '" stroke-width="1.6" opacity=".7"/></g>';
+  // body
+  s += '<ellipse cx="' + bx + '" cy="' + by + '" rx="' + brx + '" ry="' + bry + '" fill="' + body + '"/>';
+  // gills (far side first, then near side)
+  const gx = hx - hrx * 0.62, gy = hy - hry * 0.2, far = shade(C.gill, -0.2), L = b ? 0.85 : 1;
+  s += '<g class="gills">';
+  s += frond(gx + 9, gy - 9, gx + 9 - 4 * L, gy - 9 - 19 * L, far, gw * 0.85);
+  s += frond(gx + 13, gy - 10, gx + 17 + 2 * L, gy - 10 - 17 * L, far, gw * 0.8);
+  s += frond(gx + 2, gy - 6, gx + 2 - 8 * L, gy - 6 - 20 * L, C.gill, gw);
+  s += frond(gx - 1, gy - 1, gx - 1 - 17 * L, gy - 1 - 13 * L, C.gill, gw);
+  s += frond(gx - 1, gy + 5, gx - 1 - 20 * L, gy + 5 - 3 * L, C.gill, gw);
+  s += '</g>';
+  // head
+  s += '<ellipse cx="' + hx + '" cy="' + hy + '" rx="' + hrx + '" ry="' + hry + '" fill="' + body + '"/>';
+  // pattern (clipped to the body)
+  s += '<g clip-path="url(#' + u + 'c)">' + patternSVG(C, c) + '</g>';
+  // belly + chin + shine
+  s += '<ellipse cx="' + (bx + 2) + '" cy="' + (by + 6) + '" rx="' + (brx * 0.74) + '" ry="' + (bry * 0.42) + '" fill="' + C.belly + '" opacity=".8"/>';
+  s += '<ellipse cx="' + (hx + 4) + '" cy="' + (hy + hry * 0.55) + '" rx="' + (hrx * 0.68) + '" ry="' + (hry * 0.32) + '" fill="' + C.belly + '" opacity=".55"/>';
+  s += '<ellipse cx="' + (hx - 5) + '" cy="' + (hy - hry * 0.58) + '" rx="7" ry="3.2" fill="#fff" opacity=".35"/>';
+  // face
+  const ex = hx + (b ? 7 : 8), ey = hy - 2, ex2 = hx + (b ? 17 : 17.5), er = b ? 4 : 3.3;
+  if(opt.sleep){
+    s += '<path d="M' + (ex - er) + ' ' + ey + ' Q' + ex + ' ' + (ey + er) + ' ' + (ex + er) + ' ' + ey + '" stroke="' + C.eye + '" stroke-width="1.6" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M' + (ex2 - er * 0.8) + ' ' + (ey - 1) + ' Q' + ex2 + ' ' + (ey - 1 + er * 0.8) + ' ' + (ex2 + er * 0.8) + ' ' + (ey - 1) + '" stroke="' + C.eye + '" stroke-width="1.4" fill="none" stroke-linecap="round"/>';
+  } else {
+    s += '<circle cx="' + ex + '" cy="' + ey + '" r="' + er + '" fill="' + C.eye + '"/><circle cx="' + (ex + er * 0.35) + '" cy="' + (ey - er * 0.4) + '" r="' + (er * 0.36) + '" fill="#fff"/>';
+    s += '<circle cx="' + ex2 + '" cy="' + (ey - 1) + '" r="' + (er * 0.8) + '" fill="' + C.eye + '"/><circle cx="' + (ex2 + er * 0.3) + '" cy="' + (ey - 1 - er * 0.35) + '" r="' + (er * 0.3) + '" fill="#fff"/>';
+  }
+  const mc = C.hi && C.r < 3 && c !== 'galaxy' ? '#ffd0dc' : shade(C.eye, 0.1);
+  s += '<path d="M' + (hx + 9) + ' ' + (hy + 7) + ' Q' + (hx + 13.5) + ' ' + (hy + 11.5) + ' ' + (hx + 18) + ' ' + (hy + 6.5) + '" stroke="' + mc + '" stroke-width="1.7" fill="none" stroke-linecap="round"/>';
+  s += '<ellipse cx="' + (hx + 4) + '" cy="' + (hy + 6) + '" rx="3.6" ry="2" fill="#ff6f96" opacity=".35"/>';
+  // near legs with little toes
+  [[bx - 11, by + 10, 18], [bx + 13, by + 10, -12]].forEach(([lx, ly, rot]) => {
+    s += '<g transform="rotate(' + rot + ' ' + lx + ' ' + ly + ')"><ellipse cx="' + lx + '" cy="' + (ly + 2) + '" rx="3.4" ry="6.2" fill="' + C.body + '"/>' +
+      '<circle cx="' + (lx - 2.6) + '" cy="' + (ly + 7.6) + '" r="1.5" fill="' + C.body + '"/><circle cx="' + lx + '" cy="' + (ly + 8.4) + '" r="1.5" fill="' + C.body + '"/><circle cx="' + (lx + 2.6) + '" cy="' + (ly + 7.6) + '" r="1.5" fill="' + C.body + '"/></g>';
+  });
+  return s + '</svg>';
+}
+/* patterns: spots, freckles, mosaic, galaxy, petals, stars */
+function patternSVG(C, c){
+  const R = seeded(c.length * 7 + c.charCodeAt(0)), pc = C.pc || '#000';
+  let s = '';
+  if(C.pat === 'spots'){ for(let i=0;i<16;i++) s += '<circle cx="' + (24 + R[i] * 80).toFixed(1) + '" cy="' + (26 + R[i + 20] * 34).toFixed(1) + '" r="' + (1.4 + R[i + 40] * 1.6).toFixed(1) + '" fill="' + pc + '" opacity=".6"/>'; }
+  if(C.pat === 'freckles'){ for(let i=0;i<34;i++) s += '<circle cx="' + (22 + R[i % 60] * 84).toFixed(1) + '" cy="' + (24 + R[(i * 7 + 11) % 60] * 36).toFixed(1) + '" r="' + (0.7 + R[(i + 30) % 60] * 0.8).toFixed(1) + '" fill="' + pc + '" opacity=".75"/>'; }
+  if(C.pat === 'mosaic'){
+    s += '<ellipse cx="46" cy="47" rx="11" ry="9" fill="' + pc + '"/><ellipse cx="90" cy="30" rx="11" ry="8" fill="' + pc + '"/><ellipse cx="70" cy="56" rx="7" ry="5" fill="' + pc + '"/><ellipse cx="20" cy="44" rx="8" ry="6" fill="' + pc + '"/><ellipse cx="98" cy="48" rx="5" ry="4" fill="' + pc + '"/>';
+  }
+  if(C.pat === 'galaxy'){
+    s += '<ellipse cx="50" cy="48" rx="16" ry="7" fill="#7a5cff" opacity=".45"/><ellipse cx="86" cy="34" rx="10" ry="6" fill="#ff7ad9" opacity=".3"/>';
+    for(let i=0;i<26;i++) s += '<circle cx="' + (18 + R[i] * 90).toFixed(1) + '" cy="' + (24 + R[i + 26] * 38).toFixed(1) + '" r="' + (0.5 + R[(i + 13) % 60] * 0.9).toFixed(1) + '" fill="#fff"/>';
+  }
+  if(C.pat === 'petals'){
+    [[44, 46], [64, 52], [88, 30], [26, 44], [98, 46]].forEach(([x, y], i) => {
+      for(let k=0;k<5;k++){ const a = k * 1.2566 + i; s += '<circle cx="' + (x + Math.cos(a) * 2.2).toFixed(1) + '" cy="' + (y + Math.sin(a) * 2.2).toFixed(1) + '" r="1.8" fill="' + pc + '"/>'; }
+      s += '<circle cx="' + x + '" cy="' + y + '" r="1.1" fill="#ffe27a"/>';
+    });
+  }
+  if(C.pat === 'stars'){
+    for(let i=0;i<12;i++){ const x = 20 + R[i] * 86, y = 26 + R[i + 12] * 34, r = 1.2 + R[i + 24] * 1.2;
+      s += '<path d="M' + x + ' ' + (y - r * 1.8) + ' L' + (x + r * 0.5) + ' ' + (y - r * 0.5) + ' L' + (x + r * 1.8) + ' ' + y + ' L' + (x + r * 0.5) + ' ' + (y + r * 0.5) + ' L' + x + ' ' + (y + r * 1.8) + ' L' + (x - r * 0.5) + ' ' + (y + r * 0.5) + ' L' + (x - r * 1.8) + ' ' + y + ' L' + (x - r * 0.5) + ' ' + (y - r * 0.5) + 'Z" fill="#fff" opacity=".9"/>'; }
+  }
+  return s;
+}
+/* a jelly egg with a tiny baby inside */
+function eggSVG(c, ready){
+  const C = COLORS[c] || COLORS.pink;
+  return '<svg viewBox="0 0 40 48"><path d="M6 44 Q20 36 34 44" stroke="#5fcf9a" stroke-width="3" fill="none" stroke-linecap="round"/>' +
+    '<circle cx="20" cy="24" r="16" fill="#e8fbff" opacity=".9" stroke="#b6e3ee" stroke-width="1.6"/>' +
+    '<path d="M13 27 Q14 18 21 18 Q28 19 27 25 Q26 31 19 30" fill="none" stroke="' + C.body + '" stroke-width="5" stroke-linecap="round"/>' +
+    '<circle cx="23.5" cy="21" r="1.2" fill="' + C.eye + '"/>' + (ready ? '<path d="M24 14 l2 -3 M28 17 l3 -2" stroke="#ffb02e" stroke-width="1.6" stroke-linecap="round"/>' : '') +
+    '<ellipse cx="14" cy="16" rx="4" ry="2.5" fill="#fff" opacity=".8"/></svg>';
+}
+
+/* ---------- lagoon props (spots + decor) ---------- */
+function propSVG(k, A){
+  const cave = A.cave;
+  switch(k){
+    case 'plant': {
+      const g = A.plant, d = shade(g, -0.25);
+      return {w:62, h:112, svg:'<svg viewBox="0 0 62 112"><path d="M30 112 C22 80 8 70 14 40 C18 22 10 10 14 2 C24 14 28 30 26 50 C24 72 34 88 34 112Z" fill="' + d + '"/>' +
+        '<path d="M32 112 C30 84 44 70 40 46 C38 30 48 18 46 6 C56 20 54 36 52 52 C50 72 40 90 40 112Z" fill="' + g + '"/>' +
+        '<path d="M26 112 C26 92 18 86 4 74 C16 76 30 88 34 112Z" fill="' + shade(g, 0.15) + '"/></svg>'};
+    }
+    case 'rock': {
+      const r = A.rock;
+      return {w:92, h:58, svg:'<svg viewBox="0 0 92 58"><path d="M4 58 C2 36 14 14 36 10 C52 6 74 12 84 28 C92 40 90 52 88 58Z" fill="' + r + '"/>' +
+        '<path d="M14 30 C22 18 40 12 56 14" stroke="' + shade(r, 0.35) + '" stroke-width="4" fill="none" stroke-linecap="round" opacity=".6"/>' +
+        (cave ? '<path d="M60 14 l5 -12 l5 12z M70 18 l4 -9 l4 9z" fill="#c9b8ff" opacity=".9"/>' : '<path d="M30 12 C40 4 58 4 70 14 C58 12 44 12 30 14Z" fill="#7fcf8a"/>') + '</svg>'};
+    }
+    case 'sand':
+      return {w:124, h:28, svg:'<svg viewBox="0 0 124 28"><path d="M0 28 C20 6 104 6 124 28Z" fill="' + A.floor2 + '"/><circle cx="40" cy="20" r="3" fill="' + shade(A.floor2, -0.15) + '"/><circle cx="82" cy="22" r="2.4" fill="#fff" opacity=".6"/>' +
+        '<path d="M62 8 l2.4 5 5.4.6 -4 3.6 1.2 5.4 -5 -2.8 -5 2.8 1.2 -5.4 -4 -3.6 5.4 -.6z" fill="' + (cave ? '#b79cff' : '#ff9a7a') + '"/></svg>'};
+    case 'hole': {
+      const r = shade(A.rock, -0.08);
+      return {w:86, h:62, svg:'<svg viewBox="0 0 86 62"><path d="M2 62 C0 30 20 6 46 6 C70 6 86 30 84 62Z" fill="' + r + '"/><ellipse cx="44" cy="46" rx="17" ry="14" fill="#1b2533"/><ellipse cx="44" cy="52" rx="13" ry="7" fill="#26344a"/>' +
+        '<path d="M16 26 C24 14 40 10 54 12" stroke="' + shade(r, 0.3) + '" stroke-width="3.5" fill="none" stroke-linecap="round" opacity=".55"/></svg>'};
+    }
+    case 'shell': {
+      const c1 = cave ? '#c8b6f5' : '#ffc9b8', c2 = cave ? '#a891e8' : '#ff9f8a';
+      let ridges = ''; for(let i=0;i<7;i++){ const a = Math.PI + 0.3 + i * (Math.PI - 0.6) / 6; ridges += '<path d="M35 52 L' + (35 + Math.cos(a) * 30).toFixed(1) + ' ' + (52 + Math.sin(a) * 30).toFixed(1) + '" stroke="' + c2 + '" stroke-width="2.4"/>'; }
+      return {w:72, h:58, svg:'<svg viewBox="0 0 72 58"><path d="M4 50 C4 18 66 18 66 50 Q35 60 4 50Z" fill="' + c1 + '"/>' + ridges + '<path d="M26 50 L35 58 L44 50Z" fill="' + c2 + '"/></svg>'};
+    }
+    case 'lily':
+      return {w:150, h:40, top:true, svg:'<svg viewBox="0 0 150 40"><path d="M30 14 Q30 30 34 40 M108 12 Q104 28 110 40" stroke="#4aa36a" stroke-width="2" fill="none"/>' +
+        '<path d="M6 10 a26 8 0 1 0 52 0 a26 8 0 1 0 -52 0Z M32 10 L58 8 L56 12Z" fill="#6fd08a"/><path d="M82 8 a22 7 0 1 0 44 0 a22 7 0 1 0 -44 0Z" fill="#5fc27a"/>' +
+        '<circle cx="104" cy="4" r="6" fill="#ffb3cf"/><circle cx="104" cy="4" r="2.5" fill="#ffe27a"/><path d="M98 4 l-4 -4 M110 4 l4 -4" stroke="#ff8fb7" stroke-width="3" stroke-linecap="round"/></svg>'};
+    case 'mosslog':
+      return {w:132, h:50, svg:'<svg viewBox="0 0 132 50"><rect x="8" y="14" width="112" height="34" rx="17" fill="#a0724a"/><ellipse cx="118" cy="31" rx="10" ry="17" fill="#d9a873"/><ellipse cx="118" cy="31" rx="5" ry="9" fill="#b98656"/>' +
+        '<path d="M10 22 C20 6 50 8 60 16 C72 6 98 8 112 18 C98 18 80 22 60 22 C40 24 22 26 10 22Z" fill="#7fcf6a"/><circle cx="40" cy="12" r="3" fill="#ff9fc0"/></svg>'};
+    case 'bubbler':
+      return {w:58, h:42, svg:'<svg viewBox="0 0 58 42"><path d="M2 42 C2 20 14 6 30 6 C46 6 56 20 56 42Z" fill="#a9b6c2"/><circle cx="20" cy="22" r="3.5" fill="#6d7a88"/><circle cx="36" cy="16" r="3" fill="#6d7a88"/><circle cx="40" cy="30" r="2.6" fill="#6d7a88"/>' +
+        '<circle cx="28" cy="2" r="3" fill="none" stroke="#fff" stroke-width="1.2"/></svg>'};
+    case 'castle':
+      return {w:84, h:100, svg:'<svg viewBox="0 0 84 100"><rect x="14" y="40" width="56" height="60" fill="#ffd0dc"/><rect x="4" y="26" width="20" height="74" fill="#ffc0d0"/><rect x="60" y="26" width="20" height="74" fill="#ffc0d0"/>' +
+        '<path d="M2 28 L14 8 L26 28Z M58 28 L70 8 L82 28Z" fill="#a58cff"/><path d="M14 8 V0 L22 3 L14 6" fill="#ffd34d"/><path d="M34 100 V76 a8 8 0 0 1 16 0 V100Z" fill="#7b5aa6"/>' +
+        '<rect x="10" y="44" width="8" height="10" rx="4" fill="#7b5aa6"/><rect x="66" y="44" width="8" height="10" rx="4" fill="#7b5aa6"/><path d="M14 40 h8 v-6 h6 v6 h8 v-6 h6 v6 h8 v-6 h6 v6" fill="none" stroke="#ffd0dc" stroke-width="0"/></svg>'};
+    case 'arch': {
+      const cols = ['#ffb3c6','#ffd27a','#fff28c','#9ef0b4','#8fd2ff','#cba6ff','#ffb3c6'];
+      let g = ''; for(let i=0;i<13;i++){ const a = Math.PI + i * Math.PI / 12, x = 75 + Math.cos(a) * 62, y = 92 + Math.sin(a) * 78;
+        g += '<path d="M' + x.toFixed(1) + ' ' + (y - 9).toFixed(1) + ' l7 9 l-7 9 l-7 -9z" fill="' + cols[i % 7] + '" opacity=".95"/>'; }
+      return {w:150, h:100, svg:'<svg viewBox="0 0 150 100">' + g + '</svg>'};
+    }
+    case 'glowplant':
+      return {w:72, h:66, svg:'<svg viewBox="0 0 72 66"><path d="M14 66 C14 46 8 36 6 26 M30 66 C30 40 36 26 34 12 M50 66 C50 48 58 40 62 30" stroke="#2fbf8a" stroke-width="3.5" fill="none" stroke-linecap="round"/>' +
+        '<circle cx="6" cy="24" r="6" fill="#7dffd0"/><circle cx="34" cy="10" r="7" fill="#9dffe0"/><circle cx="62" cy="28" r="6" fill="#7dffd0"/><circle cx="22" cy="40" r="4" fill="#bfffe9"/></svg>'};
+    case 'shroom':
+      return {w:66, h:58, svg:'<svg viewBox="0 0 66 58"><rect x="15" y="26" width="7" height="32" rx="3" fill="#ffe6f5"/><rect x="42" y="34" width="6" height="24" rx="3" fill="#ffe6f5"/><rect x="30" y="42" width="5" height="16" rx="2.5" fill="#ffe6f5"/>' +
+        '<path d="M2 28 Q18 4 36 28Z" fill="#ff8fe0"/><path d="M30 36 Q45 16 60 36Z" fill="#c38cff"/><path d="M24 44 Q32 32 41 44Z" fill="#ff8fe0"/><circle cx="14" cy="20" r="2.5" fill="#fff"/><circle cx="24" cy="22" r="2" fill="#fff"/><circle cx="46" cy="28" r="2" fill="#fff"/></svg>'};
+    case 'gem':
+      return {w:74, h:82, svg:'<svg viewBox="0 0 74 82"><path d="M30 82 L22 30 L34 4 L46 30 L40 82Z" fill="#8fd8ff"/><path d="M34 4 L46 30 L40 82 L34 82Z" fill="#c7efff"/>' +
+        '<path d="M8 82 L6 52 L16 36 L24 54 L22 82Z" fill="#b6a4ff"/><path d="M50 82 L52 48 L62 38 L70 56 L64 82Z" fill="#9ee8ff"/></svg>'};
+  }
+  return {w:10, h:10, svg:''};
+}
+const DECOR_POS = {lily:[66, 15], mosslog:[38, 96], bubbler:[61, 94], castle:[77, 80], arch:[42, 78], glowplant:[18, 95], shroom:[57, 97], gem:[84, 94]};
+
+/* =====================================================================
+   7. SOUND — bubbles, chirps and soft underwater music (WebAudio, no files)
+===================================================================== */
+let AC = null, musGain = null, sfxGain = null, musTimer = null, musArea = null, musStep = 0;
+function audio(){
+  if(AC) return AC;
+  try{
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    sfxGain = AC.createGain(); sfxGain.gain.value = 0.5; sfxGain.connect(AC.destination);
+    const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1500; lp.connect(AC.destination);  // "under water" sound
+    musGain = AC.createGain(); musGain.gain.value = 0.16; musGain.connect(lp);
+  }catch(e){ AC = null; }
+  return AC;
+}
+function tone(f, dur, type, vol, when, dest, slide){
+  const A = audio(); if(!A) return;
+  const t = (when || A.currentTime);
+  const o = A.createOscillator(), g = A.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(f, t);
+  if(slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.3, t + 0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(dest || sfxGain); o.start(t); o.stop(t + dur + 0.05);
+}
+function bubbleSnd(p){ if(!S || !S.snd || !audio()) return; const t = AC.currentTime, f = rnd(320, 520) * (p || 1); tone(f, 0.09, 'sine', 0.22, t, null, f * 2.6); }
+function sfx(k){
+  if(!S || !S.snd || !audio()) return;
+  const t = AC.currentTime;
+  switch(k){
+    case 'tap': tone(700, 0.05, 'triangle', 0.12); break;
+    case 'pop': bubbleSnd(1.3); break;
+    case 'bubble': bubbleSnd(); break;
+    case 'pet': tone(880, 0.09, 'sine', 0.22, t, null, 1320); tone(1180, 0.1, 'sine', 0.18, t + 0.1, null, 1560); break;
+    case 'eat': [0, 0.11, 0.22].forEach(d => tone(260, 0.07, 'triangle', 0.2, t + d, null, 180)); break;
+    case 'boing': tone(220, 0.25, 'sine', 0.25, t, null, 660); break;
+    case 'coin': tone(1400, 0.07, 'sine', 0.18); tone(2100, 0.12, 'sine', 0.14, t + 0.06); break;
+    case 'err': tone(240, 0.14, 'triangle', 0.15); tone(190, 0.18, 'triangle', 0.15, t + 0.1); break;
+    case 'level': [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.2, 'triangle', 0.22, t + i * 0.09)); break;
+    case 'hatch': [784, 988, 1175, 1568].forEach((f, i) => tone(f, 0.16, 'sine', 0.2, t + i * 0.07)); setTimeout(() => bubbleSnd(1.4), 320); break;
+    case 'new': [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.3, 'triangle', 0.18, t + i * 0.1)); break;
+    case 'chime': tone(1319, 0.4, 'sine', 0.14); tone(1760, 0.5, 'sine', 0.1, t + 0.12); break;
+    case 'win': [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.22, 'triangle', 0.15, t + i * 0.1)); break;
+    case 'whoosh': tone(200, 0.35, 'sine', 0.15, t, null, 700); break;
+  }
+}
+/* soft generative music: each area has its own scale and speed */
+function musicStart(){
+  if(!S || !S.mus || !audio()){ musicStop(); return; }
+  if(musTimer && musArea === S.cur) return;
+  musicStop();
+  musArea = S.cur;
+  const A = AREA(S.cur) || AREAS[0];
+  const [scale, bpm, wave] = A.music;
+  const step = 60 / bpm / 2;
+  const root = 262 * Math.pow(2, (AREAS.indexOf(A) * -2) / 12);
+  const prog = [0, 3, 4, 2];
+  musStep = 0;
+  musTimer = setInterval(() => {
+    if(!AC || AC.state !== 'running') return;
+    const t = AC.currentTime + 0.05;
+    const bar = Math.floor(musStep / 8) % 4, beat = musStep % 8, chord = prog[bar];
+    if(beat === 0) [0, 2, 4].forEach(o => tone(root / 2 * Math.pow(2, scale[(chord + o) % scale.length] / 12), step * 7.5, 'sine', 0.22, t, musGain));
+    if(Math.random() < 0.55){
+      const deg = chord + [0, 2, 4, 2, 1, 3, 4, 2][beat];
+      const f = root * Math.pow(2, (scale[deg % scale.length] + 12 * Math.floor(deg / scale.length)) / 12);
+      tone(f, step * 2.2, wave, 0.3, t, musGain);
+    }
+    if(Math.random() < 0.08){ const f = rnd(400, 700); tone(f, 0.08, 'sine', 0.12, t + 0.1, musGain, f * 2.4); }   // little bubble
+    musStep++;
+  }, step * 1000);
+}
+function musicStop(){ if(musTimer) clearInterval(musTimer); musTimer = null; musArea = null; }
+function audioUnlock(){ const A = audio(); if(A && A.state === 'suspended') A.resume(); musicStart(); }
+
+/* =====================================================================
+   8. LAGOON VIEW — the main screen. Axolotls swim, float and nap.
+   Positions are in % of the screen (x 0-100 left→right, y 0-100 top→bottom).
+===================================================================== */
+const SWIM = {x0:10, x1:90, y0:24, y1:74};
+let actors = {};          // axolotl id -> actor
+let sel = null;           // selected axolotl id
+const sceneEl = () => $('scene');
+const sceneScale = () => { const r = sceneEl().getBoundingClientRect(); return clamp(Math.min(r.width, r.height * 0.85) / 380, 0.8, 1.6); };
+
+/* ---------- background, props, glow ---------- */
+let bgKey = '';
+function renderBg(){
+  const A = AREA(S.cur), r = sceneEl().getBoundingClientRect(), sc = sceneScale();
+  const sak = S.theme === 'sakura' && !A.cave;
+  const key = [S.cur, JSON.stringify(S.ar[S.cur].decor), S.theme, Math.round(r.width), Math.round(r.height)].join('|');
+  if(key === bgKey) return; bgKey = key;
+  const top = sak ? '#ffe3ef' : A.top, bot = sak ? '#9fd8e6' : A.bot;
+  let g = '<defs><linearGradient id="wg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="' + top + '"/><stop offset="1" stop-color="' + bot + '"/></linearGradient></defs>';
+  g += '<rect width="100" height="100" fill="url(#wg)"/>';
+  if(!A.cave){
+    g += '<path d="M0 3 Q12 1 25 3 T50 3 T75 3 T100 3 V0 H0Z" fill="#fff" opacity=".5"/>';
+    [[8, 22], [34, 46], [60, 70], [84, 96]].forEach(([a, b], i) => g += '<polygon class="ray" style="animation-delay:' + (i * 1.3) + 's" points="' + a + ',0 ' + b + ',0 ' + (b + 14) + ',100 ' + (a + 4) + ',100" fill="#fff" opacity=".35"/>');
+    if(S.cur === 'kelp') [6, 22, 44, 66, 82, 96].forEach((x, i) => g += '<path d="M' + x + ' 100 C' + (x - 3) + ' 70 ' + (x + 4) + ' 50 ' + (x - 1) + ' ' + (12 + i * 4) + '" stroke="' + shade(A.plant, -0.35) + '" stroke-width="2.6" fill="none" opacity=".45"/>');
+    g += '<path d="M0 78 Q15 70 30 76 T60 74 T100 72 V100 H0Z" fill="' + shade(bot, 0.12) + '" opacity=".55"/>';
+  } else {
+    g += '<path d="M0 0 H100 V8 L94 16 L90 7 L84 19 L78 6 L70 14 L62 5 L55 18 L48 6 L40 13 L33 4 L26 17 L18 6 L11 15 L5 5 L0 12Z" fill="' + shade(A.bot, -0.35) + '"/>';
+    g += '<path d="M0 0 V100 H7 C10 70 4 40 9 20 C11 10 6 4 6 0Z M100 0 V100 H93 C90 70 96 40 91 20 C89 10 94 4 94 0Z" fill="' + shade(A.bot, -0.3) + '"/>';
+    if(S.cur === 'crystal') [[16, 40], [30, 30], [70, 34], [86, 44], [50, 24]].forEach(([x, y]) => g += '<path d="M' + x + ' ' + y + ' l1.6 -5 l1.6 5 l-1.6 2.4z" fill="#b8a6ff" opacity=".5"/>');
+  }
+  g += '<path d="M0 84 Q20 80 40 83 T80 82 T100 84 V100 H0Z" fill="' + A.floor + '"/><path d="M0 92 Q25 89 50 92 T100 91 V100 H0Z" fill="' + A.floor2 + '"/>';
+  $('sceneBg').innerHTML = g;
+  // props: favorite spots + decor (drawn bottom-anchored, sorted back to front)
+  const items = SPOT_IDS.map(k => ({k, x: SPOTS[k].x, y: SPOTS[k].y}));
+  DECOR_IDS.forEach(k => { if(S.ar[S.cur].decor[k] && !DECOR[k].glow) items.push({k, x: DECOR_POS[k][0], y: DECOR_POS[k][1]}); });
+  items.sort((a, b) => a.y - b.y);
+  let h = items.map(it => { const P = propSVG(it.k, A); return '<div class="prop" style="left:' + it.x + '%;top:' + it.y + '%;width:' + (P.w * sc) + 'px;height:' + (P.h * sc) + 'px;' + (P.top ? 'transform:translate(-50%,-30%)' : '') + '">' + P.svg + '</div>'; }).join('');
+  if(sak) for(let i=0;i<7;i++) h += '<div class="petal" style="left:' + rnd(0, 95) + '%;animation-duration:' + rnd(9, 16) + 's;animation-delay:-' + rnd(0, 12) + 's">🌸</div>';
+  $('props').innerHTML = h;
+  // glow layer (above the darkness)
+  let gl = '';
+  DECOR_IDS.forEach(k => { if(S.ar[S.cur].decor[k] && DECOR[k].glow){ const P = propSVG(k, A), [x, y] = DECOR_POS[k];
+    gl += '<div class="halo" style="--gc:' + DECOR[k].glow + ';left:' + x + '%;top:' + (y - 6) + '%;width:' + (260 * sc) + 'px;height:' + (260 * sc) + 'px"></div>';
+    gl += '<div class="prop glowp" style="--gc:' + DECOR[k].glow + ';left:' + x + '%;top:' + y + '%;width:' + (P.w * sc) + 'px;height:' + (P.h * sc) + 'px">' + P.svg + '</div>'; } });
+  if(A.cave){ const cols = ['#7dffd0', '#ff8fe0', '#8fd8ff', '#fff6a8']; for(let i=0;i<10;i++) gl += '<div class="speck" style="--gc:' + pick(cols) + ';left:' + rnd(8, 92) + '%;top:' + rnd(20, 80) + '%;animation-delay:-' + rnd(0, 7) + 's"></div>'; }
+  $('glowL').innerHTML = gl;
+}
+/* how dark is it right now? caves + night + glow mode */
+function darkness(){
+  const A = AREA(S.cur);
+  let d = caveDark(S.cur);
+  if(isNight()) d += A.cave ? 0.08 : 0.32;
+  if(S.glowMode) d += 0.38;
+  return clamp(d, 0, 0.88);
+}
+function applyDark(){
+  const d = darkness();
+  $('dark').style.opacity = d;
+  sceneEl().classList.toggle('glowOn', d > 0.25);
+  $('axos').style.setProperty('--dim', (1 - d * 0.7).toFixed(2));
+}
+
+/* ---------- axolotls ---------- */
+function axoKey(x, a){ return [x.c, isAdult(x) ? 1 : 0, a.st === 'nap' ? 1 : 0].join('|'); }
+function sceneList(){
+  const list = axosIn(S.cur).slice();
+  if(S.visitor && S.visitor.a === S.cur) list.push(Object.assign({id: 'visitor', grow: CONFIG.GROW_SEC, m: {food: 100, fun: 100}, vis: true}, S.visitor));
+  return list;
+}
+function renderAxos(){
+  const box = $('axos'), list = sceneList(), seen = {}, sc = sceneScale();
+  list.forEach(x => {
+    seen[x.id] = 1;
+    let a = actors[x.id];
+    if(!a){
+      const sp = SPOTS[x.s] || SPOTS.rock;
+      a = actors[x.id] = {id: x.id, x: rnd(SWIM.x0, SWIM.x1), y: rnd(SWIM.y0, SWIM.y1), tx: 0, ty: 0, st: 'float', until: now() + rnd(500, 3000), face: Math.random() < 0.5 ? 1 : -1, key: ''};
+      if(Math.random() < 0.25){ a.x = sp.x + rnd(-3, 3); a.y = sp.y - 8; a.st = 'nap'; a.until = now() + rnd(8000, 20000); }
+      a.el = document.createElement('div');
+      a.el.className = 'axo';
+      a.el.innerHTML = '<div class="flip"><div class="bob"></div></div>';
+      a.el.addEventListener('pointerdown', e => { e.stopPropagation(); tapAxo(x.id); });
+      box.appendChild(a.el);
+    }
+    const k = axoKey(x, a) + '|' + sc;
+    if(a.key !== k){
+      a.key = k;
+      const baby = !isAdult(x), w = (baby ? 74 : 108) * sc;
+      a.el.style.width = w + 'px'; a.el.style.height = (w * 0.7) + 'px'; a.el.style.margin = (-w * 0.45) + 'px 0 0 ' + (-w / 2) + 'px';
+      a.el.querySelector('.bob').innerHTML = axoSVG(x.c, {baby, sleep: a.st === 'nap'});
+      const C = COLORS[x.c];
+      a.el.classList.toggle('glowy', !!C.glow); if(C.glow) a.el.style.setProperty('--gc', C.glow);
+      a.el.classList.toggle('visitor', !!x.vis);
+    }
+    // little thought bubble
+    let bub = '';
+    if(x.vis) bub = '👋';
+    else if(a.st !== 'nap'){ if(x.m.food < 25) bub = '🪱'; else if(x.m.fun < 25) bub = '💭'; }
+    let be = a.el.querySelector('.bub');
+    if(bub && !be){ be = document.createElement('div'); be.className = 'bub'; a.el.appendChild(be); }
+    if(be){ if(bub) be.textContent = bub; else be.remove(); }
+    let zz = a.el.querySelector('.zz');
+    if(a.st === 'nap' && !zz){ zz = document.createElement('div'); zz.className = 'zz'; zz.textContent = 'z'; a.el.appendChild(zz); }
+    if(a.st !== 'nap' && zz) zz.remove();
+    a.el.classList.toggle('sel', sel === x.id);
+    placeActor(a);
+  });
+  for(const id in actors) if(!seen[id]){ actors[id].el.remove(); delete actors[id]; }
+}
+function placeActor(a){
+  a.el.style.left = a.x + '%'; a.el.style.top = a.y + '%'; a.el.style.zIndex = 3 + Math.round(a.y);
+  a.el.firstChild.style.transform = a.face < 0 ? 'scaleX(-1)' : '';
+  a.el.classList.toggle('swim', a.st === 'swim' || a.st === 'go');
+  a.el.classList.toggle('nap', a.st === 'nap');
+}
+/* what does an axolotl do next? depends on its personality and the time */
+function decide(a, x){
+  const t = now(), night = isNight(t);
+  let nap = 0.14 + (x.t === 'sleepy' ? 0.3 : 0) + (night ? 0.25 : 0) + (x.m.fun < 30 ? 0.1 : 0);
+  if(x.vis) nap = 0;
+  if(a.st === 'nap'){ a.st = 'float'; a.until = t + rnd(1500, 3000); a.key = ''; return; }
+  if(Math.random() < nap){
+    const sp = SPOTS[x.s] || SPOTS.rock;
+    a.tx = clamp(sp.x + rnd(-4, 4), 6, 94); a.ty = sp.y - 8 + rnd(-1, 1); a.st = 'go'; a.goNap = true; a.until = t + 20000;
+  } else if(Math.random() < (x.t === 'curious' ? 0.8 : 0.6)){
+    a.tx = rnd(SWIM.x0, SWIM.x1); a.ty = rnd(SWIM.y0, SWIM.y1); a.st = 'swim'; a.goNap = false; a.until = t + 20000;
+  } else {
+    a.st = 'float'; a.until = t + rnd(2000, 5000);
+    if(x.t === 'silly' && Math.random() < 0.5){ a.face = -a.face; a.el.classList.remove('pop'); void a.el.offsetWidth; a.el.classList.add('pop'); }
+  }
+}
+function stepActors(dt){
+  const t = now(), list = sceneList();
+  list.forEach(x => {
+    const a = actors[x.id]; if(!a) return;
+    if(t > a.until) decide(a, x);
+    if(a.st === 'swim' || a.st === 'go'){
+      const sp = (isAdult(x) ? 9 : 7) * (x.t === 'sleepy' ? 0.75 : 1);
+      const dx = a.tx - a.x, dy = a.ty - a.y, d = Math.hypot(dx, dy);
+      if(d < 0.8){
+        if(a.goNap){ a.st = 'nap'; a.goNap = false; a.until = t + rnd(15000, 40000) * (x.t === 'sleepy' ? 1.6 : 1); a.key = ''; renderAxos(); }
+        else { a.st = 'float'; a.until = t + rnd(1500, 5000); }
+      } else {
+        a.x += dx / d * sp * dt; a.y += dy / d * sp * dt * 0.8;
+        if(Math.abs(dx) > 1) a.face = dx > 0 ? 1 : -1;
+      }
+    } else if(a.st === 'float'){
+      a.x += Math.sin(t / 900 + x.id) * 0.4 * dt;
+    }
+    placeActor(a);
+  });
+}
+
+/* ---------- tapping ---------- */
+function tapAxo(id){
+  audioUnlock();
+  if(id === 'visitor'){ openVisitor(); return; }
+  const x = axoById(id), a = actors[id]; if(!x || !a) return;
+  sel = id;
+  if(a.st === 'nap'){ a.st = 'float'; a.until = now() + 3000; a.key = ''; }
+  if(petAxo(x)){
+    fxAt(a.x, a.y - 9, '💗'); fxAt(a.x + 3, a.y - 6, '💕', 150);
+    a.el.classList.remove('happy', 'pop'); void a.el.offsetWidth; a.el.classList.add('happy', 'pop');
+    setTimeout(() => a.el && a.el.classList.remove('happy'), 1600);
+  }
+  renderAxos(); renderCare(); saveNow();
+}
+function fxAt(x, y, html, delay){
+  setTimeout(() => {
+    const e = document.createElement('div'); e.className = 'fx'; e.innerHTML = html;
+    e.style.left = x + '%'; e.style.top = y + '%'; $('fxL').appendChild(e);
+    setTimeout(() => e.remove(), 1150);
+  }, delay || 0);
+}
+function fxAtAxo(x, html, delay){ const a = actors[x.id]; if(a) fxAt(a.x, a.y - 10, html, delay); }
+function bubbleAt(x, y){
+  const e = document.createElement('div'), s = rnd(6, 16);
+  e.className = 'bbl'; e.style.left = x + '%'; e.style.top = y + '%'; e.style.bottom = 'auto';
+  e.style.width = e.style.height = s + 'px'; e.style.setProperty('--dx', rnd(-20, 20) + 'px'); e.style.animationDuration = rnd(4, 7) + 's';
+  $('fxL').appendChild(e); setTimeout(() => e.remove(), 7000);
+}
+function ambientBubbles(){
+  const d = S.ar[S.cur].decor;
+  if(d.bubbler){ bubbleAt(DECOR_POS.bubbler[0] + rnd(-1, 1), DECOR_POS.bubbler[1] - 8); if(Math.random() < 0.5) setTimeout(() => bubbleAt(DECOR_POS.bubbler[0], DECOR_POS.bubbler[1] - 8), 250); }
+  if(Math.random() < 0.5) bubbleAt(SPOTS.hole.x, SPOTS.hole.y - 6);
+  if(Math.random() < 0.4){ const list = Object.values(actors); if(list.length){ const a = pick(list); bubbleAt(a.x + a.face * 4, a.y - 4); } }
+}
+
+/* ---------- top-of-screen area name ---------- */
+function renderAreaName(){
+  const i = AREA_IDS.indexOf(S.cur), A = AREA(S.cur);
+  const prev = S.open.filter(id => AREA_IDS.indexOf(id) < i).pop(), next = S.open.find(id => AREA_IDS.indexOf(id) > i);
+  const lockedNext = !next && i < AREAS.length - 1;
+  $('areaName').innerHTML = '<button id="arPrev"' + (prev ? '' : ' disabled') + '>◀</button><span>' + A.e + ' ' + L(A) + '</span>' +
+    '<button id="arNext"' + (next || lockedNext ? '' : ' disabled') + '>' + (lockedNext ? '🔒' : '▶') + '</button>';
+  $('arPrev').onclick = () => prev && goArea(prev);
+  $('arNext').onclick = () => { if(next) goArea(next); else if(lockedNext){ shopTab = 'areas'; showView('Shop'); } };
+}
+function goArea(id){
+  sfx('whoosh'); S.cur = id; sel = null;
+  for(const k in actors) actors[k].el.remove(); actors = {};
+  renderLagoon(); musicStart(); saveNow();
+}
+
+/* ---------- eggs (left side) ---------- */
+function renderEggs(){
+  let h = '';
+  S.eggs.forEach(e => {
+    const left = eggLeft(e), ready = left <= 0, p = 1 - left / (e.dur / 1000);
+    h += '<button class="eggslot' + (ready ? ' ready' : '') + '" data-egg="' + e.id + '">' + eggSVG(e.pa, ready) + (ready ? tr('Hatch!') : fmtTime(left)) + (ready ? '' : '<span class="pb"><i style="width:' + (p * 100) + '%"></i></span>') + '</button>';
+  });
+  const adults = S.axos.filter(isAdult).length;
+  if(nestFree() && adults >= 2) h += '<button class="eggslot" id="eggAdd"><span style="font-size:24px">💞</span>' + tr('Egg') + '</button>';
+  if($('eggs')._h !== h){
+    $('eggs')._h = h; $('eggs').innerHTML = h;
+    $('eggs').querySelectorAll('[data-egg]').forEach(b => b.onclick = () => tapEgg(b.dataset.egg));
+    if($('eggAdd')) $('eggAdd').onclick = () => openPair();
+  }
+}
+function tapEgg(id){
+  const e = S.eggs.find(q => q.id === id); if(!e) return;
+  if(eggLeft(e) <= 0){ hatchEgg(e); renderEggs(); return; }
+  const cr = skipCrystals(eggLeft(e));
+  openModal('🥚 ' + tr('Egg'), '<div class="reward"><div class="big" style="width:90px;margin:0 auto">' + eggSVG(e.pa) + '</div><p>' + tr('Hatches in {t}', {t: fmtTime(eggLeft(e))}) + '</p>' +
+    '<p class="muted">' + tr('Parents:') + ' <span class="swatch" style="background:' + COLORS[e.pa].body + '"></span> ' + L(COLORS[e.pa]) + ' + <span class="swatch" style="background:' + COLORS[e.pb].body + '"></span> ' + L(COLORS[e.pb]) + '</p></div>' +
+    '<button class="btn wide mint" id="egAd">' + adIcon() + ' ' + tr('Hatch now (watch an ad)') + '</button>' +
+    '<button class="btn wide lav" id="egCr">💎 ' + cr + ' · ' + tr('Hatch now') + '</button>');
+  $('egAd').onclick = async () => { closeModal(); if(await rewardAd()){ e.t0 = now() - e.dur; hatchEgg(e); renderEggs(); } };
+  $('egCr').onclick = () => { if(!pay('c', cr)) return; closeModal(); e.t0 = now() - e.dur; hatchEgg(e); renderEggs(); };
+}
+
+/* ---------- right-side buttons ---------- */
+function renderSide(){
+  const t = now(), giftReady = S.daily.last !== dayNum(t);
+  let h = '<button class="fab' + (S.glowMode ? ' on' : '') + '" id="sGlow">🌙<small>' + tr('Glow') + '</small></button>';
+  h += '<button class="fab' + (giftReady && S.tut >= 99 ? ' glow' : '') + '" id="sGift">🎁<small>' + tr('Gift') + '</small>' + (giftReady && S.tut >= 99 ? '<span class="bdg">1</span>' : '') + '</button>';
+  h += '<button class="fab" id="sBoost">⚡<small>' + (S.ad2x > t ? '2×' : tr('Boost')) + '</small></button>';
+  if(S.visitor && S.visitor.a !== S.cur) h += '<button class="fab glow" id="sVis">👋<small>' + tr('Visitor') + '</small></button>';
+  if($('sideR')._h !== h){
+    $('sideR')._h = h; $('sideR').innerHTML = h;
+    $('sGlow').onclick = () => { S.glowMode = !S.glowMode; sfx('chime'); applyDark(); renderSide(); saveNow(); toast(S.glowMode ? '🌙 ' + tr('Glow mode: lights dimmed') : '☀️ ' + tr('Lights on')); };
+    $('sGift').onclick = openGift;
+    $('sBoost').onclick = openBoosts;
+    if($('sVis')) $('sVis').onclick = () => goArea(S.visitor.a);
+  }
+}
+
+/* ---------- bottom care bar ---------- */
+function renderCare(){
+  const x = sel && axoById(sel);
+  let h;
+  if(x && x.a === S.cur){
+    h = '<div class="cb"><div class="who">' + esc(x.n) + ' <span class="hearts">' + '❤️'.repeat(hearts(x)) + '</span><small>' + PERSONALITIES[x.t].e + ' ' + L(PERSONALITIES[x.t]) +
+      ' · 🪱 ' + Math.round(x.m.food) + '% · 😊 ' + Math.round(x.m.fun) + '%</small></div>' +
+      '<button class="cbtn" id="cbFeed"><b>🪱</b>' + tr('Feed') + '</button><button class="cbtn" id="cbToy"><b>🏐</b>' + tr('Toy') + '</button><button class="cbtn" id="cbInfo"><b>ℹ️</b>' + tr('Info') + '</button></div>';
+  } else {
+    h = '<div class="hint">👆 ' + tr('Tap an axolotl!') + ' · +' + fmt(areaIncome(S.cur)) + ' ' + PL + '/s</div>';
+  }
+  if($('careBar')._h !== h){
+    $('careBar')._h = h; $('careBar').innerHTML = h;
+    if($('cbFeed')){ $('cbFeed').onclick = () => openFeed(x); $('cbToy').onclick = () => openToy(x); $('cbInfo').onclick = () => openAxo(x.id); }
+  }
+}
+function openFeed(x){
+  sfx('tap');
+  let h = '<div class="center">' + axoSVG(x.c, {size: 150, baby: !isAdult(x)}) + '</div>';
+  FOOD_IDS.forEach(k => { const F = FOODS[k];
+    h += '<div class="card"><div class="art">' + F.e + '</div><div class="info"><div class="nm">' + L(F) + ' × ' + S.inv[k] + '</div><div class="sub">🪱 +' + F.food + (F.fun ? ' · 😊 +' + F.fun : '') + ' · 💗 +' + F.fr_ + '</div></div>' +
+      '<button class="btn mint sm" data-food="' + k + '"' + (S.inv[k] < 1 ? ' disabled' : '') + '>' + tr('Give') + '</button></div>'; });
+  h += '<button class="btn wide ghost" id="fdShop">🛒 ' + tr('Buy food') + '</button>';
+  openModal(tr('Feed {n}', {n: esc(x.n)}), h);
+  $('mBody').querySelectorAll('[data-food]').forEach(b => b.onclick = () => {
+    if(feedAxo(x, b.dataset.food)){ closeModal(); fxAtAxo(x, FOODS[b.dataset.food].e); fxAtAxo(x, '😋', 300); const a = actors[x.id]; if(a){ a.el.classList.remove('happy'); void a.el.offsetWidth; a.el.classList.add('happy'); } renderCare(); renderAxos(); }
+  });
+  $('fdShop').onclick = () => { closeModal(); shopTab = 'food'; showView('Shop'); };
+}
+function openToy(x){
+  sfx('tap');
+  const own = TOY_IDS.filter(k => S.toys[k]);
+  let h = '';
+  own.forEach(k => { const T = TOYS[k]; h += '<div class="card"><div class="art">' + T.e + '</div><div class="info"><div class="nm">' + L(T) + '</div><div class="sub">😊 +' + T.fun + ' · 💗 +' + T.fr_ + '</div></div><button class="btn mint sm" data-toy="' + k + '">' + tr('Play') + '</button></div>'; });
+  h += '<button class="btn wide ghost" id="tyShop">🛒 ' + tr('More toys') + '</button>';
+  openModal(tr('Play with {n}', {n: esc(x.n)}), h);
+  $('mBody').querySelectorAll('[data-toy]').forEach(b => b.onclick = () => {
+    if(toyAxo(x, b.dataset.toy)){ closeModal(); fxAtAxo(x, TOYS[b.dataset.toy].e); fxAtAxo(x, '✨', 250); const a = actors[x.id]; if(a){ a.st = 'swim'; a.tx = rnd(SWIM.x0, SWIM.x1); a.ty = rnd(SWIM.y0, SWIM.y1); a.goNap = false; a.el.classList.remove('happy'); void a.el.offsetWidth; a.el.classList.add('happy', 'pop'); } renderCare(); }
+  });
+  $('tyShop').onclick = () => { closeModal(); shopTab = 'food'; showView('Shop'); };
+}
+function openVisitor(){
+  const v = S.visitor; if(!v) return;
+  const C = COLORS[v.c];
+  sfx('chime');
+  openModal('👋 ' + tr('A visitor!'), '<div class="reward"><div class="big">' + axoSVG(v.c, {size: 190, halo: true}) + '</div><h2 style="margin:4px 0">' + esc(v.n) + '</h2>' +
+    '<p><b style="color:' + RARITY[C.r].c + '">' + L(C) + ' · ' + L(RARITY[C.r]) + '</b><br>' + PERSONALITIES[v.t].e + ' ' + L(PERSONALITIES[v.t]) + ' · ' + SPOTS[v.s].e + ' ' + L(SPOTS[v.s]) + '</p>' +
+    '<p class="muted">' + (v.kind === 'daily' ? tr('Today’s visitor wants to stay!') : v.kind === 'rare' ? tr('A rare friend came to see you!') : tr('It wants to live in your lagoon.')) + '</p></div>' +
+    '<button class="btn wide gold" id="viAdopt">💗 ' + (v.cost ? tr('Adopt') + ' · ' + fmt(v.cost) + ' ' + PL : tr('Adopt (free)')) + '</button><button class="btn wide ghost" id="viNo">' + tr('Not now') + '</button>');
+  $('viAdopt').onclick = () => { closeModal(); adoptVisitor(); };
+  $('viNo').onclick = closeModal;
+}
+function renderLagoon(){
+  if(!S) return;
+  renderAreaName(); renderBg(); renderAxos(); renderEggs(); renderSide(); renderCare(); applyDark();
+}
+
+/* =====================================================================
+   9. SCREENS — top bar, pop-ups, Axolotls, Shop, Games, More
+===================================================================== */
+let curView = 'Lagoon';
+const NAV = [['Lagoon','🪷'],['Axolotls','💗'],['Shop','🛒'],['Games','🎮'],['More','✨']];
+function renderNav(){
+  $('nav').innerHTML = NAV.map(([k, e]) => '<button id="nav' + k + '" class="' + (curView === k ? 'on' : '') + '"><span class="e">' + e + '</span>' + tr(k) + '<i class="dot" id="dot' + k + '"></i></button>').join('');
+  NAV.forEach(([k]) => $('nav' + k).onclick = () => { sfx('tap'); showView(k); });
+}
+function showView(k){
+  curView = k;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  $('v' + k).classList.add('on');
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.id === 'nav' + k));
+  ({Lagoon: renderLagoon, Axolotls: renderAxosView, Shop: renderShop, Games: renderGames, More: renderMore})[k]();
+  $('v' + k).scrollTop = 0;
+  tutEvent('view' + k);
+}
+let shownP = 0;
+function refreshTop(){
+  if(!S) return;
+  $('vCrys').textContent = fmt(S.c);
+  $('vLevel').textContent = S.lv;
+  $('vXp').style.width = (S.xp / xpNeed(S.lv) * 100) + '%';
+  const t = now(); let b = '';
+  if(S.ad2x > t){ const l = (S.ad2x - t) / 1000; b += '<span class="bst">2× ' + (l > 60 ? Math.ceil(l / 60) + 'm' : Math.ceil(l) + 's') + '</span>'; }
+  if(isNight(t)) b += '<span class="bst">🌙</span>';
+  if($('boosts')._h !== b){ $('boosts')._h = b; $('boosts').innerHTML = b; }
+  $('muteBtn').textContent = (S.snd || S.mus) ? '🔊' : '🔇';
+  const av = S.avatar && axoById(S.avatar), k = av ? av.c + isAdult(av) : 'none';
+  if($('profBtn').dataset.k !== k){ $('profBtn').dataset.k = k; $('profBtn').innerHTML = av ? axoSVG(av.c, {baby: !isAdult(av)}) : '🙂'; }
+  const da = $('dotAxolotls'); if(da) da.classList.toggle('show', S.eggs.some(e => eggLeft(e) <= 0));
+  const dg = $('dotGames'); if(dg) dg.classList.toggle('show', S.tickets >= CONFIG.TICKETS_MAX);
+  const ds = $('dotShop'); if(ds) ds.classList.toggle('show', AREAS.some((a, i) => canOpenArea(i) && S.p >= areaCost(i)));
+}
+function tickPearlDisplay(){
+  const diff = S.p - shownP;   // the number counts up smoothly instead of jumping
+  shownP = Math.abs(diff) < 1 ? S.p : shownP + diff * 0.25;
+  $('vPearl').textContent = fmt(shownP);
+}
+
+/* ---------- toast + modal ---------- */
+function toast(msg, kind){
+  const t = document.createElement('div'); t.className = 'tst' + (kind ? ' ' + kind : ''); t.innerHTML = msg;
+  const box = $('toast'); box.appendChild(t);
+  while(box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = 0; setTimeout(() => t.remove(), 400); }, 2600);
+}
+let modalOnClose = null, modalQueue = [];
+function openModal(title, html, onClose, noClose){
+  $('mBody').innerHTML = (title ? '<h2>' + title + '</h2>' : '') + html;
+  $('modalBg').classList.add('on');
+  $('mClose').style.display = noClose ? 'none' : '';
+  $('modal').scrollTop = 0;
+  modalOnClose = onClose || null;
+}
+function closeModal(){
+  if(!$('modalBg').classList.contains('on')) return;
+  $('modalBg').classList.remove('on');
+  const f = modalOnClose; modalOnClose = null; if(f) f();
+  refreshTop();
+  if(modalQueue.length) setTimeout(() => { if(!$('modalBg').classList.contains('on') && modalQueue.length) modalQueue.shift()(); }, 250);
+}
+function queueModal(fn){ if($('modalBg').classList.contains('on')) modalQueue.push(fn); else fn(); }
+function showReward(art, title, html, onClose){
+  openModal('', '<div class="reward"><div class="big">' + art + '</div><h2>' + title + '</h2><div>' + (html || '') + '</div><button class="btn wide" id="rwOk">' + tr('Yay!') + '</button></div>', onClose);
+  $('rwOk').onclick = closeModal;
+}
+function confirmBox(title, msg, yes, cb){
+  openModal(title, '<p class="center">' + msg + '</p><button class="btn wide" id="cfY">' + yes + '</button><button class="btn wide ghost" id="cfN">' + tr('Cancel') + '</button>');
+  $('cfY').onclick = () => { closeModal(); cb(); }; $('cfN').onclick = closeModal;
+}
+const moodColor = v => v > 60 ? '#5cd6a5' : v > 30 ? '#ffc83d' : '#ff7a8a';
+function moodBars(x){
+  return [['food', '🪱', tr('Food')], ['fun', '😊', tr('Fun')]].map(([k, e, n]) =>
+    '<div class="mood"><span>' + e + '</span><span style="width:auto;min-width:46px;text-align:left">' + n + '</span><div class="bar"><i style="width:' + x.m[k] + '%;background:' + moodColor(x.m[k]) + '"></i></div></div>').join('');
+}
+function heartsHtml(x){ const h = hearts(x); return '<span class="hearts">' + '❤️'.repeat(h) + '🤍'.repeat(10 - h) + '</span>'; }
+
+/* ---------- AXOLOTLS tab: my axolotls, eggs, color book ---------- */
+let axTab = 'mine', axFilter = 'here';
+function renderAxosView(){
+  let h = '<div class="tabs">' + [['mine', '💗 ' + tr('My axolotls')], ['eggs', '🥚 ' + tr('Eggs')], ['book', '📖 ' + tr('Color book')]].map(([k, n]) => '<button data-t="' + k + '" class="' + (axTab === k ? 'on' : '') + '">' + n + '</button>').join('') + '</div>';
+  if(axTab === 'mine') h += mineHtml();
+  if(axTab === 'eggs') h += eggsHtml();
+  if(axTab === 'book') h += bookHtml();
+  $('iAxos').innerHTML = h;
+  $('iAxos').querySelectorAll('.tabs [data-t]').forEach(b => b.onclick = () => { sfx('tap'); axTab = b.dataset.t; renderAxosView(); });
+  $('iAxos').querySelectorAll('[data-ax]').forEach(b => b.onclick = () => openAxo(+b.dataset.ax));
+  $('iAxos').querySelectorAll('[data-f]').forEach(b => b.onclick = () => { axFilter = b.dataset.f; renderAxosView(); });
+  if($('pairBtn')) $('pairBtn').onclick = openPair;
+  $('iAxos').querySelectorAll('[data-egg]').forEach(b => b.onclick = () => { tapEgg(b.dataset.egg); });
+}
+function axoCard(x){
+  const C = COLORS[x.c];
+  return '<div class="card" data-ax="' + x.id + '"><div class="art ' + 'r' + C.r + '">' + axoSVG(x.c, {baby: !isAdult(x), halo: true}) + '</div><div class="info"><div class="nm">' + esc(x.n) + ' ' + (isAdult(x) ? '' : '<span class="tag">🍼 ' + tr('Baby') + '</span>') + '</div>' +
+    '<div class="sub"><b style="color:' + RARITY[C.r].c + '">' + L(C) + '</b> · ' + PERSONALITIES[x.t].e + ' ' + L(PERSONALITIES[x.t]) + ' · ' + AREA(x.a).e + '</div>' +
+    '<div class="sub">' + '❤️'.repeat(hearts(x)) + ' · 🪱 ' + Math.round(x.m.food) + '% · 😊 ' + Math.round(x.m.fun) + '%</div></div><span style="font-size:22px">›</span></div>';
+}
+function mineHtml(){
+  const list = axFilter === 'here' ? axosIn(S.cur) : S.axos;
+  let h = '<div class="seg" style="margin-bottom:10px"><button data-f="here" class="' + (axFilter === 'here' ? 'on' : '') + '">' + AREA(S.cur).e + ' ' + tr('This area') + ' (' + axosIn(S.cur).length + '/' + roomIn(S.cur) + ')</button><button data-f="all" class="' + (axFilter === 'all' ? 'on' : '') + '">' + tr('All') + ' (' + S.axos.length + ')</button></div>';
+  h += list.map(axoCard).join('') || '<p class="muted center">' + tr('No axolotls here yet.') + '</p>';
+  return h;
+}
+function eggsHtml(){
+  let h = '<p class="muted">' + tr('Pair two grown-ups to make an egg. Babies can mix colors and become a NEW color!') + '</p>';
+  h += '<button class="btn wide" id="pairBtn"' + (nestFree() ? '' : ' disabled') + '>💞 ' + tr('Make an egg') + ' (' + S.eggs.length + '/' + CONFIG.NEST_SLOTS + ')</button><h3>🥚 ' + tr('Nests') + '</h3>';
+  if(!S.eggs.length) h += '<p class="muted center">' + tr('No eggs right now.') + '</p>';
+  S.eggs.forEach(e => {
+    const left = eggLeft(e);
+    h += '<div class="card" data-egg="' + e.id + '"><div class="art" style="background:var(--sky)">' + eggSVG(e.pa, left <= 0) + '</div><div class="info"><div class="nm">' + (left <= 0 ? '🐣 ' + tr('Ready to hatch!') : '⏳ ' + fmtTime(left)) + '</div>' +
+      '<div class="sub"><span class="swatch" style="background:' + COLORS[e.pa].body + '"></span> ' + L(COLORS[e.pa]) + ' + <span class="swatch" style="background:' + COLORS[e.pb].body + '"></span> ' + L(COLORS[e.pb]) + ' · ' + AREA(e.a).e + '</div></div>' +
+      '<button class="btn ' + (left <= 0 ? 'gold' : 'mint') + ' sm">' + (left <= 0 ? tr('Hatch!') : tr('Open')) + '</button></div>';
+  });
+  return h;
+}
+function bookHtml(){
+  const n = COLOR_IDS.filter(k => S.book[k]).length;
+  let h = '<h2>📖 ' + tr('Color book') + ' <span class="muted">' + n + '/' + COLOR_IDS.length + '</span></h2><div class="grid">';
+  COLOR_IDS.forEach(k => {
+    const C = COLORS[k], got = S.book[k];
+    let hint = '';
+    if(!got){
+      const r = recipeFor(k);
+      if(C.paid) hint = '🛍️ ' + tr('Lagoon Pack');
+      else if(r && (S.book[r[0]] || S.book[r[1]])) hint = '<span class="swatch" style="background:' + (S.book[r[0]] ? COLORS[r[0]].body : '#ccc') + '"></span>+<span class="swatch" style="background:' + (S.book[r[1]] ? COLORS[r[1]].body : '#ccc') + '"></span>' + (C.cave ? ' 🌙' : '');
+      else if(C.cave) hint = '🌙 ' + tr('Caves');
+    }
+    h += '<div class="tile ' + (got ? 'r' + C.r : 'lock') + '">' + axoSVG(k, {halo: !!got}) + (got ? L(C) : '???') + '<div class="muted" style="font-size:.85em">' + (got ? '<span style="color:' + RARITY[C.r].c + '">' + L(RARITY[C.r]) + '</span>' : hint) + '</div></div>';
+  });
+  h += '</div><p class="muted">💡 ' + tr('Colored dots show which pair can make a missing color. 🌙 = only in the caves.') + '</p>';
+  return h;
+}
+/* pick two parents */
+function openPair(){
+  if(!nestFree()){ toast('🥚 ' + tr('All nests are full'), 'err'); return; }
+  const list = S.axos.filter(isAdult);
+  let picked = [];
+  const draw = () => {
+    let h = '<p class="center muted">' + tr('Pick two grown-ups.') + '</p><div class="pickGrid">';
+    list.forEach(x => {
+      const ok = canPair(x), on = picked.includes(x.id);
+      h += '<button data-pk="' + x.id + '" class="' + (on ? 'on' : '') + '"' + (ok ? '' : ' disabled') + '>' + axoSVG(x.c) + esc(x.n) + '<br><span class="muted">' + (ok ? AREA(x.a).e + ' ' + L(COLORS[x.c]) : '⏳ ' + fmtTime((x.pc - now()) / 1000)) + '</span></button>';
+    });
+    h += '</div>';
+    if(picked.length === 2){
+      const a = axoById(picked[0]), b = axoById(picked[1]), hint = pairHint(a.c, b.c, a.a);
+      const res = (RECIPES.find(r => (r[0] === a.c && r[1] === b.c) || (r[0] === b.c && r[1] === a.c)) || [])[2];
+      h += '<p class="center"><b>' + (hint === 1 && S.book[res] ? '🎨 ' + tr('They can make: {c}', {c: L(COLORS[res])}) : hint === 1 ? '✨ ' + tr('A NEW color is possible!') : hint === 2 ? '🌙 ' + tr('A new color is possible, but only in the caves!') : tr('Babies will look like their parents.')) + '</b></p>';
+    }
+    h += '<button class="btn wide" id="pkGo"' + (picked.length === 2 ? '' : ' disabled') + '>💞 ' + tr('Make an egg') + '</button>';
+    openModal('💞 ' + tr('Make an egg'), h);
+    $('mBody').querySelectorAll('[data-pk]').forEach(b => b.onclick = () => {
+      sfx('tap'); const id = +b.dataset.pk;
+      if(picked.includes(id)) picked = picked.filter(q => q !== id); else { picked.push(id); if(picked.length > 2) picked.shift(); }
+      draw();
+    });
+    $('pkGo').onclick = () => { const a = axoById(picked[0]), b = axoById(picked[1]); if(pairUp(a, b)){ closeModal(); renderEggs(); if(curView === 'Axolotls') renderAxosView(); } };
+  };
+  draw();
+}
+/* one axolotl, up close */
+function openAxo(id){
+  const x = axoById(id); if(!x) return;
+  sfx('tap');
+  const C = COLORS[x.c], P = PERSONALITIES[x.t], sp = SPOTS[x.s], nh = nextHeartAt(x);
+  let h = '<div class="center">' + axoSVG(x.c, {size: 200, baby: !isAdult(x), halo: true}) + '</div>';
+  h += '<div class="center" style="font-size:1.3em;font-weight:900">' + esc(x.n) + ' <button class="btn ghost sm" id="axRen">✏️</button></div>';
+  h += '<p class="center"><b style="color:' + RARITY[C.r].c + '">' + L(C) + ' · ' + L(RARITY[C.r]) + '</b></p>';
+  h += '<div class="card" style="display:block"><div><b>' + P.e + ' ' + L(P) + '</b> — ' + L(P.d) + '</div><div style="margin-top:6px">' + tr('Favorite spot:') + ' <b>' + sp.e + ' ' + L(sp) + '</b></div>' +
+    '<div style="margin-top:6px">' + tr('Friendship') + ': ' + heartsHtml(x) + (nh ? ' <span class="muted">(' + Math.floor(x.f) + '/' + nh + ')</span>' : '') + '</div>' +
+    moodBars(x) + (isAdult(x) ? '' : '<div class="mood"><span>🍼</span><span style="width:auto;min-width:46px;text-align:left">' + tr('Growing') + '</span><div class="bar"><i style="width:' + (x.grow / CONFIG.GROW_SEC * 100) + '%;background:var(--lav2)"></i></div></div>') +
+    '<div class="muted" style="margin-top:6px">' + PL + ' ' + fmt(axoRate(x) * 60) + ' / ' + tr('min') + ' · ' + AREA(x.a).e + ' ' + L(AREA(x.a)) + '</div></div>';
+  h += '<div class="row" style="flex-wrap:wrap;gap:6px"><button class="btn mint" id="axFeed" style="flex:1">🪱 ' + tr('Feed') + '</button><button class="btn mint" id="axToy" style="flex:1">🏐 ' + tr('Toy') + '</button></div>';
+  h += '<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:8px"><button class="btn ghost" id="axMove" style="flex:1">🧭 ' + tr('Move') + '</button><button class="btn ghost" id="axAv" style="flex:1">🖼️ ' + tr('Profile picture') + '</button></div>';
+  if(S.axos.length > 2) h += '<button class="btn wide ghost" id="axBye" style="color:var(--bad)">👋 ' + tr('Let it go home') + '</button>';
+  openModal('', h);
+  $('axRen').onclick = () => renameAxo(x);
+  $('axFeed').onclick = () => openFeed(x);
+  $('axToy').onclick = () => openToy(x);
+  $('axAv').onclick = () => { S.avatar = x.id; saveNow(); refreshTop(); toast('🖼️ ' + tr('New profile picture!')); };
+  $('axMove').onclick = () => openMove(x);
+  if($('axBye')) $('axBye').onclick = () => {
+    const gift = Math.round(Math.max(100, axoRate(x) * 600));
+    confirmBox('👋 ' + tr('Say goodbye to {n}?', {n: esc(x.n)}), tr('It goes back to the wild lake. It leaves you {p} pearls as a thank-you.', {p: fmt(gift)}), tr('Say goodbye'), () => {
+      S.axos = S.axos.filter(q => q !== x); if(S.avatar === x.id) S.avatar = S.axos[0].id; if(sel === x.id) sel = null;
+      addP(gift); saveNow(); renderLagoon(); if(curView === 'Axolotls') renderAxosView(); toast('💗 ' + tr('Bye bye, {n}!', {n: esc(x.n)}));
+    });
+  };
+}
+function renameAxo(x){
+  openModal(tr('New name'), '<input id="rnIn" maxlength="14" value="' + esc(x.n) + '" style="width:100%;padding:12px;border-radius:12px;border:2px solid #dde;font-size:18px"><button class="btn wide" id="rnOk">' + tr('Save') + '</button>');
+  $('rnOk').onclick = () => { const v = $('rnIn').value.trim(); if(v) x.n = v.slice(0, 14); closeModal(); saveNow(); renderCare(); if(curView === 'Axolotls') renderAxosView(); };
+}
+function openMove(x){
+  let h = '';
+  S.open.forEach(a => { const A = AREA(a), here = x.a === a, ok = hasRoom(a);
+    h += '<div class="card"><div class="art">' + A.e + '</div><div class="info"><div class="nm">' + L(A) + '</div><div class="sub">' + axosIn(a).length + '/' + roomIn(a) + '</div></div>' +
+      (here ? '<span class="tag">' + tr('Here') + '</span>' : '<button class="btn mint sm" data-mv="' + a + '"' + (ok ? '' : ' disabled') + '>' + (ok ? tr('Move') : tr('Full')) + '</button>') + '</div>'; });
+  openModal('🧭 ' + tr('Move {n}', {n: esc(x.n)}), h);
+  $('mBody').querySelectorAll('[data-mv]').forEach(b => b.onclick = () => { x.a = b.dataset.mv; if(sel === x.id) sel = null; closeModal(); saveNow(); renderLagoon(); if(curView === 'Axolotls') renderAxosView(); toast('🧭 ' + esc(x.n) + ' → ' + L(AREA(x.a))); });
+}
+
+/* ---------- SHOP tab ---------- */
+let shopTab = 'food';
+function priceBtn(attr, cur, price, extra){ return '<button class="btn ' + (cur === 'c' ? 'lav' : 'gold') + ' sm" ' + attr + (extra || '') + '>' + fmt(price) + ' ' + (cur === 'c' ? '💎' : PL) + '</button>'; }
+function renderShop(){
+  let h = '<div class="tabs">' + [['food', '🪱 ' + tr('Food & toys')], ['up', '⬆️ ' + tr('Upgrades')], ['decor', '🏰 ' + tr('Decor')], ['areas', '🗺️ ' + tr('Areas')], ['paid', '🛍️ ' + tr('Goodies')]]
+    .map(([k, n]) => '<button data-t="' + k + '" class="' + (shopTab === k ? 'on' : '') + '">' + n + '</button>').join('') + '</div>';
+  const card = (art, name, sub, btn) => '<div class="card"><div class="art">' + art + '</div><div class="info"><div class="nm">' + name + '</div><div class="sub">' + sub + '</div></div>' + btn + '</div>';
+  if(shopTab === 'food'){
+    h += '<h3>🪱 ' + tr('Food') + ' <span class="muted">(' + tr('pack of 5') + ')</span></h3>';
+    FOOD_IDS.forEach(k => { const F = FOODS[k]; h += card(F.e, L(F) + ' <span class="muted">× ' + S.inv[k] + '</span>', '🪱 +' + F.food + (F.fun ? ' · 😊 +' + F.fun : '') + ' · 💗 +' + F.fr_, priceBtn('data-food="' + k + '"', 'p', foodPrice(k) * 5)); });
+    h += '<h3>🏐 ' + tr('Toys') + '</h3>';
+    TOY_IDS.forEach(k => { const T = TOYS[k]; h += card(T.e, L(T), '😊 +' + T.fun + ' · 💗 +' + T.fr_, S.toys[k] ? '<span class="tag" style="background:var(--aqua)">✔ ' + tr('Owned') + '</span>' : priceBtn('data-toy="' + k + '"', 'p', toyPrice(k))); });
+  }
+  if(shopTab === 'up'){
+    const A = AREA(S.cur), pl = S.ar[S.cur].plants;
+    h += card('🍤', tr('Better food') + ' <span class="tag">' + tr('Lv') + ' ' + S.up.food + '</span>', tr('+25% pearls from ALL axolotls'), S.up.food >= CONFIG.FOOD_UP_MAX ? '<span class="tag">MAX</span>' : priceBtn('id="upFood"', 'p', foodUpCost()));
+    h += card('🌿', tr('Plants & hiding spots') + ' <span class="tag">' + pl + '/' + CONFIG.PLANTS_MAX + '</span>', A.e + ' ' + L(A) + ': ' + tr('room for 2 more axolotls') + ' (' + roomIn(S.cur) + ')', pl >= CONFIG.PLANTS_MAX ? '<span class="tag">MAX</span>' : priceBtn('id="upPlant"', 'p', plantCost(S.cur)));
+    h += card('🪺', tr('Cozy nests') + ' <span class="tag">' + S.up.nest + '/5</span>', tr('Eggs hatch faster') + ' (' + fmtTime(eggTime() / 1000) + ')', S.up.nest >= 5 ? '<span class="tag">MAX</span>' : priceBtn('id="upNest"', 'p', nestCost()));
+    h += card('🫙', tr('Pearl jars') + ' <span class="tag">' + S.up.jar + '/4</span>', tr('Keep earning longer while away') + ' (' + offlineCapH() + 'h)', S.up.jar >= 4 ? '<span class="tag">MAX</span>' : priceBtn('id="upJar"', 'p', jarCost()));
+  }
+  if(shopTab === 'decor'){
+    const A = AREA(S.cur);
+    h += '<p class="muted">' + A.e + ' <b>' + L(A) + '</b> · ' + tr('Each decor gives +10% pearls in this area.') + (A.cave ? ' ' + tr('Glow items light up the cave (more pearls, more glowing visitors).') : '') + '</p>';
+    if(A.cave) h += '<p><b>💡 ' + tr('Light') + ': ' + '🟡'.repeat(lightOf(S.cur)) + '⚫'.repeat(3 - lightOf(S.cur)) + '</b></p>';
+    DECOR_IDS.filter(k => DECOR[k].where.includes(S.cur)).forEach(k => {
+      const D = DECOR[k], own = S.ar[S.cur].decor[k], P = propSVG(k, A);
+      const art = '<div style="width:56px;height:52px;display:grid;place-items:center">' + P.svg.replace('<svg ', '<svg style="max-width:54px;max-height:50px" ') + '</div>';
+      const btn = own ? '<span class="tag" style="background:var(--aqua)">✔ ' + tr('Placed') + '</span>' :
+        (D.c ? '<div style="display:flex;flex-direction:column;gap:4px">' + priceBtn('data-dec="' + k + '"', 'p', decorCost(k, S.cur)) + '<span class="tag" style="text-align:center">+ ' + D.c + ' 💎</span></div>' : priceBtn('data-dec="' + k + '"', 'p', decorCost(k, S.cur)));
+      h += card(art, D.e + ' ' + L(D), (D.glow ? '✨ ' + tr('Glows in the dark') + ' · ' : '') + '+10% ' + PL, btn);
+    });
+  }
+  if(shopTab === 'areas'){
+    AREAS.forEach((A, i) => {
+      const open = S.open.includes(A.id);
+      let btn;
+      if(open) btn = S.cur === A.id ? '<span class="tag">' + tr('You are here') + '</span>' : '<button class="btn mint sm" data-go="' + A.id + '">' + tr('Go') + '</button>';
+      else if(S.open.length < i) btn = '<span class="tag">🔒</span>';
+      else if(S.lv < CONFIG.AREA_LEVEL[i]) btn = '<button class="btn ghost sm" disabled>🔒 ' + tr('Lv') + ' ' + CONFIG.AREA_LEVEL[i] + '</button>';
+      else btn = priceBtn('data-area="' + i + '"', 'p', areaCost(i));
+      h += card(A.e, L(A) + (A.cave ? ' <span class="tag">🌙 ' + tr('Cave') + '</span>' : ''), (i ? '×' + Math.pow(CONFIG.AREA_MULT, i) + ' ' + PL + ' · ' : '') + (A.cave ? tr('Dark! Light it with glow items. Rare glowing axolotls live here.') : i === 0 ? tr('Your first lagoon. Warm and sunny.') : tr('Tall swaying kelp. Axolotls earn more here.')), btn);
+    });
+  }
+  if(shopTab === 'paid') h += paidShopHtml();
+  $('iShop').innerHTML = h;
+  const I = $('iShop');
+  I.querySelectorAll('.tabs [data-t]').forEach(b => b.onclick = () => { sfx('tap'); shopTab = b.dataset.t; renderShop(); });
+  const bought = () => { sfx('coin'); addXP(3); saveNow(); renderShop(); refreshTop(); tutEvent('buy'); };
+  I.querySelectorAll('[data-food]').forEach(b => b.onclick = () => { const k = b.dataset.food; if(pay('p', foodPrice(k) * 5)){ S.inv[k] += 5; toast('+5 ' + FOODS[k].e); bought(); } });
+  I.querySelectorAll('[data-toy]').forEach(b => b.onclick = () => { const k = b.dataset.toy; if(pay('p', toyPrice(k))){ S.toys[k] = 1; toast(TOYS[k].e + ' ' + L(TOYS[k]) + '!'); bought(); } });
+  if($('upFood')) $('upFood').onclick = () => { if(pay('p', foodUpCost())){ S.up.food++; toast('🍤 ' + tr('Better food!') + ' Lv ' + S.up.food); bought(); } };
+  if($('upPlant')) $('upPlant').onclick = () => { if(pay('p', plantCost(S.cur))){ S.ar[S.cur].plants++; toast('🌿 ' + tr('More room!') + ' (' + roomIn(S.cur) + ')'); bought(); } };
+  if($('upNest')) $('upNest').onclick = () => { if(pay('p', nestCost())){ S.up.nest++; toast('🪺 ' + tr('Cozier nests!')); bought(); } };
+  if($('upJar')) $('upJar').onclick = () => { if(pay('p', jarCost())){ S.up.jar++; toast('🫙 ' + offlineCapH() + 'h'); bought(); } };
+  I.querySelectorAll('[data-dec]').forEach(b => b.onclick = () => {
+    const k = b.dataset.dec, D = DECOR[k], pr = decorCost(k, S.cur);
+    if(D.c && S.c < D.c){ toast('💎 ' + tr('Not enough crystals'), 'err'); sfx('err'); return; }
+    if(!pay('p', pr)) return;
+    if(D.c) S.c -= D.c;
+    S.ar[S.cur].decor[k] = 1; addXP(8); toast(D.e + ' ' + L(D) + ' ' + tr('placed!'), 'gold'); bgKey = ''; bought();
+  });
+  I.querySelectorAll('[data-area]').forEach(b => b.onclick = () => openArea(+b.dataset.area));
+  I.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { goArea(b.dataset.go); showView('Lagoon'); });
+  if(shopTab === 'paid') bindPaidShop();
+}
+function openArea(i){
+  const A = AREAS[i];
+  if(!canOpenArea(i) || !pay('p', areaCost(i))) return;
+  S.open.push(A.id); S.ar[A.id] = newArea(); addXP(30); sfx('new');
+  // a friend moves in to welcome you
+  const c = A.cave ? (i === 3 ? 'glowing' : pick(['lavender', 'blue'])) : pick(['golden', 'copper']);
+  const x = makeAxo({c, a: A.id, adult: true});
+  saveNow();
+  showReward(A.e, tr('{a} is open!', {a: L(A)}), tr('{n} was waiting for you there!', {n: esc(x.n)}) + '<br>' + axoSVG(c, {size: 140, halo: true}), () => { goArea(A.id); showView('Lagoon'); });
+}
+
+/* ---------- daily gift ---------- */
+function openGift(){
+  const t = now(), today = dayNum(t), ready = S.daily.last !== today;
+  const streak = ready ? (S.daily.last === today - 1 ? S.daily.streak + 1 : 1) : S.daily.streak;
+  const day = ((streak - 1) % 7 + 7) % 7, G = GIFT_DAYS[day];
+  const pr = Math.round(Math.max(150, incomeFloor() * 60 * G.p));
+  let h = '<div class="row" style="justify-content:center;gap:4px;flex-wrap:wrap;margin-bottom:8px">';
+  GIFT_DAYS.forEach((g, i) => h += '<span class="tag" style="font-size:.9em;padding:5px 8px;' + (i === day ? 'background:var(--pink2);color:#fff' : i < day ? 'background:var(--aqua)' : '') + '">' + tr('Day') + ' ' + (i + 1) + (g.c ? ' 💎' : '') + '</span>');
+  h += '</div><div class="reward"><div class="big">🎁</div><div class="amt">+' + fmt(pr) + ' ' + PL + (G.c ? ' +' + G.c + ' 💎' : '') + FOOD_IDS.filter(k => G[k]).map(k => ' +' + G[k] + ' ' + FOODS[k].e).join('') + '</div>';
+  h += '<p class="muted">🔥 ' + tr('Streak') + ': ' + streak + '</p></div>';
+  h += ready ? '<button class="btn wide gold" id="gfGo">' + tr('Open my gift!') + '</button>' : '<p class="center"><b>' + tr('Come back tomorrow for the next gift!') + '</b></p>';
+  openModal('🎁 ' + tr('Daily gift'), h);
+  if($('gfGo')) $('gfGo').onclick = () => {
+    S.daily = {streak, last: today}; addP(pr); if(G.c) S.c += G.c; FOOD_IDS.forEach(k => { if(G[k]) S.inv[k] += G[k]; });
+    sfx('win'); closeModal(); toast('🎁 +' + fmt(pr) + ' ' + PL, 'gold'); saveNow(); renderSide(); refreshTop();
+    if(S.dvDay !== today && !S.visitor){ S.dvDay = today; setTimeout(() => spawnVisitor('daily'), 900); }
+  };
+}
+
+/* ---------- boosts + free rewards (all optional ads) ---------- */
+function openBoosts(){
+  sfx('tap');
+  const t = now(), left = Math.max(0, S.ad2x - t), maxMs = CONFIG.AD_2X_MAX_H * 3600000;
+  let h = '<div class="card"><div class="art">⚡</div><div class="info"><div class="nm">2× ' + tr('pearls') + '</div><div class="sub">' + (left ? tr('Active') + ': ' + fmtTime(left / 1000) : tr('+30 min each time, up to 4 h')) + '</div></div><button class="btn mint sm" id="bxAd"' + (left + CONFIG.AD_2X_MIN * 60000 > maxMs ? ' disabled' : '') + '>' + adIcon() + ' +30m</button></div>';
+  h += '<div class="card"><div class="art">🌟</div><div class="info"><div class="nm">' + tr('Call a rare axolotl') + '</div><div class="sub">' + (S.visitor ? tr('A visitor is already here') : tr('A rare friend visits. Adopt it for free!')) + '</div></div><button class="btn mint sm" id="bxRare"' + (S.visitor ? ' disabled' : '') + '>' + adIcon() + ' ' + tr('Call') + '</button></div>';
+  h += '<div class="card"><div class="art">🎟️</div><div class="info"><div class="nm">' + tr('Tickets') + ' ' + S.tickets + '/' + CONFIG.TICKETS_MAX + '</div><div class="sub">' + tr('For mini games') + '</div></div><button class="btn mint sm" id="bxTk">' + adIcon() + ' +' + CONFIG.AD_TICKETS + '</button></div>';
+  h += '<p class="muted center">' + PL + ' ' + fmt(incomePerSec()) + '/s · ' + tr('Ads are always your choice.') + '</p>';
+  if(!S.noAds) h += '<button class="btn wide lav" id="bxNo">🛍️ ' + tr('Lagoon Pack: no ads needed') + '</button>';
+  openModal('⚡ ' + tr('Boosts & free rewards'), h);
+  $('bxAd').onclick = async () => { closeModal(); if(await rewardAd()){ S.ad2x = Math.min(now() + maxMs, Math.max(now(), S.ad2x) + CONFIG.AD_2X_MIN * 60000); toast('⚡ 2× ' + tr('pearls') + '!', 'gold'); refreshTop(); renderSide(); saveNow(); } };
+  $('bxRare').onclick = async () => { closeModal(); if(await rewardAd()) spawnVisitor('rare'); };
+  $('bxTk').onclick = async () => { closeModal(); if(await rewardAd()){ S.tickets += CONFIG.AD_TICKETS; saveNow(); toast('+' + CONFIG.AD_TICKETS + ' 🎟️', 'gold'); } };
+  if($('bxNo')) $('bxNo').onclick = () => { closeModal(); shopTab = 'paid'; showView('Shop'); };
+}
+
+/* ---------- MORE tab: profile, settings, help ---------- */
+function renderMore(){
+  const av = S.avatar && axoById(S.avatar);
+  let h = '<div class="center">' + (av ? axoSVG(av.c, {size: 150, baby: !isAdult(av), halo: true}) : '') + '<div style="font-size:1.4em;font-weight:900">' + esc(S.name || tr('Lagoon Keeper')) + ' <button class="btn ghost sm" id="pfName">✏️</button></div>' +
+    '<div class="tag" style="font-size:.95em;margin-top:4px">⭐ ' + tr('Level') + ' ' + S.lv + ' · ' + L(titleOf(S.lv)) + '</div><p class="muted">' + tr('Pick your profile picture from any axolotl.') + '</p></div>';
+  const st = S.stats;
+  const rows = [[PL, tr('Pearls found'), fmt(st.pearls)], ['💎', tr('Crystals found'), st.crystals], ['💗', tr('Axolotls'), S.axos.length], ['📖', tr('Colors found'), COLOR_IDS.filter(k => S.book[k]).length + '/' + COLOR_IDS.length],
+    ['🐣', tr('Eggs hatched'), st.hatched], ['🤲', tr('Pets'), st.pets], ['🪱', tr('Meals'), st.feeds], ['🎮', tr('Games played'), st.games], ['🔥', tr('Streak'), S.daily.streak], ['⏱️', tr('Time played'), fmtTime(st.play)], [PL, tr('Per second'), fmt(incomePerSec())]];
+  h += '<h3>📊 ' + tr('Stats') + '</h3><div class="card" style="display:block">' + rows.map(r => '<div class="row" style="justify-content:space-between;padding:4px 0"><span>' + r[0] + ' ' + r[1] + '</span><b>' + r[2] + '</b></div>').join('') + '</div>';
+  h += '<h3>⚙️ ' + tr('Settings') + '</h3>';
+  const tg = (id, on, e, n) => '<div class="card"><div class="art">' + e + '</div><div class="info nm">' + n + '</div><button class="btn sm ' + (on ? 'mint' : 'ghost') + '" id="' + id + '">' + (on ? tr('On') : tr('Off')) + '</button></div>';
+  h += tg('stSnd', S.snd, '🔊', tr('Sounds')) + tg('stMus', S.mus, '🎵', tr('Music')) + tg('stEasy', S.easy, '🔤', tr('Easy-read font'));
+  h += '<div class="card"><div class="art">🌐</div><div class="info nm">' + tr('Language') + '</div><div class="seg"><button id="lgEn" class="' + (S.lang === 'en' ? 'on' : '') + '">English</button><button id="lgFr" class="' + (S.lang === 'fr' ? 'on' : '') + '">Français</button></div></div>';
+  h += '<div class="card"><div class="art">🔠</div><div class="info nm">' + tr('Text size') + '</div><div class="seg">' + [[0.9, 'A'], [1, 'A+'], [1.15, 'A++']].map(([v, n]) => '<button data-fs="' + v + '" class="' + (S.fsz === v ? 'on' : '') + '">' + n + '</button>').join('') + '</div></div>';
+  if(S.pack) h += '<div class="card"><div class="art">🌸</div><div class="info nm">' + tr('Lagoon theme') + '</div><div class="seg"><button id="thC" class="' + (S.theme !== 'sakura' ? 'on' : '') + '">' + tr('Classic') + '</button><button id="thS" class="' + (S.theme === 'sakura' ? 'on' : '') + '">Sakura</button></div></div>';
+  h += '<h3>❓ ' + tr('How to play') + '</h3><div class="card" style="display:block;line-height:1.6">' +
+    ['💗 ' + tr('Tap an axolotl to pet it. Feed it and give it toys.'), PL + ' ' + tr('Happy axolotls find more pearls, even while the app is closed.'), '💞 ' + tr('Pair two grown-ups to get an egg. Mix colors to find new ones!'),
+     '🌙 ' + tr('Caves are dark. Glow items light them up. Tap the moon to see glowing axolotls shine.'), '📖 ' + tr('Fill your Color book!')].map(s => '<div>' + s + '</div>').join('') + '</div>';
+  h += '<button class="btn wide ghost" id="stTut">🧭 ' + tr('Replay tutorial') + '</button>';
+  h += '<button class="btn wide ghost" id="stRestore">💳 ' + tr('Restore purchases') + '</button>';
+  h += '<button class="btn wide ghost" id="stReset" style="color:var(--bad)">🗑️ ' + tr('Reset game') + '</button>';
+  h += '<p class="muted center">' + tr('No account. Everything is saved on this phone.') + '<br>Axolotl Lagoon v1.0 · MOS Arcade</p>';
+  $('iMore').innerHTML = h;
+  $('pfName').onclick = () => { openModal(tr('Your name'), '<input id="pnIn" maxlength="16" value="' + esc(S.name) + '" style="width:100%;padding:12px;border-radius:12px;border:2px solid #dde;font-size:18px"><button class="btn wide" id="pnOk">' + tr('Save') + '</button>');
+    $('pnOk').onclick = () => { S.name = $('pnIn').value.trim().slice(0, 16); closeModal(); renderMore(); saveNow(); }; };
+  $('stSnd').onclick = () => { S.snd = !S.snd; renderMore(); refreshTop(); saveNow(); sfx('tap'); };
+  $('stMus').onclick = () => { S.mus = !S.mus; if(S.mus) audioUnlock(); else musicStop(); renderMore(); refreshTop(); saveNow(); };
+  $('stEasy').onclick = () => { S.easy = !S.easy; applySettings(); renderMore(); saveNow(); };
+  $('lgEn').onclick = () => { S.lang = 'en'; applySettings(); renderAll(); saveNow(); };
+  $('lgFr').onclick = () => { S.lang = 'fr'; applySettings(); renderAll(); saveNow(); };
+  $('iMore').querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { S.fsz = +b.dataset.fs; applySettings(); renderMore(); saveNow(); });
+  if($('thC')){ $('thC').onclick = () => { S.theme = 'classic'; bgKey = ''; saveNow(); renderMore(); }; $('thS').onclick = () => { S.theme = 'sakura'; bgKey = ''; saveNow(); renderMore(); }; }
+  $('stTut').onclick = () => { S.tut = 1; showView('Lagoon'); tutShow(); };
+  $('stRestore').onclick = restorePurchases;
+  $('stReset').onclick = () => confirmBox('🗑️ ' + tr('Reset game?'), tr('This deletes ALL your progress. It cannot be undone.'), tr('Yes, reset'), () =>
+    confirmBox('⚠️ ' + tr('Are you really sure?'), tr('Last chance! Everything will be gone.'), tr('Reset everything'), () => {
+      try{ localStorage.removeItem(SAVE_KEY); }catch(e){} S = null; location.reload(); }));
+}
+function applySettings(){
+  document.body.classList.toggle('easy', !!S.easy);
+  document.documentElement.style.setProperty('--fs', S.fsz || 1);
+  document.documentElement.lang = S.lang;
+}
+function renderAll(){ renderNav(); refreshTop(); showView(curView); }
+
+/* =====================================================================
+   10. MINI GAMES — Worm Catch, Hide & Seek, Bubble Pop
+   Each game: intro → loop (update + draw) → gameOver(score)
+   update(dt) moves things, draw(ctx) paints the screen, every frame.
+===================================================================== */
+const GAMES = [
+  {id:'catch', e:'🪱', en:'Worm Catch', fr:'Attrape les vers', d:{en:'Slide your finger to catch the falling worms. Dodge the pebbles!', fr:'Glisse ton doigt pour attraper les vers qui tombent. Évite les cailloux!'}},
+  {id:'seek',  e:'🔦', en:'Hide & Seek', fr:'Cache-cache', d:{en:'The cave is dark! Move your light and tap the hidden axolotl.', fr:'La grotte est sombre! Bouge ta lumière et touche l’axolotl caché.'}},
+  {id:'pop',   e:'🫧', en:'Bubble Pop', fr:'Éclate les bulles', d:{en:'Tap bubbles fast! Pearl bubbles give more. Don’t pop the pufferfish!', fr:'Touche les bulles vite! Les bulles à perle valent plus. N’éclate pas le poisson-globe!'}},
+];
+function renderGames(){
+  const t = now(), next = S.tickets < CONFIG.TICKETS_MAX ? fmtTime((S.tkT + CONFIG.TICKET_MIN * 60000 - t) / 1000) : '';
+  let h = '<div class="card"><div class="art">🎟️</div><div class="info"><div class="nm">' + tr('Tickets') + ': ' + S.tickets + '/' + CONFIG.TICKETS_MAX + '</div><div class="sub">' + (next ? tr('+1 in') + ' ' + next : tr('Full!')) + '</div></div>' +
+    '<button class="btn mint sm" id="tkAd">' + adIcon() + ' +' + CONFIG.AD_TICKETS + '</button></div>';
+  GAMES.forEach(g => {
+    h += '<div class="card"><div class="art" style="font-size:36px">' + g.e + '</div><div class="info"><div class="nm">' + L(g) + '</div><div class="sub">' + L(g.d) + '</div><div class="sub">🏆 ' + tr('Best') + ': ' + (S.stats.best[g.id] || 0) + '</div></div>' +
+      '<button class="btn sm" data-g="' + g.id + '"' + (S.tickets < 1 ? ' disabled' : '') + '>▶ ' + tr('Play') + '</button></div>';
+  });
+  $('iGames').innerHTML = '<h2>🎮 ' + tr('Mini games') + '</h2>' + h;
+  $('iGames').querySelectorAll('[data-g]').forEach(b => b.onclick = () => startGame(b.dataset.g, true));
+  $('tkAd').onclick = async () => { if(await rewardAd()){ S.tickets += CONFIG.AD_TICKETS; saveNow(); toast('+' + CONFIG.AD_TICKETS + ' 🎟️', 'gold'); renderGames(); } };
+}
+
+let G = null;   // the running game
+const cv = () => $('gCanvas');
+function svgImg(svg){ const i = new Image(); i.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); return i; }
+function playerAxo(){ return (S.avatar && axoById(S.avatar)) || S.axos[0] || {c: 'pink', grow: 99999}; }
+function startGame(id, intro){
+  if(S.tickets < 1){ toast('🎟️ ' + tr('No tickets left. Watch an ad or wait.'), 'err'); sfx('err'); showView('Games'); return; }
+  audioUnlock();
+  $('game').classList.add('on'); $('gOver').classList.remove('on'); $('gHud').innerHTML = '';
+  const c = cv(), dpr = Math.min(2, window.devicePixelRatio || 1);
+  c.width = innerWidth * dpr; c.height = innerHeight * dpr;
+  const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  G = {id, ctx, W: innerWidth, H: innerHeight, t: 0, score: 0, shownScore: 0, shake: 0, parts: [], texts: [], over: false, started: false, last: performance.now(), img: svgImg(axoSVG(playerAxo().c))};
+  ({catch: catchInit, seek: seekInit, pop: popInit})[id]();
+  const go = () => {
+    if(S.tickets < 1) return;
+    if(S.tickets >= CONFIG.TICKETS_MAX) S.tkT = now();
+    S.tickets--; S.stats.games++; saveNow();
+    $('gIntro').classList.remove('on'); G.started = true; G.last = performance.now();
+    tutEvent('game');
+  };
+  if(intro){
+    const g = GAMES.find(q => q.id === id);
+    $('gIntroBox').innerHTML = '<div style="font-size:56px">' + g.e + '</div><h2 style="margin:6px 0">' + L(g) + '</h2><p style="font-weight:800">' + L(g.d) + '</p>' +
+      '<button class="btn wide" id="giGo">▶ ' + tr('Start') + ' · 🎟️ 1</button><button class="btn wide ghost" id="giBack">' + tr('Back') + '</button>';
+    $('gIntro').classList.add('on');
+    $('giGo').onclick = go; $('giBack').onclick = closeGame;
+  } else go();
+  requestAnimationFrame(gameLoop);
+}
+function gameLoop(ts){
+  if(!G || G.over) return;
+  const dt = Math.min(0.05, (ts - G.last) / 1000); G.last = ts;
+  if(G.started){ G.t += dt; G.update(dt); }
+  G.shownScore += (G.score - G.shownScore) * Math.min(1, dt * 10);   // score ticks up
+  const ctx = G.ctx; ctx.save();
+  if(G.shake > 0){ G.shake -= dt; ctx.translate(rnd(-6, 6) * G.shake * 3, rnd(-6, 6) * G.shake * 3); }
+  G.draw(ctx);
+  G.parts = G.parts.filter(p => (p.life -= dt) > 0);
+  G.parts.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; ctx.globalAlpha = Math.max(0, p.life / p.max); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); });
+  G.texts = G.texts.filter(q => (q.life -= dt) > 0);
+  G.texts.forEach(q => { q.y -= 40 * dt; ctx.globalAlpha = Math.min(1, q.life * 2); ctx.font = '900 ' + (q.size || 24) + 'px Nunito, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.strokeText(q.s, q.x, q.y); ctx.fillStyle = q.c || '#30506a'; ctx.fillText(q.s, q.x, q.y); });
+  ctx.globalAlpha = 1; ctx.restore();
+  requestAnimationFrame(gameLoop);
+}
+function burst(x, y, c, n){ for(let i=0;i<(n || 10);i++){ const a = Math.random() * 7, s = rnd(60, 200); G.parts.push({x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 60, r: rnd(2, 5), c: c || '#fff', life: 0.7, max: 0.7}); } }
+function floatText(x, y, s, c, size){ G.texts.push({x, y, s, c, size, life: 0.9}); }
+function hud(html){ $('gHud').innerHTML = html + '<button class="pill" id="gQuit" style="padding:8px 14px">✕</button>'; $('gQuit').onclick = () => G.started ? gameOver(true) : closeGame(); }
+function emoji(ctx, e, x, y, size){ ctx.font = size + 'px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(e, x, y); }
+function pearlDot(ctx, x, y, r){ const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r); g.addColorStop(0, '#ffffff'); g.addColorStop(0.5, '#f6e9f3'); g.addColorStop(1, '#c9b2d6'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); }
+function waterBg(ctx, top, bot){
+  const g = ctx.createLinearGradient(0, 0, 0, G.H); g.addColorStop(0, top || '#c6f6f2'); g.addColorStop(1, bot || '#6fc6db');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, G.W, G.H);
+  ctx.fillStyle = '#ffffff22';
+  for(let i=0;i<4;i++){ const x = (i * 0.27 + 0.05) * G.W + Math.sin(G.t * 0.4 + i) * 20; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 60, 0); ctx.lineTo(x + 140, G.H); ctx.lineTo(x + 40, G.H); ctx.fill(); }
+}
+function drawAxo(ctx, x, y, w, face, sx, sy){
+  if(!G.img.complete) return;
+  ctx.save(); ctx.translate(x, y); ctx.scale((face || 1) * (sx || 1), sy || 1); ctx.drawImage(G.img, -w / 2, -w * 0.35, w, w * 0.7); ctx.restore();
+}
+
+/* ---------- WORM CATCH ---------- */
+function catchInit(){
+  Object.assign(G, {x: G.W / 2, tx: G.W / 2, face: 1, items: [], spawn: 0, lives: 3, pop: 0, speed: CONFIG.CATCH_SPEED});
+  const c = cv();
+  c.onpointerdown = c.onpointermove = e => { G.tx = e.clientX; };
+  G.update = dt => {
+    const old = G.x; G.x += (G.tx - G.x) * Math.min(1, dt * 12);
+    if(Math.abs(G.x - old) > 0.5) G.face = G.x > old ? 1 : -1;
+    G.speed += CONFIG.CATCH_RAMP * dt;
+    G.spawn -= dt;
+    if(G.spawn <= 0){
+      G.spawn = Math.max(0.33, 0.95 - G.t * 0.012);
+      const r = Math.random();
+      G.items.push({x: rnd(30, G.W - 30), y: -30, k: r < 0.07 ? 'shrimp' : r < 0.14 ? 'pearl' : r < 0.36 + Math.min(0.18, G.t * 0.004) ? 'rock' : 'worm', vy: G.speed * rnd(0.85, 1.2), rot: rnd(-2, 2)});
+    }
+    const py = G.H - 110;
+    G.items = G.items.filter(it => {
+      it.y += it.vy * dt; it.rot += dt;
+      if(Math.abs(it.y - py) < 36 && Math.abs(it.x - G.x) < 50){
+        if(it.k === 'rock'){ G.lives--; G.shake = 0.35; sfx('err'); burst(it.x, it.y, '#8a8a99', 12); if(G.lives <= 0) setTimeout(() => gameOver(), 300); }
+        else { const v = it.k === 'shrimp' ? 3 : it.k === 'pearl' ? 2 : 1; G.score += v; G.pop = 0.18; sfx(it.k === 'pearl' ? 'coin' : 'eat'); burst(it.x, it.y, it.k === 'pearl' ? '#fff' : '#ff9fb6', 10); floatText(it.x, it.y - 20, '+' + v); }
+        return false;
+      }
+      return it.y < G.H + 40;
+    });
+    if(G.pop > 0) G.pop -= dt;
+    hud('<span class="pill">🪱 ' + Math.round(G.shownScore) + '</span><span class="pill">' + '❤️'.repeat(Math.max(0, G.lives)) + '🤍'.repeat(Math.max(0, 3 - G.lives)) + '</span>');
+  };
+  G.draw = ctx => {
+    waterBg(ctx);
+    ctx.fillStyle = '#f2dcab'; ctx.fillRect(0, G.H - 50, G.W, 50);
+    G.items.forEach(it => { ctx.save(); ctx.translate(it.x, it.y); ctx.rotate(it.rot * 0.5);
+      if(it.k === 'pearl'){ ctx.shadowColor = '#fff'; ctx.shadowBlur = 14; pearlDot(ctx, 0, 0, 15); } else emoji(ctx, it.k === 'rock' ? '🪨' : it.k === 'shrimp' ? '🦐' : '🪱', 0, 0, 40);
+      ctx.restore(); });
+    const s = 1 + (G.pop > 0 ? G.pop * 1.4 : 0);
+    drawAxo(ctx, G.x, G.H - 110, 130, G.face, s, 2 - s);
+  };
+  hud('<span class="pill">🪱 0</span>');
+}
+
+/* ---------- HIDE & SEEK (in a dark cave) ---------- */
+function seekInit(){
+  Object.assign(G, {lx: G.W / 2, ly: G.H / 2, left: CONFIG.SEEK_TIME, round: 0});
+  const c = cv();
+  const R = () => Math.min(G.W, G.H) * 0.27;
+  const newRound = () => {
+    G.round++; G.rt = 0;
+    G.ax = {x: rnd(70, G.W - 70), y: rnd(130, G.H - 110), face: Math.random() < 0.5 ? 1 : -1, w: Math.max(80, 110 - G.round * 2)};
+    G.cover = {x: G.ax.x + rnd(-14, 14) + G.ax.face * 22, y: G.ax.y + 18, w: rnd(70, 95)};
+    G.rocks = []; for(let i=0;i<9;i++) G.rocks.push({x: rnd(20, G.W - 20), y: rnd(110, G.H - 40), w: rnd(50, 110)});
+    G.shrooms = []; for(let i=0;i<6;i++) G.shrooms.push({x: rnd(20, G.W - 20), y: rnd(110, G.H - 30), c: pick(['#ff8fe0', '#7dffd0', '#8fd8ff'])});
+  };
+  newRound();
+  c.onpointermove = e => { G.lx = e.clientX; G.ly = e.clientY; };
+  c.onpointerdown = e => {
+    if(!G.started) return;
+    G.lx = e.clientX; G.ly = e.clientY;
+    if(Math.hypot(e.clientX - G.ax.x, e.clientY - G.ax.y) < G.ax.w * 0.55){
+      G.score++; G.left = Math.min(CONFIG.SEEK_TIME, G.left + 3); sfx('pet'); burst(G.ax.x, G.ax.y, '#ffd0e0', 18); floatText(G.ax.x, G.ax.y - 40, tr('Found!') + ' +3s', '#ff5f8f');
+      G.flash = 0.25; newRound();
+    } else { sfx('bubble'); }
+  };
+  G.update = dt => {
+    G.left -= dt; G.rt += dt; if(G.flash > 0) G.flash -= dt;
+    if(G.left <= 0){ G.left = 0; gameOver(); }
+    hud('<span class="pill">🔦 ' + G.score + '</span><span class="pill">⏱️ ' + Math.ceil(G.left) + '</span>');
+  };
+  const rock = (ctx, x, y, w, col) => { ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x, y, w / 2, w * 0.34, 0, Math.PI, 0); ctx.lineTo(x + w / 2, y + 6); ctx.lineTo(x - w / 2, y + 6); ctx.fill(); };
+  G.draw = ctx => {
+    const g = ctx.createLinearGradient(0, 0, 0, G.H); g.addColorStop(0, '#7468c4'); g.addColorStop(1, '#3a3478'); ctx.fillStyle = g; ctx.fillRect(0, 0, G.W, G.H);
+    G.rocks.forEach(r => rock(ctx, r.x, r.y, r.w, '#8a7fd0'));
+    drawAxo(ctx, G.ax.x, G.ax.y, G.ax.w, G.ax.face, 1 + Math.sin(G.t * 3) * 0.02, 1);
+    rock(ctx, G.cover.x, G.cover.y, G.cover.w, '#968bdc');
+    G.shrooms.forEach(m => { ctx.fillStyle = '#ffe6f5'; ctx.fillRect(m.x - 3, m.y - 14, 6, 14); ctx.fillStyle = m.c; ctx.beginPath(); ctx.ellipse(m.x, m.y - 14, 13, 9, 0, Math.PI, 0); ctx.fill(); });
+    // darkness with a flashlight hole
+    const r = R(), dg = ctx.createRadialGradient(G.lx, G.ly, r * 0.5, G.lx, G.ly, r);
+    dg.addColorStop(0, 'rgba(6,8,26,0)'); dg.addColorStop(1, 'rgba(6,8,26,0.96)');
+    ctx.fillStyle = dg; ctx.fillRect(0, 0, G.W, G.H);
+    // glowing mushrooms shine through the dark (they are not the axolotl!)
+    G.shrooms.forEach(m => { ctx.save(); ctx.shadowColor = m.c; ctx.shadowBlur = 16; ctx.globalAlpha = 0.6; ctx.fillStyle = m.c; ctx.beginPath(); ctx.ellipse(m.x, m.y - 14, 13, 9, 0, Math.PI, 0); ctx.fill(); ctx.restore(); });
+    if(G.rt > 8){ ctx.globalAlpha = 0.5 + Math.sin(G.t * 6) * 0.3; emoji(ctx, '✨', G.ax.x - G.ax.face * 30, G.ax.y - 30, 22); ctx.globalAlpha = 1; }   // a little hint
+    if(G.flash > 0){ ctx.fillStyle = 'rgba(255,255,255,' + (G.flash * 1.6) + ')'; ctx.fillRect(0, 0, G.W, G.H); }
+  };
+  hud('<span class="pill">🔦 0</span>');
+}
+
+/* ---------- BUBBLE POP ---------- */
+function popInit(){
+  Object.assign(G, {bubs: [], spawn: 0, left: CONFIG.POP_TIME, combo: 1, lastPop: -9});
+  const c = cv();
+  c.onpointerdown = e => {
+    if(!G.started) return;
+    const x = e.clientX, y = e.clientY;
+    for(let i = G.bubs.length - 1; i >= 0; i--){
+      const b = G.bubs[i];
+      if(Math.hypot(x - b.x, y - b.y) < b.r + 8){
+        G.bubs.splice(i, 1);
+        if(b.k === 'puffer'){ G.score = Math.max(0, G.score - 2); G.combo = 1; G.shake = 0.3; sfx('err'); burst(b.x, b.y, '#ffb36b', 14); floatText(b.x, b.y, '-2', '#ff5f6f'); return; }
+        G.combo = G.t - G.lastPop < 0.7 ? Math.min(5, G.combo + 1) : 1; G.lastPop = G.t;
+        const v = (b.k === 'pearl' ? 3 : 1) * G.combo;
+        G.score += v; bubbleSnd(1 + G.combo * 0.12); if(b.k === 'pearl') sfx('coin');
+        burst(b.x, b.y, b.k === 'pearl' ? '#ffffff' : '#bff3ff', 12); floatText(b.x, b.y, '+' + v + (G.combo > 1 ? ' ×' + G.combo : ''), G.combo > 2 ? '#ff5f8f' : '#30506a', 20 + G.combo * 3);
+        return;
+      }
+    }
+  };
+  G.update = dt => {
+    G.left -= dt;
+    if(G.left <= 0){ G.left = 0; gameOver(); return; }
+    G.spawn -= dt;
+    if(G.spawn <= 0){
+      G.spawn = Math.max(0.22, 0.6 - G.t * 0.012);
+      const r = Math.random();
+      G.bubs.push({x: rnd(40, G.W - 40), y: G.H + 40, r: rnd(24, 40), vy: rnd(70, 120) + G.t * 3, w: rnd(0, 6), k: r < 0.12 ? 'pearl' : r < 0.24 ? 'puffer' : 'b'});
+    }
+    G.bubs = G.bubs.filter(b => { b.y -= b.vy * dt; b.x += Math.sin(G.t * 2 + b.w) * 20 * dt; return b.y > -50; });
+    hud('<span class="pill">🫧 ' + Math.round(G.shownScore) + '</span>' + (G.combo > 1 && G.t - G.lastPop < 0.7 ? '<span class="pill">🔥 ×' + G.combo + '</span>' : '') + '<span class="pill">⏱️ ' + Math.ceil(G.left) + '</span>');
+  };
+  G.draw = ctx => {
+    waterBg(ctx, '#d5f7f5', '#7fcfe0');
+    G.bubs.forEach(b => {
+      if(b.k === 'puffer') emoji(ctx, '🐡', b.x, b.y, b.r * 1.3);
+      if(b.k === 'pearl') pearlDot(ctx, b.x, b.y, b.r * 0.42);
+      const g = ctx.createRadialGradient(b.x - b.r * 0.4, b.y - b.r * 0.4, b.r * 0.1, b.x, b.y, b.r);
+      g.addColorStop(0, 'rgba(255,255,255,.7)'); g.addColorStop(0.6, 'rgba(255,255,255,.08)'); g.addColorStop(1, b.k === 'puffer' ? 'rgba(255,170,110,.5)' : 'rgba(255,255,255,.45)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 2; ctx.stroke();
+    });
+    drawAxo(ctx, G.W / 2, G.H - 70, 120, 1, 1, 1);
+  };
+  hud('<span class="pill">🫧 0</span>');
+}
+
+/* ---------- game over + prizes ---------- */
+function gameOver(quit){
+  if(!G || G.over) return;
+  G.over = true;
+  const id = G.id, sc = G.score, inc = incomeFloor();
+  let p = sc * inc * ({catch: 6, seek: 25, pop: 4}[id]), cr = 0, best = false;
+  if(sc > (S.stats.best[id] || 0)){ S.stats.best[id] = sc; best = sc > 0; }
+  if(quit) p *= 0.5;
+  p = Math.round(Math.max(sc > 0 ? 25 : 0, p));
+  if(sc >= 8 && Math.random() < 0.15) cr = 1 + Math.floor(sc / 20);
+  addP(p); S.c += cr; addXP(Math.min(25, 6 + Math.floor(sc / 2)));
+  const food = sc >= 10 ? pick(FOOD_IDS) : null; if(food) S.inv[food] += 2;
+  saveNow();
+  if(best) sfx('win');
+  const g = GAMES.find(q => q.id === id);
+  $('gOverBox').innerHTML = '<div style="font-size:50px">' + (best ? '🏆' : g.e) + '</div><h2 style="margin:6px 0">' + (best ? tr('New best!') : tr('Nice try!')) + '</h2>' +
+    '<div style="font-size:1.4em;font-weight:900">' + g.e + ' ' + sc + ' <span class="muted">· 🏆 ' + S.stats.best[id] + '</span></div>' +
+    '<div class="reward"><div class="amt">+' + fmt(p) + ' ' + PL + (cr ? ' +' + cr + ' 💎' : '') + (food ? ' +2 ' + FOODS[food].e : '') + '</div></div>' +
+    '<button class="btn wide" id="goAgain"' + (S.tickets < 1 ? ' disabled' : '') + '>🔁 ' + tr('Play again') + ' · 🎟️ ' + S.tickets + '</button>' +
+    (S.tickets < 1 ? '<button class="btn wide mint" id="goTk">' + adIcon() + ' +' + CONFIG.AD_TICKETS + ' 🎟️</button>' : '') +
+    '<button class="btn wide ghost" id="goBack">' + tr('Back') + '</button>';
+  $('gOver').classList.add('on');
+  $('goAgain').onclick = () => startGame(id, false);
+  if($('goTk')) $('goTk').onclick = async () => { if(await rewardAd()){ S.tickets += CONFIG.AD_TICKETS; saveNow(); startGame(id, false); } };
+  $('goBack').onclick = closeGame;
+}
+function closeGame(){
+  G = null; $('game').classList.remove('on'); $('gIntro').classList.remove('on'); $('gOver').classList.remove('on');
+  const c = cv(); c.onpointerdown = c.onpointermove = null;
+  refreshTop(); if(curView === 'Games') renderGames(); else if(curView === 'Lagoon') renderLagoon();
+}
+
+/* =====================================================================
+   11. MONEY — rewarded ads (AdMob) + purchases (Google Play Billing)
+   ---------------------------------------------------------------------
+   FAKE FOR NOW: in a browser, ads are a 3-second pretend ad, and
+   purchases are pretend (a "Demo" box gives you the item).
+   Inside the Android app (Capacitor) with the plugins installed, the
+   real ones take over automatically:
+     • @capacitor-community/admob   → rewarded video ads
+     • cordova-plugin-purchase      → Google Play purchases
+   BEFORE RELEASE: put your real AdMob rewarded unit ID below,
+   set MONEY.TESTING to false, and set MONEY.DEMO_BUY to false.
+   Ads are ALWAYS the player's choice. Nothing plays on its own.
+===================================================================== */
+const MONEY = {
+  TESTING: true,
+  DEMO_BUY: true,   // browser only: pretend purchases give the item (for testing)
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917', // Google's TEST rewarded ID — replace with yours
+};
+const PACK = {sku: 'lagoon_pack', price: '$2.99', crystals: 50};
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null;
+let adBusy = false;
+const adIcon = () => S && S.noAds ? '✨' : '▶️';
+
+/* the one function the game calls. Resolves true if the player earned the reward. */
+async function rewardAd(){
+  if(S.noAds){ toast('✨ ' + tr('Lagoon Pack: reward given!'), 'gold'); return true; }
+  if(adBusy) return false;
+  adBusy = true;
+  musicStop();
+  let ok = false;
+  try{ ok = AdMobP() ? await nativeAd() : await demoAd(); }catch(e){ ok = false; }
+  adBusy = false;
+  if(S.mus) musicStart();
+  if(!ok) toast(tr('No reward this time'), 'err');
+  return ok;
+}
+function nativeAd(){
+  const A = AdMobP();
+  return new Promise(async res => {
+    let earned = false, finished = false, hs = [];
+    const finish = () => { if(finished) return; finished = true; hs.forEach(h => { try{ h.remove(); }catch(e){} }); res(earned); };
+    try{
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      await A.prepareRewardVideoAd({adId: MONEY.REWARDED_ID, isTesting: MONEY.TESTING});
+      const item = await A.showRewardVideoAd();
+      if(item && item.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    }catch(e){ finish(); }
+  });
+}
+/* browser preview: a 3-second pretend ad */
+function demoAd(){
+  return new Promise(res => {
+    let n = 3;
+    openModal('📺 ' + tr('Ad preview'), '<div class="reward"><div class="big">📺</div><p>' + tr('A real video ad plays here in the app.') + '</p><div class="amt" id="adCd">' + n + '</div>' +
+      '<button class="btn wide ghost" id="adSkip">' + tr('Close (no reward)') + '</button></div>', null, true);
+    const iv = setInterval(() => { n--; const el = $('adCd'); if(el) el.textContent = n; if(n <= 0){ clearInterval(iv); modalOnClose = null; closeModal(); res(true); } }, 1000);
+    $('adSkip').onclick = () => { clearInterval(iv); closeModal(); res(false); };
+  });
+}
+async function adsInit(){ const A = AdMobP(); if(!A) return; try{ await A.initialize({initializeForTesting: MONEY.TESTING}); }catch(e){} }
+
+/* ---------- what the pack gives ---------- */
+function grantSku(sku){
+  if(sku !== PACK.sku || S.pack) return '';
+  S.pack = true; S.noAds = true; S.c += PACK.crystals; S.theme = 'sakura'; bgKey = '';
+  const room = a => hasRoom(a) ? a : (S.open.find(q => hasRoom(q)) || S.cur);
+  const a1 = makeAxo({c: 'sakura', a: room(S.cur), adult: true, t: 'silly', s: 'plant'});
+  const a2 = makeAxo({c: 'moonlight', a: room(S.cur), adult: true, t: 'sleepy', s: 'shell'});
+  return '🌸 ' + tr('Sakura lagoon theme') + '<br>' + axoSVG('sakura', {size: 110}) + axoSVG('moonlight', {size: 110}) + '<br>' + esc(a1.n) + ' & ' + esc(a2.n) +
+    '<br>+' + PACK.crystals + ' 💎<br>✨ ' + tr('Ad rewards without ads');
+}
+const ALL_SKUS = () => [PACK.sku];
+const PRICES = {};   // filled with real local prices by Google Play
+const priceOf = (sku, fallback) => PRICES[sku] || fallback;
+
+/* ---------- Google Play ---------- */
+let iapReady = false;
+function iapStore(){ return window.CdvPurchase && CdvPurchase.store; }
+function iapInit(){
+  const C = window.CdvPurchase; if(!C || iapReady) return;
+  const {store, ProductType, Platform} = C; iapReady = true;
+  store.register(ALL_SKUS().map(id => ({id, type: ProductType.NON_CONSUMABLE, platform: Platform.GOOGLE_PLAY})));
+  store.when()
+    .productUpdated(p => { if(p.pricing && p.pricing.price) PRICES[p.id] = p.pricing.price; })
+    .approved(tx => {
+      if(!S.iapDone) S.iapDone = {};
+      const tid = tx.transactionId || ('t' + now());
+      if(!S.iapDone[tid]){
+        S.iapDone[tid] = now();
+        (tx.products || []).forEach(it => { const msg = grantSku(it.id); if(msg) queueModal(() => showReward('💝', tr('Thank you!'), msg)); });
+        saveNow(); refreshTop(); renderLagoon();
+      }
+      tx.finish();
+    });
+  store.error(e => { if(e && e.code !== C.ErrorCode.PAYMENT_CANCELLED) toast(tr('Store error. Please try again.'), 'err'); });
+  store.initialize([Platform.GOOGLE_PLAY]);
+}
+document.addEventListener('deviceready', iapInit, false);
+function buy(sku, label, fallbackPrice){
+  sfx('tap');
+  const st = iapStore();
+  if(st){
+    const p = st.get(sku), offer = p && p.getOffer();
+    if(!offer){ toast(tr('Store is still loading. Try again in a moment.'), 'err'); return; }
+    offer.order(); return;
+  }
+  // browser: pretend purchase
+  openModal('💳 ' + label, '<div class="reward"><div class="big">🛍️</div><p><b>' + fallbackPrice + '</b></p><p class="muted">' + tr('Demo mode: real payments work in the Android app through Google Play.') + '</p></div>' +
+    (MONEY.DEMO_BUY ? '<button class="btn wide gold" id="dmBuy">' + tr('Demo: get it free') + '</button>' : '') + '<button class="btn wide ghost" id="dmNo">' + tr('Close') + '</button>');
+  if($('dmBuy')) $('dmBuy').onclick = () => { closeModal(); const msg = grantSku(sku); saveNow(); refreshTop(); renderLagoon(); if(curView === 'Shop') renderShop(); if(msg) showReward('💝', tr('Thank you!'), msg); };
+  $('dmNo').onclick = closeModal;
+}
+function restorePurchases(){
+  const st = iapStore();
+  if(st && st.restorePurchases){ st.restorePurchases(); toast(tr('Checking your purchases...')); }
+  else toast(tr('Restore works in the Android app.'));
+}
+function paidShopHtml(){
+  let h = '<div class="card" style="display:block;border:3px solid var(--pink2);text-align:center"><div style="font-size:1.3em;font-weight:900">🛍️ ' + tr('Lagoon Pack') + '</div>' +
+    '<div>' + axoSVG('sakura', {size: 130}) + axoSVG('moonlight', {size: 130, halo: true}) + '</div>' +
+    '<div style="text-align:left;line-height:1.8;font-weight:800">🌸 ' + tr('Sakura lagoon theme (pink water + falling petals)') + '<br>💗 ' + tr('2 exclusive colors: Sakura + Moonlight') + '<br>💎 +' + PACK.crystals + ' ' + tr('crystals') + '<br>✨ ' + tr('Get every ad reward without watching ads') + '</div>' +
+    (S.pack ? '<span class="tag" style="background:var(--aqua);font-size:1em;margin-top:8px">✔ ' + tr('Owned') + '</span>' : '<button class="btn wide gold" id="buyPack">' + priceOf(PACK.sku, PACK.price) + ' · ' + tr('one time') + '</button>') + '</div>';
+  h += '<p class="muted center">' + tr('Totally optional! Everything else can be earned by playing.') + '<br>' + tr('Payments are handled securely by Google Play.') + '</p>';
+  h += '<button class="btn wide ghost" id="shRestore">💳 ' + tr('Restore purchases') + '</button>';
+  return h;
+}
+function bindPaidShop(){
+  if($('buyPack')) $('buyPack').onclick = () => buy(PACK.sku, tr('Lagoon Pack'), PACK.price);
+  $('shRestore').onclick = restorePurchases;
+}
+
+/* =====================================================================
+   12. MAIN LOOP — game ticks, away time, tutorial, start-up
+   tick(): once a second — moods, pearls, eggs, timers
+   frame(): every screen frame — axolotls swim
+===================================================================== */
+function stepWorld(dt, t, offline){
+  const rate = MOOD_RATE();
+  let earned = 0, found = 0;
+  S.axos.forEach(x => {
+    x.m.food = Math.max(0, x.m.food - rate * dt * (x.t === 'greedy' ? 1.5 : 1) * (x.t === 'sleepy' ? 0.8 : 1));
+    x.m.fun = Math.max(0, x.m.fun - rate * dt * (x.t === 'sleepy' ? 0.6 : 1));
+    if(!isAdult(x)){
+      x.grow += dt * (0.5 + moodAvg(x) / 100);
+      if(isAdult(x) && !offline){ toast('🌟 ' + esc(x.n) + ' ' + tr('is all grown up!'), 'gold'); addXP(10); if(x.a === S.cur && actors[x.id]) actors[x.id].key = ''; }
+    }
+    earned += axoRate(x, t) * dt;
+    if(isAdult(x) && Math.random() < CONFIG.CRYSTAL_CHANCE * dt / 60 * (x.t === 'curious' ? 2.5 : 1)){
+      S.c++; S.stats.crystals++; found++;
+      if(!offline && x.a === S.cur && curView === 'Lagoon'){ fxAtAxo(x, '💎'); sfx('coin'); }
+    }
+  });
+  addP(earned);
+  return {earned, found};
+}
+let tickN = 0;
+function tick(){
+  const t = now();
+  stepWorld(1, t);
+  S.stats.play++; tickN++;
+  // tickets
+  while(S.tickets < CONFIG.TICKETS_MAX && t - S.tkT >= CONFIG.TICKET_MIN * 60000){ S.tickets++; S.tkT += CONFIG.TICKET_MIN * 60000; }
+  if(S.tickets >= CONFIG.TICKETS_MAX) S.tkT = t;
+  // visitors
+  if(S.visitor && t > S.visitor.until){ S.visitor = null; S.visitorAt = t + rnd(...CONFIG.VISITOR_MIN) * 60000; if(curView === 'Lagoon') renderLagoon(); }
+  if(S.tut >= 99 && !S.visitor){
+    if(S.daily.last === dayNum(t) && S.dvDay !== dayNum(t)){ S.dvDay = dayNum(t); spawnVisitor('daily'); }
+    else if(t > S.visitorAt) spawnVisitor('random');
+  }
+  // eggs ready
+  S.eggs.forEach(e => { if(!e.told && eggLeft(e) <= 0){ e.told = 1; toast('🥚 ' + tr('An egg is ready to hatch!'), 'gold'); sfx('chime'); } });
+  if(tickN % 10 === 0) saveNow();
+  // screen updates
+  refreshTop();
+  if(curView === 'Lagoon' && !G){
+    renderEggs();
+    if(tickN % 3 === 0){ renderAxos(); renderCare(); renderSide(); applyDark(); }
+    if(tickN % 2 === 0) ambientBubbles();
+    if(tickN % 4 === 0){ const list = axosIn(S.cur).filter(isAdult); if(list.length){ const x = pick(list); fxAtAxo(x, '+' + fmt(axoRate(x) * 4) + ' ' + PL); } }
+  }
+  if(curView === 'Games' && tickN % 5 === 0 && !$('modalBg').classList.contains('on')) renderGames();
+  if(curView === 'Axolotls' && axTab === 'eggs' && !$('modalBg').classList.contains('on')) renderAxosView();
+}
+let lastFrame = performance.now();
+function frame(ts){
+  const dt = Math.min(0.1, (ts - lastFrame) / 1000); lastFrame = ts;
+  if(S && curView === 'Lagoon' && !G) stepActors(dt);
+  if(S) tickPearlDisplay();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- away time (pearls while the app is closed) ---------- */
+function catchUp(){
+  const t = now(), away = (t - (S.lastSeen || t)) / 1000;
+  if(away < 60) return;
+  const capped = Math.min(away, offlineCapH() * 3600);
+  let earned = 0, found = 0, sim = S.lastSeen;
+  const steps = Math.floor(capped / 60);
+  for(let i=0;i<steps;i++){ sim += 60000; const r = stepWorld(60, sim, true); earned += r.earned; found += r.found; }
+  // after the limit: no more pearls, but moods still go down and babies still grow
+  const rest = away - steps * 60, rate = MOOD_RATE();
+  S.axos.forEach(x => { x.m.food = Math.max(0, x.m.food - rate * rest); x.m.fun = Math.max(0, x.m.fun - rate * rest * 0.8); if(!isAdult(x)) x.grow += rest * 0.5; });
+  while(S.tickets < CONFIG.TICKETS_MAX && t - S.tkT >= CONFIG.TICKET_MIN * 60000){ S.tickets++; S.tkT += CONFIG.TICKET_MIN * 60000; }
+  S.lastSeen = t;
+  if(earned >= 1){
+    S.awayLast = Math.round(earned);
+    const capTxt = away > capped ? '<p class="muted">' + tr('Pearls stop after {h}h away. Pearl jars in the Shop keep them coming longer.', {h: offlineCapH()}) + '</p>' : '';
+    queueModal(() => {
+      openModal('🌅 ' + tr('Welcome back!'), '<div class="reward"><div class="big">' + axoSVG('pink', {size: 150}) + '</div><p>' + tr('You were away for {t}.', {t: fmtTime(away)}) + '</p><p>' + tr('Your axolotls found') + '</p><div class="amt">+' + fmt(S.awayLast) + ' ' + PL + (found ? ' +' + found + ' 💎' : '') + '</div>' + capTxt + '</div>' +
+        '<button class="btn wide gold" id="wbX2">' + adIcon() + ' ' + tr('Double it!') + ' +' + fmt(S.awayLast) + ' ' + PL + '</button><button class="btn wide ghost" id="wbOk">' + tr('Collect') + '</button>');
+      $('wbOk').onclick = closeModal;
+      $('wbX2').onclick = async () => { closeModal(); if(await rewardAd()){ addP(S.awayLast); toast('+' + fmt(S.awayLast) + ' ' + PL, 'gold'); S.awayLast = 0; saveNow(); } };
+    });
+  }
+  saveNow();
+}
+
+/* ---------- tutorial with Coral ---------- */
+const TUT = [
+  null,
+  {ev:'pet',  hl:'#axos .axo', en:'Hi! I’m Coral. Tap an axolotl to pet it! 💗', fr:'Salut! Moi, c’est Corail. Touche un axolotl pour le flatter! 💗'},
+  {ev:'feed', hl:'#cbFeed',    en:'It looks hungry. Tap Feed and give it a worm! 🪱', fr:'Il a l’air d’avoir faim. Touche Nourrir et donne-lui un ver! 🪱'},
+  {ev:'hatch', hl:'#eggs',     en:'See the egg? When it wiggles, tap it to hatch! 🥚', fr:'Tu vois l’œuf? Quand il bouge, touche-le pour qu’il éclose! 🥚'},
+  {ev:'buy',  hl:'#navShop',   en:'Pearls come in by themselves. Open the Shop and buy something! 🛒', fr:'Les perles arrivent toutes seules. Ouvre la Boutique et achète quelque chose! 🛒'},
+  {ev:'game', hl:'#navGames',  en:'Last one! Open Games and play a mini game. 🎮', fr:'Dernière étape! Ouvre Jeux et joue à un mini-jeu. 🎮'},
+];
+function tutShow(){
+  document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl'));
+  if(TUT[S.tut] && TUT[S.tut].ev === 'hatch' && !S.eggs.length) S.tut++;   // egg already hatched: skip that step
+  const st = TUT[S.tut];
+  if(!st){ $('tut').classList.remove('on'); return; }
+  $('tutCap').innerHTML = axoSVG('golden');
+  $('tutTx').textContent = S.lang === 'fr' ? st.fr : st.en;
+  $('tutBtn').textContent = tr('Skip');
+  $('tutBtn').onclick = () => { S.tut = 99; $('tut').classList.remove('on'); document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl')); saveNow(); checkDaily(); };
+  $('tut').classList.add('on');
+  const lag = curView === 'Lagoon';   // on the lagoon it sits above the care bar, elsewhere above the menu
+  $('tut').style.top = 'auto'; $('tut').style.bottom = lag ? 'calc(170px + env(safe-area-inset-bottom))' : 'calc(90px + env(safe-area-inset-bottom))';
+  setTimeout(() => { const el = document.querySelector(st.hl); if(el) el.classList.add('hl'); }, 200);
+}
+function tutEvent(ev){
+  if(!S || S.tut < 1 || S.tut >= 99) return;
+  const st = TUT[S.tut];
+  if(ev.startsWith('view')) setTimeout(tutShow, 50);
+  if(!st || st.ev !== ev) return;
+  S.tut++;
+  sfx('coin');
+  if(!TUT[S.tut]){
+    S.tut = 99; $('tut').classList.remove('on'); document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl'));
+    S.c += 10; addP(300);
+    queueModal(() => showReward(axoSVG('golden', {size: 150}), tr('You’re a natural!'), tr('Here’s a gift to start:') + '<br>+10 💎 +300 ' + PL, () => checkDaily()));
+  } else setTimeout(tutShow, 300);
+  saveNow();
+}
+function checkDaily(){
+  if(S.tut < 99) return;
+  if(S.daily.last !== dayNum(now())) queueModal(openGift);
+}
+function startNewGame(){
+  S = newState();
+  const first = makeAxo({c: 'pink', a: 'shallows', adult: true, t: 'silly', s: 'plant'});
+  const second = makeAxo({c: 'wild', a: 'shallows', adult: true, t: 'sleepy', s: 'rock'});
+  first.m = {food: 30, fun: 70}; second.m = {food: 70, fun: 60};
+  second.pc = first.pc = now() + CONFIG.PAIR_COOLDOWN_MIN * 60000;
+  S.avatar = first.id;
+  addEgg({a: 'shallows', pa: 'pink', pb: 'wild', force: 'copper', dur: CONFIG.FIRST_EGG_SEC * 1000});   // first baby shows how colors mix
+  S.tut = 0;
+  saveNow();
+  startNewGameName(first, first.n);
+}
+function startNewGameName(first, val){
+  openModal('', '<div class="reward"><div class="big">' + axoSVG(first.c, {size: 190}) + '</div><h2>' + tr('Welcome to Axolotl Lagoon!') + '</h2><p>' + tr('This little axolotl is yours. What’s its name?') + '</p>' +
+    '<input id="fnIn" maxlength="14" value="' + esc(val) + '" style="width:80%;padding:12px;border-radius:12px;border:2px solid #dde;text-align:center;font-size:18px">' +
+    '<div class="seg" style="margin:12px auto;max-width:240px"><button id="nlEn" class="' + (S.lang === 'en' ? 'on' : '') + '">English</button><button id="nlFr" class="' + (S.lang === 'fr' ? 'on' : '') + '">Français</button></div>' +
+    '<button class="btn wide" id="fnGo">💗 ' + tr('Let’s go!') + '</button></div>', null, true);
+  const relang = l => { S.lang = l; const v = $('fnIn').value; applySettings(); renderAll(); closeModal(); startNewGameName(first, v); };
+  $('nlEn').onclick = () => relang('en'); $('nlFr').onclick = () => relang('fr');
+  $('fnGo').onclick = () => { const v = $('fnIn').value.trim(); if(v) first.n = v.slice(0, 14); closeModal(); S.tut = 1; renderLagoon(); tutShow(); sfx('pet'); saveNow(); };
+}
+
+/* ---------- start-up ---------- */
+function boot(){
+  $('loadAxo').innerHTML = axoSVG('pink');
+  const lang0 = (load() || {}).lang || ((navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en');
+  $('loadTip').textContent = '💡 ' + pick(TIPS)[lang0];
+  let p = 0; const iv = setInterval(() => { p = Math.min(100, p + rnd(12, 28)); $('loadBar').style.width = p + '%'; }, 140);
+  setTimeout(() => {
+    clearInterval(iv); $('loadBar').style.width = '100%';
+    const saved = load();
+    if(saved){ S = saved; catchUp(); }
+    if(!S) startNewGame();
+    shownP = S.p;
+    applySettings(); renderNav(); showView('Lagoon');
+    if(S.tut >= 1 && S.tut < 99) tutShow();
+    else if(S.tut >= 99) checkDaily();
+    $('load').style.opacity = 0; setTimeout(() => $('load').remove(), 600);
+    setInterval(tick, 1000);
+    requestAnimationFrame(frame);
+    adsInit();
+  }, 1300);
+  $('mClose').onclick = closeModal;
+  $('modalBg').addEventListener('pointerdown', e => { if(e.target === $('modalBg') && $('mClose').style.display !== 'none') closeModal(); });
+  $('pPearl').onclick = openBoosts;
+  $('pCrys').onclick = () => { shopTab = 'paid'; showView('Shop'); };
+  $('pLevel').onclick = () => showView('More');
+  $('profBtn').onclick = () => showView('More');
+  $('muteBtn').onclick = () => { const on = S.snd || S.mus; S.snd = S.mus = !on; if(!on) audioUnlock(); else musicStop(); refreshTop(); saveNow(); if(curView === 'More') renderMore(); };
+  $('scene').addEventListener('pointerdown', () => { if(sel){ sel = null; renderAxos(); renderCare(); } });
+  document.addEventListener('pointerdown', audioUnlock, {once: true});
+  document.addEventListener('visibilitychange', () => {
+    if(!S) return;
+    if(document.hidden){ saveNow(); musicStop(); }
+    else { catchUp(); if(S.mus) musicStart(); if(curView === 'Lagoon') renderLagoon(); }
+  });
+  document.addEventListener('pause', () => { if(S){ saveNow(); musicStop(); } }, false);
+  window.addEventListener('resize', () => { if(S && curView === 'Lagoon'){ bgKey = ''; for(const k in actors) actors[k].key = ''; renderLagoon(); } });
+}
+window.addEventListener('load', boot);
+
+/* =====================================================================
+   FRENCH WORDS — English on the left, French on the right.
+   To fix a French word, change the right side only.
+===================================================================== */
+const FR = {
+"Lagoon": "Lagon",
+"Axolotls": "Axolotls",
+"Shop": "Boutique",
+"Games": "Jeux",
+"More": "Plus",
+"+1 in": "+1 dans",
+"+25% pearls from ALL axolotls": "+25% de perles de TOUS les axolotls",
+"+30 min each time, up to 4 h": "+30 min à chaque fois, jusqu’à 4 h",
+"2 exclusive colors: Sakura + Moonlight": "2 couleurs exclusives : Sakura + Clair de lune",
+"A NEW color is possible!": "Une NOUVELLE couleur est possible!",
+"A new color is possible, but only in the caves!": "Une nouvelle couleur est possible, mais seulement dans les grottes!",
+"A rare friend came to see you!": "Un ami rare est venu te voir!",
+"A rare friend visits. Adopt it for free!": "Un ami rare te rend visite. Adopte-le gratuitement!",
+"A real video ad plays here in the app.": "Une vraie pub vidéo joue ici dans l’app.",
+"A visitor is already here": "Un visiteur est déjà là",
+"A visitor is in the lagoon!": "Un visiteur est dans le lagon!",
+"A visitor!": "Un visiteur!",
+"Active": "Actif",
+"Ad preview": "Aperçu de pub",
+"Ad rewards without ads": "Récompenses de pub sans pub",
+"Adopt": "Adopter",
+"Adopt (free)": "Adopter (gratuit)",
+"Ads are always your choice.": "Les pubs sont toujours ton choix.",
+"All": "Tous",
+"All nests are full": "Tous les nids sont pleins",
+"An egg is ready to hatch!": "Un œuf est prêt à éclore!",
+"Are you really sure?": "Es-tu vraiment sûr?",
+"Areas": "Zones",
+"Babies will look like their parents.": "Les bébés ressembleront à leurs parents.",
+"Baby": "Bébé",
+"Back": "Retour",
+"Best": "Record",
+"Better food": "Meilleure nourriture",
+"Better food!": "Meilleure nourriture!",
+"Boost": "Boost",
+"Boosts & free rewards": "Boosts et cadeaux gratuits",
+"Buy food": "Acheter de la nourriture",
+"Bye bye, {n}!": "Bye bye, {n}!",
+"Call": "Appeler",
+"Call a rare axolotl": "Appeler un axolotl rare",
+"Cancel": "Annuler",
+"Cave": "Grotte",
+"Caves": "Grottes",
+"Caves are dark. Glow items light them up. Tap the moon to see glowing axolotls shine.": "Les grottes sont sombres. Les objets lumineux les éclairent. Touche la lune pour voir briller les axolotls lumineux.",
+"Checking your purchases...": "Vérification de tes achats...",
+"Classic": "Classique",
+"Close": "Fermer",
+"Close (no reward)": "Fermer (pas de récompense)",
+"Collect": "Récupérer",
+"Color book": "Livre des couleurs",
+"Colored dots show which pair can make a missing color. 🌙 = only in the caves.": "Les points de couleur montrent quel couple peut donner une couleur manquante. 🌙 = seulement dans les grottes.",
+"Colors found": "Couleurs trouvées",
+"Come back tomorrow for the next gift!": "Reviens demain pour le prochain cadeau!",
+"Cozier nests!": "Des nids plus douillets!",
+"Cozy nests": "Nids douillets",
+"Crystals found": "Cristaux trouvés",
+"Daily gift": "Cadeau du jour",
+"Dark! Light it with glow items. Rare glowing axolotls live here.": "Sombre! Éclaire-la avec des objets lumineux. Des axolotls lumineux rares vivent ici.",
+"Day": "Jour",
+"Decor": "Déco",
+"Demo mode: real payments work in the Android app through Google Play.": "Mode démo : les vrais paiements marchent dans l’app Android avec Google Play.",
+"Demo: get it free": "Démo : l’avoir gratuitement",
+"Double it!": "Double-le!",
+"Each decor gives +10% pearls in this area.": "Chaque déco donne +10% de perles dans cette zone.",
+"Easy-read font": "Police facile à lire",
+"Egg": "Œuf",
+"Eggs": "Œufs",
+"Eggs hatch faster": "Les œufs éclosent plus vite",
+"Eggs hatched": "Œufs éclos",
+"English text": "English text",
+"Favorite spot:": "Endroit préféré :",
+"Feed": "Nourrir",
+"Feed {n}": "Nourrir {n}",
+"Fill your Color book!": "Remplis ton Livre des couleurs!",
+"Food": "Nourriture",
+"Food & toys": "Nourriture et jouets",
+"For mini games": "Pour les mini-jeux",
+"Found!": "Trouvé!",
+"Friendship": "Amitié",
+"Full": "Plein",
+"Full!": "Plein!",
+"Fun": "Plaisir",
+"Games played": "Parties jouées",
+"Get every ad reward without watching ads": "Toutes les récompenses de pub sans regarder de pub",
+"Gift": "Cadeau",
+"Give": "Donner",
+"Glow": "Lueur",
+"Glow items light up the cave (more pearls, more glowing visitors).": "Les objets lumineux éclairent la grotte (plus de perles, plus de visiteurs lumineux).",
+"Glow mode: lights dimmed": "Mode lueur : lumières tamisées",
+"Glows in the dark": "Brille dans le noir",
+"Go": "Y aller",
+"Goodies": "Petits plus",
+"Growing": "Croissance",
+"Happy axolotls find more pearls, even while the app is closed.": "Les axolotls heureux trouvent plus de perles, même quand l’app est fermée.",
+"Hatch now": "Faire éclore",
+"Hatch now (watch an ad)": "Faire éclore (regarder une pub)",
+"Hatch!": "Éclore!",
+"Hatches in {t}": "Éclot dans {t}",
+"Here": "Ici",
+"Here’s a gift to start:": "Voici un cadeau pour commencer :",
+"How to play": "Comment jouer",
+"Info": "Infos",
+"It goes back to the wild lake. It leaves you {p} pearls as a thank-you.": "Il retourne au lac sauvage. Il te laisse {p} perles pour te remercier.",
+"It moved to {a} (more room there).": "Il est allé à : {a} (plus de place là-bas).",
+"It wants to live in your lagoon.": "Il veut vivre dans ton lagon.",
+"It’s now in your Color book.": "Elle est maintenant dans ton Livre des couleurs.",
+"Keep earning longer while away": "Gagne plus longtemps quand tu es absent",
+"Lagoon Keeper": "Gardien du lagon",
+"Lagoon Pack": "Pack Lagon",
+"Lagoon Pack: no ads needed": "Pack Lagon : plus besoin de pubs",
+"Lagoon Pack: reward given!": "Pack Lagon : récompense donnée!",
+"Lagoon theme": "Thème du lagon",
+"Language": "Langue",
+"Last chance! Everything will be gone.": "Dernière chance! Tout va disparaître.",
+"Let it go home": "Le laisser rentrer chez lui",
+"Let it rest a moment": "Laisse-le se reposer un peu",
+"Let’s go!": "C’est parti!",
+"Level": "Niveau",
+"Level {n}!": "Niveau {n}!",
+"Light": "Lumière",
+"Lights on": "Lumières allumées",
+"Lv": "Niv.",
+"Make an egg": "Faire un œuf",
+"Meals": "Repas",
+"Mini games": "Mini-jeux",
+"More room!": "Plus de place!",
+"More toys": "Plus de jouets",
+"Move": "Déplacer",
+"Move {n}": "Déplacer {n}",
+"Music": "Musique",
+"My axolotls": "Mes axolotls",
+"Nests": "Nids",
+"New best!": "Nouveau record!",
+"New color discovered!": "Nouvelle couleur découverte!",
+"New name": "Nouveau nom",
+"New profile picture!": "Nouvelle photo de profil!",
+"Nice try!": "Bien essayé!",
+"No account. Everything is saved on this phone.": "Pas de compte. Tout est sauvegardé sur ce téléphone.",
+"No axolotls here yet.": "Pas encore d’axolotls ici.",
+"No eggs right now.": "Pas d’œufs pour l’instant.",
+"No reward this time": "Pas de récompense cette fois",
+"No room! Buy more plants & hiding spots in the Shop.": "Plus de place! Achète des plantes et des cachettes à la Boutique.",
+"No tickets left. Watch an ad or wait.": "Plus de billets. Regarde une pub ou attends.",
+"Not enough crystals": "Pas assez de cristaux",
+"Not enough pearls": "Pas assez de perles",
+"Not now": "Pas maintenant",
+"Off": "Non",
+"On": "Oui",
+"Open": "Ouvrir",
+"Open my gift!": "Ouvrir mon cadeau!",
+"Owned": "Acquis",
+"Pair two grown-ups to get an egg. Mix colors to find new ones!": "Mets deux adultes ensemble pour avoir un œuf. Mélange les couleurs pour en trouver des nouvelles!",
+"Pair two grown-ups to make an egg. Babies can mix colors and become a NEW color!": "Mets deux adultes ensemble pour faire un œuf. Les bébés peuvent mélanger les couleurs et avoir une NOUVELLE couleur!",
+"Parents:": "Parents :",
+"Payments are handled securely by Google Play.": "Les paiements sont gérés de façon sécuritaire par Google Play.",
+"Pearl jars": "Pots à perles",
+"Pearls found": "Perles trouvées",
+"Pearls stop after {h}h away. Pearl jars in the Shop keep them coming longer.": "Les perles arrêtent après {h} h d’absence. Les pots à perles de la Boutique les font durer plus longtemps.",
+"Per second": "Par seconde",
+"Pets": "Caresses",
+"Pick two grown-ups.": "Choisis deux adultes.",
+"Pick your profile picture from any axolotl.": "Choisis ta photo de profil parmi tes axolotls.",
+"Placed": "Placé",
+"Plants & hiding spots": "Plantes et cachettes",
+"Play": "Jouer",
+"Play again": "Rejouer",
+"Play with {n}": "Jouer avec {n}",
+"Profile picture": "Photo de profil",
+"Ready to hatch!": "Prêt à éclore!",
+"Rename": "Renommer",
+"Replay tutorial": "Revoir le tutoriel",
+"Reset everything": "Tout effacer",
+"Reset game": "Recommencer le jeu",
+"Reset game?": "Recommencer le jeu?",
+"Restore purchases": "Restaurer les achats",
+"Restore works in the Android app.": "La restauration marche dans l’app Android.",
+"Sakura lagoon theme": "Thème lagon Sakura",
+"Sakura lagoon theme (pink water + falling petals)": "Thème lagon Sakura (eau rose + pétales qui tombent)",
+"Save": "Enregistrer",
+"Say goodbye": "Dire au revoir",
+"Say goodbye to {n}?": "Dire au revoir à {n}?",
+"Settings": "Réglages",
+"Skip": "Passer",
+"Sounds": "Sons",
+"Start": "Commencer",
+"Stats": "Statistiques",
+"Store error. Please try again.": "Erreur de la boutique. Réessaie s’il te plaît.",
+"Store is still loading. Try again in a moment.": "La boutique charge encore. Réessaie dans un instant.",
+"Streak": "Série",
+"Tall swaying kelp. Axolotls earn more here.": "Grand varech qui ondule. Les axolotls gagnent plus ici.",
+"Tap an axolotl to pet it. Feed it and give it toys.": "Touche un axolotl pour le flatter. Nourris-le et donne-lui des jouets.",
+"Tap an axolotl!": "Touche un axolotl!",
+"Text size": "Taille du texte",
+"Thank you!": "Merci!",
+"This area": "Cette zone",
+"This deletes ALL your progress. It cannot be undone.": "Ça efface TOUTE ta progression. Impossible d’annuler.",
+"This little axolotl is yours. What’s its name?": "Ce petit axolotl est à toi. Comment s’appelle-t-il?",
+"Tickets": "Billets",
+"They can make: {c}": "Ils peuvent faire : {c}",
+"Time played": "Temps de jeu",
+"Today’s visitor wants to stay!": "Le visiteur du jour veut rester!",
+"Totally optional! Everything else can be earned by playing.": "Totalement optionnel! Tout le reste se gagne en jouant.",
+"Toy": "Jouet",
+"Toys": "Jouets",
+"Upgrades": "Améliorations",
+"Visitor": "Visiteur",
+"Welcome back!": "Bon retour!",
+"Welcome to Axolotl Lagoon!": "Bienvenue à Axolotl Lagoon!",
+"Yay!": "Youpi!",
+"Yes, reset": "Oui, recommencer",
+"You are here": "Tu es ici",
+"You have none. Buy some in the Shop.": "Tu n’en as plus. Achètes-en à la Boutique.",
+"You were away for {t}.": "Tu étais absent pendant {t}.",
+"Your axolotls found": "Tes axolotls ont trouvé",
+"Your first lagoon. Warm and sunny.": "Ton premier lagon. Chaud et ensoleillé.",
+"Your name": "Ton nom",
+"You’re a natural!": "Tu es doué!",
+"can be opened in the Shop!": "peut être ouverte à la Boutique!",
+"crystals": "cristaux",
+"is all grown up!": "est devenu grand!",
+"likes you more!": "t’aime encore plus!",
+"lives in your lagoon now!": "vit dans ton lagon maintenant!",
+"made an egg!": "ont fait un œuf!",
+"min": "min",
+"one time": "une seule fois",
+"pack of 5": "paquet de 5",
+"pearls": "perles",
+"placed!": "placé!",
+"room for 2 more axolotls": "place pour 2 axolotls de plus",
+"{a} is open!": "{a} est ouvert!",
+"{n} hatched!": "{n} est né!",
+"{n} was waiting for you there!": "{n} t’attendait là-bas!",
+};
+</script>
+</body>
+</html>
