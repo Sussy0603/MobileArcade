@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#E7E0D4">
+<title>Mobile Arcade</title>
+<script src="theme-boot.js"></script>
+<link rel="preload" href="fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/permanent-marker-latin.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/* ================================================================
+   MOS Arcade — the sticker wall
+
+   The look is a wall with paper stuck to it. Games are photographs
+   taped up rather than tiles in a UI, the headings are hand-lettered,
+   and the only straight thing on the page is the grid behind it all.
+
+   Two rules hold the whole thing together:
+
+     · Paper is always light. A note pinned to a dark wall does not turn
+       black at night — it is still paper. So --paper and --paper-ink
+       are the SAME in both themes, and only the wall changes. That is
+       why a card needs no theme-specific rules at all.
+
+     · Shadows are hard. Zero blur, one offset, pure ink. It is what
+       makes a rectangle read as a physical object sitting slightly off
+       the surface rather than a div with a glow.
+
+   Fonts are in fonts/ and served from there — see fonts/README.md for
+   why they are not loaded from Google.
+   ================================================================ */
+
+@font-face{
+  font-family:'Permanent Marker';
+  src:url('fonts/permanent-marker-latin.woff2') format('woff2');
+  font-weight:400;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:'DM Sans';
+  src:url('fonts/dm-sans-latin.woff2') format('woff2');
+  font-weight:400 700;font-style:normal;font-display:swap;
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+@font-face{
+  font-family:'DM Sans';
+  src:url('fonts/dm-sans-latin-ext.woff2') format('woff2');
+  font-weight:400 700;font-style:normal;font-display:swap;
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+
+/* ---------------- Tokens ----------------
+   Colour was already all in here, which is what makes the theme toggle
+   a single attribute flip. Radius, border, shadow and easing now live
+   here too — they used to be hardcoded in about forty places, which is
+   what made the old look impossible to change without a hunt. */
+:root{
+  color-scheme:light;
+
+  /* The wall itself. Light mode is a warm paper wall rather than white:
+     white paper on a white page has nothing to sit against. */
+  --wall:#E7E0D4;
+  --wall-2:#F1EBE1;
+  --grid:rgba(26,20,32,.07);
+  /* Much fainter in daylight than at night. On a dark wall a colour wash
+     reads as depth; on a pale one the same strength reads as a stain. */
+  --glow-a:rgba(232,20,110,.045);
+  --glow-b:rgba(14,147,166,.04);
+  --grain:.30;
+
+  /* Paper. Identical in both themes — see the note at the top. */
+  --paper:#FFFFFF;
+  --paper-ink:#1A1420;
+  --paper-ink-soft:#6B6176;
+  --tape:rgba(206,170,48,.78);
+
+  /* Type on the wall */
+  --ink:#1A1420;
+  --ink-soft:#5F5669;
+  --line:#1A1420;
+
+  /* Accents. Four, each with a job: hot for the thing you came for,
+     aqua for labels, sun for the one control that is an action, acid
+     kept in reserve. Eight pastels is what made the old page sweet. */
+  --hot:#E8146E;
+  --aqua:#0E93A6;
+  --acid:#2E9E46;
+  --sun:#F5C518;
+
+  --shadow:#1A1420;
+
+  /* The title's two colours, held as tokens so the spray-paint hover can
+     be written once instead of once per theme. --aqua again, but as parts,
+     because the overspray is the same blue at five different strengths. */
+  --h1-ink:var(--ink);
+  --h1-drop:var(--sun);
+  --hot-ink:#FFFFFF;
+  --aqua-rgb:14,147,166;
+
+  /* Shape */
+  --r-paper:7px;      /* a torn-off note, not a pill */
+  --r-photo:3px;
+  --r-ctl:999px;      /* pills survive, but only on buttons */
+  --bw:2px;
+
+  /* Hard shadows: offset, no blur, ever. */
+  --sh-card:5px 6px 0 var(--shadow);
+  --sh-card-hi:10px 12px 0 var(--shadow);
+  --sh-feat:8px 9px 0 var(--shadow);
+  --sh-feat-hi:13px 15px 0 var(--shadow);
+  --sh-ctl:3px 3px 0 var(--shadow);
+  --sh-ctl-hi:5px 5px 0 var(--shadow);
+
+  /* Motion. The old curve was cubic-bezier(.34,1.56,.64,1) — that 1.56
+     overshoots the target and springs back, which is the single biggest
+     reason the page read as a toy. This one arrives and stops. */
+  --ease:cubic-bezier(.2,.8,.25,1);
+
+  --font-hand:'Permanent Marker','Segoe Script','Bradley Hand',cursive;
+  --font-ui:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+
+/* Night. Only the wall and the type on it change; the paper does not. */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --wall:#1B1424;
+    --wall-2:#241A30;
+    --grid:rgba(255,255,255,.04);
+    --glow-a:rgba(255,46,136,.10);
+    --glow-b:rgba(52,216,232,.075);
+    --grain:.42;
+    --ink:#F3EDF9;
+    --ink-soft:#A99CBD;
+    --line:#F3EDF9;
+    --hot:#FF2E88;
+    --aqua:#34D8E8;
+    --acid:#5BE36B;
+    --sun:#FBD23D;
+    --tape:rgba(232,200,74,.82);
+    --shadow:#000000;
+    --h1-ink:var(--paper);
+    --h1-drop:var(--shadow);
+    --hot-ink:#1A1420;
+    --aqua-rgb:52,216,232;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --wall:#1B1424;
+  --wall-2:#241A30;
+  --grid:rgba(255,255,255,.04);
+  --glow-a:rgba(255,46,136,.10);
+  --glow-b:rgba(52,216,232,.075);
+  --grain:.42;
+  --ink:#F3EDF9;
+  --ink-soft:#A99CBD;
+  --line:#F3EDF9;
+  --hot:#FF2E88;
+  --aqua:#34D8E8;
+  --acid:#5BE36B;
+  --sun:#FBD23D;
+  --tape:rgba(232,200,74,.82);
+  --shadow:#000000;
+  --h1-ink:var(--paper);
+  --h1-drop:var(--shadow);
+  --hot-ink:#1A1420;
+  --aqua-rgb:52,216,232;
+}
+
+/* What a note turns over to when you reach for it: hot pink paper, the
+   name in aqua, the button in sun.
+
+   These are the --hot / --aqua / --sun values, but written out as fixed
+   colours rather than referred to as tokens, and that is not laziness.
+   Those three tokens DARKEN in daylight, because on a pale wall the night
+   versions are too light to read. Here they are not on the wall, they are
+   on each other — and the daylight pairing is aqua #0E93A6 on hot #E8146E,
+   which is 1.21:1. Invisible. Pinned to the night values it is 2.02:1 in
+   both themes, which is the number the shadow below exists to answer.
+
+   It is also the same rule the paper already follows: a card does not know
+   what the wall behind it is doing, so nothing on a card may be theme-aware. */
+:root{
+  --lift:#FF2E88;          /* the paper */
+  --lift-name:#34D8E8;     /* the name written on it */
+  --lift-play:#FBD23D;     /* the button */
+  --lift-shadow:#1A1420;   /* what is dropped behind the name */
+}
+
+/* The resting Play button on a game card. This spends --acid, the fourth
+   accent, which had been declared and then never used — so the palette is
+   now four colours doing four jobs rather than three and a spare.
+
+   Written out rather than referred to as var(--acid) for the reason every
+   other colour on a card is: --acid is #2E9E46 in daylight and #5BE36B at
+   night, and a card must not change colour with the wall behind it. The
+   daylight value is the one pinned, because it is the darker of the two —
+   which is what was asked for — and because it is the one that works:
+   dark ink on it is 5.23:1, where the night value would want white and
+   white on it is 1.66:1.
+
+   It gives the card a second state worth having. At rest the button is
+   green; reach for the card and it goes yellow with the paper. */
+:root{ --play-rest:#2E9E46; }
+
+/* The eight panels behind an emoji, for a game whose screenshot has not
+   been taken. They sit INSIDE white paper, so they are mid-tone and
+   vivid rather than pastel, and they are the same in both themes for the
+   same reason the paper is. */
+:root{
+  --tint-0:#FF6FA8; --tint-1:#43CE9B; --tint-2:#FFCE3D; --tint-3:#6FB0FF;
+  --tint-4:#B892FF; --tint-5:#FF9A5C; --tint-6:#41CFCF; --tint-7:#E58BFF;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;min-height:100%;}
+body{
+  font-family:var(--font-ui);
+  color:var(--ink);
+  background:var(--wall);
+  min-height:100vh;
+  padding:6vmin 5vmin 12vmin;
+  position:relative;overflow-x:hidden;
+}
+/* The wall's surface: a faint ruled grid, and a soft warm lift down the
+   page so it is not a flat fill. Fixed, so it does not scroll away. */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0/72px 72px,
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/72px 72px,
+    linear-gradient(175deg, var(--wall-2) 0%, var(--wall) 55%);
+}
+/* Grain. A wall is not a flat fill, and the difference between "dark
+   purple background" and "a surface" is almost entirely this. Generated
+   rather than shipped as an image: it is a few hundred bytes of SVG
+   instead of a texture file, and it cannot go missing.
+
+   overlay blend so it darkens and lightens the wall rather than laying
+   grey on top of it — which is also why it is under the content and
+   never touches the paper. */
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  opacity:var(--grain);mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* The three <span class="blob"> in the markup were pastel circles with a
+   blur on them — the most "bubble" thing on the page. Same elements,
+   now soft off-screen colour washes that give the wall some depth
+   without ever being seen as shapes. */
+.blob{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(90px);}
+.blob.a{width:520px;height:520px;background:var(--glow-a);top:-220px;left:-160px;}
+.blob.b{width:460px;height:460px;background:var(--glow-b);bottom:-180px;right:-180px;}
+.blob.c{width:300px;height:300px;background:var(--glow-a);top:46%;left:-140px;}
+header,footer,#content{position:relative;z-index:1;}
+
+/* ---------------- Controls ----------------
+   One language for every button on the wall: no fill, an ink outline, a
+   hard shadow. Pressed inverts to solid ink. It reads as something
+   stuck on rather than something rendered, and it needs no per-theme
+   rule because both colours are tokens. */
+.theme-btn,.sort-btn,.cat-btn,.tab-btn{
+  font:inherit;font-weight:700;letter-spacing:.02em;
+  color:var(--ink);background:transparent;
+  border:var(--bw) solid var(--line);border-radius:var(--r-ctl);
+  cursor:pointer;
+  box-shadow:var(--sh-ctl);
+  transition:transform .14s var(--ease), box-shadow .14s var(--ease),
+             background-color .14s var(--ease), color .14s var(--ease),
+             border-color .14s var(--ease);
+}
+.theme-btn:hover,.sort-btn:hover,.cat-btn:hover,.tab-btn:hover{
+  transform:translate(-1px,-2px);box-shadow:var(--sh-ctl-hi);
+}
+.theme-btn:active,.sort-btn:active,.cat-btn:active,.tab-btn:active{
+  transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);
+}
+.theme-btn:focus-visible,.sort-btn:focus-visible,.cat-btn:focus-visible,
+.tab-btn:focus-visible,#searchBox:focus-visible,#searchClear:focus-visible,
+.card:focus-visible,.feat-card:focus-visible{
+  outline:var(--bw) solid var(--hot);outline-offset:3px;
+}
+/* Pressed. The push-in is the same for all three; the fill is not.
+
+   The sort pills and the category chips fill with the hot pink, which is
+   also what they take under the cursor — hovering one shows you exactly
+   what choosing it looks like, and depth is left to tell the two apart: a
+   chosen chip is pink AND pushed in, one merely under the cursor is pink
+   AND lifted. The tabs keep the ink fill, because Games/Apps is a bigger
+   switch than a sort order and should not read as another chip.
+
+   The border goes pink with the fill rather than staying ink: pressed is
+   meant to read as one solid block, which is how the ink fill has always
+   worked — its border is --line, the same colour as the fill. */
+.sort-btn[aria-pressed="true"],.cat-btn[aria-pressed="true"],.tab-btn[aria-pressed="true"]{
+  transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);
+}
+.tab-btn[aria-pressed="true"]{background:var(--ink);color:var(--wall);}
+.sort-btn[aria-pressed="true"],.cat-btn[aria-pressed="true"]{
+  background:var(--hot);color:var(--hot-ink);border-color:var(--hot);
+}
+
+.theme-btn{
+  position:fixed;top:16px;right:16px;z-index:5;
+  font-size:12.5px;padding:8px 15px;
+  background:var(--wall-2);
+  display:flex;align-items:center;gap:7px;
+}
+
+/* ---------------- Search ---------------- */
+.search-bar{position:relative;z-index:1;max-width:360px;margin:0 auto 16px;}
+#searchBox{
+  width:100%;
+  font:inherit;font-size:15px;font-weight:500;
+  color:var(--ink);background:var(--wall-2);
+  border:var(--bw) solid var(--line);border-radius:var(--r-ctl);
+  padding:11px 44px 11px 18px;
+  box-shadow:var(--sh-ctl);
+}
+#searchBox::placeholder{color:var(--ink-soft);font-weight:400;}
+#searchBox::-webkit-search-cancel-button{display:none;}
+#searchClear{
+  position:absolute;right:9px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;border-radius:999px;
+  font:inherit;font-size:12px;font-weight:700;
+  color:var(--wall);background:var(--ink);
+  border:0;cursor:pointer;
+}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+
+/* ---------------- Sort pills ---------------- */
+.sort-bar{
+  position:relative;z-index:1;
+  display:flex;justify-content:center;gap:9px;flex-wrap:wrap;
+  margin:0 0 5vmin;
+}
+.sort-btn{font-size:12.5px;padding:8px 15px;}
+.sort-group{display:contents;}
+/* Surprise me is an action, not a state, so it never takes the pressed
+   treatment, and it is the only yellow left in the row now that the pills
+   beside it have gone pink. That is the whole point of it: the three pills
+   are a choice you are making and it is a thing you are setting off, and
+   the colour says so before the label does.
+
+   The :not(.lucky-btn) in the hover rule at the foot of this sheet is what
+   keeps it out of the pink. It is written there rather than fought off
+   with a louder rule here, because an exception is easier to find when it
+   is stated where the rule is. */
+.lucky-btn{background:var(--sun);color:#1A1420;border-color:#1A1420;}
+.lucky-btn:hover{background:var(--sun);}
+.lucky-btn:disabled{opacity:.4;cursor:default;}
+.lucky-btn:disabled:hover{transform:none;box-shadow:var(--sh-ctl);}
+
+/* ---------------- Section tabs ----------------
+   Games and Apps: the loudest control after the title, because it is the
+   only one that changes what the page is about. */
+.tab-bar[hidden]{display:none!important;}
+.tab-bar{
+  position:relative;z-index:1;
+  display:flex;justify-content:center;gap:10px;flex-wrap:wrap;
+  margin:0 0 5vmin;
+}
+.tab-btn{
+  font-size:14px;font-weight:700;letter-spacing:.01em;
+  padding:11px 24px;
+  background:var(--wall-2);
+}
+
+/* ---------------- Category chips ----------------
+   A step quieter than the sort bar: there are seven of them and three
+   sort pills, and seven controls shouting as loudly as three would make
+   the sort bar disappear into them. */
+.cat-bar{
+  position:relative;z-index:1;
+  display:flex;justify-content:center;gap:7px;flex-wrap:wrap;
+  max-width:780px;margin:-3vmin auto 5vmin;
+}
+.cat-btn{font-size:11.5px;font-weight:700;padding:6px 13px;box-shadow:2px 2px 0 var(--shadow);}
+.cat-btn:hover{box-shadow:4px 4px 0 var(--shadow);}
+/* All wears the pink at rest too, as an outline. Every chip goes pink when
+   you reach for it or choose it, so this no longer marks All out on colour
+   — it marks it out on being the only one already wearing it, which is the
+   same trick Surprise me plays with the sun.
+
+   The second rule is not the fill: that comes from the pressed rule above.
+   It is only here to beat this one's own colour, which sits later in the
+   sheet and at equal weight, and would otherwise write pink on pink. */
+.cat-btn.cat-all{border-color:var(--hot);color:var(--hot);}
+.cat-btn.cat-all[aria-pressed="true"]{color:var(--hot-ink);}
+
+/* ---------------- Hovering a control ----------------
+   Two fills, split by what the control is for.
+
+   The sort pills and the category chips fill with the hot pink, because
+   they are the two rows you choose from and pink is what being chosen
+   looks like — under the cursor a chip is already wearing its answer. The
+   tabs and the theme toggle keep the sun: they are not part of either row,
+   and a fourth pink row would flatten the difference between the switch at
+   the top of the page and the filters underneath it.
+
+   Deliberately the last word on the subject. This sits after the pressed
+   rule and after the All chip's pink so it beats both, because hover is
+   feedback about what is under the cursor and it has no business asking
+   what state the thing happens to be in first. The pressed state survives
+   it anyway: a hovered pressed pill is pink AND pushed in, a hovered idle
+   one is pink AND lifted. That is also why neither rule sets a transform
+   — the two rules further up own that.
+
+   Tokens, not the note's fixed --lift-* colours, because these sit ON THE
+   WALL and things on the wall are theme-aware. Dark ink on the sun is
+   11.1:1 in daylight and 12.4:1 at night; --hot-ink on the pink is 4.4:1
+   and 5.2:1, which is the number the bold weight on these labels and the
+   push-in underneath them are both there to carry. */
+.theme-btn:hover,.tab-btn:hover{
+  background:var(--sun);color:#1A1420;border-color:#1A1420;
+}
+.sort-btn:not(.lucky-btn):hover,.cat-btn:hover{
+  background:var(--hot);color:var(--hot-ink);border-color:var(--hot);
+}
+
+/* One class, one property. ~80 cards are already in the document and
+   stay there — a chip press flips this and nothing is parsed or fetched. */
+.card.cat-hidden{display:none;}
+
+/* ---------------- Header ---------------- */
+header{text-align:center;margin-bottom:5vmin;}
+/* Was a rotated pill badge. Now the reference's eyebrow: a small aqua
+   label that names the section it sits over and gets out of the way. */
+.badge{
+  display:inline-block;margin-bottom:14px;
+  color:var(--aqua);background:none;border:0;padding:0;
+  font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+}
+h1{
+  /* display:table, not inline-block: it shrink-wraps the word so the hover
+     is the word rather than the whole line, and it still breaks the line,
+     which inline-block does not — the eyebrow above would climb onto it.
+     Relative so the two spray layers have something to hang off. */
+  position:relative;display:table;
+  margin:0 auto 16px;
+  font-family:var(--font-hand);font-weight:400;
+  font-size:clamp(52px,12vmin,110px);line-height:.92;letter-spacing:.005em;
+  text-transform:uppercase;
+  color:var(--h1-ink);
+  text-shadow:5px 6px 0 var(--h1-drop);
+  /* Slow on the way out — the mist hangs around after you have moved on.
+     :hover cuts this to a tenth of a second, because a can lands at once. */
+  transition:color .3s var(--ease),text-shadow .3s var(--ease);
+}
+/* Reach for the name and it takes a coat of aqua. The hard drop stays put;
+   everything laid over it is soft, and this is the one place on the page
+   where blur is allowed — overspray has no edge, that is what makes it
+   overspray. Three passes, widening and thinning, is the cloud. It is kept
+   deliberately tight: reach much further and this stops being paint on a
+   wall and starts being a neon sign. */
+h1:hover{
+  color:var(--aqua);
+  text-shadow:
+    5px 6px 0 var(--h1-drop),
+    0 0 2px rgba(var(--aqua-rgb),.55),
+    0 0 12px rgba(var(--aqua-rgb),.36),
+    0 0 30px rgba(var(--aqua-rgb),.18);
+  transition-duration:.12s;
+}
+
+/* Two spray layers, both copies of the word, both decoration only. The
+   paired content lines hand screen readers an empty string where that
+   syntax is understood, and the plain one is there for the browsers that
+   would otherwise drop the whole rule and take the effect with it. */
+h1::before,h1::after{
+  content:attr(data-text);
+  content:attr(data-text) / "";
+  position:absolute;left:0;top:0;width:100%;
+  pointer-events:none;
+  color:transparent;-webkit-text-fill-color:transparent;
+  text-shadow:none;              /* neither may cast the drop a second time */
+  opacity:0;
+  transition:opacity .3s var(--ease);
+}
+/* The grain: the same generated turbulence the wall uses, clipped to the
+   letters, and overlay again so it thins and thickens the paint instead of
+   laying grey over it. A regular dot grid was tried here first and read as
+   halftone printing — the whole point of a can is that it lands unevenly. */
+h1::before{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  -webkit-background-clip:text;background-clip:text;
+  mix-blend-mode:overlay;
+}
+/* The overspray: no fill at all, an aqua stroke on the letter outlines, and
+   a grid of holes punched through it. A stroke straddles the outline, so
+   half of every surviving droplet lands outside the letter — which is the
+   whole trick. This is the ragged edge a can leaves and a font cannot.
+   The alpha is high on purpose: dilute droplets on a dark wall go muddy and
+   the edge reads as dirt rather than paint. */
+h1::after{
+  -webkit-text-stroke:4px rgba(var(--aqua-rgb),.8);
+  -webkit-mask-image:radial-gradient(circle,#000 15%,transparent 16%);
+  -webkit-mask-size:4px 4px;
+  mask-image:radial-gradient(circle,#000 15%,transparent 16%);
+  mask-size:4px 4px;
+}
+h1:hover::before{opacity:.55;transition-duration:.12s;}
+h1:hover::after{opacity:1;transition-duration:.12s;}
+
+header p{
+  margin:0 auto;max-width:48ch;
+  font-size:clamp(14px,2vmin,17px);font-weight:400;line-height:1.55;color:var(--ink-soft);
+}
+header p.note{
+  margin:9px auto 0;max-width:46ch;
+  font-size:clamp(12.5px,1.7vmin,14px);opacity:.8;
+}
+
+/* ---------------- The grid of photographs ---------------- */
+.grid{
+  max-width:1140px;margin:0 auto;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+  gap:34px 26px;
+}
+/* A card is a photo on paper. No border — the hard shadow is what lifts
+   it off the wall, and an outline on top of that is the belt-and-braces
+   look the old page had.
+
+   Each one sits very slightly askew. The tilt is a fixed cycle of four
+   rather than anything random, so it survives a re-sort and a repaint
+   without cards visibly re-shuffling themselves. Under a degree, which
+   is enough to read as hand-placed and small enough that the grid still
+   scans as a grid. */
+/* ---------------- The note palette ----------------
+   A grid card and the Today's pick tile are the same object at two sizes,
+   so they share one set of colour properties and one rule that flips them.
+   Seven properties in a single place beats a dozen hover rules kept in
+   step by hand — and the day one of those is forgotten is the day a note
+   has black text on a pink field.
+
+   --note-shadow-ink is a COLOUR rather than a whole shadow, because the
+   two titles are 19px and up to 52px and want different offsets. Each one
+   states its own offset and takes the colour from here. At rest that
+   colour is transparent, which draws nothing at all. */
+.card,.feat-card{
+  --note:var(--paper);
+  --note-title:var(--paper-ink);
+  --note-badge:var(--hot);
+  --note-shadow-ink:transparent;
+  --note-ink:var(--paper-ink);
+  --note-ink-soft:var(--paper-ink-soft);
+  --note-play:var(--sun);
+}
+/* Reaching for either one turns the paper over. Keyboard focus does the
+   same thing, so tabbing is not a quieter experience than pointing.
+
+   The name is 2.02:1 on this pink, which is not a ratio you can write a
+   title at, and the shadow is the answer — every glyph gets a hard dark
+   edge on two sides. It does not move the measured contrast, which
+   compares ink against the field behind it, but it is what separates the
+   letterforms from the pink to an eye.
+
+   The description cannot keep its grey: #6B6176 on this pink is 1.67:1.
+   Dark ink is 5.15:1, and it pairs with the dark ink already on the
+   button, so the note reads as one object with the name as its only
+   accent. The badge gives up --hot for the same reason — pink on pink. */
+.card:hover,.card:focus-visible,
+.feat-card:hover,.feat-card:focus-visible{
+  --note:var(--lift);
+  --note-title:var(--lift-name);
+  --note-badge:var(--paper-ink);
+  --note-shadow-ink:var(--lift-shadow);
+  --note-ink-soft:var(--paper-ink);
+  --note-play:var(--lift-play);
+}
+
+.card{
+  --tilt:0deg;
+  background:var(--note);color:var(--note-ink);
+  border-radius:var(--r-paper);
+  padding:10px 10px 0;
+  display:flex;flex-direction:column;
+  text-decoration:none;
+  box-shadow:var(--sh-card);
+  transform:rotate(var(--tilt));
+  transition:transform .18s var(--ease), box-shadow .18s var(--ease),
+             background-color .18s var(--ease), color .18s var(--ease);
+}
+.card:nth-child(4n+1){--tilt:-0.8deg;}
+.card:nth-child(4n+2){--tilt:0.55deg;}
+.card:nth-child(4n+3){--tilt:-0.35deg;}
+.card:nth-child(4n+4){--tilt:0.85deg;}
+/* Hovering straightens a card and lifts it — picking a photo off the
+   wall. The colour half of this lives in the note palette above. */
+.card:hover,.card:focus-visible{
+  transform:rotate(0deg) translate(-2px,-6px);
+  box-shadow:var(--sh-card-hi);
+  outline:none;
+}
+.card:active{transform:rotate(0deg) translate(2px,3px);box-shadow:2px 2px 0 var(--shadow);}
+
+.top{
+  aspect-ratio:16/10;display:flex;align-items:center;justify-content:center;
+  border-radius:var(--r-photo);
+  position:relative;overflow:hidden;
+}
+.top.t0{background:var(--tint-0);} .top.t1{background:var(--tint-1);}
+.top.t2{background:var(--tint-2);} .top.t3{background:var(--tint-3);}
+.top.t4{background:var(--tint-4);} .top.t5{background:var(--tint-5);}
+.top.t6{background:var(--tint-6);} .top.t7{background:var(--tint-7);}
+
+.emoji{
+  font-size:46px;line-height:1;position:relative;z-index:1;
+  filter:drop-shadow(0 2px 0 rgba(26,20,32,.22));
+  transition:transform .2s var(--ease);
+}
+.card:hover .emoji{transform:scale(1.07);}
+
+.shot{
+  position:absolute;inset:0;z-index:2;
+  width:100%;height:100%;object-fit:cover;display:block;
+  opacity:0;transition:opacity .3s ease;
+}
+.shot.ready{opacity:1;}
+
+/* The caption under the photograph, hand-lettered the way you would
+   actually label one. */
+.body{padding:12px 4px 0;display:flex;flex-direction:column;gap:5px;flex:1;}
+.card h3{
+  margin:0;font-family:var(--font-hand);font-weight:400;
+  font-size:19px;line-height:1.15;letter-spacing:.01em;
+  color:var(--note-title);
+  text-shadow:2px 2px 0 var(--note-shadow-ink);
+  transition:color .18s var(--ease);
+}
+.card p{margin:0;font-size:12.5px;line-height:1.45;color:var(--note-ink-soft);font-weight:400;flex:1;}
+.pill{
+  align-self:flex-start;
+  font-size:9.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
+  padding:3px 9px;border-radius:999px;
+  border:1px solid var(--note-ink,var(--paper-ink));color:var(--note-ink,var(--paper-ink));background:none;
+}
+.play-row{padding:10px 4px 12px;}
+.play-btn{
+  display:block;text-align:center;
+  background:var(--play-rest);color:var(--note-ink,var(--paper-ink));
+  border:var(--bw) solid var(--note-ink,var(--paper-ink));border-radius:var(--r-ctl);
+  padding:8px 14px;font-size:13px;font-weight:700;letter-spacing:.02em;
+  transition:background-color .14s var(--ease), color .14s var(--ease);
+}
+/* The one filled thing on a hovered card, and the page's one yellow.
+   Dark ink on it reads at better than 12:1 in either theme. */
+.card:hover .play-btn,.card:focus-visible .play-btn{
+  background:var(--note-play);color:var(--lift-shadow);border-color:var(--lift-shadow);
+}
+
+/* ---------------- Today's pick ----------------
+   The same object as a card, scaled up and turned on its side — same
+   paper, same photo, same caption — so it reads as one of the games
+   rather than an advert sitting on top of them. It is the one thing on
+   the page with tape on it. */
+.featured{position:relative;z-index:1;max-width:1140px;margin:0 auto 6vmin;}
+/* The tape. On the wrapper rather than the card because the card clips
+   its own corners and would cut the strip in half. */
+.featured::after{
+  content:'';position:absolute;z-index:3;
+  top:-14px;left:50%;
+  width:132px;height:34px;
+  transform:translateX(-50%) rotate(-2.4deg);
+  background:var(--tape);
+  /* What makes a yellow rectangle read as tape rather than a sticker:
+     you can see what is under it. Half the strip lies on the wall and
+     half on the paper, and because it is translucent that boundary
+     shows straight through — so the strip is visibly ON both surfaces
+     rather than floating above them. */
+  opacity:.72;
+  /* Torn ends. Cut is the giveaway that it came off a roll. */
+  clip-path:polygon(0% 12%,4% 0%,12% 9%,23% 2%,38% 10%,55% 3%,72% 11%,86% 4%,96% 12%,100% 6%,
+                    100% 90%,95% 100%,84% 92%,70% 99%,54% 91%,37% 98%,22% 90%,11% 97%,3% 89%,0% 94%);
+  pointer-events:none;
+}
+.feat-card{
+  display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);
+  min-height:clamp(240px,33vmin,340px);
+  background:var(--note);color:var(--note-ink);
+  border-radius:var(--r-paper);
+  padding:12px;gap:12px;
+  overflow:hidden;
+  text-decoration:none;
+  box-shadow:var(--sh-feat);
+  transform:rotate(-0.4deg);
+  transition:transform .18s var(--ease), box-shadow .18s var(--ease),
+             background-color .18s var(--ease), color .18s var(--ease);
+}
+.feat-card:hover,.feat-card:focus-visible{
+  transform:rotate(0deg) translate(-2px,-6px);
+  box-shadow:var(--sh-feat-hi);outline:none;
+}
+.feat-card:active{transform:rotate(0deg) translate(3px,4px);box-shadow:3px 3px 0 var(--shadow);}
+.feat-card .top{aspect-ratio:auto;height:100%;}
+.feat-card .emoji{font-size:clamp(50px,10vmin,84px);}
+
+.feat-body{
+  padding:clamp(10px,2.2vmin,22px) clamp(8px,2vmin,18px);
+  display:flex;flex-direction:column;align-items:flex-start;gap:9px;justify-content:center;
+}
+.feat-badge{
+  color:var(--note-badge);background:none;border:0;padding:0;
+  font-size:11.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;
+}
+.feat-body h2{
+  margin:0;font-family:var(--font-hand);font-weight:400;
+  font-size:clamp(30px,5.4vmin,52px);line-height:1;letter-spacing:.01em;
+  text-transform:uppercase;color:var(--note-title);
+  text-shadow:4px 4px 0 var(--note-shadow-ink);
+  transition:color .18s var(--ease);
+}
+.feat-body p{margin:0;font-size:clamp(13px,1.8vmin,15px);line-height:1.5;color:var(--note-ink-soft);font-weight:400;}
+.feat-play{
+  margin-top:4px;
+  background:var(--note-play);color:#1A1420;
+  border:var(--bw) solid #1A1420;border-radius:var(--r-ctl);
+  padding:10px 24px;font-size:14.5px;font-weight:700;letter-spacing:.02em;
+  box-shadow:3px 3px 0 #1A1420;
+  transition:transform .14s var(--ease), box-shadow .14s var(--ease);
+}
+.feat-card:hover .feat-play{transform:translate(-1px,-2px);box-shadow:5px 5px 0 #1A1420;}
+.feat-note{font-size:11px;font-weight:500;letter-spacing:.03em;color:var(--note-ink-soft);opacity:.75;}
+
+@media (max-width:720px){
+  .feat-card{grid-template-columns:1fr;min-height:0;}
+  .feat-card .top{aspect-ratio:16/10;height:auto;}
+  .featured::after{width:96px;height:26px;top:-11px;}
+}
+
+/* ---------------- Empty and error states ----------------
+   Paper, like everything else that carries a message. */
+.empty,.error{
+  max-width:520px;margin:12vh auto 0;text-align:center;
+  background:var(--paper);color:var(--paper-ink-soft);font-weight:500;
+  border-radius:var(--r-paper);
+  padding:32px 28px;box-shadow:var(--sh-card);
+  transform:rotate(-0.5deg);
+}
+.empty .big,.error .big{font-size:50px;margin-bottom:10px;}
+.cat-empty{margin:0 auto 4vmin;}
+.loading{text-align:center;color:var(--ink-soft);margin-top:12vh;font-weight:500;letter-spacing:.05em;}
+footer{
+  text-align:center;margin-top:9vmin;font-size:12px;font-weight:500;color:var(--ink-soft);opacity:.7;
+}
+
+/* Reduced motion, driven purely by the OS setting. Games are iframed
+   from their own origin and set their own policy — this governs the
+   Arcade shell only. The tilt is left alone on purpose: it is a static
+   position, not an animation, and removing it would change the layout
+   rather than calm it. */
+@media (prefers-reduced-motion:reduce){
+  *, *::before, *::after{
+    animation-duration:0.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:0.01ms !important;
+    scroll-behavior:auto !important;
+  }
+  html{scroll-behavior:auto !important;}
+}
+</style>
+
+</head>
+<body>
+
+<span class="blob a"></span><span class="blob b"></span><span class="blob c"></span>
+
+<button id="themeBtn" class="theme-btn" type="button"><span id="themeIcon">🌙</span><span id="themeLabel">Dark</span></button>
+
+<header>
+  <span class="badge">📱 Free to play</span>
+  <h1 data-text="Mobile Arcade">Mobile Arcade</h1>
+  <p>Our mobile games, right in your browser. No account needed.</p>
+  <p class="note" id="headerNote">Also on Google Play, made by MOS.</p>
+</header>
+
+<!-- Games or Apps. Hidden here and shown by arcade.js only once it knows
+     there is something in both sections — see the CSS above. It sits at the
+     top because it governs everything below it, Today's pick included. -->
+<div class="tab-bar" id="tabBar" role="group" aria-label="Choose a section" hidden>
+  <button class="tab-btn" id="tabGames" type="button" aria-pressed="true">🎮 Games</button>
+  <button class="tab-btn" id="tabApps" type="button" aria-pressed="false">🧰 Apps</button>
+</div>
+
+<!-- Today's pick. Above the search box on purpose: it is the shop window,
+     and the search and sort controls belong next to the grid they act on.
+     Filled in by arcade.js once the listing arrives, and empty until then so
+     the page never reserves space for a tile that may not come. -->
+<section id="featured" class="featured" aria-label="Today's pick" hidden></section>
+
+<div class="search-bar">
+  <input id="searchBox" type="search" placeholder="Search games…" autocomplete="off"
+         aria-label="Search games by name" enterkeyhint="search">
+  <button id="searchClear" type="button" aria-label="Clear the search" hidden>✕</button>
+</div>
+<p id="searchCount" class="sr-only" aria-live="polite"></p>
+
+<!-- Three sort pills and one button that is not a sort at all. The pills
+     are wrapped in their own group so a screen reader still announces them
+     as the set of orderings, while Surprise me sits outside it: it does not
+     rearrange this page, it leaves it. The wrapper is display:contents, so
+     the row lays out and wraps exactly as it did when all four were
+     siblings. -->
+<div class="sort-bar">
+  <span class="sort-group" role="group" aria-label="Sort the games">
+    <button class="sort-btn" id="sortAz" type="button" aria-pressed="true">A–Z</button>
+    <button class="sort-btn" id="sortNew" type="button" aria-pressed="false">✨ New</button>
+    <button class="sort-btn" id="sortShuffle" type="button" aria-pressed="false">🔀 Shuffle</button>
+  </span>
+  <button class="sort-btn lucky-btn" id="luckyBtn" type="button" disabled
+          title="Opens a random game in a new tab">🎲 Surprise me</button>
+</div>
+
+<!-- Category chips. Empty and hidden in the markup on purpose: the row is
+     one button per category the listing turns out to contain, so it cannot
+     be written here without pinning the categories into two files that would
+     then drift. arcade.js fills it once the listing arrives. -->
+<div class="cat-bar" id="catBar" role="group" aria-label="Filter games by category" hidden></div>
+
+<div id="content" class="loading">Loading…</div>
+
+<!-- Outside #content, whose innerHTML is replaced on every sort and search.
+     aria-live so the message is announced when a chip empties the grid, not
+     only seen. -->
+<div id="catEmpty" class="empty cat-empty" role="status" aria-live="polite" hidden>
+  <div class="big">🫙</div><p id="catEmptyText">No games here yet.</p>
+</div>
+
+<footer>Part of MOS 💛</footer>
+
+<script src="arcade.js"></script>
+</body>
+</html>
