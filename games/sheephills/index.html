@@ -1830,11 +1830,11 @@ function renderShop(){
   // free rewards with ads
   h += '<h3>📺 ' + T('Free rewards (your choice)', 'Récompenses gratuites (ton choix)') + '</h3>';
   const t = now(), left = Math.max(0, S.ad2x - t), maxMs = CONFIG.AD_2X_MAX_H * 3600000;
-  h += '<div class="card"><div class="art" style="background:var(--lemon)">⚡</div><div class="info"><div class="nm">2× ' + T('coins', 'pièces') + '</div><div class="sub">' + (left ? T('Active', 'Actif') + ': ' + fmtTime(left / 1000) : T('+30 min each time, up to 4 h', '+30 min chaque fois, jusqu’à 4 h')) + '</div></div><button class="btn mint sm" id="shX2"' + (left + CONFIG.AD_2X_MIN * 60000 > maxMs ? ' disabled' : '') + '>' + (S.paid ? '✨' : '▶️') + ' +30m</button></div>';
+  h += '<div class="card"><div class="art" style="background:var(--lemon)">⚡</div><div class="info"><div class="nm">2× ' + T('coins', 'pièces') + '</div><div class="sub">' + (left ? T('Active', 'Actif') + ': ' + fmtTime(left / 1000) : T('+30 min each time, up to 4 h', '+30 min chaque fois, jusqu’à 4 h')) + '</div></div><button class="btn mint sm" id="shX2"' + (left + CONFIG.AD_2X_MIN * 60000 > maxMs ? ' disabled' : '') + '>' + (S.paid ? '✨' : adIcon()) + ' +30m</button></div>';
   const rareOk = S.rareDay !== dayNum(t);
-  h += '<div class="card"><div class="art" style="background:linear-gradient(135deg,#ffd6e0,#d6efff)">🌈</div><div class="info"><div class="nm">' + T('Call a rare sheep', 'Appeler un mouton rare') + '</div><div class="sub">' + (rareOk ? T('A Rainbow or Cloud sheep! Once a day.', 'Un mouton Arc-en-ciel ou Nuage! Une fois par jour.') : T('Come back tomorrow!', 'Reviens demain!')) + '</div></div><button class="btn mint sm" id="shRare"' + (rareOk ? '' : ' disabled') + '>▶️ ' + T('Call', 'Appeler') + '</button></div>';
-  h += '<div class="card"><div class="art" style="background:var(--lav)">🪡</div><div class="info"><div class="nm">' + T('Finish knitting now', 'Finir le tricot maintenant') + '</div><div class="sub">' + (S.knit.length ? itemName(S.knit[0]) + ' · ' + fmtTime(knitLeft(0)) : T('Nothing is knitting', 'Rien en cours')) + '</div></div><button class="btn mint sm" id="shKnit"' + (S.knit.length ? '' : ' disabled') + '>▶️ ' + T('Finish', 'Finir') + '</button></div>';
-  h += '<div class="card"><div class="art" style="background:var(--sky)">🎮</div><div class="info"><div class="nm">' + T('Extra mini game try', 'Essai de mini-jeu en plus') + '</div><div class="sub">' + T('Tries left today', 'Essais restants aujourd’hui') + ': ' + triesLeft() + '</div></div><button class="btn mint sm" id="shTry">▶️ +1</button></div>';
+  h += '<div class="card"><div class="art" style="background:linear-gradient(135deg,#ffd6e0,#d6efff)">🌈</div><div class="info"><div class="nm">' + T('Call a rare sheep', 'Appeler un mouton rare') + '</div><div class="sub">' + (rareOk ? T('A Rainbow or Cloud sheep! Once a day.', 'Un mouton Arc-en-ciel ou Nuage! Une fois par jour.') : T('Come back tomorrow!', 'Reviens demain!')) + '</div></div><button class="btn mint sm" id="shRare"' + (rareOk ? '' : ' disabled') + '>' + adIcon() + ' ' + T('Call', 'Appeler') + '</button></div>';
+  h += '<div class="card"><div class="art" style="background:var(--lav)">🪡</div><div class="info"><div class="nm">' + T('Finish knitting now', 'Finir le tricot maintenant') + '</div><div class="sub">' + (S.knit.length ? itemName(S.knit[0]) + ' · ' + fmtTime(knitLeft(0)) : T('Nothing is knitting', 'Rien en cours')) + '</div></div><button class="btn mint sm" id="shKnit"' + (S.knit.length ? '' : ' disabled') + '>' + adIcon() + ' ' + T('Finish', 'Finir') + '</button></div>';
+  h += '<div class="card"><div class="art" style="background:var(--sky)">🎮</div><div class="info"><div class="nm">' + T('Extra mini game try', 'Essai de mini-jeu en plus') + '</div><div class="sub">' + T('Tries left today', 'Essais restants aujourd’hui') + ': ' + triesLeft() + '</div></div><button class="btn mint sm" id="shTry">' + adIcon() + ' +1</button></div>';
   h += '<p class="muted center">' + T('Ads are always your choice. Nothing plays by itself.', 'Les pubs sont toujours ton choix. Rien ne joue tout seul.') + '</p>';
   h += '<button class="btn wide ghost" id="shRestore">🔄 ' + T('Restore purchases', 'Restaurer les achats') + '</button>';
   h += '<p class="muted center" style="font-size:.75em">' + T('Payments are handled securely by Google Play.', 'Les paiements sont gérés en sécurité par Google Play.') + '</p>';
@@ -1869,7 +1869,7 @@ async function callRare(){
 function openBoosts(){
   sfx('tap');
   const t = now(), left = Math.max(0, S.ad2x - t), maxMs = CONFIG.AD_2X_MAX_H * 3600000;
-  let h = '<div class="card"><div class="art" style="background:var(--lemon)">⚡</div><div class="info"><div class="nm">2× ' + T('coins', 'pièces') + '</div><div class="sub">' + (left ? T('Active', 'Actif') + ': ' + fmtTime(left / 1000) : T('Market sales and mini game coins', 'Ventes au marché et pièces des mini-jeux')) + '</div></div><button class="btn mint sm" id="bxAd"' + (left + CONFIG.AD_2X_MIN * 60000 > maxMs ? ' disabled' : '') + '>' + (S.paid ? '✨' : '▶️') + ' +30m</button></div>';
+  let h = '<div class="card"><div class="art" style="background:var(--lemon)">⚡</div><div class="info"><div class="nm">2× ' + T('coins', 'pièces') + '</div><div class="sub">' + (left ? T('Active', 'Actif') + ': ' + fmtTime(left / 1000) : T('Market sales and mini game coins', 'Ventes au marché et pièces des mini-jeux')) + '</div></div><button class="btn mint sm" id="bxAd"' + (left + CONFIG.AD_2X_MIN * 60000 > maxMs ? ' disabled' : '') + '>' + (S.paid ? '✨' : adIcon()) + ' +30m</button></div>';
   h += '<p class="muted center">' + T('Ads are always your choice.', 'Les pubs sont toujours ton choix.') + '</p><button class="btn wide ghost" id="bxShop">🛍️ ' + T('More in the Shop', 'Plus dans la Boutique') + '</button>';
   openModal('⚡ ' + T('Boost', 'Bonus'), h);
   $('bxAd').onclick = () => { closeModal(); ad2x(); };
@@ -1969,7 +1969,7 @@ function openGames(){
   let h = '<p class="center"><b>🎟️ ' + T('Tries left today', 'Essais restants aujourd’hui') + ': ' + left + '</b></p>';
   GAMES.forEach(g => h += '<div class="card"><div class="art" style="background:var(--sky)">'+g.e+'</div><div class="info"><div class="nm">'+L(g)+'</div><div class="sub">'+L(g.d)+'</div><div class="sub">🏆 '+(S.stats.best[g.id] || 0)+'</div></div><button class="btn" data-g="'+g.id+'"'+(left ? '' : ' disabled')+'>'+T('Play', 'Jouer')+'</button></div>');
   h += '<p class="muted center">' + T('Win coins and yarn!', 'Gagne des pièces et du fil!') + '</p>';
-  if(!left) h += '<button class="btn wide mint" id="gmAd">▶️ ' + T('Watch an ad for 1 more try', 'Regarde une pub pour 1 essai de plus') + '</button>';
+  if(!left) h += '<button class="btn wide mint" id="gmAd">📺 ' + T('Watch an ad for 1 more try', 'Regarde une pub pour 1 essai de plus') + '</button>';
   openModal('🎮 ' + T('Mini games', 'Mini-jeux'), h);
   $('mBody').querySelectorAll('[data-g]').forEach(b => b.onclick = () => { closeModal(); startGame(b.dataset.g); });
   if($('gmAd')) $('gmAd').onclick = async () => { closeModal(); if(await rewardAd()){ S.tries.extra++; saveNow(); renderCare(); openGames(); } };
@@ -2163,7 +2163,7 @@ const PACK = {sku: 'candy_cloud_pack', price: '$4.99'};
 const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
 const AdMobP = () => isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null;
 let adBusy = false;
-const adIcon = () => '▶️';
+const adIcon = () => '📺 ' + T('Ad', 'Pub') + ' ·';
 
 /* the one function the game calls. Resolves true if the player earned the reward. */
 async function rewardAd(){

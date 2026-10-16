@@ -1916,7 +1916,7 @@ function gameOverMsg() {
   const best = mode === 'daily' ? S.daily.best : S.best[String(game.size)];
   const canChance = chancesUsed < MONEY.CHANCES_PER_GAME;
   const btns = [];
-  if (canChance) btns.push({ label: (hasPlus() ? '✨' : '▶') + ' Second chance', cls: 'primary', fn: secondChance });
+  if (canChance) btns.push({ label: (hasPlus() ? '✨' : '▶') + ' Second chance' + (hasPlus() ? '' : ' (ad)'), cls: 'primary', fn: secondChance });
   if (undoStack.length) btns.push({ label: 'Undo', cls: '', fn: tryUndo });
   btns.push({ label: 'New game', cls: canChance ? '' : 'primary', fn: () => newGame(game.size, mode === 'daily' ? 'classic' : mode) });
   showMsg('No moves left.',

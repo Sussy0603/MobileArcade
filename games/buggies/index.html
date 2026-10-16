@@ -1893,7 +1893,7 @@ function openHealWait(b,fresh){
   const left=()=>Math.max(0,(b.heal-now())/1000);
   openModal('<div style="text-align:center"><img src="'+thumb(b.sp,110)+'" style="width:110px;height:110px"></div><h3>'+(fresh?L('Great care! 💚','Super soins ! 💚'):'🩹 '+esc(b.name))+'</h3>'+
     '<p>'+L('Now '+b.name+' needs to rest.','Maintenant '+b.name+' doit se reposer.')+'</p><div class="amt" id="hwT">'+fmtTime(left())+'</div>'+
-    '<button class="btn wide ad" id="hwAd">'+(S.noads?'✨ '+L('Heal now (free)','Guérir maintenant (gratuit)'):'📺 '+L('Watch a video to heal now','Regarde une vidéo pour guérir'))+'</button>'+
+    '<button class="btn wide ad" id="hwAd">'+(S.noads?'✨ '+L('Heal now (free)','Guérir maintenant (gratuit)'):'📺 '+L('Watch an ad to heal now','Regarde une pub pour guérir'))+'</button>'+
     '<button class="btn wide ghost" id="hwOk">'+L('OK, wait','OK, attendre')+'</button>');
   const iv=setInterval(()=>{const el=$('hwT');if(!el||!b.heal){clearInterval(iv);if(el&&!b.heal)closeModal();return;}el.textContent=fmtTime(left());},500);
   $('hwOk').onclick=()=>{sfx('tap');closeModal();};
@@ -2113,7 +2113,7 @@ function showWelcomeBack(sec,capped){
   openModal('<div style="text-align:center"><canvas id="wbB" width="200" height="200" style="width:100px;height:100px"></canvas></div><h3>'+L('Welcome back!','Bon retour !')+'</h3>'+
     '<p>'+L('While you were away','Pendant ton absence')+' ('+fmtTime(sec)+'), '+L('your bugs earned','tes insectes ont gagné')+'</p><div class="amt">+'+fmt(amt)+' 🪙</div>'+
     (capped?'<p style="font-size:13px;color:var(--soft)">'+L('Max away time','Absence max')+': '+offCapH()+'h. '+L('Upgrade it in ⬆️ Upgrades.','Améliore-la dans ⬆️ Améliorer.')+'</p>':'')+
-    '<button class="btn wide ad" id="wbAd">'+(S.noads?'✨ '+L('Double it (free)','Doubler (gratuit)'):'📺 '+L('Watch a video to double it','Regarde une vidéo pour doubler'))+'</button><button class="btn wide ghost" id="wbOk">'+L('Collect','Récupérer')+'</button>');
+    '<button class="btn wide ad" id="wbAd">'+(S.noads?'✨ '+L('Double it (free)','Doubler (gratuit)'):'📺 '+L('Watch an ad to double it','Regarde une pub pour doubler'))+'</button><button class="btn wide ghost" id="wbOk">'+L('Collect','Récupérer')+'</button>');
   drawBarnaby($('wbB').getContext('2d'),100,95,170,0);
   $('wbOk').onclick=()=>{sfx('coin');closeModal();S.away=0;};
   $('wbAd').onclick=async()=>{const ok=await rewardAd('away');if(ok){addCoins(amt);S.away=0;sfx('coin');toast(L('Doubled!','Doublé !')+' +'+fmt(amt)+' 🪙','gold');closeModal();save();refreshHUD();}};
@@ -2290,7 +2290,7 @@ async function adsInit(){const A=AdMobP();if(!A)return;try{await A.initialize({i
 
 /* ---------------- shop screen ---------------- */
 function openShop(){
-  const adBtn=(id,txt)=>'<button class="btn ad" id="'+id+'">'+(S.noads?'✨ '+L('Free','Gratuit'):'📺 '+L('Watch','Regarder'))+'</button>';
+  const adBtn=(id,txt)=>'<button class="btn ad" id="'+id+'">'+(S.noads?'✨ '+L('Free','Gratuit'):'📺 '+L('Watch ad','Voir pub'))+'</button>';
   let h='<div class="hl">📺 '+L('Free rewards','Récompenses gratuites')+'</div><p class="note">'+L('Watch a short video for a reward. Always your choice.','Regarde une courte vidéo pour une récompense. C’est toujours ton choix.')+'</p>';
   h+='<div class="card"><div class="art">⚡</div><div class="info"><div class="nm">'+L('Speed boost','Turbo')+'</div><div class="sub">'+(boostOn()?L('Active','Actif')+' — '+fmtTime((S.boostEnd-now())/1000):L('2× coins for 15 minutes','2× pièces pendant 15 minutes'))+'</div></div>'+adBtn('shBoost')+'</div>';
   h+='<div class="card"><div class="art">🔋</div><div class="info"><div class="nm">'+L('Refill game energy','Recharger l’énergie')+'</div><div class="sub">⚡ '+S.energy+'/'+enMax()+'</div></div>'+adBtn('shEn')+'</div>';
@@ -2344,7 +2344,7 @@ let G=null, gRAF=0, GW=0, GH=0;
 function openGames(){
   const nextIn=S.energy>=enMax()?'':' · '+L('next in','prochaine dans')+' '+fmtTime((TUNE.EN_SEC*1000-(now()-S.enT))/1000);
   let h='<div class="card" style="border-color:#ffd25a"><div class="art">⚡</div><div class="info"><div class="nm">'+L('Energy','Énergie')+' '+S.energy+'/'+enMax()+'</div><div class="sub">'+L('Each game uses 1 ⚡. It refills over time','Chaque partie utilise 1 ⚡. Elle se recharge avec le temps')+nextIn+'</div></div></div>';
-  h+='<div class="rowb" style="margin-bottom:6px"><button class="btn ad" id="gmAd">'+(S.noads?'✨ '+L('Refill (free)','Recharger (gratuit)'):'📺 '+L('Refill','Recharger'))+'</button><button class="btn gem" id="gmGem">💎 '+TUNE.REFILL_GEMS+' '+L('Refill','Recharger')+'</button></div>';
+  h+='<div class="rowb" style="margin-bottom:6px"><button class="btn ad" id="gmAd">'+(S.noads?'✨ '+L('Refill (free)','Recharger (gratuit)'):'📺 '+L('Ad · Refill','Pub · Recharger'))+'</button><button class="btn gem" id="gmGem">💎 '+TUNE.REFILL_GEMS+' '+L('Refill','Recharger')+'</button></div>';
   h+='<p class="note">🎁 '+L('Win coins, a chance at a rare bug, and special decorations!','Gagne des pièces, une chance d’avoir un insecte rare et des décorations spéciales !')+(halloweenOn()?' +🍬':'')+'</p>';
   const games=[
     ['pollen','🌼',['Pollen Match','Pollen en folie'],['Match 3 flowers to collect pollen.','Aligne 3 fleurs pour récolter le pollen.'],L('Level','Niveau')+' '+S.mg.pollen,'🎨 '+L('Level 5: Painted Pebble','Niveau 5 : Galet peint')],

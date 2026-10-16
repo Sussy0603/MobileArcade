@@ -422,7 +422,7 @@ function renderStatus() {
     '<div class="chip"><div class="l">' + tr('streak') + '</div><div class="v">' + streak + '</div></div>' +
     '<div class="chip"><div class="l">' + tr('best') + '</div><div class="v">' + DATA.best + '</div></div>' +
     '<button class="chip gift" id="giftBtn"' + (left > 0 ? ' disabled' : '') + ' aria-label="Free coins">' +
-      '<div class="l">🎁' + (ADS.native() ? ' ▶' : '') + '</div><div class="v">' + (left > 0 ? fmtT(left) : tr('gift')) + '</div></button>';
+      '<div class="l">🎁' + (ADS.native() ? ' 📺 ' + (L === I18N.fr ? 'PUB' : 'AD') : '') + '</div><div class="v">' + (left > 0 ? fmtT(left) : tr('gift')) + '</div></button>';
 }
 function renderBets() {
   const box = $('#bets'); box.innerHTML = '';

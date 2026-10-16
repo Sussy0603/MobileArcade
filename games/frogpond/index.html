@@ -2323,7 +2323,7 @@ const PACK = {sku: 'blossom_pack', price: '$2.99', gems: 50};
 const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
 const AdMobP = () => isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null;
 let adBusy = false;
-const adIcon = () => S && S.noAds ? '✨' : '▶️';
+const adIcon = () => S && S.noAds ? '✨' : '📺 ' + ((S && S.lang === 'fr') ? 'Pub' : 'Ad') + ' ·';
 
 /* the one function the game calls. Resolves true if the player earned the reward. */
 async function rewardAd(){

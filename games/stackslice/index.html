@@ -1100,7 +1100,7 @@ function showShop(still) {
       let b;
       if (on) b = '<button class="mini ghost" type="button">' + t('inUse') + '</button>';
       else if (own) b = btn('mini use', 'useskin:' + s.id, t('use'));
-      else b = btn('mini', 'buyskin:' + s.id, '🪙 ' + s.price) + btn('mini ad', 'adskin:' + s.id, '🎬 ' + prog + '/' + s.ads);
+      else b = btn('mini', 'buyskin:' + s.id, '🪙 ' + s.price) + btn('mini ad', 'adskin:' + s.id, '🎬 ' + (LANG === 'fr' ? 'Pub ' : 'Ad ') + prog + '/' + s.ads);
       return '<div class="item"><canvas data-skin="' + s.id + '" width="150" height="64"></canvas><div class="nm">' + t('sk_' + s.id) + '</div>' + b + '</div>';
     }).join('');
   } else if (tab === 'bgs') {

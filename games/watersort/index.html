@@ -908,13 +908,13 @@ function achOverlay() {
 function badge(id, n) {
   const b = $(id);
   if (n > 0) { b.textContent = n; b.className = 'b'; }
-  else { b.textContent = '📺'; b.className = 'b ad'; }
+  else { b.textContent = '📺 AD'; b.className = 'b ad'; }
 }
 function syncActions() {
   badge('#bUndo', undosLeft);
   badge('#bHint', hintsLeft);
   const tubesLeft = HELP.MAX_EXTRA_TUBES - extraUsed;
-  $('#bTube').textContent = '📺'; $('#bTube').className = 'b ad';
+  $('#bTube').textContent = '📺 AD'; $('#bTube').className = 'b ad';
   $('#btnUndo').disabled = wSolved || !history.length;
   $('#btnHint').disabled = wSolved;
   $('#btnTube').disabled = wSolved || tubesLeft <= 0;
