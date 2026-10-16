@@ -1,5 +1,13 @@
 [
   {
+    "id": "buzzio",
+    "name": "Buzz.io",
+    "description": "Fly a bee, loop back home and claim the honeycomb.",
+    "url": "games/buzzio/index.html",
+    "category": "Arcade",
+    "addedAt": 1792109654602.748
+  },
+  {
     "id": "fishies",
     "name": "Fishies",
     "description": "A cozy aquarium. Collect, feed and grow 80+ cute fish.",

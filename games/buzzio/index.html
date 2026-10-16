@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ffe9a8">
+<title>Buzz.io</title>
+<script>
+  // In the Android app the game draws under the status bar — flag it for the CSS.
+  if (window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
+    document.documentElement.classList.add("native");
+  }
+</script>
+<!--
+════════════════════════════════════════════════════════════════════════
+  STeamWorkS · Buzz.io · v1.0.0 · single self-contained file
+  A cozy bee .io game on a honeycomb. Fly out, loop back, claim cells.
+════════════════════════════════════════════════════════════════════════
+  HOW THE FILE IS ORGANIZED (search for the ══ headers)
+    CONFIG        ← all the tuning numbers (speed, bots, honey…)
+    LANGUAGE      ← English / French words
+    SKINS         ← bee types + trail colors
+    SAVE          ← what is kept on the phone (localStorage)
+    HEX GRID      ← the honeycomb map math
+    WORLD         ← land, trails, capturing, killing
+    BOTS          ← how the bot bees think
+    DRAW          ← painting the map and the bees
+    SCREENS       ← title, skins, settings, game over…
+    ADS           ← optional rewarded videos (AdMob in the app)
+
+  MOS INTEGRATION: postMessage {source:'stws-puzzle', game:'buzzio', event}
+    events: ready · start · gameover        URL: ?prefix=<id>  ?mute=1
+════════════════════════════════════════════════════════════════════════
+-->
+<style>
+:root{
+  --bg:#fff3d1; --ink:#4a3120; --soft:#8a6a4a; --card:#fffaf0; --line:#f0d9a0;
+  --acc:#f5a524; --acc2:#d9831c; --ad:#7c6cf0; --ad2:#5a4bc9; --good:#4fb56f;
+  --font:"Nunito","SF Pro Rounded",ui-rounded,"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+}
+body.easy{--font:Verdana,Tahoma,"Segoe UI",sans-serif;letter-spacing:.04em;word-spacing:.12em}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--font);
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;touch-action:none}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+#app{position:fixed;inset:0;overflow:hidden}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+
+/* ── HUD ── */
+#hud[hidden]{display:none}
+#hudL{position:absolute;left:10px;top:calc(env(safe-area-inset-top) + 10px);display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.hchip{background:rgba(255,250,240,.92);border:2px solid var(--line);border-radius:14px;padding:4px 11px;
+  font-weight:900;font-size:17px;box-shadow:0 3px 10px rgba(120,80,20,.15);display:flex;gap:6px;align-items:center}
+.hchip.pop{animation:chip .3s}
+@keyframes chip{50%{transform:scale(1.18)}}
+.iconbtn{width:42px;height:42px;border-radius:14px;border:2px solid var(--line);background:rgba(255,250,240,.92);
+  font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(120,80,20,.15)}
+.iconbtn:active{transform:scale(.92)}
+#board{position:absolute;right:10px;top:calc(env(safe-area-inset-top) + 10px);background:rgba(255,250,240,.9);
+  border:2px solid var(--line);border-radius:14px;padding:5px 9px;font-size:13px;min-width:132px;box-shadow:0 3px 10px rgba(120,80,20,.15)}
+.brow{display:flex;gap:6px;align-items:center;line-height:1.55;font-weight:700;white-space:nowrap}
+.brow .dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.brow .nm{flex:1;overflow:hidden;text-overflow:ellipsis;max-width:92px}
+.brow.me{font-weight:900;color:var(--acc2)}
+#pups{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 18px);transform:translateX(-50%);display:flex;gap:8px}
+.pup{background:rgba(255,250,240,.95);border:2px solid var(--line);border-radius:14px;padding:4px 10px;font-weight:900;
+  font-size:15px;display:flex;flex-direction:column;align-items:center;min-width:54px}
+.pup i{display:block;height:4px;border-radius:3px;background:var(--acc);margin-top:3px;align-self:stretch}
+#feed{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 76px);transform:translateX(-50%);display:flex;flex-direction:column-reverse;
+  align-items:center;gap:4px;pointer-events:none;width:70vw}
+.fd{background:rgba(74,49,32,.78);color:#fff;border-radius:12px;padding:3px 10px;font-size:13px;font-weight:800;animation:fd 3s forwards;text-align:center}
+@keyframes fd{0%{opacity:0;transform:translateY(-6px)}10%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+#hint{position:absolute;left:0;right:0;bottom:24%;text-align:center;font-weight:900;font-size:24px;color:#fff;
+  text-shadow:0 2px 0 var(--acc2),0 0 14px rgba(120,80,20,.5);pointer-events:none;animation:pulse 1.2s infinite}
+#hint[hidden]{display:none}
+@keyframes pulse{50%{transform:scale(1.08)}}
+
+/* ── menus ── */
+#ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  padding:calc(env(safe-area-inset-top) + 14px) 14px calc(env(safe-area-inset-bottom) + 14px);
+  background:rgba(255,236,180,.45);overflow-y:auto;touch-action:pan-y}
+#ov[hidden]{display:none}
+.card{background:var(--card);border:3px solid var(--line);border-radius:26px;padding:18px 18px 20px;width:min(380px,100%);
+  text-align:center;box-shadow:0 14px 40px rgba(120,80,20,.25);animation:pop .3s ease-out;margin:auto}
+@keyframes pop{from{transform:scale(.88);opacity:0}}
+.logo{font-size:50px;font-weight:900;color:var(--acc2);line-height:1;margin:2px 0 4px;letter-spacing:-.01em;
+  text-shadow:0 3px 0 #ffe0a0}
+.logo span{color:var(--ink)}
+.bee-hero{width:120px;height:96px;display:block;margin:0 auto}
+.tag{color:var(--soft);font-weight:800;font-size:15px;margin:4px 0 10px;line-height:1.35}
+h2{margin:4px 0 8px;font-size:26px;font-weight:900}
+.btn{display:block;width:100%;border:0;border-radius:18px;padding:13px 12px;font:900 18px var(--font);background:var(--acc);color:#fff;
+  box-shadow:0 5px 0 var(--acc2);margin-top:11px;transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 var(--acc2)}
+.btn.big{font-size:26px;padding:17px}
+.btn.ad{background:var(--ad);box-shadow:0 5px 0 var(--ad2)}
+.btn.ad:active{box-shadow:0 2px 0 var(--ad2)}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 4px 0 var(--line);border:2px solid var(--line)}
+.btn.ghost:active{box-shadow:0 1px 0 var(--line)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.row{display:flex;gap:9px}.row .btn{flex:1}
+.lvl{display:flex;align-items:center;gap:8px;font-weight:900;font-size:14px;margin:6px 0 2px}
+.xpbar{flex:1;height:12px;border-radius:8px;background:#f3e3bb;overflow:hidden}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,#ffd166,#f5a524);border-radius:8px;transition:width .6s}
+.money{display:inline-flex;gap:6px;align-items:center;font-weight:900;font-size:18px;background:#fff;border:2px solid var(--line);
+  border-radius:14px;padding:3px 12px}
+.ready{margin-top:8px;font-weight:900;color:var(--ad)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 2px}
+.stat{background:#fff;border:2px solid var(--line);border-radius:14px;padding:7px 4px;font-size:13px;font-weight:800;color:var(--soft)}
+.stat b{display:block;font-size:24px;color:var(--ink)}
+.why{font-weight:800;color:var(--soft);font-size:15px}
+.tabs{display:flex;gap:6px;margin:4px 0 10px}
+.tab{flex:1;border:2px solid var(--line);background:#fff;border-radius:14px;padding:8px;font-weight:900;font-size:16px}
+.tab.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:44vh;overflow-y:auto;padding:3px;touch-action:pan-y}
+.sk{background:#fff;border:2px solid var(--line);border-radius:16px;padding:6px 3px 7px;font-size:12px;font-weight:800;line-height:1.25}
+.sk.on{border-color:var(--acc);box-shadow:0 0 0 3px #ffe0a0}
+.sk.lock{opacity:.8}
+.sk canvas{width:66px;height:54px;display:block;margin:0 auto 2px}
+.sk .pr{color:var(--acc2);font-weight:900}
+.daybox{background:#fff;border:2px dashed var(--ad);border-radius:16px;padding:8px;margin-top:10px;display:flex;align-items:center;gap:8px;text-align:left}
+.daybox canvas{width:66px;height:54px;flex:0 0 auto}
+.daybox .btn{margin:0;width:auto;padding:10px 12px;font-size:15px}
+.daybox .t{flex:1;font-weight:900;font-size:14px}
+.set{display:flex;align-items:center;justify-content:space-between;background:#fff;border:2px solid var(--line);border-radius:14px;
+  padding:10px 12px;margin-top:8px;font-weight:900;font-size:17px}
+.sw{width:58px;height:32px;border-radius:20px;border:0;background:#e3d3ae;position:relative;transition:background .2s}
+.sw::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.sw.on{background:var(--good)}.sw.on::after{left:30px}
+.seg{display:flex;gap:4px}.seg button{border:2px solid var(--line);background:#fff;border-radius:10px;padding:5px 10px;font-weight:900}
+.seg button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:10px 0 4px}
+.days div{background:#fff;border:2px solid var(--line);border-radius:10px;padding:5px 0;font-size:11px;font-weight:900;color:var(--soft)}
+.days div b{display:block;color:var(--ink);font-size:13px}
+.days .got{background:#ffe9b0}.days .now{border-color:var(--acc);box-shadow:0 0 0 2px #ffd27a}
+#toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 14px);transform:translateX(-50%) translateY(-20px);opacity:0;
+  background:rgba(74,49,32,.92);color:#fff;padding:9px 16px;border-radius:14px;font-weight:800;font-size:15px;transition:all .25s;
+  pointer-events:none;max-width:86vw;text-align:center;z-index:30}
+#toast.show{opacity:1;transform:translateX(-50%)}
+#adm{position:absolute;inset:0;background:rgba(30,20,10,.82);display:flex;align-items:center;justify-content:center;z-index:40;color:#fff;text-align:center}
+#adm[hidden]{display:none}
+#adm .num{font-size:60px;font-weight:900;margin:8px 0}
+#adm .btn{width:auto;display:inline-block;padding:10px 18px}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="cv"></canvas>
+  <div id="hud" hidden>
+    <div id="hudL">
+      <div class="hchip" id="cHoney">🍯 <b id="hHoney">0</b></div>
+      <div class="hchip" id="cLand">⬢ <b id="hLand">0%</b></div>
+      <button class="iconbtn" id="pauseBtn" aria-label="Pause">⏸</button>
+    </div>
+    <div id="board"></div>
+    <div id="feed"></div>
+    <div id="pups"></div>
+    <div id="hint" hidden></div>
+  </div>
+  <div id="ov"></div>
+  <div id="adm" hidden></div>
+  <div id="toast" role="status"></div>
+</div>
+
+<script>
+'use strict';
+/* ══ CONFIG — change these numbers to tune the feel ══════════════════ */
+const CONFIG = {
+  MAP_RADIUS: 26,        // honeycomb size (hexes from center to edge)
+  HEX: 22,               // size of one hex in world pixels
+  VIEW_HEXES: 13,        // how many hexes fit across the screen (smaller = zoomed in)
+  PLAYER_SPEED: 4.2,     // player speed in hexes per second
+  BOT_SPEED: 3.9,        // bot speed in hexes per second
+  PLAYER_TURN: 9,        // how fast the player bee turns (higher = snappier)
+  BOT_TURN: 6,           // how fast bots turn
+  START_RADIUS: 2,       // size of the starting home patch
+  BOTS_START: 4,         // bots at level 1…
+  BOTS_EVERY_LEVELS: 2,  // …one more bot every 2 levels…
+  BOTS_MAX: 12,          // …up to this many
+  BOT_RESPAWN: 3,        // seconds before a new bot flies in
+  HONEY_PER_CELL: 0.02,  // honey per land cell per second (bigger land = more honey)
+  FLOWER_HONEY: 15,      // honey from a flower cell
+  KILL_HONEY: 25,        // honey for cutting a bot's trail
+  FLOWERS_ON_MAP: 18,    // flower cells kept on the map
+  POWERUPS_ON_MAP: 4,    // power-up cells kept on the map
+  POWERUP_RESPAWN: 6,    // seconds between new power-ups
+  SPEED_BOOST: 1.6,      // nectar speed multiplier
+  SPEED_TIME: 5, SHIELD_TIME: 6, MAGNET_TIME: 8, SWARM_TIME: 8, // power-up seconds
+  MAGNET_RANGE: 5,       // hexes the magnet pulls flowers from
+  SWARM_BEES: 3,         // mini bees in a swarm
+  REVIVE_SHIELD: 3,      // seconds of shield after an ad revive
+  XP_PER_LAND: 6,        // XP per 1% of land (best % in the run)
+  XP_PER_KILL: 15,       // XP per trail you cut
+  XP_PER_10S: 2,         // XP per 10 seconds alive
+  DAILY: [50, 75, 100, 150, 200, 300, 500], // daily reward honey, day 1 → 7
+};
+
+/* ══ LANGUAGE ═════════════════════════════════════════════════════════ */
+const TXT = {
+  en: {
+    tag: 'Fly out, loop back home, claim the honeycomb!',
+    how: 'Swipe to steer. Come back to your land to claim the loop. Don’t let anyone touch your trail!',
+    play: 'Play', skins: 'Skins', settings: 'Settings', level: 'Lv', best: 'Best',
+    adPower: '📺 Start with a power-up', ready: 'Ready:', swipe: 'Swipe to fly!',
+    bees: 'Bees', colors: 'Colors', equip: 'Use', using: 'In use', notEnough: 'Not enough honey',
+    unlocked: 'Unlocked!', skinDay: 'Skin of the day', free: '📺 Free',
+    daily: 'Daily honey', day: 'Day', claim: 'Claim', comeBack: 'Come back tomorrow for more!',
+    sound: 'Sound', music: 'Music', lang: 'Language', easy: 'Easy-read text', back: 'Back',
+    paused: 'Paused', resume: 'Resume', home: 'Home',
+    over: 'Oops!', cutBy: 'Cut by {n}!', self: 'You flew into your own trail!', trapped: 'Trapped by {n}!',
+    lost: 'Your land was taken!', land: 'Land', honey: 'Honey', kills: 'Cuts', xp: 'XP',
+    revive: '📺 Revive', double: '📺 Double honey', again: 'Play again', doubled: 'Honey doubled!',
+    noAd: 'No ad right now — try again in a minute', levelUp: 'Level up! Lv {n}', newBest: 'New best!',
+    morebots: 'More bees join at higher levels', you: 'You',
+    feedCut: '{a} cut {b}', feedSelf: '{a} crashed', feedTrap: '{a} trapped {b}', swarmCut: 'Your swarm cut {b}!',
+    adTitle: 'Ad preview', adTip: 'A real video ad plays here in the app.', adClose: 'Close (no reward)',
+    pw: { 2: 'Speed', 3: 'Shield', 4: 'Magnet', 5: 'Swarm' },
+  },
+  fr: {
+    tag: 'Envole-toi, reviens chez toi, gagne la ruche\u00a0!',
+    how: 'Glisse pour diriger. Reviens sur ton terrain pour garder la boucle. Ne laisse personne toucher ta trace\u00a0!',
+    play: 'Jouer', skins: 'Looks', settings: 'Réglages', level: 'Niv', best: 'Record',
+    adPower: '📺 Commencer avec un bonus', ready: 'Prêt\u00a0:', swipe: 'Glisse pour voler\u00a0!',
+    bees: 'Abeilles', colors: 'Couleurs', equip: 'Choisir', using: 'Choisi', notEnough: 'Pas assez de miel',
+    unlocked: 'Débloqué\u00a0!', skinDay: 'Look du jour', free: '📺 Gratuit',
+    daily: 'Miel du jour', day: 'Jour', claim: 'Prendre', comeBack: 'Reviens demain pour plus\u00a0!',
+    sound: 'Sons', music: 'Musique', lang: 'Langue', easy: 'Texte facile à lire', back: 'Retour',
+    paused: 'Pause', resume: 'Continuer', home: 'Accueil',
+    over: 'Oups\u00a0!', cutBy: 'Coupé par {n}\u00a0!', self: 'Tu as touché ta propre trace\u00a0!', trapped: 'Piégé par {n}\u00a0!',
+    lost: 'Ton terrain a été pris\u00a0!', land: 'Terrain', honey: 'Miel', kills: 'Coupes', xp: 'XP',
+    revive: '📺 Revivre', double: '📺 Doubler le miel', again: 'Rejouer', doubled: 'Miel doublé\u00a0!',
+    noAd: 'Pas de pub pour l’instant — réessaie dans une minute', levelUp: 'Niveau {n}\u00a0!', newBest: 'Nouveau record\u00a0!',
+    morebots: 'Plus d’abeilles aux niveaux plus hauts', you: 'Toi',
+    feedCut: '{a} a coupé {b}', feedSelf: '{a} s’est écrasé', feedTrap: '{a} a piégé {b}', swarmCut: 'Ton essaim a coupé {b}\u00a0!',
+    adTitle: 'Aperçu de pub', adTip: 'Une vraie pub vidéo joue ici dans l’app.', adClose: 'Fermer (sans prix)',
+    pw: { 2: 'Vitesse', 3: 'Bouclier', 4: 'Aimant', 5: 'Essaim' },
+  },
+};
+const PW_ICON = { 2: '⚡', 3: '🛡️', 4: '🧲', 5: '🐝' };
+const PW_COL = { 2: '#ffcf3f', 3: '#6cc7f0', 4: '#ef6f6f', 5: '#a985e0' };
+let LANG = 'en';
+function t(k, vars) {
+  let s = (TXT[LANG] && TXT[LANG][k]) || TXT.en[k] || k;
+  if (vars) for (const v in vars) s = s.replace('{' + v + '}', vars[v]);
+  return s;
+}
+const pwName = id => (TXT[LANG].pw || TXT.en.pw)[id];
+
+/* ══ SKINS ═══════════════════════════════════════════════════════════ */
+const BEES = [
+  { id: 'honey',  en: 'Honey Bee',   fr: 'Abeille',          price: 0,    body: '#ffc93c', stripe: '#3b2a1a' },
+  { id: 'bumble', en: 'Bumblebee',   fr: 'Bourdon',          price: 300,  body: '#ffb627', stripe: '#2b2118', fuzzy: 1 },
+  { id: 'mint',   en: 'Mint Bee',    fr: 'Abeille menthe',   price: 500,  body: '#9be7c4', stripe: '#2f5d50' },
+  { id: 'berry',  en: 'Blueberry',   fr: 'Bleuet',           price: 700,  body: '#8fb4ff', stripe: '#2b3d78' },
+  { id: 'orchid', en: 'Orchid Bee',  fr: 'Abeille orchidée', price: 900,  body: '#5fd38a', stripe: '#1f6b47', shiny: 1 },
+  { id: 'snow',   en: 'Snow Bee',    fr: 'Abeille neige',    price: 1200, body: '#f4f8ff', stripe: '#9fb4d8', scarf: 1 },
+  { id: 'queen',  en: 'Queen Bee',   fr: 'Reine',            price: 1500, body: '#ffd34d', stripe: '#5a2d0c', crown: 1 },
+  { id: 'night',  en: 'Night Bee',   fr: 'Abeille de nuit',  price: 1800, body: '#5b4ba8', stripe: '#ffd166', star: 1 },
+  { id: 'robot',  en: 'Robo Bee',    fr: 'Robo-abeille',     price: 2200, body: '#c9d3df', stripe: '#5b6b7d', robot: 1 },
+  { id: 'rainbow',en: 'Rainbow Bee', fr: 'Arc-en-ciel',      price: 3000, body: '#ffffff', stripe: '#ff6b8a', rainbow: 1 },
+];
+const COLORS = [
+  { id: 'honey', en: 'Honey', fr: 'Miel',      price: 0,   c: '#f6b13b' },
+  { id: 'mint',  en: 'Mint',  fr: 'Menthe',    price: 200, c: '#4fc796' },
+  { id: 'berry', en: 'Berry', fr: 'Petit fruit', price: 200, c: '#e8628a' },
+  { id: 'sky',   en: 'Sky',   fr: 'Ciel',      price: 200, c: '#5aa9e6' },
+  { id: 'lav',   en: 'Lavender', fr: 'Lavande', price: 300, c: '#a985e0' },
+  { id: 'peach', en: 'Peach', fr: 'Pêche',     price: 300, c: '#f79d65' },
+  { id: 'lime',  en: 'Lime',  fr: 'Lime',      price: 300, c: '#8cc63f' },
+  { id: 'rose',  en: 'Rose',  fr: 'Rose',      price: 400, c: '#f07fbf' },
+  { id: 'teal',  en: 'Teal',  fr: 'Sarcelle',  price: 400, c: '#2fb0b0' },
+  { id: 'coral', en: 'Coral', fr: 'Corail',    price: 500, c: '#ff7466' },
+];
+const BOT_EXTRA_COLORS = ['#c49a6c', '#8fa3b8', '#d4a5ff', '#b5d65b', '#ff9fb2', '#7fc8e8'];
+const BOT_NAMES = ['Bzzbert', 'Honeypie', 'Clover', 'Waggle', 'Pollen Polly', 'Sir Buzzalot', 'Nectarine', 'Bumbly',
+  'Queenie', 'Fuzzy', 'Dandy', 'Combsy', 'Sunny', 'Wax Max', 'Bea', 'Mellie', 'Stripes', 'Buttercup', 'Dottie', 'Zippy'];
+const nm = o => o[LANG] || o.en;
+const beeById = id => BEES.find(b => b.id === id) || BEES[0];
+const colById = id => COLORS.find(c => c.id === id) || COLORS[0];
+
+/* ══ SAVE (kept on the phone) ═════════════════════════════════════════ */
+const params = new URLSearchParams(location.search);
+const SAVE_KEY = 'stws-buzzio-v1' + (params.get('prefix') ? ':' + params.get('prefix') : '');
+const save = {
+  honey: 0, xp: 0, level: 1, best: 0, games: 0,
+  bees: ['honey'], colors: ['honey'], bee: 'honey', color: 'honey',
+  sound: true, music: true, lang: null, easy: false, daily: { last: '', streak: 0 },
+};
+try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (s) Object.assign(save, s); } catch (e) {}
+function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
+LANG = save.lang || ((navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en');
+if (params.get('mute') === '1') { save.sound = false; save.music = false; }
+document.body.classList.toggle('easy', !!save.easy);
+const xpNeed = l => 80 + l * 40;
+const todayStr = (d = new Date()) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+
+/* ══ small helpers ════════════════════════════════════════════════════ */
+const $ = s => document.querySelector(s);
+const rand = (a, b) => a + Math.random() * (b - a);
+const randi = (a, b) => Math.floor(rand(a, b + 1));
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const TAU = Math.PI * 2;
+const angDiff = (a, b) => { let d = (a - b) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
+function shade(hex, amt) { // amt > 0 lighter, < 0 darker
+  const n = parseInt(hex.slice(1), 16); let r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  if (amt > 0) { r += (255 - r) * amt; g += (255 - g) * amt; b += (255 - b) * amt; }
+  else { r *= 1 + amt; g *= 1 + amt; b *= 1 + amt; }
+  return 'rgb(' + (r | 0) + ',' + (g | 0) + ',' + (b | 0) + ')';
+}
+function emit(ev, payload = {}) {
+  if (window.parent !== window) {
+    try { window.parent.postMessage(Object.assign({ source: 'stws-puzzle', game: 'buzzio', event: ev }, payload), '*'); } catch (e) {}
+  }
+}
+
+/* ══ HEX GRID (pointy-top hexes, axial q/r) ═══════════════════════════ */
+const S = CONFIG.HEX, SQ3 = Math.sqrt(3), HEXW = S * SQ3; // HEXW = distance between neighbor centers
+const R = CONFIG.MAP_RADIUS, D = 2 * R + 1;
+const IDX = new Int32Array(D * D).fill(-1);
+const CQ = [], CR = [], CX = [], CY = [];
+let N = 0;
+for (let q = -R; q <= R; q++) {
+  for (let r = Math.max(-R, -q - R); r <= Math.min(R, -q + R); r++) {
+    IDX[(q + R) * D + (r + R)] = N; CQ.push(q); CR.push(r);
+    CX.push(HEXW * (q + r / 2)); CY.push(S * 1.5 * r); N++;
+  }
+}
+const idxAt = (q, r) => (q < -R || q > R || r < -R || r > R) ? -1 : IDX[(q + R) * D + (r + R)];
+const NB = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
+const NEI = [], EDGE = [];
+const hexLen = (q, r) => (Math.abs(q) + Math.abs(r) + Math.abs(q + r)) / 2;
+for (let c = 0; c < N; c++) {
+  const l = [];
+  for (const [dq, dr] of NB) { const n = idxAt(CQ[c] + dq, CR[c] + dr); if (n >= 0) l.push(n); }
+  NEI.push(l);
+  if (hexLen(CQ[c], CR[c]) === R) EDGE.push(c);
+}
+function cellAt(x, y) { // world pixel → cell index (or -1 outside the map)
+  const qf = (SQ3 / 3 * x - y / 3) / S, rf = (2 / 3 * y) / S, sf = -qf - rf;
+  let q = Math.round(qf), r = Math.round(rf); const s = Math.round(sf);
+  const dq = Math.abs(q - qf), dr = Math.abs(r - rf), ds = Math.abs(s - sf);
+  if (dq > dr && dq > ds) q = -r - s; else if (dr > ds) r = -q - s;
+  return idxAt(q, r);
+}
+const cellDist = (a, b) => hexLen(CQ[a] - CQ[b], CR[a] - CR[b]);
+function cellsAround(c, rad) {
+  const out = [];
+  for (let dq = -rad; dq <= rad; dq++) for (let dr = Math.max(-rad, -dq - rad); dr <= Math.min(rad, -dq + rad); dr++) {
+    const n = idxAt(CQ[c] + dq, CR[c] + dr); if (n >= 0) out.push(n);
+  }
+  return out;
+}
+
+/* ══ WORLD ════════════════════════════════════════════════════════════ */
+const owner = new Int16Array(N);  // who owns each cell (-1 = nobody)
+const trail = new Int16Array(N);  // whose trail is on each cell (-1 = none)
+const item = new Int8Array(N);    // 0 none · 1 flower · 2 speed · 3 shield · 4 magnet · 5 swarm
+let ents = [], player = null, minis = [], parts = [], pops = [];
+let state = 'menu';   // menu · play · pause · dead
+let T = 0, runTime = 0, roundHoney = 0, peak = 0, kills = 0;
+let reviveUsed = false, doubleUsed = false, pendingPower = 0, banked = { honey: 0, xp: 0 };
+let pwTimer = 0, flowerTimer = 0, magnetScan = 0, lastDeath = null, swiped = false;
+const cam = { x: 0, y: 0 }; let shake = 0;
+
+function setOwner(c, id) {
+  const o = owner[c]; if (o === id) return;
+  if (o >= 0) ents[o].cells--;
+  owner[c] = id; if (id >= 0) ents[id].cells++;
+}
+function pct(e) { return e.cells / N * 100; }
+function fmtPct(p) { return (p < 10 ? p.toFixed(1) : Math.round(p)) + '%'; }
+
+function makeEnt(id, bot) {
+  return { id, bot, name: '', color: '#f6b13b', skin: BEES[0], x: 0, y: 0, ang: 0, tgt: 0, alive: false,
+    cells: 0, trail: [], cell: -1, kills: 0, shieldT: 0, speedT: 0, magnetT: 0, respawnT: 0, flap: rand(0, 9),
+    ai: { mode: 'home', think: 0, wait: 0, dir: 0, leg: 0, legLen: 4, turnSign: 1, aggr: .2, maxLeg: 6, maxTrail: 22, caution: 4, spd: 1 } };
+}
+function paintEnt(e) { e.light = shade(e.color, .22); e.dark = shade(e.color, -.25); e.trailCol = shade(e.color, .42); }
+
+function findSpawn() {
+  const need = CONFIG.START_RADIUS + 2;
+  for (let k = 0; k < 80; k++) {
+    const c = randi(0, N - 1);
+    if (hexLen(CQ[c], CR[c]) > R - need) continue;
+    if (cellsAround(c, need).every(n => owner[n] < 0 && trail[n] < 0)) return c;
+  }
+  let bestC = 0, bestScore = 1e9; // fallback: least crowded spot
+  for (let k = 0; k < 60; k++) {
+    const c = randi(0, N - 1); if (hexLen(CQ[c], CR[c]) > R - need) continue;
+    const sc = cellsAround(c, need).filter(n => owner[n] >= 0 || trail[n] >= 0).length;
+    if (sc < bestScore) { bestScore = sc; bestC = c; }
+  }
+  return bestC;
+}
+function placeHome(e, c) {
+  for (const n of cellsAround(c, CONFIG.START_RADIUS)) {
+    if (trail[n] >= 0) { const v = ents[trail[n]]; if (v && v !== e) killEnt(v, null, 'lost'); }
+    setOwner(n, e.id); item[n] = 0;
+  }
+  e.x = CX[c]; e.y = CY[c]; e.cell = c; e.trail = []; e.alive = true;
+  e.ang = e.tgt = rand(0, TAU);
+}
+function usedColors() { return ents.filter(e => e.alive || e === player).map(e => e.color); }
+function setupBot(e) {
+  const taken = new Set(ents.filter(o => o !== e && o.alive).map(o => o.name));
+  const free = BOT_NAMES.filter(n => !taken.has(n));
+  e.name = free[randi(0, free.length - 1)] || 'Bee';
+  const pcol = player ? player.color : null, used = new Set(usedColors());
+  const pool = COLORS.map(c => c.c).concat(BOT_EXTRA_COLORS).filter(c => c !== pcol);
+  const fresh = pool.filter(c => !used.has(c));
+  e.color = (fresh.length ? fresh : pool)[randi(0, (fresh.length ? fresh : pool).length - 1)];
+  e.skin = BEES[randi(0, Math.min(BEES.length - 1, 2 + save.level))];
+  paintEnt(e);
+  const L = save.level;
+  Object.assign(e.ai, { mode: 'home', wait: rand(.2, 1), aggr: Math.min(.6, .14 + L * .03), maxLeg: randi(4, 6 + Math.min(6, L)),
+    maxTrail: 18 + Math.min(20, L * 2), caution: rand(2.5, 4.5), spd: rand(.92, 1.02) });
+  e.kills = 0; e.shieldT = e.speedT = e.magnetT = 0;
+}
+function respawnBot(e) { setupBot(e); placeHome(e, findSpawn()); }
+
+function newWorld(withPlayer) {
+  owner.fill(-1); trail.fill(-1); item.fill(0);
+  ents = []; minis = []; parts = []; pops = []; player = null;
+  if (withPlayer) {
+    player = makeEnt(0, false); player.isPlayer = true; player.name = t('you');
+    player.color = colById(save.color).c; player.skin = beeById(save.bee); paintEnt(player);
+    ents.push(player);
+  }
+  const nBots = withPlayer
+    ? Math.min(CONFIG.BOTS_MAX, CONFIG.BOTS_START + Math.floor((save.level - 1) / CONFIG.BOTS_EVERY_LEVELS))
+    : 7;
+  for (let i = 0; i < nBots; i++) ents.push(makeEnt(ents.length, true));
+  if (player) {
+    let c = idxAt(randi(-4, 4), randi(-4, 4)); if (c < 0) c = idxAt(0, 0);
+    placeHome(player, c);
+  }
+  for (const e of ents) if (e.bot) { setupBot(e); placeHome(e, findSpawn()); }
+  for (let i = 0; i < CONFIG.FLOWERS_ON_MAP; i++) spawnItem(1);
+  for (let i = 0; i < CONFIG.POWERUPS_ON_MAP; i++) spawnItem(randi(2, 5));
+  if (player) { cam.x = player.x; cam.y = player.y; }
+}
+function spawnItem(kind) {
+  for (let k = 0; k < 30; k++) {
+    const c = randi(0, N - 1);
+    if (item[c] || trail[c] >= 0 || hexLen(CQ[c], CR[c]) > R - 1) continue;
+    if (kind > 1 && owner[c] >= 0) continue; // power-ups sit on free wax
+    item[c] = kind; return;
+  }
+}
+
+// ── an entity flies into a new cell
+function enterCell(e, c) {
+  e.cell = c;
+  const tr = trail[c];
+  if (tr >= 0) {
+    if (tr === e.id) { if (e.shieldT <= 0) { killEnt(e, null, 'self'); return; } }
+    else { const v = ents[tr]; if (v.alive) killEnt(v, e, 'cut'); }
+  }
+  if (!e.alive) return;
+  if (owner[c] === e.id) { if (e.trail.length) capture(e); }
+  else if (trail[c] !== e.id) { trail[c] = e.id; e.trail.push(c); }
+  if (e === player) pickup(c);
+}
+
+// ── closing a loop: the trail + everything inside it becomes yours
+function capture(e) {
+  const before = e.cells, newly = [];
+  for (const c of e.trail) { if (trail[c] === e.id) trail[c] = -1; setOwner(c, e.id); newly.push(c); }
+  e.trail = [];
+  const seen = new Uint8Array(N), st = [];
+  for (const c of EDGE) if (owner[c] !== e.id) { seen[c] = 1; st.push(c); }
+  while (st.length) { const c = st.pop(); for (const n of NEI[c]) if (!seen[n] && owner[n] !== e.id) { seen[n] = 1; st.push(n); } }
+  const victims = new Set();
+  for (let c = 0; c < N; c++) if (!seen[c] && owner[c] !== e.id) {
+    if (trail[c] >= 0 && trail[c] !== e.id) victims.add(trail[c]);
+    setOwner(c, e.id); newly.push(c);
+  }
+  if (e.magnetT > 0) { // magnet: grab one extra ring around the new land
+    const extra = [];
+    for (const c of newly) for (const n of NEI[c]) if (owner[n] !== e.id && trail[n] < 0) { setOwner(n, e.id); extra.push(n); }
+    newly.push(...extra);
+  }
+  if (e === player) {
+    let fl = 0;
+    for (const c of newly) if (item[c] === 1) { item[c] = 0; fl++; addPop(CX[c], CY[c], '🌼+' + CONFIG.FLOWER_HONEY, '#e8862a'); }
+    if (fl) { roundHoney += fl * CONFIG.FLOWER_HONEY; bumpChip('cHoney'); }
+    const gain = (e.cells - before) / N * 100;
+    for (let i = 0; i < Math.min(40, newly.length); i++) {
+      const c = newly[randi(0, newly.length - 1)];
+      parts.push({ x: CX[c], y: CY[c], vx: rand(-30, 30), vy: rand(-70, -20), life: .7, max: .7, col: e.light, sz: rand(3, 6) });
+    }
+    if (gain > 0.05) { addPop(e.x, e.y - S * 1.6, '+' + gain.toFixed(1) + '%', e.dark, 1.3); bumpChip('cLand'); }
+    sfx.capture(Math.min(1, newly.length / 60));
+  }
+  for (const v of victims) { const ve = ents[v]; if (ve.alive) killEnt(ve, e, 'trapped'); }
+  for (const o of ents) if (o.alive && o !== e && o.cells === 0) killEnt(o, e, 'lost');
+}
+
+function killEnt(v, by, cause) {
+  if (!v.alive) return false;
+  if (v.shieldT > 0 && cause !== 'lost') return false;
+  v.alive = false;
+  for (const c of v.trail) if (trail[c] === v.id) trail[c] = -1;
+  v.trail = [];
+  for (let i = 0; i < 26; i++) {
+    const a = rand(0, TAU), sp = rand(40, 160);
+    parts.push({ x: v.x, y: v.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .8, max: .8, col: i % 2 ? v.color : '#fff3c4', sz: rand(3, 7) });
+  }
+  if (by && by !== v) {
+    by.kills++;
+    if (by === player) {
+      kills++; roundHoney += CONFIG.KILL_HONEY; bumpChip('cHoney');
+      addPop(v.x, v.y - S, '✂️ +' + CONFIG.KILL_HONEY, '#e8862a', 1.2);
+      shake = Math.max(shake, 6); sfx.kill(); buzz(25);
+    }
+  }
+  const msg = cause === 'self' ? t('feedSelf', { a: v.name })
+    : cause === 'trapped' ? t('feedTrap', { a: by ? by.name : '?', b: v.name })
+    : by ? t('feedCut', { a: by.name, b: v.name }) : t('feedSelf', { a: v.name });
+  if (state === 'play' && (v === player || by === player || Math.random() < .6)) feed(msg);
+  if (v.bot) {
+    for (let c = 0; c < N; c++) if (owner[c] === v.id) setOwner(c, -1);
+    v.respawnT = CONFIG.BOT_RESPAWN;
+  } else {
+    lastDeath = { cause, by: by ? by.name : '' };
+    shake = 12; sfx.die(); buzz(120);
+    setTimeout(playerDied, 650);
+    state = 'dying';
+  }
+  return true;
+}
+
+function pickup(c) {
+  const k = item[c]; if (!k) return;
+  item[c] = 0;
+  if (k === 1) { roundHoney += CONFIG.FLOWER_HONEY; bumpChip('cHoney'); addPop(CX[c], CY[c], '🌼+' + CONFIG.FLOWER_HONEY, '#e8862a'); sfx.pick(); }
+  else givePower(k);
+}
+function givePower(k) {
+  if (k === 2) player.speedT = CONFIG.SPEED_TIME;
+  if (k === 3) player.shieldT = CONFIG.SHIELD_TIME;
+  if (k === 4) player.magnetT = CONFIG.MAGNET_TIME;
+  if (k === 5) for (let i = 0; i < CONFIG.SWARM_BEES; i++)
+    minis.push({ x: player.x, y: player.y, life: CONFIG.SWARM_TIME, tgt: -1, ph: i / CONFIG.SWARM_BEES * TAU, ang: 0 });
+  addPop(player.x, player.y - S * 1.8, PW_ICON[k] + ' ' + pwName(k) + '!', PW_COL[k], 1.4);
+  sfx.power(); buzz(20);
+}
+
+// ── movement
+function move(e, dt) {
+  const base = e.bot ? CONFIG.BOT_SPEED * e.ai.spd : CONFIG.PLAYER_SPEED;
+  const sp = base * (e.speedT > 0 ? CONFIG.SPEED_BOOST : 1) * HEXW;
+  const turn = (e.bot ? CONFIG.BOT_TURN : CONFIG.PLAYER_TURN) * dt;
+  e.ang += clamp(angDiff(e.tgt, e.ang), -turn, turn);
+  const nx = e.x + Math.cos(e.ang) * sp * dt, ny = e.y + Math.sin(e.ang) * sp * dt;
+  const c = cellAt(nx, ny);
+  if (c < 0) { // honeycomb edge: slide back toward the middle
+    const inward = Math.atan2(-e.y, -e.x);
+    e.ang += clamp(angDiff(inward, e.ang), -.35, .35);
+    if (!e.bot) e.tgt = e.ang + clamp(angDiff(inward, e.ang), -1.2, 1.2) * .5;
+    return;
+  }
+  e.x = nx; e.y = ny;
+  if (c !== e.cell) enterCell(e, c);
+}
+
+/* ══ BOTS ═════════════════════════════════════════════════════════════ */
+function nearestOwn(b) {
+  let best = -1, bd = 1e9;
+  for (let c = 0; c < N; c++) if (owner[c] === b.id) {
+    const d = (CX[c] - b.x) ** 2 + (CY[c] - b.y) ** 2; if (d < bd) { bd = d; best = c; }
+  }
+  return best;
+}
+function homeCenter(b) {
+  let sx = 0, sy = 0, n = 0;
+  for (let c = 0; c < N; c += 1) if (owner[c] === b.id) { sx += CX[c]; sy += CY[c]; n++; }
+  return n ? { x: sx / n, y: sy / n } : { x: b.x, y: b.y };
+}
+function probeOK(b, a) {
+  for (const k of [.6, 1.2, 2]) {
+    const c = cellAt(b.x + Math.cos(a) * HEXW * k, b.y + Math.sin(a) * HEXW * k);
+    if (c < 0) return false;
+    if (trail[c] === b.id && c !== b.cell) return false;
+  }
+  return true;
+}
+const OFFS = [0, .5, -.5, 1, -1, 1.5, -1.5, 2, -2, 2.6, -2.6, Math.PI];
+function safeAngle(b, want) { for (const o of OFFS) if (probeOK(b, want + o)) return want + o; return want; }
+
+function botThink(b, dt) {
+  const ai = b.ai, tl = b.trail.length;
+  // danger: an enemy head close to my trail → hurry home
+  let danger = false;
+  if (tl > 0) {
+    for (const o of ents) {
+      if (o === b || !o.alive) continue;
+      for (let i = 0; i < tl; i += 3) {
+        const c = b.trail[i];
+        if (Math.hypot(o.x - CX[c], o.y - CY[c]) < ai.caution * HEXW) { danger = true; break; }
+      }
+      if (danger) break;
+    }
+  }
+  if (tl === 0 && owner[b.cell] === b.id) {
+    if (ai.mode === 'return' || ai.mode === 'home') {
+      if (ai.mode === 'return') { ai.mode = 'home'; ai.wait = rand(.2, 1.4); }
+      ai.wait -= .15;
+      if (ai.wait <= 0) {
+        const hc = homeCenter(b);
+        const out = Math.hypot(b.x - hc.x, b.y - hc.y) > 4 ? Math.atan2(b.y - hc.y, b.x - hc.x) : rand(0, TAU);
+        ai.mode = 'out'; ai.dir = out + rand(-.9, .9); ai.leg = 0; ai.legLen = randi(2, ai.maxLeg); ai.turnSign = Math.random() < .5 ? 1 : -1;
+      } else {
+        const hc = homeCenter(b);
+        b.tgt = safeAngle(b, Math.atan2(hc.y - b.y, hc.x - b.x) + rand(-1, 1));
+        return;
+      }
+    }
+  }
+  if (ai.mode === 'out') {
+    if (tl >= ai.legLen * (ai.leg + 1)) { ai.leg++; ai.dir += ai.turnSign * Math.PI * rand(.42, .62); }
+    if (ai.leg >= 3 || tl > ai.maxTrail || danger) ai.mode = 'return';
+  }
+  let want = ai.dir;
+  if (ai.mode === 'return') {
+    const c = nearestOwn(b);
+    want = c >= 0 ? Math.atan2(CY[c] - b.y, CX[c] - b.x) : ai.dir;
+  }
+  // chance to attack a nearby trail
+  if (!danger || tl < 3) {
+    let tgt = -1, td = 1e9;
+    for (const o of ents) {
+      if (o === b || !o.alive || !o.trail.length || o.shieldT > 0) continue;
+      for (let i = 0; i < o.trail.length; i += 2) {
+        const c = o.trail[i], d = Math.hypot(CX[c] - b.x, CY[c] - b.y);
+        if (d < td) { td = d; tgt = c; }
+      }
+    }
+    if (tgt >= 0 && td < 4.5 * HEXW && Math.random() < ai.aggr) want = Math.atan2(CY[tgt] - b.y, CX[tgt] - b.x);
+  }
+  b.tgt = safeAngle(b, want);
+}
+
+/* ══ the game loop: update ════════════════════════════════════════════ */
+function step(dt) {
+  T += dt;
+  const live = state === 'play' || state === 'menu' || state === 'dying';
+  if (live) {
+    for (const e of ents) {
+      if (!e.alive) { if (e.bot) { e.respawnT -= dt; if (e.respawnT <= 0) respawnBot(e); } continue; }
+      if (e === player && state === 'dying') continue;
+      e.shieldT = Math.max(0, e.shieldT - dt); e.speedT = Math.max(0, e.speedT - dt); e.magnetT = Math.max(0, e.magnetT - dt);
+      if (e.bot) { e.ai.think -= dt; if (e.ai.think <= 0) { e.ai.think = rand(.12, .2); botThink(e); } }
+      move(e, dt);
+    }
+    // keep flowers and power-ups on the map
+    flowerTimer -= dt; pwTimer -= dt;
+    if (flowerTimer <= 0) { flowerTimer = 1.5; let n = 0; for (let c = 0; c < N; c++) if (item[c] === 1) n++; if (n < CONFIG.FLOWERS_ON_MAP) spawnItem(1); }
+    if (pwTimer <= 0) { pwTimer = CONFIG.POWERUP_RESPAWN; let n = 0; for (let c = 0; c < N; c++) if (item[c] > 1) n++; if (n < CONFIG.POWERUPS_ON_MAP) spawnItem(randi(2, 5)); }
+  }
+  if (state === 'play' && player.alive) {
+    runTime += dt;
+    roundHoney += player.cells * CONFIG.HONEY_PER_CELL * dt;
+    const p = pct(player); if (p > peak) peak = p;
+    // magnet pulls flowers in
+    if (player.magnetT > 0 && (magnetScan -= dt) <= 0) {
+      magnetScan = .25;
+      const near = cellsAround(player.cell, CONFIG.MAGNET_RANGE);
+      for (const c of near) if (item[c] === 1) {
+        item[c] = 0; roundHoney += CONFIG.FLOWER_HONEY;
+        parts.push({ x: CX[c], y: CY[c], fly: player, life: .5, max: .5, col: '#ffd34d', sz: 7 });
+        sfx.pick(); bumpChip('cHoney');
+      }
+    }
+    updateMinis(dt);
+  }
+  // particles + pop text
+  for (const p of parts) {
+    p.life -= dt;
+    if (p.fly) { p.x += (p.fly.x - p.x) * Math.min(1, dt * 9); p.y += (p.fly.y - p.y) * Math.min(1, dt * 9); }
+    else { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; }
+  }
+  parts = parts.filter(p => p.life > 0);
+  for (const p of pops) { p.life -= dt; p.y -= 28 * dt; }
+  pops = pops.filter(p => p.life > 0);
+  // camera
+  if (player && state !== 'menu') {
+    const k = Math.min(1, dt * 6); cam.x += (player.x - cam.x) * k; cam.y += (player.y - cam.y) * k;
+  } else { cam.x = Math.cos(T * .07) * R * HEXW * .35; cam.y = Math.sin(T * .09) * R * S * .4; }
+  shake = Math.max(0, shake - dt * 30);
+  if (state === 'play') hudTick(dt);
+}
+
+function updateMinis(dt) {
+  for (const m of minis) {
+    m.life -= dt;
+    let tg = m.tgt >= 0 ? ents[m.tgt] : null;
+    if (!tg || !tg.alive || !tg.trail.length) {
+      m.tgt = -1; let bd = 14 * HEXW;
+      for (const o of ents) if (o.bot && o.alive && o.trail.length && o.shieldT <= 0) {
+        const d = Math.hypot(o.x - player.x, o.y - player.y); if (d < bd) { bd = d; m.tgt = o.id; }
+      }
+      tg = m.tgt >= 0 ? ents[m.tgt] : null;
+    }
+    let tx, ty;
+    if (tg) {
+      let bc = -1, bd = 1e9;
+      for (const c of tg.trail) { const d = Math.hypot(CX[c] - m.x, CY[c] - m.y); if (d < bd) { bd = d; bc = c; } }
+      tx = CX[bc]; ty = CY[bc];
+      if (bd < HEXW * .4) {
+        if (killEnt(tg, player, 'cut')) feed(t('swarmCut', { b: tg.name }));
+        m.life = 0;
+        for (let i = 0; i < 10; i++) parts.push({ x: m.x, y: m.y, vx: rand(-60, 60), vy: rand(-80, 0), life: .5, max: .5, col: '#ffd34d', sz: 4 });
+        continue;
+      }
+    } else { m.ph += dt * 3; tx = player.x + Math.cos(m.ph) * HEXW * 1.3; ty = player.y + Math.sin(m.ph) * HEXW * 1.3; }
+    const a = Math.atan2(ty - m.y, tx - m.x), d = Math.hypot(tx - m.x, ty - m.y);
+    const sp = Math.min(d, (tg ? 9 : 7) * HEXW * dt);
+    m.x += Math.cos(a) * sp; m.y += Math.sin(a) * sp; m.ang = a;
+  }
+  minis = minis.filter(m => m.life > 0);
+}
+
+/* ══ DRAW ═════════════════════════════════════════════════════════════ */
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let VW = 0, VH = 0, DPR = 1;
+function resize() {
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  VW = window.innerWidth; VH = window.innerHeight;
+  cv.width = Math.round(VW * DPR); cv.height = Math.round(VH * DPR);
+}
+window.addEventListener('resize', resize); resize();
+function hexPath(size) {
+  const p = new Path2D();
+  for (let i = 0; i < 6; i++) { const a = Math.PI / 180 * (60 * i - 30); const x = size * Math.cos(a), y = size * Math.sin(a); i ? p.lineTo(x, y) : p.moveTo(x, y); }
+  p.closePath(); return p;
+}
+const HX = hexPath(S - .8), HX_IN = hexPath(S * .62), HX_TR = hexPath(S * .78), HX_BIG = hexPath((R + .75) * HEXW);
+const WAX = '#fdf0c8', WAX_IN = '#fff8e2', WAX_LINE = '#ecd08a';
+// meadow decoration around the honeycomb
+const DECOR = [];
+for (let i = 0; i < 260; i++) {
+  const a = rand(0, TAU), d = rand(R + 2, R + 22) * HEXW;
+  DECOR.push({ x: Math.cos(a) * d, y: Math.sin(a) * d, k: randi(0, 3), s: rand(.7, 1.3) });
+}
+
+function draw() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = '#bfe3a0'; ctx.fillRect(0, 0, VW, VH);
+  const sc = Math.min(VW, 520) / (CONFIG.VIEW_HEXES * HEXW) * (VW > 520 ? 1.15 : 1);
+  const sx = shake ? rand(-shake, shake) : 0, sy = shake ? rand(-shake, shake) : 0;
+  ctx.translate(VW / 2 + sx, VH / 2 + sy); ctx.scale(sc, sc); ctx.translate(-cam.x, -cam.y);
+  const hw = VW / 2 / sc + HEXW * 2, hh = VH / 2 / sc + HEXW * 2;
+  const vis = (x, y, m = 0) => x > cam.x - hw - m && x < cam.x + hw + m && y > cam.y - hh - m && y < cam.y + hh + m;
+
+  // meadow
+  for (const d of DECOR) if (vis(d.x, d.y)) drawDecor(d);
+  // honeycomb plate
+  ctx.save(); ctx.rotate(Math.PI / 6);
+  ctx.fillStyle = 'rgba(120,80,20,.18)'; ctx.translate(0, 10); ctx.fill(HX_BIG); ctx.translate(0, -10);
+  ctx.fillStyle = WAX_LINE; ctx.fill(HX_BIG);
+  ctx.restore();
+
+  // cells
+  for (let c = 0; c < N; c++) {
+    const x = CX[c], y = CY[c]; if (!vis(x, y)) continue;
+    const o = owner[c];
+    ctx.translate(x, y);
+    if (o < 0) { ctx.fillStyle = WAX; ctx.fill(HX); ctx.fillStyle = WAX_IN; ctx.fill(HX_IN); }
+    else { const e = ents[o]; ctx.fillStyle = e.color; ctx.fill(HX); ctx.fillStyle = e.light; ctx.fill(HX_IN); }
+    ctx.translate(-x, -y);
+  }
+  // trails
+  for (const e of ents) {
+    if (!e.alive || !e.trail.length) continue;
+    ctx.fillStyle = e.trailCol;
+    for (const c of e.trail) { if (!vis(CX[c], CY[c])) continue; ctx.translate(CX[c], CY[c]); ctx.fill(HX_TR); ctx.translate(-CX[c], -CY[c]); }
+    ctx.strokeStyle = e.dark; ctx.lineWidth = S * .32; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.setLineDash([S * .55, S * .45]); ctx.lineDashOffset = -T * 30;
+    ctx.beginPath(); ctx.moveTo(CX[e.trail[0]], CY[e.trail[0]]);
+    for (let i = 1; i < e.trail.length; i++) ctx.lineTo(CX[e.trail[i]], CY[e.trail[i]]);
+    ctx.lineTo(e.x, e.y); ctx.stroke(); ctx.setLineDash([]);
+  }
+  // items
+  for (let c = 0; c < N; c++) {
+    const k = item[c]; if (!k || !vis(CX[c], CY[c])) continue;
+    const bob = Math.sin(T * 3 + c) * 2;
+    if (k === 1) drawFlower(CX[c], CY[c] + bob, S * .68, c);
+    else drawPower(CX[c], CY[c] + bob, k);
+  }
+  // bees
+  for (const e of ents) {
+    if (!e.alive && !(e === player && state === 'dying')) continue;
+    if (!vis(e.x, e.y, 40)) continue;
+    if (e === player && state === 'dying' && Math.floor(T * 12) % 2) continue;
+    drawBeeAt(e);
+  }
+  for (const m of minis) { ctx.save(); ctx.translate(m.x, m.y); drawBee(ctx, m.ang, player.skin, T * 1.6, S * .26); ctx.restore(); }
+  // particles
+  for (const p of parts) {
+    ctx.globalAlpha = clamp(p.life / p.max, 0, 1); ctx.fillStyle = p.col;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.sz * (p.fly ? 1 : .5 + p.life / p.max * .5), 0, TAU); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // pop text
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const p of pops) {
+    const k = clamp(p.life / p.max, 0, 1), s = p.big * (1 + (1 - k) * .1) * (k > .85 ? 1 + (k - .85) * 3 : 1);
+    ctx.globalAlpha = Math.min(1, k * 2);
+    ctx.font = '900 ' + Math.round(17 * s) + 'px ' + FONT;
+    ctx.lineWidth = 5; ctx.strokeStyle = '#fff'; ctx.strokeText(p.text, p.x, p.y);
+    ctx.fillStyle = p.col; ctx.fillText(p.text, p.x, p.y);
+  }
+  ctx.globalAlpha = 1;
+}
+let FONT = '';
+function drawDecor(d) {
+  ctx.save(); ctx.translate(d.x, d.y); ctx.scale(d.s, d.s);
+  if (d.k === 0) { ctx.fillStyle = '#a7d68a'; ctx.beginPath(); ctx.ellipse(0, 0, 14, 7, 0, 0, TAU); ctx.fill(); }
+  else if (d.k === 1) { ctx.strokeStyle = '#8cc56f'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-4, 6); ctx.lineTo(-6, -6); ctx.moveTo(0, 6); ctx.lineTo(0, -9); ctx.moveTo(4, 6); ctx.lineTo(6, -5); ctx.stroke(); }
+  else drawFlower(0, 0, 9, d.x | 0, d.k === 2 ? '#fff' : '#ffb3c7');
+  ctx.restore();
+}
+function drawFlower(x, y, r, seed, petal) {
+  const pc = petal || ['#fff', '#ffb3c7', '#c9b6ff', '#a8e0ff'][Math.abs(seed) % 4];
+  ctx.fillStyle = pc;
+  for (let i = 0; i < 5; i++) { const a = i / 5 * TAU + T * .4; ctx.beginPath(); ctx.arc(x + Math.cos(a) * r * .62, y + Math.sin(a) * r * .62, r * .48, 0, TAU); ctx.fill(); }
+  ctx.fillStyle = '#ffc93c'; ctx.beginPath(); ctx.arc(x, y, r * .42, 0, TAU); ctx.fill();
+}
+function drawPower(x, y, k) {
+  const pulse = 1 + Math.sin(T * 5) * .06;
+  ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.arc(x, y, S * .9 * pulse, 0, TAU); ctx.fill();
+  ctx.fillStyle = PW_COL[k]; ctx.beginPath(); ctx.arc(x, y, S * .72 * pulse, 0, TAU); ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.font = Math.round(S * .8) + 'px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(PW_ICON[k], x, y + 1);
+}
+function drawBeeAt(e) {
+  ctx.save(); ctx.translate(e.x, e.y);
+  ctx.fillStyle = 'rgba(80,50,10,.18)'; ctx.beginPath(); ctx.ellipse(0, S * .55, S * .6, S * .2, 0, 0, TAU); ctx.fill();
+  const bob = Math.sin(T * 8 + e.flap) * 2;
+  ctx.translate(0, bob - 4);
+  drawBee(ctx, e.ang, e.skin, T + e.flap, S * .8);
+  if (e.shieldT > 0) {
+    ctx.globalAlpha = e.shieldT < 1.2 && Math.floor(T * 10) % 2 ? .25 : .55;
+    ctx.strokeStyle = '#6cc7f0'; ctx.lineWidth = 3; ctx.fillStyle = 'rgba(160,225,255,.25)';
+    ctx.beginPath(); ctx.arc(0, 0, S * 1.35, 0, TAU); ctx.fill(); ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  if (e.speedT > 0 && Math.random() < .5) parts.push({ x: e.x - Math.cos(e.ang) * S, y: e.y - Math.sin(e.ang) * S, vx: 0, vy: 0, life: .3, max: .3, col: '#ffe680', sz: 4 });
+  ctx.restore();
+  if (e.bot) {
+    ctx.font = '900 12px ' + FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 3.5; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.strokeText(e.name, e.x, e.y - S * 1.55);
+    ctx.fillStyle = e.dark; ctx.fillText(e.name, e.x, e.y - S * 1.55);
+  }
+}
+// The bee: always upright and cute, facing the way it flies.
+function drawBee(g, ang, sk, tm, sz) {
+  const face = Math.cos(ang) >= 0 ? 1 : -1;
+  g.save(); g.scale(face, 1); g.rotate(Math.sin(ang) * .35);
+  const flap = .35 + Math.abs(Math.sin(tm * 26)) * .65;
+  // back wing
+  g.fillStyle = 'rgba(255,255,255,.7)'; g.strokeStyle = 'rgba(140,190,230,.9)'; g.lineWidth = Math.max(1, sz * .07);
+  g.beginPath(); g.ellipse(-sz * .35, -sz * .8, sz * .42, sz * .62 * flap, -.5, 0, TAU); g.fill(); g.stroke();
+  // stinger
+  g.fillStyle = sk.stripe; g.beginPath(); g.moveTo(-sz * 1.0, -sz * .1); g.lineTo(-sz * 1.32, sz * .05); g.lineTo(-sz * 1.0, sz * .2); g.fill();
+  // body
+  g.save(); g.beginPath(); g.ellipse(-sz * .15, 0, sz * .95, sz * .74, 0, 0, TAU); g.fillStyle = sk.body; g.fill(); g.clip();
+  if (sk.rainbow) { const cs = ['#ff6b8a', '#ffb347', '#ffe066', '#7ed957', '#5ab8ff', '#a77cf2'];
+    for (let i = 0; i < 6; i++) { g.fillStyle = cs[i]; g.fillRect(-sz * 1.2 + i * sz * .34, -sz, sz * .34, sz * 2); } }
+  else { g.fillStyle = sk.stripe; for (const sx of [-.35, -.8]) g.fillRect(sx * sz - sz * .12, -sz, sz * .24, sz * 2); }
+  if (sk.shiny || sk.robot) { g.fillStyle = 'rgba(255,255,255,.45)'; g.beginPath(); g.ellipse(-sz * .1, -sz * .38, sz * .55, sz * .16, 0, 0, TAU); g.fill(); }
+  g.restore();
+  if (sk.fuzzy) { g.fillStyle = sk.body; for (let i = 0; i < 9; i++) { const a = i / 9 * TAU; g.beginPath(); g.arc(-sz * .15 + Math.cos(a) * sz * .92, Math.sin(a) * sz * .7, sz * .12, 0, TAU); g.fill(); } }
+  if (sk.star) { g.fillStyle = '#ffe680'; g.font = Math.round(sz * .5) + 'px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('✦', -sz * .6, -sz * .2); }
+  // head
+  const hx = sz * .78, hr = sz * .55;
+  g.fillStyle = sk.robot ? '#aab6c4' : sk.rainbow ? '#ffe066' : sk.body; g.beginPath(); g.arc(hx, -sz * .05, hr, 0, TAU); g.fill();
+  g.strokeStyle = 'rgba(60,40,20,.25)'; g.lineWidth = Math.max(1, sz * .06); g.stroke();
+  // antennae
+  g.strokeStyle = sk.stripe; g.lineWidth = Math.max(1, sz * .08); g.lineCap = 'round';
+  for (const o of [-.15, .2]) {
+    g.beginPath(); g.moveTo(hx + o * sz, -sz * .5); g.quadraticCurveTo(hx + o * sz + sz * .2, -sz * .95, hx + o * sz + sz * .38, -sz * .98); g.stroke();
+    g.fillStyle = sk.robot ? (Math.floor(tm * 3) % 2 ? '#ff5d5d' : '#ffb0b0') : sk.stripe;
+    g.beginPath(); g.arc(hx + o * sz + sz * .38, -sz * .98, sz * .1, 0, TAU); g.fill();
+  }
+  // eye + blush + smile
+  if (sk.robot) { g.fillStyle = '#2b3646'; g.fillRect(hx - sz * .05, -sz * .22, sz * .48, sz * .2); g.fillStyle = '#7ff0ff'; g.fillRect(hx + sz * .2, -sz * .18, sz * .12, sz * .12); }
+  else {
+    g.fillStyle = '#2a1c10'; g.beginPath(); g.arc(hx + sz * .22, -sz * .12, sz * .13, 0, TAU); g.fill();
+    g.fillStyle = '#fff'; g.beginPath(); g.arc(hx + sz * .26, -sz * .16, sz * .05, 0, TAU); g.fill();
+    g.fillStyle = 'rgba(255,120,140,.55)'; g.beginPath(); g.ellipse(hx + sz * .2, sz * .14, sz * .12, sz * .07, 0, 0, TAU); g.fill();
+    g.strokeStyle = '#2a1c10'; g.lineWidth = Math.max(1, sz * .06); g.beginPath(); g.arc(hx + sz * .36, sz * .02, sz * .12, .2, 1.8); g.stroke();
+  }
+  if (sk.crown) { g.fillStyle = '#ffcf3f'; g.strokeStyle = '#d99a14'; g.lineWidth = Math.max(1, sz * .05);
+    g.beginPath(); g.moveTo(hx - sz * .3, -sz * .5); g.lineTo(hx - sz * .3, -sz * .85); g.lineTo(hx - sz * .12, -sz * .66); g.lineTo(hx + sz * .02, -sz * .95);
+    g.lineTo(hx + sz * .16, -sz * .66); g.lineTo(hx + sz * .32, -sz * .85); g.lineTo(hx + sz * .32, -sz * .5); g.closePath(); g.fill(); g.stroke(); }
+  if (sk.scarf) { g.fillStyle = '#ff6b8a'; g.fillRect(hx - sz * .5, sz * .25, sz * .45, sz * .2); g.fillRect(hx - sz * .5, sz * .3, sz * .14, sz * .45); }
+  // front wing
+  g.fillStyle = 'rgba(255,255,255,.82)'; g.strokeStyle = 'rgba(140,190,230,.95)'; g.lineWidth = Math.max(1, sz * .07);
+  g.beginPath(); g.ellipse(-sz * .05, -sz * .78, sz * .45, sz * .7 * flap, .35, 0, TAU); g.fill(); g.stroke();
+  g.restore();
+}
+function addPop(x, y, text, col, big = 1) { pops.push({ x, y, text, col, life: 1.1, max: 1.1, big }); }
+
+/* ══ INPUT (swipe anywhere) ═══════════════════════════════════════════ */
+let touch = null;
+cv.addEventListener('pointerdown', e => { auUnlock(); touch = { x: e.clientX, y: e.clientY }; });
+window.addEventListener('pointermove', e => {
+  if (!touch || state !== 'play' || !player) return;
+  const dx = e.clientX - touch.x, dy = e.clientY - touch.y, d = Math.hypot(dx, dy);
+  if (d > 12) {
+    player.tgt = player.ang + angDiff(Math.atan2(dy, dx), player.ang);
+    if (!swiped) { swiped = true; $('#hint').hidden = true; }
+    if (d > 40) { touch.x = e.clientX - dx / d * 40; touch.y = e.clientY - dy / d * 40; }
+  }
+});
+window.addEventListener('pointerup', () => { touch = null; });
+window.addEventListener('pointercancel', () => { touch = null; });
+const keys = new Set();
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' || e.key === 'p') { if (state === 'play') pauseGame(); else if (state === 'pause') resumeGame(); return; }
+  keys.add(e.key.toLowerCase()); keyDir();
+});
+window.addEventListener('keyup', e => { keys.delete(e.key.toLowerCase()); });
+function keyDir() {
+  if (state !== 'play' || !player) return;
+  let x = 0, y = 0;
+  if (keys.has('arrowleft') || keys.has('a')) x--; if (keys.has('arrowright') || keys.has('d')) x++;
+  if (keys.has('arrowup') || keys.has('w')) y--; if (keys.has('arrowdown') || keys.has('s')) y++;
+  if (x || y) { player.tgt = player.ang + angDiff(Math.atan2(y, x), player.ang); swiped = true; $('#hint').hidden = true; }
+}
+
+/* ══ SOUND (tiny synth, no files) ═════════════════════════════════════ */
+const AU = { ctx: null, sfx: null, mus: null };
+function auUnlock() {
+  if (AU.ctx) { if (AU.ctx.state === 'suspended' && !adBusy) AU.ctx.resume(); return; }
+  try {
+    AU.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    AU.sfx = AU.ctx.createGain(); AU.sfx.connect(AU.ctx.destination);
+    AU.mus = AU.ctx.createGain(); AU.mus.connect(AU.ctx.destination);
+    applyVolumes();
+  } catch (e) {}
+}
+function applyVolumes() { if (!AU.ctx) return; AU.sfx.gain.value = save.sound ? .5 : 0; AU.mus.gain.value = save.music ? .22 : 0; }
+function tone(f, dur, type = 'sine', vol = .3, slide = 0, delay = 0, out) {
+  if (!AU.ctx) return;
+  const c = AU.ctx, o = c.createOscillator(), g = c.createGain(), t0 = c.currentTime + delay;
+  o.type = type; o.frequency.setValueAtTime(f, t0); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, f + slide), t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .015); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(out || AU.sfx); o.start(t0); o.stop(t0 + dur + .05);
+}
+const sfx = {
+  capture: k => { const b = 523; [0, 4, 7, 12].forEach((s, i) => tone(b * 2 ** (s / 12), .18, 'triangle', .25 + k * .1, 0, i * .06)); },
+  pick: () => tone(880, .1, 'sine', .25, 400),
+  power: () => { tone(660, .12, 'square', .12, 300); tone(990, .2, 'triangle', .2, 200, .08); },
+  kill: () => { tone(300, .25, 'sawtooth', .15, -200); tone(784, .15, 'triangle', .2, 0, .1); },
+  die: () => { tone(440, .5, 'sawtooth', .15, -330); tone(220, .6, 'triangle', .2, -120, .15); },
+  click: () => tone(700, .06, 'triangle', .18),
+  level: () => [0, 4, 7, 12, 16].forEach((s, i) => tone(587 * 2 ** (s / 12), .22, 'triangle', .25, 0, i * .08)),
+  coin: () => tone(1046, .08, 'square', .08),
+};
+// gentle background music: a soft wandering pentatonic tune
+const SCALE = [0, 2, 4, 7, 9, 12, 14, 16];
+let musStep = 0, musNote = 2;
+setInterval(() => {
+  if (!AU.ctx || !save.music || adBusy || document.hidden) return;
+  musStep++;
+  if (musStep % 2 === 0 || Math.random() < .3) {
+    musNote = clamp(musNote + randi(-2, 2), 0, SCALE.length - 1);
+    tone(262 * 2 ** (SCALE[musNote] / 12), .5, 'sine', .22, 0, 0, AU.mus);
+  }
+  if (musStep % 8 === 0) tone(131 * 2 ** ([0, 5, 7, 3][(musStep / 8 | 0) % 4] / 12), 1.6, 'triangle', .18, 0, 0, AU.mus);
+}, 300);
+function buzz(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} }
+
+/* ══ ADS (optional rewarded videos) ═══════════════════════════════════
+   The player CHOOSES to watch — never forced:
+     • Title     → start the next run with a power-up
+     • Game over → revive once per run · double the run's honey
+     • Skins     → get the skin of the day for free
+   In a browser a 3-second fake ad plays. In the Android app the real
+   AdMob plugin (@capacitor-community/admob) is used.
+   BEFORE RELEASE: put your real rewarded ad unit ID below and set
+   TESTING to false.                                                   */
+const ADS = {
+  TESTING: true,
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917', // Google TEST id — replace with yours
+};
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => (isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null);
+let adBusy = false;
+async function adsInit() { const A = AdMobP(); if (!A) return; try { await A.initialize({ initializeForTesting: ADS.TESTING }); } catch (e) {} }
+function showRewardedAd() {
+  if (adBusy) return Promise.resolve(false);
+  adBusy = true;
+  if (AU.ctx) AU.ctx.suspend();
+  const done = r => { adBusy = false; if (AU.ctx) AU.ctx.resume(); return r; };
+  const A = AdMobP();
+  if (!A) return demoAd().then(done);
+  return new Promise(async res => {
+    let earned = false, finished = false; const hs = [];
+    const finish = () => { if (finished) return; finished = true; hs.forEach(h => { try { h.remove(); } catch (e) {} }); res(earned); };
+    try {
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      await A.prepareRewardVideoAd({ adId: ADS.REWARDED_ID, isTesting: ADS.TESTING });
+      const it = await A.showRewardVideoAd();
+      if (it && it.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    } catch (e) { finish(); }
+  }).then(r => { if (!r) toast(t('noAd')); return done(r); });
+}
+function demoAd() {
+  return new Promise(res => {
+    const adm = $('#adm'); let n = 3;
+    adm.innerHTML = '<div><div style="font-size:44px">📺</div><h2>' + t('adTitle') + '</h2><p>' + t('adTip') + '</p>' +
+      '<div class="num" id="adN">' + n + '</div><button class="btn ghost" id="adSkip">' + t('adClose') + '</button></div>';
+    adm.hidden = false;
+    const iv = setInterval(() => { n--; const c = $('#adN'); if (c) c.textContent = n; if (n <= 0) { clearInterval(iv); adm.hidden = true; res(true); } }, 1000);
+    $('#adSkip').onclick = () => { clearInterval(iv); adm.hidden = true; res(false); };
+  });
+}
+
+/* ══ HUD ══════════════════════════════════════════════════════════════ */
+let hudT = 0, shownHoney = 0;
+function hudTick(dt) {
+  hudT -= dt;
+  shownHoney += (roundHoney - shownHoney) * Math.min(1, dt * 8);
+  $('#hHoney').textContent = Math.floor(shownHoney + .01);
+  if (hudT > 0) return; hudT = .25;
+  $('#hLand').textContent = fmtPct(pct(player));
+  const list = ents.filter(e => e.alive || e === player).sort((a, b) => b.cells - a.cells);
+  const me = list.indexOf(player);
+  let html = '';
+  list.slice(0, 5).forEach((e, i) => { html += boardRow(i + 1, e); });
+  if (me >= 5) html += boardRow(me + 1, player);
+  $('#board').innerHTML = html;
+  let p = '';
+  const pw = [[2, player.speedT, CONFIG.SPEED_TIME], [3, player.shieldT, CONFIG.SHIELD_TIME], [4, player.magnetT, CONFIG.MAGNET_TIME]];
+  if (minis.length) pw.push([5, Math.max(...minis.map(m => m.life)), CONFIG.SWARM_TIME]);
+  for (const [k, v, mx] of pw) if (v > 0) p += '<div class="pup">' + PW_ICON[k] + '<i style="width:' + Math.round(v / mx * 100) + '%;background:' + PW_COL[k] + '"></i></div>';
+  $('#pups').innerHTML = p;
+}
+function boardRow(n, e) {
+  return '<div class="brow' + (e === player ? ' me' : '') + '"><span>' + n + '</span><span class="dot" style="background:' + e.color + '"></span>' +
+    '<span class="nm">' + (e === player ? t('you') : e.name) + '</span><span>' + fmtPct(pct(e)) + '</span></div>';
+}
+function bumpChip(id) { const el = $('#' + id); el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+function feed(msg) {
+  const f = $('#feed'); const d = document.createElement('div'); d.className = 'fd'; d.textContent = msg; f.prepend(d);
+  while (f.children.length > 3) f.lastChild.remove();
+  setTimeout(() => d.remove(), 3000);
+}
+let toastT = null;
+function toast(msg) { const el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2400); }
+
+/* ══ SCREENS ══════════════════════════════════════════════════════════ */
+const ov = $('#ov');
+let skinTab = 'bees';
+function showOv(html) { ov.innerHTML = '<div class="card">' + html + '</div>'; ov.hidden = false; ov.scrollTop = 0; }
+function hideOv() { ov.hidden = true; ov.innerHTML = ''; }
+function heroCanvas(id, w = 120, h = 96) { return '<canvas class="bee-hero" id="' + id + '" width="' + w * 2 + '" height="' + h * 2 + '"></canvas>'; }
+function paintBeeCanvas(el, skin, color) {
+  if (!el) return; const g = el.getContext('2d'); g.clearRect(0, 0, el.width, el.height);
+  if (color) {
+    g.save(); g.translate(el.width / 2, el.height / 2 + 4);
+    const big = hexPath(el.height * .38), inner = hexPath(el.height * .24);
+    g.fillStyle = color; g.fill(big); g.fillStyle = shade(color, .35); g.fill(inner); g.restore();
+  }
+  g.save(); g.translate(el.width / 2, el.height / 2 + (color ? -2 : 4));
+  drawBee(g, 0, skin, T, el.height * (color ? .2 : .28)); g.restore();
+}
+function levelBar() {
+  const need = xpNeed(save.level);
+  return '<div class="lvl"><span>' + t('level') + ' ' + save.level + '</span><div class="xpbar"><i style="width:' +
+    Math.round(save.xp / need * 100) + '%"></i></div><span>' + save.xp + '/' + need + '</span></div>';
+}
+function titleScreen() {
+  state = 'menu'; $('#hud').hidden = true;
+  showOv(heroCanvas('hero') +
+    '<div class="logo">Buzz<span>.io</span></div>' +
+    '<div class="tag">' + t('tag') + '</div>' +
+    '<div class="row" style="justify-content:center;gap:8px"><span class="money">🍯 ' + Math.floor(save.honey) + '</span>' +
+    '<span class="money">⬢ ' + t('best') + ' ' + fmtPct(save.best) + '</span></div>' +
+    levelBar() +
+    '<button class="btn big" data-act="play">▶ ' + t('play') + '</button>' +
+    (pendingPower ? '<div class="ready">' + t('ready') + ' ' + PW_ICON[pendingPower] + ' ' + pwName(pendingPower) + '</div>'
+      : '<button class="btn ad" data-act="adPower">' + t('adPower') + '</button>') +
+    '<div class="row"><button class="btn ghost" data-act="skins">🐝 ' + t('skins') + '</button>' +
+    '<button class="btn ghost" data-act="settings">⚙️ ' + t('settings') + '</button></div>' +
+    '<div class="tag" style="font-size:13px;margin-top:12px">' + t('how') + '</div>');
+  paintBeeCanvas($('#hero'), beeById(save.bee), colById(save.color).c);
+  checkDaily();
+}
+function dailyInfo() {
+  const today = todayStr(), y = new Date(); y.setDate(y.getDate() - 1);
+  if (save.daily.last === today) return null;
+  let streak = save.daily.last === todayStr(y) ? save.daily.streak + 1 : 1;
+  if (streak > 7) streak = 1;
+  return { streak, amount: CONFIG.DAILY[streak - 1] };
+}
+function checkDaily() {
+  const d = dailyInfo(); if (!d) return;
+  let days = '';
+  for (let i = 1; i <= 7; i++) days += '<div class="' + (i < d.streak ? 'got' : i === d.streak ? 'now' : '') + '">' + t('day') + ' ' + i + '<b>' + CONFIG.DAILY[i - 1] + '</b></div>';
+  showOv('<div style="font-size:54px">🍯</div><h2>' + t('daily') + '</h2><div class="days">' + days + '</div>' +
+    '<button class="btn big" data-act="claim">' + t('claim') + ' +' + d.amount + '</button>');
+}
+function skinsScreen() {
+  const list = skinTab === 'bees' ? BEES : COLORS, owned = skinTab === 'bees' ? save.bees : save.colors, cur = skinTab === 'bees' ? save.bee : save.color;
+  let g = '';
+  list.forEach(s => {
+    const has = owned.includes(s.id);
+    g += '<button class="sk' + (s.id === cur ? ' on' : '') + (has ? '' : ' lock') + '" data-act="skin" data-id="' + s.id + '">' +
+      '<canvas width="132" height="108" data-prev="' + s.id + '"></canvas>' + nm(s) + '<br>' +
+      (s.id === cur ? '✓ ' + t('using') : has ? t('equip') : '<span class="pr">🍯 ' + s.price + '</span>') + '</button>';
+  });
+  const day = skinOfDay();
+  showOv('<h2>🐝 ' + t('skins') + '</h2><span class="money">🍯 ' + Math.floor(save.honey) + '</span>' +
+    '<div class="tabs" style="margin-top:10px"><button class="tab' + (skinTab === 'bees' ? ' on' : '') + '" data-act="tab" data-id="bees">' + t('bees') + '</button>' +
+    '<button class="tab' + (skinTab === 'colors' ? ' on' : '') + '" data-act="tab" data-id="colors">' + t('colors') + '</button></div>' +
+    '<div class="grid">' + g + '</div>' +
+    (day ? '<div class="daybox"><canvas width="132" height="108" id="dayPrev"></canvas><div class="t">' + t('skinDay') + '<br>' + nm(day.s) +
+      '</div><button class="btn ad" data-act="adSkin">' + t('free') + '</button></div>' : '') +
+    '<button class="btn ghost" data-act="home">' + t('back') + '</button>');
+  ov.querySelectorAll('canvas[data-prev]').forEach(cn => {
+    const id = cn.dataset.prev;
+    if (skinTab === 'bees') paintBeeCanvas(cn, beeById(id), null); else paintBeeCanvas(cn, beeById(save.bee), colById(id).c);
+  });
+  if (day) paintBeeCanvas($('#dayPrev'), day.kind === 'bee' ? day.s : beeById(save.bee), day.kind === 'bee' ? null : day.s.c);
+}
+function skinOfDay() {
+  const pool = BEES.filter(b => !save.bees.includes(b.id)).map(s => ({ kind: 'bee', s }))
+    .concat(COLORS.filter(c => !save.colors.includes(c.id)).map(s => ({ kind: 'color', s })));
+  if (!pool.length) return null;
+  const d = new Date(); const seed = d.getFullYear() * 400 + d.getMonth() * 32 + d.getDate();
+  return pool[seed % pool.length];
+}
+function settingsScreen() {
+  const sw = (act, on) => '<button class="sw' + (on ? ' on' : '') + '" data-act="' + act + '" role="switch" aria-checked="' + on + '"></button>';
+  showOv('<h2>⚙️ ' + t('settings') + '</h2>' +
+    '<div class="set">🔊 ' + t('sound') + sw('tSound', save.sound) + '</div>' +
+    '<div class="set">🎵 ' + t('music') + sw('tMusic', save.music) + '</div>' +
+    '<div class="set">🔤 ' + t('easy') + sw('tEasy', save.easy) + '</div>' +
+    '<div class="set">🌐 ' + t('lang') + '<div class="seg"><button data-act="lang" data-id="en" class="' + (LANG === 'en' ? 'on' : '') + '">EN</button>' +
+    '<button data-act="lang" data-id="fr" class="' + (LANG === 'fr' ? 'on' : '') + '">FR</button></div></div>' +
+    '<button class="btn ghost" data-act="home">' + t('back') + '</button>');
+}
+function pauseGame() {
+  if (state !== 'play') return; state = 'pause';
+  showOv('<div style="font-size:50px">⏸</div><h2>' + t('paused') + '</h2>' +
+    '<button class="btn big" data-act="resume">▶ ' + t('resume') + '</button>' +
+    '<button class="btn ghost" data-act="quit">🏠 ' + t('home') + '</button>');
+}
+function resumeGame() { hideOv(); state = 'play'; }
+
+// ── a run
+function startGame() {
+  newWorld(true);
+  state = 'play'; runTime = 0; roundHoney = 0; shownHoney = 0; peak = pct(player); kills = 0;
+  reviveUsed = false; doubleUsed = false; banked = { honey: 0, xp: 0 }; swiped = false;
+  hideOv(); $('#hud').hidden = false; $('#feed').innerHTML = '';
+  $('#hint').textContent = t('swipe'); $('#hint').hidden = false;
+  if (pendingPower) { const k = pendingPower; pendingPower = 0; setTimeout(() => { if (player && player.alive) givePower(k); }, 400); }
+  save.games++; persist(); hudT = 0;
+  emit('start');
+}
+function runXP() { return Math.round(peak * CONFIG.XP_PER_LAND + kills * CONFIG.XP_PER_KILL + runTime / 10 * CONFIG.XP_PER_10S); }
+function bankRun() { // add what this run earned so far (safe to call more than once)
+  const h = Math.floor(roundHoney * (doubleUsed ? 2 : 1)), x = runXP();
+  save.honey += h - banked.honey; banked.honey = h;
+  let gain = x - banked.xp; banked.xp = x; let up = false;
+  save.xp += gain;
+  while (save.xp >= xpNeed(save.level)) { save.xp -= xpNeed(save.level); save.level++; up = true; }
+  let best = false; if (peak > save.best) { save.best = peak; best = true; }
+  persist(); return { up, best };
+}
+function playerDied() {
+  if (state !== 'dying') return;
+  state = 'dead'; $('#hud').hidden = true;
+  const r = bankRun();
+  const why = lastDeath.cause === 'self' ? t('self') : lastDeath.cause === 'trapped' ? t('trapped', { n: lastDeath.by })
+    : lastDeath.cause === 'lost' ? t('lost') : t('cutBy', { n: lastDeath.by });
+  showOv('<div style="font-size:50px">🐝💫</div><h2>' + t('over') + '</h2><div class="why">' + why + '</div>' +
+    '<div class="stats">' +
+    '<div class="stat"><b>' + fmtPct(peak) + '</b>⬢ ' + t('land') + '</div>' +
+    '<div class="stat"><b id="oHoney">0</b>🍯 ' + t('honey') + '</div>' +
+    '<div class="stat"><b>' + kills + '</b>✂️ ' + t('kills') + '</div>' +
+    '<div class="stat"><b>+' + runXP() + '</b>⭐ ' + t('xp') + '</div></div>' +
+    levelBar() +
+    (!reviveUsed ? '<button class="btn ad" data-act="revive">' + t('revive') + '</button>' : '') +
+    (!doubleUsed && roundHoney >= 1 ? '<button class="btn ad" data-act="double">' + t('double') + '</button>' : '') +
+    '<button class="btn big" data-act="again">↻ ' + t('again') + '</button>' +
+    '<button class="btn ghost" data-act="quit">🏠 ' + t('home') + '</button>');
+  tickNumber($('#oHoney'), 0, Math.floor(roundHoney * (doubleUsed ? 2 : 1)));
+  if (r.up) { setTimeout(() => { toast(t('levelUp', { n: save.level })); sfx.level(); }, 500); }
+  else if (r.best) setTimeout(() => toast(t('newBest')), 500);
+  emit('gameover', { land: +peak.toFixed(1), honey: Math.floor(roundHoney), kills });
+}
+function tickNumber(el, from, to) {
+  if (!el) return; const t0 = performance.now(), dur = 700;
+  const f = now => { const k = Math.min(1, (now - t0) / dur); el.textContent = Math.round(from + (to - from) * k * (2 - k)); if (k < 1) requestAnimationFrame(f); };
+  requestAnimationFrame(f);
+}
+function revive() {
+  reviveUsed = true;
+  const p = player;
+  // come back inside your own land if you still have some
+  let spot = -1;
+  if (p.cells > 0) {
+    let bd = 1e9;
+    for (let c = 0; c < N; c++) if (owner[c] === p.id && NEI[c].every(n => owner[n] === p.id)) {
+      const d = Math.hypot(CX[c] - p.x, CY[c] - p.y); if (d < bd) { bd = d; spot = c; }
+    }
+    if (spot < 0) for (let c = 0; c < N; c++) if (owner[c] === p.id) { spot = c; break; }
+  }
+  if (spot >= 0) { p.x = CX[spot]; p.y = CY[spot]; p.cell = spot; p.trail = []; p.alive = true; }
+  else placeHome(p, findSpawn());
+  p.shieldT = CONFIG.REVIVE_SHIELD;
+  hideOv(); $('#hud').hidden = false; state = 'play'; hudT = 0;
+}
+function leaveRun() { // drop the player's land when the run ends for good
+  if (player) for (let c = 0; c < N; c++) if (owner[c] === player.id) setOwner(c, -1);
+}
+
+// ── every button goes through here
+ov.addEventListener('click', async e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  auUnlock(); sfx.click();
+  const act = b.dataset.act, id = b.dataset.id;
+  if (act === 'play' || act === 'again') { leaveRun(); startGame(); }
+  else if (act === 'home') titleScreen();
+  else if (act === 'quit') { if (state === 'pause') bankRun(); leaveRun(); newWorld(false); titleScreen(); }
+  else if (act === 'resume') resumeGame();
+  else if (act === 'skins') { skinTab = 'bees'; skinsScreen(); }
+  else if (act === 'settings') settingsScreen();
+  else if (act === 'tab') { skinTab = id; skinsScreen(); }
+  else if (act === 'skin') buySkin(id);
+  else if (act === 'claim') {
+    const d = dailyInfo(); if (d) { save.honey += d.amount; save.daily = { last: todayStr(), streak: d.streak }; persist(); sfx.level(); toast('🍯 +' + d.amount + ' — ' + t('comeBack')); }
+    titleScreen();
+  }
+  else if (act === 'tSound') { save.sound = !save.sound; persist(); applyVolumes(); settingsScreen(); }
+  else if (act === 'tMusic') { save.music = !save.music; persist(); applyVolumes(); settingsScreen(); }
+  else if (act === 'tEasy') { save.easy = !save.easy; persist(); document.body.classList.toggle('easy', save.easy); FONT = getFont(); settingsScreen(); }
+  else if (act === 'lang') { LANG = id; save.lang = id; persist(); document.documentElement.lang = id; settingsScreen(); }
+  else if (act === 'adPower') { if (await showRewardedAd()) { pendingPower = randi(2, 5); titleScreen(); } }
+  else if (act === 'revive') { if (await showRewardedAd()) revive(); }
+  else if (act === 'double') {
+    if (await showRewardedAd()) {
+      doubleUsed = true; bankRun(); toast(t('doubled')); sfx.level();
+      b.remove(); const el = $('#oHoney'); tickNumber(el, Math.floor(roundHoney), Math.floor(roundHoney * 2));
+    }
+  }
+  else if (act === 'adSkin') {
+    const d = skinOfDay();
+    if (d && await showRewardedAd()) {
+      if (d.kind === 'bee') { save.bees.push(d.s.id); save.bee = d.s.id; skinTab = 'bees'; }
+      else { save.colors.push(d.s.id); save.color = d.s.id; skinTab = 'colors'; }
+      persist(); toast(t('unlocked')); sfx.level(); skinsScreen();
+    }
+  }
+});
+function buySkin(id) {
+  const isBee = skinTab === 'bees', s = isBee ? beeById(id) : colById(id), owned = isBee ? save.bees : save.colors;
+  if (!owned.includes(id)) {
+    if (save.honey < s.price) { toast(t('notEnough')); return; }
+    save.honey -= s.price; owned.push(id); toast(t('unlocked')); sfx.level();
+  }
+  if (isBee) save.bee = id; else save.color = id;
+  persist(); skinsScreen();
+}
+$('#pauseBtn').addEventListener('click', () => { sfx.click(); pauseGame(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (state === 'play') pauseGame(); if (AU.ctx) AU.ctx.suspend(); }
+  else if (AU.ctx && !adBusy) AU.ctx.resume();
+});
+
+/* ══ start up ═════════════════════════════════════════════════════════ */
+function getFont() { return getComputedStyle(document.body).getPropertyValue('--font') || 'sans-serif'; }
+FONT = getFont();
+document.documentElement.lang = LANG;
+newWorld(false);
+titleScreen();
+adsInit();
+emit('ready');
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(1 / 30, (now - last) / 1000); last = now;
+  if (state !== 'pause' && state !== 'dead') step(dt); else T += dt;
+  draw();
+  if (!ov.hidden) { const h = $('#hero'); if (h) paintBeeCanvas(h, beeById(save.bee), colById(save.color).c); }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
