@@ -1,0 +1,769 @@
+{
+  "week": 1,
+  "title": "Premiers pas",
+  "notions": [
+    {
+      "id": "s1-cout",
+      "title": "Afficher avec cout",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Salut, moi c'est **Segfault** 😸 ! Un programme C++ commence toujours dans `main`.\nPour afficher du texte à l'écran, on utilise `cout`."
+        },
+        {
+          "type": "code",
+          "text": "Ton tout premier programme :",
+          "code": "#include <iostream>\nusing namespace std;\n\nint main()\n{\n    cout << \"Miaou le monde!\" << '\\n';\n    return 0;\n}",
+          "lines": [
+            "Donne accès à `cout` (la bibliothèque d'entrées/sorties).",
+            "Permet d'écrire `cout` au lieu de `std::cout`.",
+            "",
+            "Le programme commence ici.",
+            "Ouvre le bloc de `main`.",
+            "Envoie le texte vers la console, puis un saut de ligne.",
+            "Le programme se termine sans erreur.",
+            "Ferme le bloc de `main`."
+          ],
+          "output": "Miaou le monde!"
+        },
+        {
+          "type": "talk",
+          "text": "La flèche `<<` veut dire « envoie vers la console ».\nTu peux enchaîner plusieurs `<<` sur la même ligne : du texte, des nombres, tout !"
+        },
+        {
+          "type": "code",
+          "text": "On mélange texte et nombres :",
+          "code": "cout << \"Segfault a \" << 3 << \" ans\" << '\\n';\ncout << \"Croquettes : \" << 12 << '\\n';",
+          "lines": [
+            "Affiche le texte, le nombre 3, encore du texte, puis saute une ligne.",
+            "Même idée : texte, puis le nombre 12, puis saut de ligne."
+          ],
+          "output": "Segfault a 3 ans\nCroquettes : 12"
+        },
+        {
+          "type": "code",
+          "text": "Sans `'\\n'`, tout reste collé sur la même ligne :",
+          "code": "cout << \"Miaou\";\ncout << \"Miaou\" << '\\n';\ncout << \"Fin\" << '\\n';",
+          "lines": [
+            "Affiche Miaou, mais ne change PAS de ligne.",
+            "Affiche Miaou juste à côté, puis saute une ligne.",
+            "Affiche Fin sur la nouvelle ligne."
+          ],
+          "output": "MiaouMiaou\nFin"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : oublier le `;` à la fin d'une instruction.\nLe compilateur refuse de continuer : c'est une **erreur de compilation**. Lis le message, il pointe souvent la ligne juste après !"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quelle bibliothèque faut-il inclure pour utiliser `cout` ?",
+          "a": "`#include <iostream>`"
+        },
+        {
+          "q": "Que veut dire `<<` avec `cout` ?",
+          "a": "« Envoie vers la console ». On peut en enchaîner plusieurs."
+        },
+        {
+          "q": "À quoi sert `'\\n'` ?",
+          "a": "À faire un saut de ligne (aller à la ligne suivante)."
+        },
+        {
+          "q": "Où commence l'exécution d'un programme C++ ?",
+          "a": "Dans la fonction `main`."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "cout << \"Chat\";\ncout << \"Chien\" << '\\n';\ncout << \"Fin\" << '\\n';",
+          "choices": [
+            "Chat\nChien\nFin",
+            "ChatChien\nFin",
+            "Chat Chien Fin",
+            "ChatChienFin"
+          ],
+          "answer": 1,
+          "hint": "Regarde quelles lignes ont un `'\\n'`.",
+          "explain": "La première ligne n'a pas de `'\\n'`, donc Chien se colle à Chat. Pas d'espace non plus : C++ n'en ajoute jamais tout seul."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "cout << \"A\" << 1 << \"B\" << 2 << '\\n';",
+          "answer": "A1B2",
+          "hint": "Chaque `<<` ajoute un morceau, collé au précédent.",
+          "explain": "Les morceaux s'affichent dans l'ordre, sans espace entre eux : A, 1, B, 2."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "#include <iostream>\nusing namespace std;\n\nint main()\n{\n    cout << \"Bonjour\" << '\\n'\n    return 0;\n}",
+          "answer": 5,
+          "hint": "Chaque instruction se termine par un petit symbole...",
+          "explain": "Erreur de compilation : il manque le `;` après le `cout`. Le compilateur signale parfois la ligne suivante (`return 0;`), mais la faute est bien sur la ligne du `cout`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète le code pour afficher Miaou.",
+          "code": "cout ___ \"Miaou\" << '\\n';",
+          "choices": [
+            "<<",
+            ">>",
+            "<",
+            "="
+          ],
+          "answer": 0,
+          "hint": "La flèche pointe VERS `cout`.",
+          "explain": "Avec `cout`, on utilise `<<` (envoie vers la console). `>>` sert à `cin`, pour lire."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans le bon ordre.",
+          "lines": [
+            "#include <iostream>",
+            "using namespace std;",
+            "int main()",
+            "{",
+            "    cout << \"Salut!\" << '\\n';",
+            "    return 0;",
+            "}"
+          ],
+          "hint": "Les `#include` sont tout en haut. `return 0;` est la dernière instruction.",
+          "explain": "On inclut d'abord `iostream`, puis `using namespace std;`, puis `main` avec son bloc. `return 0;` termine le programme."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi écrit-on `'\\n'` à la fin d'un `cout` ?",
+          "a": "Parce que `cout` ne change jamais de ligne tout seul. Le `'\\n'` fait un saut de ligne. Sans lui, le prochain affichage se colle au texte précédent."
+        },
+        {
+          "q": "Que fait `return 0;` à la fin de `main` ?",
+          "a": "Il termine le programme. Le 0 dit au système que tout s'est bien passé, sans erreur."
+        }
+      ]
+    },
+    {
+      "id": "s1-commentaires",
+      "title": "Commentaires et en-tête",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Un **commentaire**, c'est une note pour les humains.\nLe compilateur l'ignore complètement. Même moi, je l'ignore... sauf s'il parle de croquettes 🐟."
+        },
+        {
+          "type": "code",
+          "text": "Deux sortes de commentaires :",
+          "code": "// Commentaire sur une ligne\ncout << \"Miaou\" << '\\n'; // Commentaire en fin de ligne\n/* Commentaire\n   sur plusieurs lignes */\ncout << \"Ronron\" << '\\n';",
+          "lines": [
+            "`//` : tout le reste de la ligne est ignoré.",
+            "Le `cout` s'exécute. Le commentaire après `//` est ignoré.",
+            "`/*` ouvre un commentaire qui peut continuer...",
+            "... sur plusieurs lignes, jusqu'à `*/`.",
+            "Ce `cout` s'exécute normalement."
+          ],
+          "output": "Miaou\nRonron"
+        },
+        {
+          "type": "talk",
+          "text": "L'**en-tête** de fichier, c'est un bloc de commentaires tout en haut.\nIl dit : le nom du fichier, l'auteur, la date et le but du programme."
+        },
+        {
+          "type": "code",
+          "text": "Un fichier bien présenté :",
+          "code": "/*\n    Fichier : main.cpp\n    Auteur  : Segfault le chat\n    Date    : 2026-09-02\n    But     : Afficher un message de bienvenue\n*/\n#include <iostream>\nusing namespace std;\n\nint main()\n{\n    cout << \"Bienvenue!\" << '\\n';\n    return 0;\n}",
+          "lines": [
+            "Ouvre le commentaire d'en-tête.",
+            "Le nom du fichier.",
+            "Qui a écrit le programme.",
+            "Quand il a été écrit.",
+            "Ce que fait le programme.",
+            "Ferme le commentaire d'en-tête.",
+            "Le vrai code commence ici.",
+            "",
+            "",
+            "Le programme commence.",
+            "",
+            "Affiche le message.",
+            "Fin sans erreur.",
+            ""
+          ],
+          "output": "Bienvenue!"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège : un `/*` sans son `*/` transforme TOUT le reste du fichier en commentaire. Erreur de compilation assurée !\nEt `//` entre guillemets, c'est du texte, pas un commentaire."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Comment écrire un commentaire sur une seule ligne ?",
+          "a": "Avec `//`. Tout ce qui suit sur la ligne est ignoré."
+        },
+        {
+          "q": "Comment écrire un commentaire sur plusieurs lignes ?",
+          "a": "On l'ouvre avec `/*` et on le ferme avec `*/`."
+        },
+        {
+          "q": "Que met-on dans l'en-tête d'un fichier ?",
+          "a": "Le nom du fichier, l'auteur, la date et le but du programme."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "cout << \"A\" << '\\n';\n// cout << \"B\" << '\\n';\ncout << \"C\" << '\\n';",
+          "choices": [
+            "A\nB\nC",
+            "A\nC",
+            "A\n// cout << \"B\"\nC",
+            "C"
+          ],
+          "answer": 1,
+          "hint": "Que fait `//` au début d'une ligne ?",
+          "explain": "La ligne du milieu est un commentaire : elle ne s'exécute pas. Seuls A et C s'affichent."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "cout << 1; /* cout << 2; */ cout << 3 << '\\n';",
+          "answer": "13",
+          "hint": "Ce qui est entre `/*` et `*/` n'existe pas pour le compilateur.",
+          "explain": "Le `cout << 2;` est caché dans un commentaire. Il reste 1 puis 3, collés : 13."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "// Fichier : main.cpp\n/ Auteur : Segfault\n#include <iostream>\nusing namespace std;\n\nint main()\n{\n    cout << \"Miaou\" << '\\n';\n    return 0;\n}",
+          "answer": 1,
+          "hint": "Compte les barres obliques.",
+          "explain": "Erreur de compilation : un commentaire d'une ligne commence par DEUX barres `//`. Avec une seule `/`, le compilateur essaie de lire « Auteur » comme du code."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour que la ligne soit un commentaire.",
+          "code": "___ Ce programme nourrit le chat\ncout << \"Miam\" << '\\n';",
+          "choices": [
+            "//",
+            "/*",
+            "#",
+            "--"
+          ],
+          "answer": 0,
+          "hint": "Il faut un commentaire qui s'arrête tout seul à la fin de la ligne.",
+          "explain": "`//` commente jusqu'à la fin de la ligne. `/*` aurait besoin d'un `*/` pour se fermer, sinon tout le reste devient commentaire."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans le bon ordre.",
+          "lines": [
+            "/* Auteur : Segfault */",
+            "#include <iostream>",
+            "using namespace std;",
+            "int main()",
+            "{",
+            "    cout << \"Miaou\" << '\\n'; // salutation",
+            "}"
+          ],
+          "hint": "L'en-tête est TOUT en haut du fichier.",
+          "explain": "L'en-tête vient en premier, avant même les `#include`. Ensuite viennent `using namespace std;` et `main`."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi mettre un en-tête en haut de chaque fichier ?",
+          "a": "Pour qu'on sache tout de suite qui a écrit le fichier, quand, et à quoi il sert. C'est utile pour le prof, pour l'équipe, et pour toi dans 3 mois."
+        },
+        {
+          "q": "Est-ce que beaucoup de commentaires rendent le programme plus lent ?",
+          "a": "Non. Le compilateur enlève les commentaires avant de créer le programme. Ils n'existent que dans le code source."
+        }
+      ]
+    },
+    {
+      "id": "s1-calculs",
+      "title": "Calculs et priorité",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "C++ sait calculer avec `+`, `-`, `*` (fois) et `/` (divisé).\nComme en maths : `*` et `/` passent **avant** `+` et `-`. Les parenthèses passent avant tout."
+        },
+        {
+          "type": "code",
+          "text": "La priorité en action :",
+          "code": "cout << 3 + 4 << '\\n';\ncout << 10 - 2 * 3 << '\\n';\ncout << (10 - 2) * 3 << '\\n';\ncout << 12 / 2 * 3 << '\\n';",
+          "lines": [
+            "Addition simple : 7.",
+            "`2 * 3` d'abord (6), puis `10 - 6` : 4.",
+            "Parenthèses d'abord (8), puis `8 * 3` : 24.",
+            "Même priorité : on lit de gauche à droite. `12 / 2` = 6, puis `6 * 3` = 18."
+          ],
+          "output": "7\n4\n24\n18"
+        },
+        {
+          "type": "talk",
+          "text": "Une **valeur littérale**, c'est une valeur écrite directement dans le code.\n`10` est un entier, `1.234` est un réel (avec un POINT), `'a'` est un caractère, `\"bonjour\"` est un texte."
+        },
+        {
+          "type": "code",
+          "text": "Chaque sorte de littérale :",
+          "code": "cout << 10 << '\\n';\ncout << 1.234 << '\\n';\ncout << 'a' << '\\n';\ncout << \"bonjour\" << '\\n';\ncout << \"3 + 4\" << '\\n';",
+          "lines": [
+            "Un entier (`int`).",
+            "Un réel (`double`). On écrit un point, jamais une virgule.",
+            "Un seul caractère (`char`), entre apostrophes.",
+            "Du texte, entre guillemets.",
+            "Entre guillemets, c'est du texte : aucun calcul !"
+          ],
+          "output": "10\n1.234\na\nbonjour\n3 + 4"
+        },
+        {
+          "type": "talk",
+          "text": "**Syntaxe** = les règles d'écriture (un `;` oublié). Le compilateur refuse : erreur de compilation.\n**Sémantique** = le sens. Le code compile, mais fait la mauvaise chose. Le compilateur ne voit rien !"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège : `7 / 2` donne `3`, pas `3.5` ! Entier divisé par entier = entier.\nOn verra pourquoi à la semaine 2. Pour l'instant, méfie-toi du `/` 😼."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Qu'est-ce qui passe en premier : `+` ou `*` ?",
+          "a": "`*` (et `/`). Les parenthèses passent avant tout."
+        },
+        {
+          "q": "Deux opérateurs de même priorité (`/` et `*`) : dans quel ordre ?",
+          "a": "De gauche à droite."
+        },
+        {
+          "q": "Différence entre `'a'` et `\"a\"` ?",
+          "a": "`'a'` est un seul caractère (`char`). `\"a\"` est un texte (une chaîne)."
+        },
+        {
+          "q": "Erreur de syntaxe vs erreur de sémantique ?",
+          "a": "Syntaxe : le code ne compile pas. Sémantique : il compile, mais le résultat est faux."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "cout << 2 + 3 * 4 << '\\n';",
+          "choices": [
+            "20",
+            "14",
+            "24",
+            "9"
+          ],
+          "answer": 1,
+          "hint": "Qui passe en premier : `+` ou `*` ?",
+          "explain": "`3 * 4` d'abord (12), puis `2 + 12` = 14. Le 20 viendrait de `(2 + 3) * 4`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "cout << 20 - 6 / 2 + 1 << '\\n';",
+          "answer": "18",
+          "hint": "La division d'abord, puis de gauche à droite.",
+          "explain": "`6 / 2` = 3. Ensuite de gauche à droite : `20 - 3` = 17, puis `17 + 1` = 18."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "cout << 12 / 2 * 3 << '\\n';",
+          "choices": [
+            "2",
+            "18",
+            "36",
+            "6"
+          ],
+          "answer": 1,
+          "hint": "`/` et `*` ont la même priorité. On lit dans quel sens ?",
+          "explain": "Même priorité : de gauche à droite. `12 / 2` = 6, puis `6 * 3` = 18. Le 2 vient de l'erreur `12 / (2 * 3)`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour que le programme affiche 20.",
+          "code": "cout << ___ << '\\n';",
+          "choices": [
+            "2 + 3 * 4",
+            "(2 + 3) * 4",
+            "2 * 3 + 4",
+            "2 + (3 * 4)"
+          ],
+          "answer": 1,
+          "hint": "Il faut que l'addition passe avant la multiplication.",
+          "explain": "Les parenthèses forcent `2 + 3` = 5 d'abord, puis `5 * 4` = 20. Sans elles, on obtient 14."
+        },
+        {
+          "type": "bug",
+          "q": "On veut la moyenne de 80, 90 et 70. Quelle ligne contient l'erreur ?",
+          "code": "// Moyenne de 3 notes : 80, 90 et 70\ncout << \"Moyenne : \";\ncout << 80 + 90 + 70 / 3 << '\\n';",
+          "answer": 2,
+          "hint": "Quelle opération passe en premier ?",
+          "explain": "Erreur de sémantique (ça compile !) : seul `70` est divisé par 3, ce qui affiche 193. Il faut `(80 + 90 + 70) / 3` pour obtenir 80."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi `2 + 3 * 4` ne donne pas 20 ?",
+          "a": "Parce que `*` a priorité sur `+`, comme en maths. C++ calcule `3 * 4` = 12, puis `2 + 12` = 14. Pour avoir 20, il faut des parenthèses : `(2 + 3) * 4`."
+        },
+        {
+          "q": "Pourquoi une erreur de sémantique est-elle plus dangereuse qu'une erreur de syntaxe ?",
+          "a": "Une erreur de syntaxe bloque la compilation, donc on la voit tout de suite. Une erreur de sémantique compile et donne un mauvais résultat en silence. Il faut tester pour la trouver."
+        }
+      ]
+    },
+    {
+      "id": "s1-variables",
+      "title": "Variables et types",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Une **variable**, c'est une boîte en mémoire, avec un nom et un **type**.\nOn la **déclare** (`int age;`), puis on lui **assigne** une valeur avec `=`."
+        },
+        {
+          "type": "code",
+          "text": "Trois variables, trois types :",
+          "code": "int nbCroquettes;\nnbCroquettes = 12;\ndouble poidsChat = 4.5;\nchar initiale = 'S';\ncout << nbCroquettes << \" \" << poidsChat << \" \" << initiale << '\\n';",
+          "lines": [
+            "Déclaration : crée une boîte `int` (entier) nommée `nbCroquettes`.",
+            "Assignation : met 12 dans la boîte.",
+            "Déclaration + valeur de départ, en une ligne : un réel.",
+            "Un seul caractère, entre apostrophes.",
+            "Affiche le contenu des trois boîtes."
+          ],
+          "output": "12 4.5 S"
+        },
+        {
+          "type": "memory",
+          "text": "En mémoire, chaque variable a sa boîte :",
+          "boxes": [
+            {
+              "name": "nbCroquettes",
+              "value": "12",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "poidsChat",
+              "value": "4.5",
+              "type": "double",
+              "size": "8 octets"
+            },
+            {
+              "name": "initiale",
+              "value": "'S'",
+              "type": "char",
+              "size": "1 octet"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "Une variable peut changer :",
+          "code": "int nbVies = 9;\nnbVies = nbVies - 1;\ncout << \"Vies : \" << nbVies << '\\n';",
+          "lines": [
+            "La boîte `nbVies` contient 9.",
+            "Calcule à droite (9 - 1 = 8), puis range 8 dans la boîte.",
+            "Affiche la nouvelle valeur."
+          ],
+          "output": "Vies : 8"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Le `=` n'est pas un « égal » de maths. Il veut dire : **calcule la droite, range dans la gauche**.\nNoms en **camelCase** et descriptifs : `nbVies`, pas `x` ni `nb_vies`."
+        },
+        {
+          "type": "talk",
+          "text": "D'autres types existent : `unsigned int` (entier jamais négatif), `float` (réel moins précis, 4 octets) et `long long` (très grands entiers, 8 octets).\nDans le cours, on utilise surtout `int`, `double` et `char`."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quelle est la différence entre déclarer et assigner ?",
+          "a": "Déclarer crée la variable (`int age;`). Assigner lui donne une valeur (`age = 20;`)."
+        },
+        {
+          "q": "Quel type pour un nombre à virgule ?",
+          "a": "`double` (8 octets)."
+        },
+        {
+          "q": "Que fait `x = x + 1;` ?",
+          "a": "Calcule `x + 1`, puis range le résultat dans `x`. La valeur augmente de 1."
+        },
+        {
+          "q": "C'est quoi le camelCase ?",
+          "a": "Premier mot en minuscules, chaque mot suivant commence par une majuscule : `nbCroquettes`, `poidsChat`."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int a = 5;\nint b = a;\na = 10;\ncout << a << \" \" << b << '\\n';",
+          "answer": "10 5",
+          "hint": "`b = a` copie la valeur au moment où la ligne s'exécute.",
+          "explain": "`b` reçoit une COPIE de 5. Changer `a` ensuite ne touche pas à `b`. Donc 10 et 5."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int nbVies = 9;\nnbVies = nbVies - 1;\ncout << nbvies << '\\n';",
+          "answer": 2,
+          "hint": "Regarde bien les majuscules.",
+          "explain": "Erreur de compilation : C++ fait la différence entre majuscules et minuscules. `nbvies` n'existe pas, seul `nbVies` a été déclaré."
+        },
+        {
+          "type": "normes",
+          "q": "Quel nom de variable respecte les normes du cours ?",
+          "choices": [
+            "nbCroquettes",
+            "NbCroquettes",
+            "nb_croquettes",
+            "x"
+          ],
+          "answer": 0,
+          "hint": "Pense au dos d'un chameau : minuscule au début, bosses ensuite.",
+          "explain": "`nbCroquettes` est en camelCase et descriptif. `NbCroquettes` commence par une majuscule, `nb_croquettes` utilise des soulignés, et `x` ne dit rien."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int x = 3;\nx = x * 2;\nx = x + 1;\ncout << x << '\\n';",
+          "choices": [
+            "7",
+            "3",
+            "8",
+            "6"
+          ],
+          "answer": 0,
+          "hint": "Suis la boîte `x` ligne par ligne.",
+          "explain": "x vaut 3, puis 3 * 2 = 6, puis 6 + 1 = 7. Le 8 viendrait de faire `+ 1` avant `* 2`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour stocker le prix 12.99.",
+          "code": "___ prixCroquettes = 12.99;\ncout << prixCroquettes << '\\n';",
+          "choices": [
+            "int",
+            "double",
+            "char",
+            "long long"
+          ],
+          "answer": 1,
+          "hint": "Le prix a des décimales.",
+          "explain": "`double` garde les décimales. Avec `int` ou `long long`, le .99 serait perdu et on verrait 12."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi utiliser des noms comme `nbCroquettes` au lieu de `x` ?",
+          "a": "Un nom descriptif explique ce que contient la variable. Le code se lit presque comme une phrase. Avec `x`, il faut deviner, et on se trompe plus facilement."
+        },
+        {
+          "q": "Que se passe-t-il en mémoire quand on écrit `int age = 20;` ?",
+          "a": "L'ordinateur réserve une boîte de 4 octets, nommée `age`. Il y range la valeur 20. Ensuite, chaque fois qu'on écrit `age`, il va lire cette boîte."
+        }
+      ]
+    },
+    {
+      "id": "s1-memoire",
+      "title": "Mémoire et binaire",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "L'ordinateur ne connaît que des **0** et des **1**. Un chiffre binaire s'appelle un **bit**.\n8 bits forment un **octet**. La mémoire se mesure en octets."
+        },
+        {
+          "type": "talk",
+          "text": "En binaire, chaque position vaut le double de la précédente : 1, 2, 4, 8, 16...\n`1101` = 8 + 4 + 0 + 1 = **13**. En C++, on écrit un nombre binaire avec `0b` : `0b101` vaut 5."
+        },
+        {
+          "type": "code",
+          "text": "`sizeof` donne la taille d'un type, en octets :",
+          "code": "cout << sizeof(char) << '\\n';\ncout << sizeof(int) << '\\n';\ncout << sizeof(double) << '\\n';\ncout << sizeof(long long) << '\\n';",
+          "lines": [
+            "Un `char` : 1 octet.",
+            "Un `int` : 4 octets.",
+            "Un `double` : 8 octets.",
+            "Un `long long` : 8 octets."
+          ],
+          "output": "1\n4\n8\n8"
+        },
+        {
+          "type": "talk",
+          "text": "Et les lettres ? C'est l'**encodage** : chaque caractère est rangé comme un nombre.\nDans la table ASCII, `'A'` vaut 65 et `'a'` vaut 97."
+        },
+        {
+          "type": "code",
+          "text": "Une lettre cache un nombre :",
+          "code": "char lettre = 'A';\nint code = lettre;\ncout << lettre << '\\n';\ncout << code << '\\n';",
+          "lines": [
+            "La boîte `char` contient la lettre A.",
+            "On copie la lettre dans un `int` : on obtient son code.",
+            "Un `char` s'affiche comme une lettre.",
+            "Un `int` s'affiche comme un nombre : 65."
+          ],
+          "output": "A\n65"
+        },
+        {
+          "type": "memory",
+          "text": "Dans la mémoire, c'est le même nombre, rangé dans des boîtes de tailles différentes :",
+          "boxes": [
+            {
+              "name": "lettre",
+              "value": "'A' (65)",
+              "type": "char",
+              "size": "1 octet"
+            },
+            {
+              "name": "code",
+              "value": "65",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        }
+      ],
+      "cards": [
+        {
+          "q": "Combien de bits dans un octet ?",
+          "a": "8 bits."
+        },
+        {
+          "q": "Combien vaut `101` en binaire ?",
+          "a": "4 + 0 + 1 = 5."
+        },
+        {
+          "q": "Tailles de `char`, `int` et `double` ?",
+          "a": "1 octet, 4 octets, 8 octets."
+        },
+        {
+          "q": "Que veut dire `unsigned int` ?",
+          "a": "Un entier qui ne peut pas être négatif (0 et plus)."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "cout << sizeof(int) + sizeof(char) << '\\n';",
+          "choices": [
+            "5",
+            "2",
+            "8",
+            "40"
+          ],
+          "answer": 0,
+          "hint": "Un `int` fait 4 octets, un `char` 1 octet.",
+          "explain": "4 + 1 = 5 octets. Le 40 viendrait de compter en bits (5 x 8)... mais `sizeof` compte en octets."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "char lettre = 'b';\nint code = lettre;\ncout << code << '\\n';",
+          "answer": "98",
+          "hint": "`'a'` vaut 97. Et la lettre suivante ?",
+          "explain": "Dans un `int`, la lettre devient son code ASCII. `'a'` = 97, donc `'b'` = 98."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "cout << 0b1101 << '\\n';",
+          "choices": [
+            "13",
+            "1101",
+            "11",
+            "4"
+          ],
+          "answer": 0,
+          "hint": "Positions : 8, 4, 2, 1.",
+          "explain": "`0b` veut dire binaire. 1101 = 8 + 4 + 0 + 1 = 13. `cout` affiche toujours en décimal, pas 1101."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "char initiale = 'S';\nchar lettre = \"A\";\ncout << initiale << lettre << '\\n';",
+          "answer": 1,
+          "hint": "Apostrophes ou guillemets ?",
+          "explain": "Erreur de compilation : `\"A\"` est un texte, pas un caractère. Un `char` se met entre apostrophes : `'A'`."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher 66.",
+          "lines": [
+            "char lettre = 'A';",
+            "int code = lettre;",
+            "code = code + 1;",
+            "cout << code << '\\n';"
+          ],
+          "hint": "On ne peut pas utiliser une variable avant de la déclarer.",
+          "explain": "On crée la lettre (65), on la copie dans `code`, on ajoute 1 (66), puis on affiche. Afficher avant le `+ 1` donnerait 65."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi un `double` prend-il plus de mémoire qu'un `char` ?",
+          "a": "Un `char` garde un seul petit nombre (un caractère) : 1 octet suffit. Un `double` doit garder un nombre à virgule très précis. Il lui faut 8 octets, donc plus de bits."
+        },
+        {
+          "q": "Comment l'ordinateur stocke-t-il une lettre avec seulement des 0 et des 1 ?",
+          "a": "Grâce à l'encodage : chaque caractère a un numéro (par exemple, `'A'` = 65 en ASCII). L'ordinateur range ce numéro en binaire. À l'affichage, il retraduit le numéro en lettre."
+        }
+      ]
+    }
+  ],
+  "aideMemoire": [
+    {
+      "title": "Programme de base",
+      "code": "#include <iostream>\nusing namespace std;\n\nint main()\n{\n    cout << \"Salut\" << '\\n';\n    return 0;\n}",
+      "note": "Tout programme commence dans main."
+    },
+    {
+      "title": "cout",
+      "code": "cout << \"Age : \" << 3 << '\\n';",
+      "note": "`<<` envoie vers la console. '\\n' = saut de ligne."
+    },
+    {
+      "title": "Commentaires",
+      "code": "// une ligne\n/* plusieurs\n   lignes */",
+      "note": "Ignorés par le compilateur."
+    },
+    {
+      "title": "En-tête",
+      "code": "/*\n    Fichier : main.cpp\n    Auteur  : Ton nom\n    Date    : 2026-09-02\n    But     : ...\n*/",
+      "note": "Tout en haut de chaque fichier."
+    },
+    {
+      "title": "Priorité",
+      "code": "2 + 3 * 4     // 14\n(2 + 3) * 4   // 20",
+      "note": "( ) puis * / puis + -. Même niveau : gauche à droite."
+    },
+    {
+      "title": "Littérales",
+      "code": "10  1.234  'a'  \"bonjour\"",
+      "note": "int, double, char (apostrophes), texte (guillemets)."
+    },
+    {
+      "title": "Variables",
+      "code": "int nbVies;\nnbVies = 9;\ndouble poids = 4.5;\nchar initiale = 'S';",
+      "note": "Déclarer, puis assigner avec =. Noms en camelCase."
+    },
+    {
+      "title": "Tailles",
+      "code": "char 1  int 4  double 8\nfloat 4  long long 8",
+      "note": "En octets. 1 octet = 8 bits. sizeof(type) donne la taille."
+    },
+    {
+      "title": "Binaire",
+      "code": "1101 = 8 + 4 + 0 + 1 = 13",
+      "note": "Positions : 1, 2, 4, 8, 16... 'A' = 65, 'a' = 97."
+    }
+  ]
+}

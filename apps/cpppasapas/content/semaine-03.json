@@ -1,0 +1,1013 @@
+{
+  "week": 3,
+  "title": "Switch, constantes et portée",
+  "notions": [
+    {
+      "id": "s3-switch",
+      "title": "Le switch",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Le `switch` choisit un chemin selon la valeur d'une variable. C'est comme un distributeur de croquettes avec des boutons numérotés 😸"
+        },
+        {
+          "type": "code",
+          "text": "Voici la forme de base. Chaque `case` est un bouton.",
+          "code": "int choix = 2;\nswitch (choix)\n{\n    case 1:\n    {\n        cout << \"Croquettes au thon\\n\";\n    }\n    break;\n    case 2:\n    {\n        cout << \"Croquettes au poulet\\n\";\n    }\n    break;\n    default:\n    {\n        cout << \"Choix invalide\\n\";\n    }\n    break;\n}",
+          "lines": [
+            "Le chat appuie sur le bouton 2.",
+            "On regarde la valeur de `choix`.",
+            "Ouvre le switch.",
+            "Si `choix` vaut 1...",
+            "Ouvre le bloc du cas 1.",
+            "...on affiche le thon.",
+            "Ferme le bloc.",
+            "`break` = on sort du switch.",
+            "Si `choix` vaut 2...",
+            "Ouvre le bloc du cas 2.",
+            "...on affiche le poulet. C'est notre cas!",
+            "Ferme le bloc.",
+            "On sort du switch.",
+            "Aucun `case` ne correspond? On vient ici.",
+            "Ouvre le bloc par défaut.",
+            "Message d'erreur.",
+            "Ferme le bloc.",
+            "On sort du switch.",
+            "Fin du switch."
+          ],
+          "output": "Croquettes au poulet"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : oublier le `break`. Sans lui, le programme **continue dans le case suivant**. On appelle ça le *fall-through*."
+        },
+        {
+          "type": "code",
+          "text": "Regarde : le `case 1` n'a pas de `break`. Oups!",
+          "code": "int niveau = 1;\nswitch (niveau)\n{\n    case 1:\n    {\n        cout << \"Miaou \";\n    }\n    case 2:\n    {\n        cout << \"Ronron \";\n    }\n    break;\n    default:\n    {\n        cout << \"Zzz\";\n    }\n    break;\n}",
+          "lines": [
+            "`niveau` vaut 1.",
+            "On regarde `niveau`.",
+            "",
+            "On entre ici.",
+            "",
+            "Affiche `Miaou `.",
+            "Pas de `break`! On tombe dans le case 2...",
+            "...même si `niveau` ne vaut pas 2.",
+            "",
+            "Affiche aussi `Ronron `.",
+            "",
+            "Enfin un `break` : on sort.",
+            "Jamais atteint ici.",
+            "",
+            "",
+            "",
+            "",
+            "Fin du switch."
+          ],
+          "output": "Miaou Ronron "
+        },
+        {
+          "type": "code",
+          "text": "Astuce : plusieurs `case` collés partagent le même bloc. Pratique pour accepter `o` ou `O`.",
+          "code": "char reponse = 'O';\nswitch (reponse)\n{\n    case 'o':\n    case 'O':\n    {\n        cout << \"Oui!\\n\";\n    }\n    break;\n    default:\n    {\n        cout << \"Non...\\n\";\n    }\n    break;\n}",
+          "lines": [
+            "Un `char` marche dans un switch.",
+            "On regarde la lettre.",
+            "",
+            "Si c'est `o`...",
+            "...ou `O`...",
+            "",
+            "...on affiche Oui!",
+            "",
+            "On sort.",
+            "Toute autre lettre.",
+            "",
+            "",
+            "",
+            "",
+            "Fin."
+          ],
+          "output": "Oui!"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Le `switch` marche avec `int`, `char` et `enum`. **Pas** avec `string` ni `double`. Et chaque `case` doit être une valeur constante."
+        }
+      ],
+      "cards": [
+        {
+          "q": "À quoi sert le `default` dans un switch ?",
+          "a": "Il s'exécute quand **aucun** `case` ne correspond. C'est le « sinon »."
+        },
+        {
+          "q": "Que se passe-t-il sans `break` ?",
+          "a": "Le programme continue dans le `case` suivant (fall-through)."
+        },
+        {
+          "q": "Quels types marchent dans un switch ?",
+          "a": "`int`, `char` et `enum`. Pas `string`, pas `double`."
+        },
+        {
+          "q": "Comment faire que `'o'` et `'O'` fassent la même chose ?",
+          "a": "On écrit `case 'o':` puis `case 'O':` collés, avec un seul bloc."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int choix = 2;\nswitch (choix)\n{\n    case 1:\n    {\n        cout << \"A\";\n    }\n    break;\n    case 2:\n    {\n        cout << \"B\";\n    }\n    case 3:\n    {\n        cout << \"C\";\n    }\n    break;\n    default:\n    {\n        cout << \"D\";\n    }\n    break;\n}",
+          "choices": [
+            "BC",
+            "B",
+            "BCD",
+            "ABC"
+          ],
+          "answer": 0,
+          "hint": "Regarde bien la fin du `case 2`. Y a-t-il un `break` ?",
+          "explain": "Le `case 2` n'a pas de `break` : on tombe dans le `case 3`, puis son `break` arrête tout. Donc `BC`, pas juste `B`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "char note = 'b';\nswitch (note)\n{\n    case 'A':\n    case 'a':\n    {\n        cout << \"Excellent\";\n    }\n    break;\n    case 'B':\n    case 'b':\n    {\n        cout << \"Bien\";\n    }\n    break;\n    default:\n    {\n        cout << \"Hmm\";\n    }\n    break;\n}",
+          "answer": "Bien",
+          "hint": "Le `case 'b':` est collé au `case 'B':`.",
+          "explain": "`'b'` correspond au `case 'b':`, qui partage le bloc de `'B'`. On affiche `Bien`, puis `break`."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "string animal = \"chat\";\nswitch (animal)\n{\n    case \"chat\":\n    {\n        cout << \"Miaou\";\n    }\n    break;\n}",
+          "answer": 1,
+          "hint": "Quels types sont permis dans un switch ?",
+          "explain": "Erreur de compilation : on ne peut pas faire un `switch` sur un `string`. Il faut un `if` / `else if`, ou un `int`, `char`, `enum`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète le code pour gérer tous les autres cas.",
+          "code": "int jour = 9;\nswitch (jour)\n{\n    case 1:\n    {\n        cout << \"Lundi\";\n    }\n    break;\n    ___\n    {\n        cout << \"Jour inconnu\";\n    }\n    break;\n}",
+          "choices": [
+            "default:",
+            "else:",
+            "case else:",
+            "autre:"
+          ],
+          "answer": 0,
+          "hint": "C'est le « sinon » du switch.",
+          "explain": "`default:` attrape toutes les valeurs sans `case`. `else` existe seulement avec `if`."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans le bon ordre.",
+          "lines": [
+            "int jour = 7;",
+            "switch (jour)",
+            "{",
+            "    case 7: { cout << \"Dodo\"; } break;",
+            "    default: { cout << \"Travail\"; } break;",
+            "}"
+          ],
+          "hint": "On déclare, puis `switch`, puis `{`. Par convention, `default` est à la fin.",
+          "explain": "La variable existe avant le `switch`. Le `default` se met en dernier, par convention."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi faut-il un `break` à la fin de chaque `case` ?",
+          "a": "Sans `break`, le programme continue dans le `case` suivant. On exécuterait du code qu'on ne voulait pas. Le `break` fait sortir du switch."
+        },
+        {
+          "q": "Quand choisir un `switch` plutôt qu'un `if` / `else if` ?",
+          "a": "Quand on compare **une seule** variable entière (`int`, `char`, `enum`) à des valeurs précises. C'est plus lisible. Pour des intervalles comme `note >= 60`, on garde le `if`."
+        }
+      ]
+    },
+    {
+      "id": "s3-constantes",
+      "title": "Constantes et globales",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Une **constante** (`const`) est une valeur qui ne change jamais. Son nom s'écrit en **UPPER_SNAKE_CASE** : majuscules et `_` entre les mots."
+        },
+        {
+          "type": "code",
+          "text": "Deux constantes pour un chat bien organisé.",
+          "code": "const int NB_VIES = 9;\nconst double PRIX_CROQUETTES = 4.99;\ncout << \"Un chat a \" << NB_VIES << \" vies\\n\";\ncout << \"Sac : \" << PRIX_CROQUETTES << \" $\\n\";",
+          "lines": [
+            "Constante entière. Un chat a 9 vies, point final.",
+            "Constante réelle. Nom en UPPER_SNAKE_CASE.",
+            "On lit la constante comme une variable.",
+            "Pareil pour le prix."
+          ],
+          "output": "Un chat a 9 vies\nSac : 4.99 $"
+        },
+        {
+          "type": "memory",
+          "text": "En mémoire, une constante est une case **en lecture seule**. On peut la lire, jamais l'écrire.",
+          "boxes": [
+            {
+              "name": "NB_VIES",
+              "value": "9 🔒",
+              "type": "const int",
+              "size": "4 octets"
+            },
+            {
+              "name": "PRIX_CROQUETTES",
+              "value": "4.99 🔒",
+              "type": "const double",
+              "size": "8 octets"
+            }
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Une `const` doit recevoir sa valeur **tout de suite**. Et `NB_VIES = 8;` plus loin donne une **erreur de compilation**."
+        },
+        {
+          "type": "code",
+          "text": "Une constante **globale** est déclarée hors de `main`. Tout le fichier peut la lire.",
+          "code": "#include <iostream>\nusing namespace std;\n\nconst int NB_MAX_CHATS = 5;\n\nint main()\n{\n    cout << \"Max : \" << NB_MAX_CHATS << '\\n';\n    return 0;\n}",
+          "lines": [
+            "Pour `cout`.",
+            "",
+            "",
+            "Constante globale : visible partout dans le fichier.",
+            "",
+            "Le programme commence ici.",
+            "",
+            "On l'utilise dans `main`.",
+            "",
+            ""
+          ],
+          "output": "Max : 5"
+        },
+        {
+          "type": "talk",
+          "text": "Une variable globale **modifiable** (sans `const`), c'est une litière partagée par tout le monde : n'importe qui peut la changer, et on ne sait plus qui a fait le dégât. **Évite-les.** Les constantes globales, elles, sont OK."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Comment nommer une constante ?",
+          "a": "En UPPER_SNAKE_CASE : `NB_ETUDIANTS_MAX`, `TAUX_TPS`."
+        },
+        {
+          "q": "Qu'arrive-t-il si on modifie une `const` ?",
+          "a": "Erreur de compilation. Le programme ne compile pas."
+        },
+        {
+          "q": "Pourquoi éviter les variables globales modifiables ?",
+          "a": "Tout le code peut les changer : les bugs deviennent très difficiles à trouver."
+        },
+        {
+          "q": "Une constante globale, c'est correct ?",
+          "a": "Oui! Elle ne peut pas changer, donc aucun danger."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "normes",
+          "q": "Quel nom respecte les normes pour une constante ?",
+          "choices": [
+            "NB_ETUDIANTS_MAX",
+            "nbEtudiantsMax",
+            "NbEtudiantsMax",
+            "nb_etudiants_max"
+          ],
+          "answer": 0,
+          "hint": "Les constantes crient leur nom. 📢",
+          "explain": "Les constantes sont en UPPER_SNAKE_CASE. `nbEtudiantsMax` est en camelCase : c'est pour les variables."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "const int NB_VIES = 9;\nNB_VIES = NB_VIES - 1;\ncout << NB_VIES;",
+          "answer": 1,
+          "hint": "Une `const` peut-elle changer ?",
+          "explain": "Erreur de compilation : on essaie de modifier une constante. Si la valeur doit changer, ce n'est pas une `const`."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "const int NB_PATTES = 4;\nint nbChats = 3;\ncout << nbChats * NB_PATTES;",
+          "choices": [
+            "12",
+            "7",
+            "4",
+            "Erreur de compilation"
+          ],
+          "answer": 0,
+          "hint": "On a le droit de **lire** une constante.",
+          "explain": "Lire une `const` est permis : 3 × 4 = 12. Il n'y a aucune erreur, car on ne la modifie pas."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour déclarer une constante.",
+          "code": "___ double TAUX_TPS = 0.05;\ncout << 100 * TAUX_TPS;",
+          "choices": [
+            "const",
+            "constant",
+            "final",
+            "fixe"
+          ],
+          "answer": 0,
+          "hint": "Le mot-clé a 5 lettres en C++.",
+          "explain": "En C++, le mot-clé est `const`. `final` existe en Java, pas pour ça en C++."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "const int SECONDES_PAR_MINUTE = 60;\nint minutes = 3;\ncout << minutes * SECONDES_PAR_MINUTE << \" s\";",
+          "answer": "180 s",
+          "hint": "3 minutes de sieste, en secondes.",
+          "explain": "3 × 60 = 180, puis on affiche ` s`. La constante évite le « nombre magique » 60."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi utiliser une constante plutôt qu'écrire `9` partout dans le code ?",
+          "a": "Le nom explique ce que le nombre veut dire. Si la valeur change, on la modifie à **un seul** endroit. Et le compilateur empêche de la changer par erreur."
+        },
+        {
+          "q": "Pourquoi éviter les variables globales modifiables ?",
+          "a": "N'importe quelle partie du programme peut les changer. Quand il y a un bug, on ne sait pas qui l'a causé. Une variable locale est plus sûre et plus facile à suivre."
+        }
+      ]
+    },
+    {
+      "id": "s3-portee",
+      "title": "Portée des variables",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "La **portée** d'une variable, c'est la zone où elle existe. Règle simple : une variable vit **entre ses accolades** `{ }`."
+        },
+        {
+          "type": "code",
+          "text": "Un bloc `{ }` crée une petite zone privée.",
+          "code": "int croquettes = 10;\n{\n    int bonus = 5;\n    cout << croquettes + bonus << '\\n';\n}\ncout << croquettes << '\\n';",
+          "lines": [
+            "Existe dans tout `main`.",
+            "Un nouveau bloc commence.",
+            "`bonus` naît ici.",
+            "Ici, on voit les deux : 15.",
+            "`bonus` meurt ici! 💀",
+            "`croquettes` existe toujours : 10."
+          ],
+          "output": "15\n10"
+        },
+        {
+          "type": "memory",
+          "text": "**Dans** le bloc, les deux cases existent.",
+          "boxes": [
+            {
+              "name": "croquettes",
+              "value": "10",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "bonus",
+              "value": "5",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "memory",
+          "text": "**Après** le `}`, la case de `bonus` est libérée. Seule `croquettes` reste.",
+          "boxes": [
+            {
+              "name": "croquettes",
+              "value": "10",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : déclarer une variable **dans** un `if`, puis l'utiliser **après**. Elle n'existe plus : erreur de compilation. Déclare-la avant le `if`."
+        },
+        {
+          "type": "talk",
+          "text": "La **durée de vie** : une variable locale naît à sa déclaration et meurt au `}` de son bloc. Une globale vit du début à la fin du programme. Conseil : déclare chaque variable dans la **plus petite** portée possible."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Qu'est-ce que la portée d'une variable ?",
+          "a": "La zone du code où elle existe : entre les accolades où elle est déclarée."
+        },
+        {
+          "q": "Quand meurt une variable locale ?",
+          "a": "Au `}` qui ferme son bloc."
+        },
+        {
+          "q": "Une variable déclarée dans un `if` est-elle visible après le `if` ?",
+          "a": "Non. Il faut la déclarer avant le `if`."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int age = 3;\nif (age > 2)\n{\n    string message = \"Grand chat\";\n}\ncout << message;",
+          "answer": 5,
+          "hint": "Où est déclarée `message` ? Où meurt-elle ?",
+          "explain": "Erreur de compilation : `message` est morte au `}` du `if`. À la ligne du `cout`, elle n'existe plus. Il faut la déclarer avant le `if`."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int x = 1;\n{\n    int x = 2;\n    cout << x;\n}\ncout << x;",
+          "choices": [
+            "21",
+            "22",
+            "11",
+            "Erreur de compilation"
+          ],
+          "answer": 0,
+          "hint": "Le `x` du bloc **cache** le premier `x`, seulement dans le bloc.",
+          "explain": "Dans le bloc, le nouveau `x` vaut 2. Après le `}`, il meurt et on revoit le premier `x` qui vaut 1. C'est permis, mais c'est mélangeant : évite ça!"
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int vies = 9;\n{\n    vies = vies - 1;\n    int double_vies = vies * 2;\n    cout << double_vies << ' ';\n}\ncout << vies;",
+          "answer": "16 8",
+          "hint": "On ne déclare pas un nouveau `vies` dans le bloc : on modifie l'ancien.",
+          "explain": "`vies` devient 8 (modification, pas nouvelle variable). 8 × 2 = 16. Après le bloc, `vies` vaut toujours 8."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour afficher le total (4).",
+          "code": "int total = 0;\n{\n    int ajout = 4;\n    total = total + ajout;\n}\ncout << ___;",
+          "choices": [
+            "total",
+            "ajout",
+            "total + ajout",
+            "0"
+          ],
+          "answer": 0,
+          "hint": "Qui est encore vivant après le `}` ?",
+          "explain": "`total` a été déclaré avant le bloc, il existe encore. `ajout` est mort au `}` : erreur de compilation."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher `3`.",
+          "lines": [
+            "int a = 1;",
+            "{",
+            "    int b = 2;",
+            "    a = a + b;",
+            "}",
+            "cout << a;"
+          ],
+          "hint": "`b` doit exister avant d'être utilisée. Le `cout` est après le bloc.",
+          "explain": "On déclare `a`, on ouvre le bloc, on crée `b`, on l'ajoute à `a`, on ferme le bloc. `a` vaut 3."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Qu'est-ce qui arrive à une variable locale au `}` de son bloc ?",
+          "a": "Elle est détruite : sa case mémoire est libérée. On ne peut plus l'utiliser. Si on essaie, le compilateur donne une erreur."
+        },
+        {
+          "q": "Pourquoi déclarer une variable dans la plus petite portée possible ?",
+          "a": "Moins de code peut la toucher, donc moins de bugs. On voit tout de suite où elle sert. Et on libère la mémoire plus tôt."
+        }
+      ]
+    },
+    {
+      "id": "s3-enum",
+      "title": "Les enum",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Un `enum` (énumération) crée un type avec une **liste de noms** : `CONTENT`, `FACHE`, `ENDORMI`. C'est plus clair que des 0, 1, 2 mystérieux."
+        },
+        {
+          "type": "code",
+          "text": "On déclare l'`enum` avant `main`, puis on l'utilise comme un type.",
+          "code": "#include <iostream>\nusing namespace std;\n\nenum Humeur { CONTENT, FACHE, ENDORMI };\n\nint main()\n{\n    Humeur humeurChat = ENDORMI;\n    cout << humeurChat << '\\n';\n    return 0;\n}",
+          "lines": [
+            "",
+            "",
+            "",
+            "Nouveau type `Humeur` avec 3 valeurs possibles.",
+            "",
+            "",
+            "",
+            "Une variable de type `Humeur`.",
+            "`cout` affiche le **numéro** : 2.",
+            "",
+            ""
+          ],
+          "output": "2"
+        },
+        {
+          "type": "memory",
+          "text": "Derrière chaque nom, il y a un entier. On compte à partir de **0**.",
+          "boxes": [
+            {
+              "name": "CONTENT",
+              "value": "0",
+              "type": "Humeur",
+              "size": "—"
+            },
+            {
+              "name": "FACHE",
+              "value": "1",
+              "type": "Humeur",
+              "size": "—"
+            },
+            {
+              "name": "ENDORMI",
+              "value": "2",
+              "type": "Humeur",
+              "size": "—"
+            },
+            {
+              "name": "humeurChat",
+              "value": "ENDORMI (2)",
+              "type": "Humeur",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "talk",
+          "text": "On peut choisir le départ : avec `enum Taille { PETIT = 1, MOYEN, GROS };`, on a PETIT = 1, MOYEN = 2, GROS = 3. Chaque nom suivant fait +1."
+        },
+        {
+          "type": "code",
+          "text": "L'`enum` et le `switch` sont meilleurs amis.",
+          "code": "enum Humeur { CONTENT, FACHE, ENDORMI };\nHumeur humeur = FACHE;\nswitch (humeur)\n{\n    case CONTENT:\n    {\n        cout << \"Ronron\\n\";\n    }\n    break;\n    case FACHE:\n    {\n        cout << \"Pshhh!\\n\";\n    }\n    break;\n    default:\n    {\n        cout << \"Zzz\\n\";\n    }\n    break;\n}",
+          "lines": [
+            "Le type.",
+            "Le chat est fâché.",
+            "On regarde l'humeur.",
+            "",
+            "On écrit le **nom**, pas 0.",
+            "",
+            "",
+            "",
+            "",
+            "C'est notre cas.",
+            "",
+            "Le chat souffle.",
+            "",
+            "On sort.",
+            "Tout le reste (ici : ENDORMI).",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "output": "Pshhh!"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ On ne peut pas faire `cin >> humeur;` directement. On lit un `int`, puis on convertit : `humeur = static_cast<Humeur>(nombre);`"
+        }
+      ],
+      "cards": [
+        {
+          "q": "À quoi sert un `enum` ?",
+          "a": "À donner des noms clairs à une liste de choix possibles."
+        },
+        {
+          "q": "Quelle est la valeur du premier nom d'un `enum` ?",
+          "a": "0, sauf si on en choisit une autre (`= 1`)."
+        },
+        {
+          "q": "Que donne `enum Taille { PETIT = 1, MOYEN, GROS };` pour GROS ?",
+          "a": "3. Chaque nom suivant fait +1."
+        },
+        {
+          "q": "Que fait `cout << ENDORMI;` ?",
+          "a": "Il affiche le numéro (ex. : 2), pas le mot."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "enum Couleur { ROUGE, VERT, BLEU };\nCouleur c = BLEU;\ncout << c;",
+          "choices": [
+            "2",
+            "3",
+            "BLEU",
+            "1"
+          ],
+          "answer": 0,
+          "hint": "On commence à compter à 0.",
+          "explain": "ROUGE = 0, VERT = 1, BLEU = 2. Et `cout` affiche le numéro, pas le mot `BLEU`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "enum Taille { PETIT = 1, MOYEN, GROS };\ncout << PETIT << ' ' << GROS;",
+          "answer": "1 3",
+          "hint": "PETIT commence à 1. Les suivants font +1.",
+          "explain": "PETIT = 1, MOYEN = 2, GROS = 3. Si tu as répondu `0 2`, tu as oublié le `= 1`."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "enum Humeur { CONTENT, FACHE, ENDORMI };\nHumeur humeur = CONTENT;\ncin >> humeur;\ncout << humeur;",
+          "answer": 2,
+          "hint": "Est-ce que `cin` sait lire un type qu'on vient d'inventer ?",
+          "explain": "Erreur de compilation : `cin` ne sait pas lire un `enum`. Il faut lire un `int`, puis faire `static_cast<Humeur>(...)`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour afficher `Zzz`.",
+          "code": "enum Humeur { CONTENT, FACHE, ENDORMI };\nHumeur humeur = ENDORMI;\nswitch (humeur)\n{\n    case ___:\n    {\n        cout << \"Zzz\";\n    }\n    break;\n    default:\n    {\n        cout << \"Miaou\";\n    }\n    break;\n}",
+          "choices": [
+            "ENDORMI",
+            "\"ENDORMI\"",
+            "Humeur",
+            "endormi"
+          ],
+          "answer": 0,
+          "hint": "On écrit le nom exact, sans guillemets.",
+          "explain": "Le `case` utilise le nom de l'`enum` tel quel : `ENDORMI`. Avec des guillemets, ce serait du texte : erreur. `endormi` en minuscules n'existe pas."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans le bon ordre.",
+          "lines": [
+            "enum Saison { HIVER, PRINTEMPS, ETE, AUTOMNE };",
+            "int main()",
+            "{",
+            "    Saison saison = ETE;",
+            "    cout << saison;",
+            "    return 0;",
+            "}"
+          ],
+          "hint": "L'`enum` se déclare **avant** `main`.",
+          "explain": "On déclare le type avant `main`, puis on crée la variable dans `main`. `ETE` vaut 2."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi utiliser un `enum` au lieu de 0, 1, 2 ?",
+          "a": "Le code se lit tout seul : `humeur == FACHE` est plus clair que `humeur == 1`. On évite les nombres magiques. Et le compilateur limite les valeurs possibles."
+        },
+        {
+          "q": "Qu'affiche `cout` avec une variable `enum` ? Pourquoi ?",
+          "a": "Il affiche un nombre. Chaque nom de l'`enum` est un entier caché, qui commence à 0. Pour afficher un mot, on utilise un `switch`."
+        }
+      ]
+    },
+    {
+      "id": "s3-epsilon",
+      "title": "Doubles et epsilon",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Un `double` est **presque** exact. L'ordinateur compte en binaire, et 0.1 n'a pas d'écriture exacte en binaire. Il reste des miettes... comme des croquettes au fond du sac."
+        },
+        {
+          "type": "code",
+          "text": "Surprise : 0.1 + 0.2 n'est pas exactement 0.3!",
+          "code": "double a = 0.1 + 0.2;\nif (a == 0.3)\n{\n    cout << \"Egal\\n\";\n}\nelse\n{\n    cout << \"Pas egal!\\n\";\n}",
+          "lines": [
+            "On espère 0.3...",
+            "On compare avec `==`.",
+            "",
+            "On s'attend à ça...",
+            "",
+            "",
+            "",
+            "...mais c'est ici qu'on arrive!",
+            ""
+          ],
+          "output": "Pas egal!"
+        },
+        {
+          "type": "code",
+          "text": "Affichons les miettes avec 17 chiffres (`setprecision` vient de `<iomanip>`).",
+          "code": "double a = 0.1 + 0.2;\ncout << setprecision(17) << a << '\\n';",
+          "lines": [
+            "Le résultat du calcul.",
+            "Montre 17 chiffres significatifs."
+          ],
+          "output": "0.30000000000000004"
+        },
+        {
+          "type": "memory",
+          "text": "En mémoire, `a` n'est pas 0.3 pile. Il y a une toute petite erreur.",
+          "boxes": [
+            {
+              "name": "a",
+              "value": "0.30000000000000004",
+              "type": "double",
+              "size": "8 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "La solution : vérifier si la **distance** entre les deux est plus petite qu'un **epsilon** (un tout petit nombre).",
+          "code": "const double EPSILON = 0.000001;\ndouble a = 0.1 + 0.2;\nif (abs(a - 0.3) < EPSILON)\n{\n    cout << \"Assez proche : egal!\\n\";\n}",
+          "lines": [
+            "Notre marge d'erreur acceptée.",
+            "Le calcul.",
+            "`abs` = valeur absolue (`<cmath>`). La distance est-elle minuscule?",
+            "",
+            "Oui! On les considère égaux.",
+            ""
+          ],
+          "output": "Assez proche : egal!"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Règle d'or : **jamais** `==` entre deux `double`. Écris `abs(a - b) < EPSILON`."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Pourquoi `0.1 + 0.2 == 0.3` est faux ?",
+          "a": "Les `double` sont des approximations en binaire. Il reste une petite erreur."
+        },
+        {
+          "q": "Comment comparer deux `double` ?",
+          "a": "`abs(a - b) < EPSILON`, avec par exemple `const double EPSILON = 0.000001;`"
+        },
+        {
+          "q": "D'où vient `abs` pour les `double` ?",
+          "a": "De `#include <cmath>`."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "double x = 0.1 * 3;\ncout << (x == 0.3);",
+          "choices": [
+            "0",
+            "1",
+            "0.3",
+            "true"
+          ],
+          "answer": 0,
+          "hint": "`cout` affiche un booléen avec 0 ou 1. Et `==` avec des `double`...",
+          "explain": "0.1 × 3 donne 0.30000000000000004, pas 0.3. Donc `==` est faux et `cout` affiche 0."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "const double EPSILON = 0.0001;\ndouble x = 0.1 * 3;\ncout << (abs(x - 0.3) < EPSILON);",
+          "answer": "1",
+          "hint": "La distance entre `x` et 0.3 est minuscule.",
+          "explain": "La distance est environ 0.00000000000000004, plus petite qu'EPSILON. La condition est vraie : `cout` affiche 1."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "const double EPSILON = 0.0001;\ndouble prix = 0.1 + 0.2;\nif (abs(prix - 0.3) > EPSILON)\n{\n    cout << \"Prix exact!\";\n}",
+          "answer": 2,
+          "hint": "On veut savoir si les deux nombres sont **proches**.",
+          "explain": "Bogue de logique : `>` teste s'ils sont **loin**. Pour « égaux », il faut `< EPSILON`. Le programme n'affiche rien."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour tester si `a` et `b` sont « égaux ».",
+          "code": "const double EPSILON = 0.000001;\ndouble a = 0.7 + 0.1;\ndouble b = 0.8;\nif (abs(a - b) ___ EPSILON)\n{\n    cout << \"Egaux\";\n}",
+          "choices": [
+            "<",
+            ">",
+            "==",
+            ">="
+          ],
+          "answer": 0,
+          "hint": "La distance doit être **plus petite** que la marge.",
+          "explain": "Égaux = distance minuscule, donc `< EPSILON`. Avec `==`, on retomberait dans le piège des doubles."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans le bon ordre.",
+          "lines": [
+            "const double EPSILON = 0.001;",
+            "double total = 0.7 + 0.1;",
+            "if (abs(total - 0.8) < EPSILON)",
+            "{",
+            "    cout << \"OK\";",
+            "}"
+          ],
+          "hint": "La constante d'abord, puis le calcul, puis le test.",
+          "explain": "On déclare EPSILON, on calcule, puis on compare avec `abs(...) < EPSILON`. 0.7 + 0.1 est très proche de 0.8 : on affiche OK."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi `0.1 + 0.2 == 0.3` donne faux en C++ ?",
+          "a": "Les `double` sont stockés en binaire. 0.1 et 0.2 n'y sont pas exacts, alors la somme a une minuscule erreur. `==` demande une égalité parfaite, donc c'est faux."
+        },
+        {
+          "q": "Comment choisir la valeur d'epsilon ?",
+          "a": "Assez petite pour la précision voulue, mais plus grande que les erreurs d'arrondi. Pour de l'argent, 0.001 suffit. Souvent, on prend 0.000001."
+        }
+      ]
+    },
+    {
+      "id": "s3-ternaire-test",
+      "title": "Ternaire et plan de test",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "L'**opérateur ternaire** est un mini `if` / `else` qui donne une valeur : `condition ? siVrai : siFaux`."
+        },
+        {
+          "type": "code",
+          "text": "Réussi ou échec, en une seule ligne.",
+          "code": "int note = 72;\nstring resultat = (note >= 60) ? \"Reussi\" : \"Echec\";\ncout << resultat << '\\n';",
+          "lines": [
+            "La note de l'examen.",
+            "Si `note >= 60` alors \"Reussi\", sinon \"Echec\".",
+            "Affiche le résultat."
+          ],
+          "output": "Reussi"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Dans un `cout`, mets le ternaire **entre parenthèses** : `cout << (x > 0 ? \"pos\" : \"neg\");`. Et garde-le pour des choix simples."
+        },
+        {
+          "type": "talk",
+          "text": "Pour résoudre un problème, on le **découpe** : 1) Entrées 2) Traitement 3) Sorties. Et on suit les **normes** : noms clairs, indentation, commentaires utiles."
+        },
+        {
+          "type": "talk",
+          "text": "Un **plan de test** (jeu de test) vérifie le programme. Pour chaque test : entrée, résultat **attendu**, résultat **obtenu**. Exemple pour `note >= 60` :\n• 75 → Reussi (cas normal)\n• 60 → Reussi (limite)\n• 59 → Echec (limite)\n• -5 → Invalide (erreur)"
+        },
+        {
+          "type": "code",
+          "text": "Le programme à tester. Test de la limite : on tape `60` puis Entrée.",
+          "code": "// Entree\nint note = 0;\ncout << \"Note : \";\ncin >> note;\n// Traitement et sortie\nif (note < 0 || note > 100)\n{\n    cout << \"Invalide\\n\";\n}\nelse\n{\n    cout << (note >= 60 ? \"Reussi\" : \"Echec\") << '\\n';\n}",
+          "lines": [
+            "Découpage : l'entrée.",
+            "",
+            "On demande la note.",
+            "L'utilisateur tape 60.",
+            "Découpage : le reste.",
+            "Cas invalide d'abord.",
+            "",
+            "",
+            "",
+            "Sinon, note valide.",
+            "",
+            "Ternaire entre parenthèses.",
+            ""
+          ],
+          "output": "Note : 60\nReussi"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quelle est la forme de l'opérateur ternaire ?",
+          "a": "`condition ? valeurSiVrai : valeurSiFaux`"
+        },
+        {
+          "q": "Qu'est-ce qu'un jeu de test ?",
+          "a": "Une liste de tests : entrée, résultat attendu, résultat obtenu."
+        },
+        {
+          "q": "Quels cas mettre dans un plan de test ?",
+          "a": "Des cas normaux, les **limites** (59, 60) et des cas invalides."
+        },
+        {
+          "q": "Les 3 étapes du découpage d'un problème ?",
+          "a": "Entrées, traitement, sorties."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int nbChats = 1;\ncout << nbChats << (nbChats > 1 ? \" chats\" : \" chat\");",
+          "choices": [
+            "1 chat",
+            "1 chats",
+            "1",
+            "chat"
+          ],
+          "answer": 0,
+          "hint": "Est-ce que `1 > 1` ?",
+          "explain": "`1 > 1` est faux, donc on prend la valeur après le `:` : ` chat`. Le piège : croire que `1 > 1` est vrai."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int a = 7;\nint b = 12;\nint plusGrand = (a > b) ? a : b;\ncout << plusGrand;",
+          "answer": "12",
+          "hint": "La condition est `a > b`. Est-ce vrai ?",
+          "explain": "`7 > 12` est faux, donc on prend `b`, qui vaut 12."
+        },
+        {
+          "type": "fill",
+          "q": "Complète l'opérateur ternaire.",
+          "code": "int age = 20;\nstring statut = (age >= 18) ___ \"majeur\" : \"mineur\";\ncout << statut;",
+          "choices": [
+            "?",
+            ":",
+            "if",
+            "&&"
+          ],
+          "answer": 0,
+          "hint": "Le point d'interrogation pose la question.",
+          "explain": "La forme est `condition ? vrai : faux`. Le `:` vient **après** la valeur si vrai."
+        },
+        {
+          "type": "predict",
+          "q": "Jeu de test : on tape `59`. Qu'est-ce qui s'affiche ?",
+          "code": "int note = 0;\ncin >> note;\ncout << (note >= 60 ? \"Reussi\" : \"Echec\");",
+          "choices": [
+            "Echec",
+            "Reussi",
+            "Invalide",
+            "Rien"
+          ],
+          "answer": 0,
+          "hint": "Test de la limite : 59 est juste **sous** 60.",
+          "explain": "`59 >= 60` est faux : Echec. C'est pour ça qu'on teste 59 **et** 60 : une erreur `>` au lieu de `>=` se cache à la limite."
+        },
+        {
+          "type": "order",
+          "q": "Remets le programme découpé dans l'ordre.",
+          "lines": [
+            "double prix = 0;",
+            "// 1. Entree",
+            "cin >> prix;",
+            "// 2. Traitement",
+            "double total = prix * 2;",
+            "// 3. Sortie",
+            "cout << total;"
+          ],
+          "hint": "Entrées, traitement, sorties. Chaque commentaire annonce son étape.",
+          "explain": "On découpe en 3 étapes : lire, calculer, afficher. Chaque commentaire est au-dessus de son code."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi tester les valeurs limites comme 59 et 60 ?",
+          "a": "Les bogues se cachent souvent aux limites, comme `>` au lieu de `>=`. Un test à 75 ne le verrait pas. Tester 59 et 60 confirme que la frontière est au bon endroit."
+        },
+        {
+          "q": "Quand utiliser l'opérateur ternaire plutôt qu'un `if` / `else` ?",
+          "a": "Quand on choisit simplement entre **deux valeurs**, comme « chat » ou « chats ». Si chaque cas fait plusieurs actions, un `if` / `else` est plus lisible."
+        }
+      ]
+    }
+  ],
+  "aideMemoire": [
+    {
+      "title": "switch",
+      "code": "switch (choix)\n{\n    case 1:\n    {\n        ...\n    }\n    break;\n    default:\n    {\n        ...\n    }\n    break;\n}",
+      "note": "int, char ou enum seulement. N'oublie pas les break!"
+    },
+    {
+      "title": "Constante",
+      "code": "const int NB_VIES = 9;",
+      "note": "Valeur fixe. Nom en UPPER_SNAKE_CASE."
+    },
+    {
+      "title": "Globale",
+      "code": "const double TAUX_TPS = 0.05; // avant main",
+      "note": "Constante globale : OK. Variable globale modifiable : à éviter."
+    },
+    {
+      "title": "Portée",
+      "code": "{\n    int bonus = 5;\n} // bonus meurt ici",
+      "note": "Une variable vit entre ses accolades."
+    },
+    {
+      "title": "enum",
+      "code": "enum Humeur { CONTENT, FACHE, ENDORMI };\nHumeur h = FACHE; // vaut 1",
+      "note": "Commence à 0. cout affiche le numéro."
+    },
+    {
+      "title": "Comparer des double",
+      "code": "const double EPSILON = 0.000001;\nif (abs(a - b) < EPSILON)",
+      "note": "Jamais == entre deux double. abs vient de `<cmath>`."
+    },
+    {
+      "title": "Ternaire",
+      "code": "string s = (note >= 60) ? \"Reussi\" : \"Echec\";",
+      "note": "condition ? siVrai : siFaux. Parenthèses dans un cout."
+    },
+    {
+      "title": "Plan de test",
+      "code": "Entrée | Attendu | Obtenu\n60     | Reussi  | Reussi\n59     | Echec   | Echec",
+      "note": "Cas normaux, limites, invalides."
+    }
+  ]
+}

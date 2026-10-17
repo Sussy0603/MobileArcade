@@ -1,0 +1,1567 @@
+{
+  "week": 5,
+  "title": "Les boucles",
+  "notions": [
+    {
+      "id": "s5-while",
+      "title": "La boucle while",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Une **boucle** répète du code. Le `while` veut dire « **tant que** » : tant que la condition est vraie, on refait le bloc. Il vérifie la condition **avant** chaque tour."
+        },
+        {
+          "type": "code",
+          "text": "Le chat mange ses croquettes une par une.",
+          "code": "int croquettes = 3;\nwhile (croquettes > 0)\n{\n    cout << \"Reste : \" << croquettes << \" ... Miam!\\n\";\n    croquettes = croquettes - 1;\n}\ncout << \"Bol vide!\\n\";",
+          "lines": [
+            "On commence avec 3 croquettes.",
+            "Tant qu'il en reste...",
+            "Début du tour.",
+            "On affiche combien il en reste.",
+            "Le chat en mange une : -1.",
+            "Fin du tour. On retourne tester la condition.",
+            "Condition fausse : on sort et on continue ici."
+          ],
+          "output": "Reste : 3 ... Miam!\nReste : 2 ... Miam!\nReste : 1 ... Miam!\nBol vide!"
+        },
+        {
+          "type": "memory",
+          "text": "Suivons `croquettes` tour par tour. Le test `croquettes > 0` décide si on entre.",
+          "boxes": [
+            {
+              "name": "croquettes (départ)",
+              "value": "3 → on entre (tour 1)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "après le tour 1",
+              "value": "2 → encore (tour 2)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "après le tour 2",
+              "value": "1 → encore (tour 3)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "après le tour 3",
+              "value": "0 → on sort!",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Les 3 ingrédients d'une boucle : **1)** initialiser la variable, **2)** la tester, **3)** la modifier dans le bloc. Oublie le 3 et c'est la **boucle infinie** : le chat court après sa queue pour toujours! 🌀"
+        },
+        {
+          "type": "code",
+          "text": "On additionne 1 + 2 + 3 + 4 + 5 avec un compteur `i` et un accumulateur `somme`.",
+          "code": "int i = 1;\nint somme = 0;\nwhile (i <= 5)\n{\n    somme = somme + i;\n    i = i + 1;\n}\ncout << \"Somme : \" << somme << '\\n';",
+          "lines": [
+            "Ingrédient 1 : le compteur part à 1.",
+            "L'accumulateur part à 0.",
+            "Ingrédient 2 : tant que `i` ne dépasse pas 5.",
+            "",
+            "On ajoute `i` à la somme.",
+            "Ingrédient 3 : `i` avance de 1.",
+            "Retour au test.",
+            "On affiche 15."
+          ],
+          "output": "Somme : 15"
+        },
+        {
+          "type": "memory",
+          "text": "Les deux cases changent à chaque tour. Lis de gauche à droite.",
+          "boxes": [
+            {
+              "name": "i",
+              "value": "1 → 2 → 3 → 4 → 5 → 6",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "somme",
+              "value": "0 → 1 → 3 → 6 → 10 → 15",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quand le `while` vérifie-t-il sa condition ?",
+          "a": "**Avant** chaque tour."
+        },
+        {
+          "q": "Combien de tours au minimum pour un `while` ?",
+          "a": "Zéro. Si la condition est fausse dès le départ, on ne rentre jamais."
+        },
+        {
+          "q": "Les 3 ingrédients d'une boucle ?",
+          "a": "Initialiser, tester, modifier."
+        },
+        {
+          "q": "Qu'est-ce qu'une boucle infinie ?",
+          "a": "Une boucle dont la condition ne devient jamais fausse. Souvent : on a oublié de modifier la variable."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int n = 1;\nwhile (n < 20)\n{\n    n = n * 2;\n}\ncout << n;",
+          "choices": [
+            "32",
+            "16",
+            "20",
+            "64"
+          ],
+          "answer": 0,
+          "hint": "Suis `n` : 1, 2, 4, 8, 16... et ensuite?",
+          "explain": "`16 < 20` est vrai, donc on fait encore un tour : 32. Puis `32 < 20` est faux. Le piège : s'arrêter à 16."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int i = 5;\nwhile (i > 0)\n{\n    cout << i << ' ';\n    i = i - 2;\n}",
+          "answer": "5 3 1",
+          "hint": "On enlève 2 à chaque tour. Que vaut `i` après 1 ?",
+          "explain": "`i` vaut 5, 3, 1, puis -1. Comme `-1 > 0` est faux, on sort. Donc `5 3 1`."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int compteur = 10;\nwhile (compteur > 0)\n{\n    cout << compteur << '\\n';\n    compteur = compteur + 1;\n}",
+          "answer": 4,
+          "hint": "La variable s'approche-t-elle de la sortie ?",
+          "explain": "Bogue de logique : `compteur` monte au lieu de descendre. La condition `> 0` reste vraie : boucle infinie. Il faut `compteur - 1`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour afficher `1 2 3`.",
+          "code": "int i = 1;\nwhile (i ___ 3)\n{\n    cout << i << ' ';\n    i = i + 1;\n}",
+          "choices": [
+            "<=",
+            "<",
+            ">",
+            "=="
+          ],
+          "answer": 0,
+          "hint": "On veut que 3 soit affiché aussi.",
+          "explain": "Avec `<=`, le tour où `i` vaut 3 se fait. Avec `<`, on s'arrête avant 3 : `1 2` (erreur de 1)."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher `3 2 1 Dodo`.",
+          "lines": [
+            "int chats = 3;",
+            "while (chats > 0)",
+            "{",
+            "    cout << chats << ' ';",
+            "    chats = chats - 1;",
+            "}",
+            "cout << \"Dodo\";"
+          ],
+          "hint": "On affiche **avant** d'enlever un chat.",
+          "explain": "Initialiser, tester, afficher, modifier. Si on enlève avant d'afficher, on obtient `2 1 0 Dodo`."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Qu'arrive-t-il si la condition d'un `while` ne devient jamais fausse ?",
+          "a": "La boucle ne s'arrête jamais : c'est une boucle infinie. Le programme gèle. Il faut modifier la variable testée dans le bloc pour s'approcher de la sortie."
+        },
+        {
+          "q": "Pourquoi un `while` peut-il faire zéro tour ?",
+          "a": "Parce qu'il teste la condition **avant** d'entrer. Si elle est fausse dès le début, le bloc est sauté au complet."
+        }
+      ]
+    },
+    {
+      "id": "s5-dowhile",
+      "title": "La boucle do-while",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Le `do-while` fait le tour **d'abord** et teste **après**. Résultat : au moins **1 tour**, garanti. Comme un chat qui saute sur la table AVANT de se demander s'il a le droit. 😼"
+        },
+        {
+          "type": "code",
+          "text": "Même si la condition est fausse, on entre une fois.",
+          "code": "int vies = 0;\ndo\n{\n    cout << \"Je joue au moins une fois!\\n\";\n    vies = vies - 1;\n} while (vies > 0);\ncout << \"Fin\\n\";",
+          "lines": [
+            "Aucune vie...",
+            "« Fais »...",
+            "",
+            "Ce tour se fait sans test.",
+            "`vies` devient -1.",
+            "Test APRÈS le tour : `-1 > 0` est faux. On sort.",
+            "Suite du programme."
+          ],
+          "output": "Je joue au moins une fois!\nFin"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : le `;` après `while (...)` est **obligatoire** dans un do-while. Sans lui : erreur de compilation."
+        },
+        {
+          "type": "code",
+          "text": "Comparons. Même départ (10), même condition (`< 5`) :",
+          "code": "int x = 10;\nwhile (x < 5)\n{\n    cout << \"while \";\n    x = x + 1;\n}\nint y = 10;\ndo\n{\n    cout << \"do-while \";\n    y = y + 1;\n} while (y < 5);",
+          "lines": [
+            "",
+            "Test AVANT : `10 < 5` est faux...",
+            "",
+            "...donc jamais affiché.",
+            "",
+            "",
+            "",
+            "Pas de test ici!",
+            "",
+            "Affiché une fois.",
+            "`y` devient 11.",
+            "`11 < 5` est faux : on sort."
+          ],
+          "output": "do-while "
+        },
+        {
+          "type": "code",
+          "text": "L'usage parfait : redemander tant que la réponse est mauvaise. On tape `9`, puis `0`, puis `4`.",
+          "code": "int note = 0;\ndo\n{\n    cout << \"Note (1 a 5) : \";\n    cin >> note;\n} while (note < 1 || note > 5);\ncout << \"Merci pour \" << note << \" etoiles!\\n\";",
+          "lines": [
+            "",
+            "On demande au moins une fois.",
+            "",
+            "La question.",
+            "On lit la réponse.",
+            "Hors de 1 à 5? On recommence.",
+            "Enfin une bonne réponse."
+          ],
+          "output": "Note (1 a 5) : 9\nNote (1 a 5) : 0\nNote (1 a 5) : 4\nMerci pour 4 etoiles!"
+        },
+        {
+          "type": "memory",
+          "text": "Suivons `note` pendant la saisie.",
+          "boxes": [
+            {
+              "name": "note (départ)",
+              "value": "0",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "après le tour 1",
+              "value": "9 → trop grand, encore",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "après le tour 2",
+              "value": "0 → trop petit, encore",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "après le tour 3",
+              "value": "4 → valide, on sort!",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        }
+      ],
+      "cards": [
+        {
+          "q": "Combien de tours au minimum pour un `do-while` ?",
+          "a": "Un. Le test est fait **après** le tour."
+        },
+        {
+          "q": "Qu'est-ce qu'on oublie souvent dans un `do-while` ?",
+          "a": "Le `;` après `while (condition)`."
+        },
+        {
+          "q": "Quand utiliser un `do-while` ?",
+          "a": "Quand il faut faire l'action **au moins une fois** : menu, saisie à valider."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int n = 5;\ndo\n{\n    cout << n << ' ';\n    n = n + 1;\n} while (n < 3);",
+          "choices": [
+            "5",
+            "Rien",
+            "5 6",
+            "3 4"
+          ],
+          "answer": 0,
+          "hint": "Le test vient **après** le premier tour.",
+          "explain": "Le do-while affiche 5 d'abord, puis teste `6 < 3` : faux. Un `while` n'aurait rien affiché, mais ici on fait toujours 1 tour."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int i = 1;\ndo\n{\n    cout << i << ' ';\n    i = i * 3;\n} while (i < 50);",
+          "answer": "1 3 9 27",
+          "hint": "`i` est multiplié par 3 à chaque tour.",
+          "explain": "On affiche 1, 3, 9, 27. Ensuite `i` vaut 81 : `81 < 50` est faux, on sort."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int n = 0;\ndo\n{\n    n = n + 1;\n} while (n < 3)\ncout << n;",
+          "answer": 4,
+          "hint": "Regarde la fin de la ligne du `while`.",
+          "explain": "Erreur de compilation : il manque le `;` après `while (n < 3)`. Dans un do-while, il est obligatoire."
+        },
+        {
+          "type": "fill",
+          "q": "Complète le mot-clé qui termine la boucle.",
+          "code": "char reponse = 'o';\nint tours = 0;\ndo\n{\n    tours = tours + 1;\n    if (tours == 3)\n    {\n        reponse = 'n';\n    }\n} ___ (reponse != 'n');\ncout << tours;",
+          "choices": [
+            "while",
+            "until",
+            "do",
+            "for"
+          ],
+          "answer": 0,
+          "hint": "`do` ... `?` (condition);",
+          "explain": "La forme est `do { ... } while (condition);`. `until` n'existe pas en C++."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre : redemander l'âge tant qu'il est négatif.",
+          "lines": [
+            "int age = 0;",
+            "do",
+            "{",
+            "    cin >> age;",
+            "} while (age < 0);",
+            "cout << age;"
+          ],
+          "hint": "`do`, puis le bloc, puis `while (...);`.",
+          "explain": "On déclare, on lit au moins une fois, et on redemande tant que l'âge est négatif. Avec `-2` puis `7`, on affiche 7."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi un `do-while` pour un menu ?",
+          "a": "Le menu doit s'afficher **au moins une fois**, avant même de connaître le choix. Le do-while fait le tour d'abord et teste après. Avec un `while`, il faudrait tricher avec la valeur de départ."
+        },
+        {
+          "q": "Quelle est la différence principale entre `while` et `do-while` ?",
+          "a": "Le `while` teste **avant** : il peut faire 0 tour. Le `do-while` teste **après** : il fait au moins 1 tour."
+        }
+      ]
+    },
+    {
+      "id": "s5-increment",
+      "title": "++ et -- (pré/post)",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "`++x` ajoute 1 à `x`. `--x` enlève 1. C'est un raccourci pour `x = x + 1`. Parfait pour les compteurs de boucle!"
+        },
+        {
+          "type": "code",
+          "text": "Un chat gagne et perd des vies.",
+          "code": "int vies = 9;\n++vies;\ncout << vies << '\\n';\n--vies;\n--vies;\ncout << vies << '\\n';",
+          "lines": [
+            "",
+            "9 + 1 : `vies` vaut 10.",
+            "Affiche 10.",
+            "10 - 1 = 9.",
+            "9 - 1 = 8.",
+            "Affiche 8."
+          ],
+          "output": "10\n8"
+        },
+        {
+          "type": "talk",
+          "text": "Seul sur sa ligne, `++x` et `x++` font **la même chose**. La différence apparaît seulement **dans une expression** :\n• `++x` (pré) : ajoute d'abord, donne la **nouvelle** valeur.\n• `x++` (post) : donne l'**ancienne** valeur, puis ajoute."
+        },
+        {
+          "type": "code",
+          "text": "Pré et post côte à côte.",
+          "code": "int a = 5;\nint b = a++;\ncout << \"a = \" << a << \", b = \" << b << '\\n';\nint c = 5;\nint d = ++c;\ncout << \"c = \" << c << \", d = \" << d << '\\n';",
+          "lines": [
+            "",
+            "Post : `b` reçoit l'ancienne valeur (5), puis `a` devient 6.",
+            "",
+            "",
+            "Pré : `c` devient 6 d'abord, puis `d` reçoit 6.",
+            ""
+          ],
+          "output": "a = 6, b = 5\nc = 6, d = 6"
+        },
+        {
+          "type": "memory",
+          "text": "Ce qu'il y a dans les cases à la fin.",
+          "boxes": [
+            {
+              "name": "a",
+              "value": "5 → 6",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "b",
+              "value": "5 (l'ancienne valeur de a)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "c",
+              "value": "5 → 6",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "d",
+              "value": "6 (la nouvelle valeur de c)",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Ne mets **jamais** deux `++` sur la même variable dans une même expression, comme `i++ + ++i`. C'est un comportement **indéfini** : le résultat peut changer d'un compilateur à l'autre."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Que fait `++x` ?",
+          "a": "Ajoute 1 à `x`, et donne la **nouvelle** valeur."
+        },
+        {
+          "q": "Que fait `x++` dans `int y = x++;` ?",
+          "a": "`y` reçoit l'**ancienne** valeur de `x`, puis `x` augmente de 1."
+        },
+        {
+          "q": "Seuls sur une ligne, `++i;` et `i++;` sont-ils différents ?",
+          "a": "Non. Les deux ajoutent 1."
+        },
+        {
+          "q": "Pourquoi éviter `i++ + ++i` ?",
+          "a": "Comportement indéfini : le résultat n'est pas garanti."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int x = 3;\nint y = x++;\ncout << x << ' ' << y;",
+          "choices": [
+            "4 3",
+            "4 4",
+            "3 3",
+            "3 4"
+          ],
+          "answer": 0,
+          "hint": "Post-incrément : l'ancienne valeur d'abord.",
+          "explain": "`y` reçoit 3 (l'ancienne valeur), puis `x` devient 4. Si tu as dit `4 4`, tu as pensé à `++x`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int n = 10;\nint m = --n;\ncout << n << ' ' << m;",
+          "answer": "9 9",
+          "hint": "Le `--` est **avant** `n`.",
+          "explain": "Pré-décrément : `n` devient 9 d'abord, puis `m` reçoit 9."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int a = 2;\nint b = a++ * 3;\ncout << b;",
+          "choices": [
+            "6",
+            "9",
+            "7",
+            "8"
+          ],
+          "answer": 0,
+          "hint": "Quelle valeur de `a` entre dans le calcul ?",
+          "explain": "`a++` donne l'ancienne valeur, 2. Donc 2 × 3 = 6. Ensuite seulement, `a` devient 3. `9` serait le résultat avec `++a`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour afficher `8 7`.",
+          "code": "int x = 7;\nint y = ___;\ncout << x << ' ' << y;",
+          "choices": [
+            "x++",
+            "++x",
+            "x + 1",
+            "x--"
+          ],
+          "answer": 0,
+          "hint": "`x` doit devenir 8, mais `y` doit garder 7.",
+          "explain": "`x++` donne 7 à `y`, puis `x` devient 8. `++x` donnerait `8 8`, et `x + 1` ne change pas `x` : `7 8`."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int nbChats = 2;\n++nbChats;\nconst int NB_MAX = 5;\n++NB_MAX;\ncout << nbChats;",
+          "answer": 3,
+          "hint": "Qui a le droit de changer ?",
+          "explain": "Erreur de compilation : on ne peut pas faire `++` sur une constante. `++nbChats` est correct : c'est une variable."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Quelle est la différence entre `++i` et `i++` ?",
+          "a": "Les deux ajoutent 1 à `i`. Dans une expression, `++i` donne la nouvelle valeur, et `i++` donne l'ancienne. Seuls sur leur ligne, ils font la même chose."
+        },
+        {
+          "q": "Pourquoi ne pas écrire `i++ + ++i` ?",
+          "a": "On modifie `i` deux fois dans la même expression. C'est un comportement indéfini : le résultat n'est pas garanti. On sépare en plusieurs lignes claires."
+        }
+      ]
+    },
+    {
+      "id": "s5-for",
+      "title": "La boucle for",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Le `for`, c'est un `while` rangé sur **une seule ligne** : `for (init; condition; mise à jour)`.\nL'ordre : **1)** init (une seule fois) **2)** test **3)** bloc **4)** mise à jour, puis retour au test."
+        },
+        {
+          "type": "code",
+          "text": "5 tours, de 0 à 4.",
+          "code": "for (int i = 0; i < 5; ++i)\n{\n    cout << \"Tour \" << i << '\\n';\n}",
+          "lines": [
+            "`i` part à 0. Tant que `i < 5`. Après chaque tour : `++i`.",
+            "",
+            "Le bloc répété.",
+            "`i` n'existe plus après ce `}`."
+          ],
+          "output": "Tour 0\nTour 1\nTour 2\nTour 3\nTour 4"
+        },
+        {
+          "type": "memory",
+          "text": "Suivons `i`. Le dernier test échoue quand `i` vaut 5 : `5 < 5` est faux.",
+          "boxes": [
+            {
+              "name": "i",
+              "value": "0 (tour 1)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "i",
+              "value": "1 (tour 2)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "i",
+              "value": "2 (tour 3)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "i",
+              "value": "3 (tour 4)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "i",
+              "value": "4 (tour 5)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "i",
+              "value": "5 (on sort!)",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "On peut compter à rebours, et faire des sauts avec `-=` ou `+=`.",
+          "code": "for (int i = 10; i > 0; i -= 3)\n{\n    cout << i << ' ';\n}",
+          "lines": [
+            "Part de 10, enlève 3 à chaque tour.",
+            "",
+            "Affiche 10, 7, 4, 1.",
+            "Ensuite `i` vaut -2 : on sort."
+          ],
+          "output": "10 7 4 1 "
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège de l'**erreur de 1** (off-by-one) : `i < 5` fait 5 tours (0 à 4). `i <= 5` en fait **6** (0 à 5). Compte toujours le premier et le dernier tour!"
+        },
+        {
+          "type": "talk",
+          "text": "Quelle boucle choisir?\n• `for` : on **connaît** le nombre de tours (10 fois, de 1 à n).\n• `while` : ça dépend d'un **événement** (tant qu'il reste des croquettes).\n• `do-while` : il faut **au moins un** tour (menu, saisie)."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Les 3 parties d'un `for` ?",
+          "a": "`for (initialisation; condition; mise à jour)`"
+        },
+        {
+          "q": "Combien de tours fait `for (int i = 0; i < 10; ++i)` ?",
+          "a": "10 tours : `i` va de 0 à 9."
+        },
+        {
+          "q": "Quand préférer un `for` à un `while` ?",
+          "a": "Quand on connaît d'avance le nombre de tours."
+        },
+        {
+          "q": "Peut-on utiliser `i` après la boucle `for (int i = 0; ...)` ?",
+          "a": "Non. `i` meurt à la fin de la boucle."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int total = 0;\nfor (int i = 0; i < 4; ++i)\n{\n    total += i;\n}\ncout << total;",
+          "choices": [
+            "6",
+            "10",
+            "4",
+            "0"
+          ],
+          "answer": 0,
+          "hint": "Quelles valeurs prend `i` ? Le 4 est-il inclus ?",
+          "explain": "`i` vaut 0, 1, 2, 3 (pas 4, car `i < 4`). 0 + 1 + 2 + 3 = 6. `10` est l'erreur de 1 classique."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "for (int i = 2; i <= 10; i += 4)\n{\n    cout << i << ' ';\n}",
+          "answer": "2 6 10",
+          "hint": "On saute de 4 en 4. `10 <= 10` ?",
+          "explain": "`i` vaut 2, 6, 10. Comme `10 <= 10` est vrai, 10 est affiché. Ensuite 14 : on sort."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "for (int i = 0, i < 5, ++i)\n{\n    cout << i;\n}",
+          "answer": 0,
+          "hint": "Qu'est-ce qui sépare les 3 parties d'un `for` ?",
+          "explain": "Erreur de compilation : il faut des **points-virgules** entre les 3 parties : `for (int i = 0; i < 5; ++i)`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour afficher `1 2 3 4 5`.",
+          "code": "for (int i = 1; i ___ 5; ++i)\n{\n    cout << i << ' ';\n}",
+          "choices": [
+            "<=",
+            "<",
+            ">=",
+            "=="
+          ],
+          "answer": 0,
+          "hint": "Le 5 doit être affiché.",
+          "explain": "On part de 1 et 5 doit être inclus : `<=`. Avec `<`, on obtient `1 2 3 4`."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher `24`.",
+          "lines": [
+            "int produit = 1;",
+            "for (int i = 1; i <= 4; ++i)",
+            "{",
+            "    produit = produit * i;",
+            "}",
+            "cout << produit;"
+          ],
+          "hint": "L'accumulateur est déclaré **avant** la boucle. On l'affiche **après**.",
+          "explain": "Si `produit` était déclaré dans la boucle, il recommencerait à 1 à chaque tour. Résultat : 1 × 2 × 3 × 4 = 24."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Quand choisir un `for` plutôt qu'un `while` ?",
+          "a": "Quand on connaît le nombre de tours d'avance. Tout est sur une ligne : départ, condition, avancement. Le `while` est mieux quand on attend un événement, comme une bonne saisie."
+        },
+        {
+          "q": "Combien de tours fait `for (int i = 0; i < 10; ++i)` et pourquoi ?",
+          "a": "10 tours. `i` prend les valeurs 0 à 9. Quand `i` vaut 10, `10 < 10` est faux et on sort."
+        }
+      ]
+    },
+    {
+      "id": "s5-break-continue",
+      "title": "break et continue",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Deux commandes pour contrôler une boucle :\n• `break` : on **sort** de la boucle tout de suite.\n• `continue` : on **saute** le reste du tour et on passe au tour suivant."
+        },
+        {
+          "type": "code",
+          "text": "`break` : on arrête dès que `i` vaut 4.",
+          "code": "for (int i = 1; i <= 10; ++i)\n{\n    if (i == 4)\n    {\n        break;\n    }\n    cout << i << ' ';\n}\ncout << \"Fin\\n\";",
+          "lines": [
+            "Prévu pour 10 tours...",
+            "",
+            "Quand `i` arrive à 4...",
+            "",
+            "...on sort de la boucle!",
+            "",
+            "Affiché pour 1, 2, 3.",
+            "",
+            "On arrive ici après le `break`."
+          ],
+          "output": "1 2 3 Fin"
+        },
+        {
+          "type": "memory",
+          "text": "Suivons `i` : le `break` coupe tout au 4e tour.",
+          "boxes": [
+            {
+              "name": "i",
+              "value": "1 → 2 → 3 → 4 (break!)",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "`continue` : on saute les nombres pairs.",
+          "code": "for (int i = 1; i <= 6; ++i)\n{\n    if (i % 2 == 0)\n    {\n        continue;\n    }\n    cout << i << ' ';\n}",
+          "lines": [
+            "6 tours.",
+            "",
+            "Si `i` est pair...",
+            "",
+            "...on saute au tour suivant (`++i`).",
+            "",
+            "Seulement pour 1, 3, 5.",
+            ""
+          ],
+          "output": "1 3 5 "
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège : dans un `while`, si le `++i` est **après** le `continue`, il est sauté. `i` ne change plus : boucle infinie! Dans un `for`, le `++i` se fait quand même."
+        },
+        {
+          "type": "code",
+          "text": "Un `while (true)` + `break` : on cherche le premier multiple de 7 à partir de 50.",
+          "code": "int n = 50;\nwhile (true)\n{\n    if (n % 7 == 0)\n    {\n        break;\n    }\n    ++n;\n}\ncout << \"Premier multiple de 7 : \" << n << '\\n';",
+          "lines": [
+            "",
+            "Condition toujours vraie : seul un `break` peut arrêter.",
+            "",
+            "Multiple de 7?",
+            "",
+            "Trouvé! On sort.",
+            "",
+            "Sinon, on essaie le suivant.",
+            "",
+            "Affiche 56."
+          ],
+          "output": "Premier multiple de 7 : 56"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Que fait `break` dans une boucle ?",
+          "a": "Il sort de la boucle immédiatement."
+        },
+        {
+          "q": "Que fait `continue` ?",
+          "a": "Il saute le reste du tour et passe au tour suivant."
+        },
+        {
+          "q": "Dans un `for`, le `++i` est-il fait après un `continue` ?",
+          "a": "Oui. Mais dans un `while`, un `++i` placé après le `continue` est sauté."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "for (int i = 0; i < 5; ++i)\n{\n    if (i == 2)\n    {\n        continue;\n    }\n    cout << i;\n}",
+          "choices": [
+            "0134",
+            "01",
+            "01234",
+            "134"
+          ],
+          "answer": 0,
+          "hint": "`continue` ne fait pas sortir de la boucle.",
+          "explain": "Seul le tour où `i` vaut 2 est sauté. `01` serait le résultat avec `break`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int total = 0;\nfor (int i = 1; i <= 10; ++i)\n{\n    if (total > 5)\n    {\n        break;\n    }\n    total = total + i;\n}\ncout << total;",
+          "answer": "6",
+          "hint": "Suis `total` : 1, puis 3, puis...",
+          "explain": "`total` vaut 1, 3, puis 6. Au tour suivant, `6 > 5` est vrai : `break`. On affiche 6."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int i = 0;\nwhile (i < 5)\n{\n    if (i == 2)\n    {\n        continue;\n    }\n    cout << i;\n    ++i;\n}",
+          "answer": 5,
+          "hint": "Quand `i` vaut 2, est-ce que `++i` est exécuté ?",
+          "explain": "Bogue de logique : le `continue` saute le `++i`. `i` reste à 2 pour toujours : boucle infinie. Il faut faire `++i` avant le `continue`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour que la boucle s'arrête dès que `i * i > 20` (affiche `5`).",
+          "code": "int tours = 0;\nfor (int i = 1; i <= 100; ++i)\n{\n    ++tours;\n    if (i * i > 20)\n    {\n        ___\n    }\n}\ncout << tours;",
+          "choices": [
+            "break;",
+            "continue;",
+            "stop;",
+            "++i;"
+          ],
+          "answer": 0,
+          "hint": "On veut **sortir**, pas passer au tour suivant.",
+          "explain": "`break;` arrête au 5e tour (5 × 5 = 25). `continue;` laisserait la boucle faire ses 100 tours : on afficherait 100."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int n = 1;\nwhile (true)\n{\n    n = n * 3;\n    if (n > 20)\n    {\n        break;\n    }\n}\ncout << n;",
+          "choices": [
+            "27",
+            "9",
+            "20",
+            "Boucle infinie"
+          ],
+          "answer": 0,
+          "hint": "`while (true)` peut s'arrêter... grâce à qui ?",
+          "explain": "`n` vaut 3, 9, puis 27. `27 > 20` : `break`. Ce n'est pas infini, car le `break` sort de la boucle."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Quelle est la différence entre `break` et `continue` ?",
+          "a": "`break` quitte toute la boucle. `continue` quitte seulement le tour actuel et passe au suivant. Après un `break`, plus aucun tour ne se fait."
+        },
+        {
+          "q": "Pourquoi un `continue` dans un `while` peut-il créer une boucle infinie ?",
+          "a": "Le `continue` saute tout ce qui reste dans le bloc. Si le `++i` est après, il ne se fait jamais. `i` ne change plus, alors la condition reste vraie."
+        }
+      ]
+    },
+    {
+      "id": "s5-cin-fail",
+      "title": "Valider une saisie (cin.fail)",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Si on tape `abc` dans un `int`, `cin` tombe en **état d'erreur**. `cin.fail()` devient vrai, et `cin` **bloque toutes les lectures suivantes**. Un chat a marché sur le clavier? Il faut se protéger! 🐾"
+        },
+        {
+          "type": "code",
+          "text": "Voici le blocage. On tape `x` puis Entrée.",
+          "code": "int a = 0;\nint b = 0;\ncin >> a;\ncin >> b;\ncout << a << ' ' << b << '\\n';",
+          "lines": [
+            "",
+            "",
+            "`x` n'est pas un nombre : échec. `a` reçoit 0.",
+            "`cin` est bloqué : on ne demande même pas `b`!",
+            "Affiche `0 0`."
+          ],
+          "output": "x\n0 0"
+        },
+        {
+          "type": "talk",
+          "text": "Pour réparer `cin`, deux étapes :\n**1)** `cin.clear();` enlève l'état d'erreur.\n**2)** `cin.ignore(...);` jette les caractères restants de la ligne (le `abc`)."
+        },
+        {
+          "type": "code",
+          "text": "La boucle de validation complète. On tape `abc`, puis `-3`, puis `4`.",
+          "code": "int age = 0;\ncout << \"Age du chat : \";\ncin >> age;\nwhile (cin.fail() || age < 0)\n{\n    cin.clear();\n    cin.ignore(numeric_limits<streamsize>::max(), '\\n');\n    cout << \"Invalide. Age du chat : \";\n    cin >> age;\n}\ncout << \"Ton chat a \" << age << \" ans\\n\";",
+          "lines": [
+            "",
+            "On pose la question.",
+            "Première lecture.",
+            "Pas un nombre, OU nombre invalide?",
+            "",
+            "Étape 1 : on enlève l'erreur.",
+            "Étape 2 : on jette tout jusqu'à la fin de la ligne.",
+            "On redemande.",
+            "Nouvelle lecture.",
+            "Retour au test.",
+            "Ici, `age` est sûrement valide."
+          ],
+          "output": "Age du chat : abc\nInvalide. Age du chat : -3\nInvalide. Age du chat : 4\nTon chat a 4 ans"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ L'ordre compte : **d'abord** `cin.clear()`, **ensuite** `cin.ignore(...)`. Tant que `cin` est en erreur, `ignore` ne fait rien. `numeric_limits` vient de `#include <limits>`."
+        },
+        {
+          "type": "memory",
+          "text": "Ce qui se passe quand on tape `abc` :",
+          "boxes": [
+            {
+              "name": "age",
+              "value": "0 (échec de lecture)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "cin.fail()",
+              "value": "true → après clear() : false",
+              "type": "bool",
+              "size": "—"
+            },
+            {
+              "name": "tampon du clavier",
+              "value": "abc → vidé par ignore()",
+              "type": "caractères",
+              "size": "—"
+            }
+          ]
+        }
+      ],
+      "cards": [
+        {
+          "q": "Que retourne `cin.fail()` si on tape `abc` dans un `int` ?",
+          "a": "`true` : la lecture a échoué."
+        },
+        {
+          "q": "Que fait `cin.clear()` ?",
+          "a": "Il enlève l'état d'erreur de `cin`."
+        },
+        {
+          "q": "Que fait `cin.ignore(numeric_limits<streamsize>::max(), '\\n')` ?",
+          "a": "Il jette tous les caractères jusqu'à la fin de la ligne."
+        },
+        {
+          "q": "Dans quel ordre appeler `clear` et `ignore` ?",
+          "a": "`cin.clear()` d'abord, puis `cin.ignore(...)`."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "On tape `chat`. Qu'est-ce qui s'affiche ?",
+          "code": "int n = 7;\ncin >> n;\ncout << cin.fail() << ' ' << n;",
+          "choices": [
+            "1 0",
+            "0 7",
+            "1 7",
+            "0 0"
+          ],
+          "answer": 0,
+          "hint": "Une lecture ratée met 0 dans la variable.",
+          "explain": "`chat` n'est pas un nombre : `cin.fail()` vaut 1 (vrai) et `n` reçoit 0. Il ne garde pas son 7."
+        },
+        {
+          "type": "predict-typed",
+          "q": "On tape `12abc`. Écris exactement ce qui s'affiche.",
+          "code": "int n = 0;\ncin >> n;\ncout << cin.fail() << ' ' << n;",
+          "answer": "0 12",
+          "hint": "`cin` lit les chiffres du début, puis s'arrête.",
+          "explain": "`cin` lit `12` et s'arrête à la lettre `a`. La lecture a réussi : `fail` vaut 0. Le `abc` reste dans le tampon."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int nbChats = 0;\ncin >> nbChats;\nif (cin.fail)\n{\n    cout << \"Pas un nombre!\";\n}",
+          "answer": 2,
+          "hint": "`fail` est une fonction. Qu'est-ce qu'il manque ?",
+          "explain": "Erreur de compilation : il manque les parenthèses. On appelle la fonction : `cin.fail()`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour réparer `cin`. On tape `abc`, puis `8`.",
+          "code": "int n = 0;\ncin >> n;\nif (cin.fail())\n{\n    ___\n    cin.ignore(numeric_limits<streamsize>::max(), '\\n');\n    cin >> n;\n}\ncout << n;",
+          "choices": [
+            "cin.clear();",
+            "cin.fail();",
+            "cin.reset();",
+            "cout.clear();"
+          ],
+          "answer": 0,
+          "hint": "L'étape 1 enlève l'erreur.",
+          "explain": "`cin.clear()` enlève l'état d'erreur. Sans lui, `ignore` et la 2e lecture ne font rien : on afficherait 0."
+        },
+        {
+          "type": "order",
+          "q": "Remets la validation dans l'ordre (`age` est déjà déclaré).",
+          "lines": [
+            "cin >> age;",
+            "while (cin.fail())",
+            "{",
+            "    cin.clear();",
+            "    cin.ignore(numeric_limits<streamsize>::max(), '\\n');",
+            "    cin >> age;",
+            "}"
+          ],
+          "hint": "On lit une première fois **avant** la boucle. Dans la boucle : clear, ignore, relire.",
+          "explain": "Lire, tester, réparer (clear puis ignore), relire. Avec `abc` puis `3`, `age` vaut 3 à la fin."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi faut-il appeler `cin.clear()` avant `cin.ignore()` ?",
+          "a": "Tant que `cin` est en état d'erreur, il refuse toute opération, même `ignore`. `clear` le débloque d'abord. Ensuite `ignore` peut jeter les mauvais caractères."
+        },
+        {
+          "q": "Que se passe-t-il si on tape des lettres dans un `int` sans validation ?",
+          "a": "La lecture échoue et la variable reçoit 0. Les lettres restent dans le tampon et `cin` bloque les lectures suivantes. Dans une boucle, ça peut donner une boucle infinie."
+        }
+      ]
+    },
+    {
+      "id": "s5-imbriquees",
+      "title": "Boucles imbriquées",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Une boucle **dans** une boucle. Règle clé : pour **chaque** tour de la boucle extérieure, la boucle intérieure fait **tous** ses tours. Comme une horloge : l'aiguille des minutes fait un tour complet pour chaque heure. ⏰"
+        },
+        {
+          "type": "code",
+          "text": "Un rectangle de 3 lignes et 4 colonnes.",
+          "code": "for (int ligne = 1; ligne <= 3; ++ligne)\n{\n    for (int col = 1; col <= 4; ++col)\n    {\n        cout << '*';\n    }\n    cout << '\\n';\n}",
+          "lines": [
+            "Boucle extérieure : 3 lignes.",
+            "",
+            "Boucle intérieure : 4 colonnes, pour CHAQUE ligne.",
+            "",
+            "Une étoile.",
+            "Fin des colonnes.",
+            "Retour à la ligne, après les 4 étoiles.",
+            ""
+          ],
+          "output": "****\n****\n****"
+        },
+        {
+          "type": "memory",
+          "text": "Pendant que `ligne` vaut 1, `col` fait **tous** ses tours. Puis `col` renaît à 1 pour `ligne` = 2. Au total : 3 × 4 = 12 étoiles.",
+          "boxes": [
+            {
+              "name": "col (quand ligne = 1)",
+              "value": "1 → 2 → 3 → 4 → 5 (stop)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "col (quand ligne = 2)",
+              "value": "1 → 2 → 3 → 4 → 5 (stop)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "col (quand ligne = 3)",
+              "value": "1 → 2 → 3 → 4 → 5 (stop)",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "ligne",
+              "value": "1 → 2 → 3 → 4 (stop)",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "L'intérieure peut dépendre de l'extérieure. Ici, `j` va jusqu'à `i` : un triangle!",
+          "code": "for (int i = 1; i <= 4; ++i)\n{\n    for (int j = 1; j <= i; ++j)\n    {\n        cout << j;\n    }\n    cout << '\\n';\n}",
+          "lines": [
+            "4 lignes.",
+            "",
+            "Ligne 1 : 1 tour. Ligne 2 : 2 tours...",
+            "",
+            "Affiche 1, puis 12, puis 123...",
+            "",
+            "",
+            ""
+          ],
+          "output": "1\n12\n123\n1234"
+        },
+        {
+          "type": "code",
+          "text": "Un `break` dans la boucle intérieure sort **seulement** de l'intérieure. L'extérieure continue.",
+          "code": "for (int i = 1; i <= 3; ++i)\n{\n    for (int j = 1; j <= 3; ++j)\n    {\n        if (j == 2)\n        {\n            break;\n        }\n        cout << i << j << ' ';\n    }\n}",
+          "lines": [
+            "3 tours extérieurs.",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Sort de la boucle `j` seulement.",
+            "",
+            "Seulement quand `j` vaut 1.",
+            "",
+            "La boucle `i` fait bien ses 3 tours."
+          ],
+          "output": "11 21 31 "
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Pièges : utiliser le **même nom** (`i`) pour les deux boucles, ou faire `++i` dans la boucle de `j`. Donne des noms différents (`i`, `j`, `k`). Pour 3 niveaux, les tours se multiplient : 2 × 3 × 4 = 24."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Combien de fois s'exécute le bloc de deux boucles de 3 et 4 tours ?",
+          "a": "3 × 4 = 12 fois."
+        },
+        {
+          "q": "Un `break` dans la boucle intérieure arrête quoi ?",
+          "a": "Seulement la boucle intérieure. L'extérieure continue."
+        },
+        {
+          "q": "Que fait `for (int j = 1; j <= i; ++j)` dans une boucle sur `i` ?",
+          "a": "La boucle intérieure fait `i` tours : un de plus à chaque ligne (triangle)."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int compteur = 0;\nfor (int i = 0; i < 3; ++i)\n{\n    for (int j = 0; j < 4; ++j)\n    {\n        ++compteur;\n    }\n}\ncout << compteur;",
+          "choices": [
+            "12",
+            "7",
+            "16",
+            "9"
+          ],
+          "answer": 0,
+          "hint": "Pour chaque `i`, combien de `j` ?",
+          "explain": "3 tours de `i`, et 4 tours de `j` à chaque fois : 3 × 4 = 12. `7` vient d'une addition au lieu d'une multiplication."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "for (int i = 1; i <= 2; ++i)\n{\n    for (int j = 1; j <= 3; ++j)\n    {\n        cout << i * j << ' ';\n    }\n}",
+          "answer": "1 2 3 2 4 6",
+          "hint": "Quand `i` vaut 1, `j` fait 1, 2, 3. Puis `i` vaut 2.",
+          "explain": "Pour `i` = 1 : 1 2 3. Pour `i` = 2 : 2 4 6. Le `j` recommence à 1 pour chaque `i`."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "for (int i = 0; i < 3; ++i)\n{\n    for (int j = 0; j < 3; ++i)\n    {\n        cout << '#';\n    }\n    cout << '\\n';\n}",
+          "answer": 2,
+          "hint": "Regarde la mise à jour de la boucle intérieure.",
+          "explain": "Bogue de logique : la boucle de `j` fait `++i` au lieu de `++j`. `j` reste à 0, donc `j < 3` est toujours vrai : boucle infinie."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour dessiner un triangle d'étoiles (1, 2, puis 3).",
+          "code": "for (int i = 1; i <= 3; ++i)\n{\n    for (int j = 1; j <= ___; ++j)\n    {\n        cout << '*';\n    }\n    cout << '\\n';\n}",
+          "choices": [
+            "i",
+            "3",
+            "j",
+            "i + 1"
+          ],
+          "answer": 0,
+          "hint": "Le nombre d'étoiles dépend de la ligne.",
+          "explain": "Avec `j <= i`, la ligne 1 a 1 étoile, la ligne 2 en a 2... Avec `3`, on aurait un carré."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int n = 0;\nfor (int a = 0; a < 2; ++a)\n{\n    for (int b = 0; b < 3; ++b)\n    {\n        for (int c = 0; c < 2; ++c)\n        {\n            ++n;\n        }\n    }\n}\ncout << n;",
+          "choices": [
+            "12",
+            "7",
+            "6",
+            "8"
+          ],
+          "answer": 0,
+          "hint": "3 niveaux : on multiplie les 3 nombres de tours.",
+          "explain": "2 × 3 × 2 = 12. `7` est l'addition 2 + 3 + 2 : c'est l'erreur classique."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Combien de fois s'exécute le bloc intérieur de deux boucles imbriquées de 3 et 5 tours ?",
+          "a": "15 fois. Pour chacun des 3 tours extérieurs, l'intérieure fait ses 5 tours complets. On multiplie : 3 × 5."
+        },
+        {
+          "q": "Si on met un `break` dans la boucle interne, qu'est-ce qui s'arrête ?",
+          "a": "Seulement la boucle interne. Le programme continue après elle, dans la boucle externe, qui fait son tour suivant normalement."
+        }
+      ]
+    },
+    {
+      "id": "s5-menus",
+      "title": "Menus avec do-while + switch",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Un **menu** : afficher les choix, lire, agir, recommencer jusqu'à « Quitter ». La recette : un `do-while` (le menu s'affiche au moins une fois) + un `switch` (pour agir)."
+        },
+        {
+          "type": "code",
+          "text": "Un menu pour s'occuper du chat. On tape `1`, puis `0`.",
+          "code": "int choix = 0;\ndo\n{\n    cout << \"1-Nourrir 2-Jouer 0-Quitter : \";\n    cin >> choix;\n    switch (choix)\n    {\n        case 1:\n        {\n            cout << \"Miam!\\n\";\n        }\n        break;\n        case 2:\n        {\n            cout << \"Pelote!\\n\";\n        }\n        break;\n        case 0:\n        {\n            cout << \"Bye!\\n\";\n        }\n        break;\n        default:\n        {\n            cout << \"Choix invalide\\n\";\n        }\n        break;\n    }\n} while (choix != 0);",
+          "lines": [
+            "Le choix de l'utilisateur.",
+            "Le menu s'affiche au moins une fois.",
+            "",
+            "On affiche le menu.",
+            "On lit le choix.",
+            "On agit selon le choix.",
+            "",
+            "",
+            "",
+            "Choix 1.",
+            "",
+            "Sort du **switch** (pas de la boucle).",
+            "",
+            "",
+            "Choix 2.",
+            "",
+            "",
+            "",
+            "",
+            "Choix 0 : on dit au revoir.",
+            "",
+            "",
+            "Tout autre nombre.",
+            "",
+            "",
+            "",
+            "",
+            "Fin du switch.",
+            "On recommence tant que ce n'est pas 0."
+          ],
+          "output": "1-Nourrir 2-Jouer 0-Quitter : 1\nMiam!\n1-Nourrir 2-Jouer 0-Quitter : 0\nBye!"
+        },
+        {
+          "type": "memory",
+          "text": "Suivons `choix` pendant l'exécution.",
+          "boxes": [
+            {
+              "name": "choix (départ)",
+              "value": "0",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "après le tour 1",
+              "value": "1 → test 1 != 0 : oui, on recommence",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "après le tour 2",
+              "value": "0 → test 0 != 0 : NON, on quitte",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Le `break` d'un `case` sort du **switch**, pas de la boucle! C'est la condition `choix != 0` qui arrête le menu."
+        },
+        {
+          "type": "talk",
+          "text": "Menu à **plusieurs niveaux** : dans un `case`, on met un autre `do-while` + choix. C'est un **sous-menu**. Son option 0 = « Retour » au menu principal. Astuce : ajoute la validation `cin.fail()` pour résister aux pattes de chat sur le clavier."
+        },
+        {
+          "type": "code",
+          "text": "Un menu à 2 niveaux. On tape `1` (Jeux), `1` (Laser), `0` (Retour), `0` (Quitter).",
+          "code": "int choix = 0;\ndo\n{\n    cout << \"[Principal] 1-Jeux 0-Quitter : \";\n    cin >> choix;\n    switch (choix)\n    {\n        case 1:\n        {\n            int sousChoix = 0;\n            do\n            {\n                cout << \"[Jeux] 1-Laser 0-Retour : \";\n                cin >> sousChoix;\n                if (sousChoix == 1)\n                {\n                    cout << \"Chasse au laser!\\n\";\n                }\n            } while (sousChoix != 0);\n        }\n        break;\n        case 0:\n        {\n            cout << \"Bye!\\n\";\n        }\n        break;\n        default:\n        {\n            cout << \"Invalide\\n\";\n        }\n        break;\n    }\n} while (choix != 0);",
+          "lines": [
+            "",
+            "Menu principal.",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "On entre dans le sous-menu.",
+            "Les accolades permettent de déclarer une variable dans le `case`.",
+            "Le choix du sous-menu.",
+            "Sous-menu : sa propre boucle!",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "0 = retour au menu principal.",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "0 ici = quitter le programme."
+          ],
+          "output": "[Principal] 1-Jeux 0-Quitter : 1\n[Jeux] 1-Laser 0-Retour : 1\nChasse au laser!\n[Jeux] 1-Laser 0-Retour : 0\n[Principal] 1-Jeux 0-Quitter : 0\nBye!"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quelle boucle pour un menu ? Pourquoi ?",
+          "a": "`do-while` : le menu doit s'afficher au moins une fois."
+        },
+        {
+          "q": "Le `break` d'un `case` fait-il quitter le menu ?",
+          "a": "Non. Il sort seulement du `switch`. La condition du `while` décide."
+        },
+        {
+          "q": "Comment faire un sous-menu ?",
+          "a": "Mettre un autre `do-while` dans un `case` du menu principal. 0 = Retour."
+        },
+        {
+          "q": "Pourquoi des accolades dans un `case` ?",
+          "a": "Pour pouvoir déclarer une variable dedans (ex. : `sousChoix`)."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "On tape `2`, puis `5`, puis `0`. Qu'est-ce qui s'affiche ?",
+          "code": "int choix = 0;\nint compteur = 0;\ndo\n{\n    cin >> choix;\n    ++compteur;\n} while (choix != 0);\ncout << compteur;",
+          "choices": [
+            "3",
+            "2",
+            "1",
+            "4"
+          ],
+          "answer": 0,
+          "hint": "Le tour où on tape 0 compte aussi!",
+          "explain": "Trois lectures : 2, 5, 0. Le `++compteur` se fait aussi au tour du 0, car le test est à la fin. Donc 3, pas 2."
+        },
+        {
+          "type": "predict-typed",
+          "q": "On tape `1`, puis `2`, puis `0`. Écris exactement ce qui s'affiche.",
+          "code": "int choix = 0;\ndo\n{\n    cin >> choix;\n    switch (choix)\n    {\n        case 1:\n        {\n            cout << \"A\";\n        }\n        break;\n        case 2:\n        {\n            cout << \"B\";\n        }\n        break;\n        default:\n        {\n            cout << \"?\";\n        }\n        break;\n    }\n} while (choix != 0);",
+          "answer": "AB?",
+          "hint": "Le 0 passe aussi dans le `switch` avant le test.",
+          "explain": "1 donne `A`, 2 donne `B`. Le 0 n'a pas de `case` : il va dans `default` et affiche `?`. Ensuite seulement, on quitte."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int choix = 0;\ndo\n{\n    cout << \"Menu (0 = quitter) : \";\n    cin >> choix;\n} while (choix == 0);\ncout << \"Fin\";",
+          "answer": 5,
+          "hint": "Quand doit-on **recommencer** le menu ?",
+          "explain": "Bogue de logique : on recommence seulement si `choix` vaut 0. Il faut `choix != 0`. Avec `1`, le menu se ferme tout de suite."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour que le bloc s'exécute au moins une fois. On tape `3`, puis `0`.",
+          "code": "int choix = 0;\n___\n{\n    cin >> choix;\n    cout << choix * 2 << ' ';\n} while (choix != 0);",
+          "choices": [
+            "do",
+            "while (choix != 0)",
+            "for",
+            "if (choix != 0)"
+          ],
+          "answer": 0,
+          "hint": "Il y a déjà un `while (...);` à la fin.",
+          "explain": "`do { ... } while (...);` fait au moins un tour : on affiche `6 0`. Avec `while (choix != 0)` en haut, `choix` vaut 0 au départ : rien ne s'affiche."
+        },
+        {
+          "type": "order",
+          "q": "Remets le mini-menu dans l'ordre.",
+          "lines": [
+            "int choix = 0;",
+            "do",
+            "{",
+            "    cin >> choix;",
+            "    cout << \"Choix \" << choix << '\\n';",
+            "} while (choix != 0);",
+            "cout << \"Bye\";"
+          ],
+          "hint": "On lit **avant** d'afficher le choix.",
+          "explain": "Déclarer, `do`, lire, afficher, tester avec `while (...);`, puis dire Bye. Avec `4` puis `0` : `Choix 4`, `Choix 0`, `Bye`."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi un `do-while` pour un menu ?",
+          "a": "Le menu doit apparaître au moins une fois pour que l'utilisateur puisse choisir. Le do-while fait le tour avant de tester. Le test `choix != 0` à la fin décide si on réaffiche le menu."
+        },
+        {
+          "q": "Pourquoi le `break` du `switch` ne fait-il pas quitter le menu ?",
+          "a": "Le `break` sort de la structure la plus proche : ici, le `switch`. On revient dans le `do-while`, qui teste sa condition. C'est `choix != 0` qui arrête le menu."
+        }
+      ]
+    }
+  ],
+  "aideMemoire": [
+    {
+      "title": "while",
+      "code": "while (condition)\n{\n    ...\n}",
+      "note": "Teste AVANT. Peut faire 0 tour."
+    },
+    {
+      "title": "do-while",
+      "code": "do\n{\n    ...\n} while (condition);",
+      "note": "Teste APRÈS. Au moins 1 tour. N'oublie pas le ;"
+    },
+    {
+      "title": "for",
+      "code": "for (int i = 0; i < 10; ++i)\n{\n    ...\n}",
+      "note": "Nombre de tours connu. Ici : 10 tours (0 à 9)."
+    },
+    {
+      "title": "Choisir sa boucle",
+      "code": "for      : nb de tours connu\nwhile    : attend un événement\ndo-while : au moins 1 tour",
+      "note": "Menu ou saisie : do-while."
+    },
+    {
+      "title": "++ pré / post",
+      "code": "int b = a++; // b = ancienne valeur\nint d = ++c; // d = nouvelle valeur",
+      "note": "Seuls sur une ligne : pareils. Jamais i++ + ++i."
+    },
+    {
+      "title": "break / continue",
+      "code": "break;    // sort de la boucle\ncontinue; // passe au tour suivant",
+      "note": "Dans un while, le ++i doit être AVANT le continue."
+    },
+    {
+      "title": "Valider une saisie",
+      "code": "cin >> n;\nwhile (cin.fail())\n{\n    cin.clear();\n    cin.ignore(numeric_limits<streamsize>::max(), '\\n');\n    cin >> n;\n}",
+      "note": "clear AVANT ignore. `#include <limits>`."
+    },
+    {
+      "title": "Boucles imbriquées",
+      "code": "for (int i = 0; i < 3; ++i)\n{\n    for (int j = 0; j < 4; ++j)\n    {\n        ...\n    }\n}",
+      "note": "3 × 4 = 12 tours. break = sort de l'intérieure seulement."
+    },
+    {
+      "title": "Menu",
+      "code": "do\n{\n    // afficher, lire choix\n    switch (choix) { ... }\n} while (choix != 0);",
+      "note": "Le break du case sort du switch, pas du menu."
+    }
+  ],
+  "extraPuzzles": [
+    {
+      "type": "predict-typed",
+      "q": "Écris exactement ce qui s'affiche.",
+      "code": "for (int i = 0; i <= 3; ++i)\n{\n    cout << i;\n}",
+      "answer": "0123",
+      "hint": "Regarde bien : `<=` ou `<` ?",
+      "explain": "Avec `<=`, 3 est inclus : 0, 1, 2, 3. C'est 4 tours, pas 3."
+    },
+    {
+      "type": "predict",
+      "q": "Qu'est-ce qui s'affiche ?",
+      "code": "int k = 10;\nint tours = 0;\nwhile (k < 10)\n{\n    ++tours;\n    ++k;\n}\ndo\n{\n    ++tours;\n} while (k < 10);\ncout << tours;",
+      "choices": [
+        "1",
+        "0",
+        "2",
+        "10"
+      ],
+      "answer": 0,
+      "hint": "Une boucle teste avant, l'autre après.",
+      "explain": "Le `while` fait 0 tour (`10 < 10` est faux). Le `do-while` fait 1 tour obligatoire. Total : 1."
+    },
+    {
+      "type": "predict-typed",
+      "q": "Écris exactement ce qui s'affiche.",
+      "code": "for (int i = 1; i <= 3; ++i)\n{\n    for (int j = 1; j <= 3; ++j)\n    {\n        if (i == j)\n        {\n            continue;\n        }\n        cout << i << j << ' ';\n    }\n}",
+      "answer": "12 13 21 23 31 32",
+      "hint": "On saute seulement quand `i` et `j` sont pareils.",
+      "explain": "Les paires 11, 22 et 33 sont sautées par `continue`. Le `continue` ne touche que la boucle de `j`."
+    },
+    {
+      "type": "predict-typed",
+      "q": "Écris exactement ce qui s'affiche.",
+      "code": "int n = 0;\nwhile (n++ < 3)\n{\n    cout << n << ' ';\n}\ncout << n;",
+      "answer": "1 2 3 4",
+      "hint": "`n++` compare l'**ancienne** valeur, puis ajoute 1 tout de suite.",
+      "explain": "On compare 0, 1, 2 (vrai), et `n` vaut déjà 1, 2, 3 dans le bloc. Au test `3 < 3` (faux), `n` devient quand même 4. Donc `1 2 3 4`."
+    },
+    {
+      "type": "predict",
+      "q": "Qu'est-ce qui s'affiche ?",
+      "code": "int n = 0;\nwhile (++n < 3)\n{\n    cout << n << ' ';\n}\ncout << n;",
+      "choices": [
+        "1 2 3",
+        "1 2 3 4",
+        "0 1 2 3",
+        "1 2"
+      ],
+      "answer": 0,
+      "hint": "`++n` ajoute **avant** de comparer.",
+      "explain": "On compare 1 et 2 (vrai) : on affiche 1 et 2. Puis `++n` donne 3, et `3 < 3` est faux. `n` vaut 3 : `1 2 3`."
+    },
+    {
+      "type": "predict",
+      "q": "Qu'est-ce qui s'affiche ?",
+      "code": "int total = 0;\nfor (int i = 0; i < 4; ++i)\n{\n    for (int j = 0; j < 4; ++j)\n    {\n        if (j == i)\n        {\n            break;\n        }\n        ++total;\n    }\n}\ncout << total;",
+      "choices": [
+        "6",
+        "16",
+        "10",
+        "4"
+      ],
+      "answer": 0,
+      "hint": "Pour chaque `i`, la boucle de `j` s'arrête quand `j` atteint `i`.",
+      "explain": "`i` = 0 : 0 tour. `i` = 1 : 1. `i` = 2 : 2. `i` = 3 : 3. Total 0 + 1 + 2 + 3 = 6. Le `break` ne coupe que la boucle de `j`."
+    },
+    {
+      "type": "predict-typed",
+      "q": "Écris exactement ce qui s'affiche.",
+      "code": "int x = 3;\nwhile (x-- > 0)\n{\n    cout << x << ' ';\n}",
+      "answer": "2 1 0",
+      "hint": "On compare l'ancienne valeur, mais on affiche la nouvelle.",
+      "explain": "Tests : `3 > 0`, `2 > 0`, `1 > 0` (vrai). Dans le bloc, `x` vaut déjà 2, 1, 0. Au test `0 > 0` (faux), on sort."
+    },
+    {
+      "type": "bug",
+      "q": "Quelle ligne contient l'erreur ?",
+      "code": "// Somme de 1 a 10 (doit donner 55)\nint somme = 0;\nfor (int i = 1; i < 10; ++i)\n{\n    somme += i;\n}\ncout << somme;",
+      "answer": 2,
+      "hint": "Le 10 est-il additionné ?",
+      "explain": "Bogue de logique (erreur de 1) : avec `i < 10`, on s'arrête à 9 et on obtient 45. Il faut `i <= 10`."
+    },
+    {
+      "type": "predict",
+      "q": "Qu'est-ce qui s'affiche ?",
+      "code": "int i = 0;\ndo\n{\n    ++i;\n    if (i == 2)\n    {\n        continue;\n    }\n    cout << i;\n} while (i < 4);",
+      "choices": [
+        "134",
+        "1234",
+        "1",
+        "Boucle infinie"
+      ],
+      "answer": 0,
+      "hint": "Dans un do-while, `continue` saute au **test** du `while`.",
+      "explain": "Le `++i` est avant le `continue`, donc `i` avance toujours. Le 2 est sauté : `134`. Pas de boucle infinie."
+    },
+    {
+      "type": "predict-typed",
+      "q": "Écris exactement ce qui s'affiche.",
+      "code": "for (int i = 3; i > 0; --i)\n{\n    for (int j = 0; j < i; ++j)\n    {\n        cout << '#';\n    }\n    cout << ' ';\n}",
+      "answer": "### ## #",
+      "hint": "La boucle de `j` fait `i` tours, et `i` descend.",
+      "explain": "`i` = 3 : ###, `i` = 2 : ##, `i` = 1 : #. Un espace après chaque groupe."
+    }
+  ]
+}

@@ -1,0 +1,1005 @@
+{
+  "week": 12,
+  "title": "Structures et chaînes",
+  "notions": [
+    {
+      "id": "s12-struct",
+      "title": "Créer une struct",
+      "lesson": [
+        {
+          "type": "code",
+          "text": "Une `struct` regroupe plusieurs variables, de types différents, sous un seul nom. Comme une fiche d'adoption de chat ! Chaque variable dedans s'appelle un **champ**.",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n    double poids;\n};\n\nint main()\n{\n    Chat mimi = { \"Mimi\", 3, 4.5 };\n    cout << mimi.nom << \" a \" << mimi.age << \" ans\" << '\\n';\n    mimi.poids += 0.5;\n    cout << mimi.poids << \" kg\" << '\\n';\n    return 0;\n}",
+          "lines": [
+            "On crée un nouveau type : `Chat`. Nom en PascalCase.",
+            "",
+            "Champ 1 : le nom.",
+            "Champ 2 : l'âge.",
+            "Champ 3 : le poids.",
+            "Le **point-virgule** après l'accolade est obligatoire !",
+            "",
+            "",
+            "",
+            "Une variable de type Chat. Les valeurs vont dans l'ordre des champs.",
+            "On lit un champ avec le **point** : `mimi.nom`.",
+            "Un champ s'utilise comme une variable normale.",
+            "",
+            "",
+            ""
+          ],
+          "output": "Mimi a 3 ans\n5 kg"
+        },
+        {
+          "type": "memory",
+          "text": "En mémoire, les champs sont rangés **ensemble**, dans l'ordre de déclaration. `mimi` est un seul bloc.",
+          "boxes": [
+            {
+              "name": "mimi.nom",
+              "value": "\"Mimi\"",
+              "type": "string",
+              "size": "~32 octets"
+            },
+            {
+              "name": "mimi.age",
+              "value": "3",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "mimi.poids",
+              "value": "5",
+              "type": "double",
+              "size": "8 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "On peut donner des **valeurs par défaut** aux champs. Elles servent quand on ne donne rien.",
+          "code": "struct Chat\n{\n    string nom = \"Sans nom\";\n    int age = 0;\n    bool estAdopte = false;\n};\n\nint main()\n{\n    Chat inconnu;\n    Chat pixel = { \"Pixel\" };\n    cout << inconnu.nom << ' ' << pixel.nom << ' ' << pixel.age << '\\n';\n    return 0;\n}",
+          "lines": [
+            "",
+            "",
+            "Valeur par défaut du nom.",
+            "Valeur par défaut de l'âge.",
+            "Valeur par défaut : pas encore adopté.",
+            "",
+            "",
+            "",
+            "",
+            "Aucune valeur : tous les champs prennent leur défaut.",
+            "On donne seulement le nom. Les autres champs gardent leur défaut.",
+            "Affiche le défaut, puis Pixel, puis l'âge par défaut.",
+            "",
+            ""
+          ],
+          "output": "Sans nom Pixel 0"
+        },
+        {
+          "type": "code",
+          "text": "Pour réutiliser la struct dans plusieurs fichiers, on la met dans un fichier d'en-tête : **Chat.h**.",
+          "code": "#pragma once\n#include <string>\n\nstruct Chat\n{\n    std::string nom;\n    int age = 0;\n};",
+          "lines": [
+            "Empêche d'inclure ce fichier deux fois.",
+            "Le .h inclut ce dont il a besoin.",
+            "",
+            "La struct, comme d'habitude.",
+            "",
+            "Dans un .h, on écrit `std::string` : on évite `using namespace std;` dans un fichier partagé.",
+            "",
+            "Le `;` final, toujours !"
+          ],
+          "output": ""
+        },
+        {
+          "type": "code",
+          "text": "Dans **main.cpp**, on inclut le fichier avec des guillemets. Le type `Chat` est alors connu.",
+          "code": "#include <iostream>\n#include \"Chat.h\"\nusing namespace std;\n\nint main()\n{\n    Chat luna = { \"Luna\", 2 };\n    cout << luna.nom << '\\n';\n    return 0;\n}",
+          "lines": [
+            "Les outils de la bibliothèque : avec < >.",
+            "Notre fichier à nous : avec des guillemets.",
+            "",
+            "",
+            "",
+            "",
+            "On utilise Chat comme s'il était écrit ici.",
+            "",
+            "",
+            ""
+          ],
+          "output": "Luna"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : oublier le `;` après l'accolade fermante de la struct. Le compilateur donne alors une erreur bizarre... sur la ligne **suivante** !"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Qu'est-ce qu'une struct ?",
+          "a": "Un nouveau type qui regroupe plusieurs champs, de types différents."
+        },
+        {
+          "q": "Comment lire le champ `age` de la variable `mimi` ?",
+          "a": "Avec un point : `mimi.age`."
+        },
+        {
+          "q": "Qu'est-ce qu'on oublie souvent à la fin d'une struct ?",
+          "a": "Le `;` après l'accolade `}`."
+        },
+        {
+          "q": "Pourquoi mettre une struct dans un fichier .h ?",
+          "a": "Pour l'utiliser dans plusieurs .cpp avec `#include \"Chat.h\"`."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "struct Boite\n{\n    int croquettes = 10;\n    double prix = 5.0;\n};\n\nint main()\n{\n    Boite b;\n    b.croquettes -= 3;\n    Boite c = b;\n    c.croquettes = 0;\n    cout << b.croquettes << ' ' << c.croquettes;\n    return 0;\n}",
+          "choices": [
+            "7 0",
+            "0 0",
+            "10 0",
+            "7 7"
+          ],
+          "answer": 0,
+          "hint": "`Boite c = b;` fait-il une copie ou un lien ?",
+          "explain": "`c = b` copie tous les champs. Ensuite, changer c ne touche pas b. Donc b garde 7 et c vaut 0. Ce n'est pas `0 0` : c et b sont deux boîtes séparées."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n}\n\nint main()\n{\n    Chat mimi = { \"Mimi\", 3 };\n    cout << mimi.nom;\n    return 0;\n}",
+          "answer": 4,
+          "hint": "Regarde la fin de la struct.",
+          "explain": "Erreur de compilation : il manque le `;` après l'accolade de la struct. Il faut `};`. Le compilateur se plaint souvent de la ligne d'après, c'est trompeur !"
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "struct Joueur\n{\n    string nom = \"Chat\";\n    int vies = 9;\n};\n\nint main()\n{\n    Joueur j = { \"Segfault\" };\n    --j.vies;\n    cout << j.nom << ' ' << j.vies;\n    return 0;\n}",
+          "answer": "Segfault 8",
+          "hint": "On donne une seule valeur. Qui garde son défaut ?",
+          "explain": "Le nom reçoit Segfault. `vies` garde son défaut (9), puis perd une vie : 8."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour afficher le nom de Mimi.",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nint main()\n{\n    Chat mimi = { \"Mimi\", 3 };\n    cout << mimi___nom;\n    return 0;\n}",
+          "choices": [
+            ".",
+            "->",
+            "::",
+            ","
+          ],
+          "answer": 0,
+          "hint": "Pour entrer dans une variable struct, on utilise un petit signe de ponctuation.",
+          "explain": "On accède à un champ avec le point : `mimi.nom`. `::` sert aux namespaces, et `->` sert aux pointeurs (pas cette session !)."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher Mimi.",
+          "lines": [
+            "struct Chat",
+            "{",
+            "    string nom;",
+            "};",
+            "Chat mimi;",
+            "mimi.nom = \"Mimi\";",
+            "cout << mimi.nom;"
+          ],
+          "hint": "On définit le type avant de créer une variable de ce type.",
+          "explain": "D'abord la struct (avec son `;`), puis la variable, puis on remplit le champ, puis on l'affiche."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi utiliser une struct plutôt que trois variables séparées ?",
+          "a": "Ce qui va ensemble reste ensemble. On passe un seul Chat à une fonction au lieu de trois variables. Et on peut faire un tableau ou un vector de chats."
+        },
+        {
+          "q": "Que se passe-t-il quand on écrit `Chat b = a;` ?",
+          "a": "Tous les champs de a sont copiés dans b. Ce sont deux variables séparées. Si on change b ensuite, a ne change pas."
+        }
+      ]
+    },
+    {
+      "id": "s12-struct-fonctions",
+      "title": "struct et fonctions",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Une struct se comporte comme un `int` : passée à une fonction, elle est **copiée**. `&` pour modifier, `const &` pour lire sans copier."
+        },
+        {
+          "type": "code",
+          "text": "Deux fonctions : une qui lit, une qui modifie.",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nvoid afficherChat(const Chat& chat)\n{\n    cout << chat.nom << \" (\" << chat.age << \" ans)\" << '\\n';\n}\n\nvoid feterAnniversaire(Chat& chat)\n{\n    ++chat.age;\n}\n\nint main()\n{\n    Chat mimi = { \"Mimi\", 3 };\n    feterAnniversaire(mimi);\n    afficherChat(mimi);\n    return 0;\n}",
+          "lines": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "`const Chat&` : pas de copie, et lecture seulement.",
+            "",
+            "Affiche les champs.",
+            "",
+            "",
+            "`Chat&` : la fonction reçoit le vrai chat.",
+            "",
+            "Change l'âge du chat original.",
+            "",
+            "",
+            "",
+            "",
+            "Mimi a 3 ans.",
+            "Joyeux anniversaire ! 🎂",
+            "Affiche le nouvel âge.",
+            "",
+            ""
+          ],
+          "output": "Mimi (4 ans)"
+        },
+        {
+          "type": "memory",
+          "text": "Dans `feterAnniversaire`, le paramètre `chat` n'est pas une copie : c'est un **autre nom** pour `mimi`.",
+          "boxes": [
+            {
+              "name": "mimi.nom",
+              "value": "\"Mimi\"",
+              "type": "string",
+              "size": "~32 octets"
+            },
+            {
+              "name": "mimi.age",
+              "value": "3 → 4",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "chat (paramètre)",
+              "value": "→ mimi",
+              "type": "Chat&",
+              "size": "adresse"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "Une fonction peut aussi **retourner** une struct. Ici, `p` est une copie : on la modifie et on la renvoie.",
+          "code": "struct Point\n{\n    int x;\n    int y;\n};\n\nPoint deplacer(Point p, int dx)\n{\n    p.x += dx;\n    return p;\n}\n\nint main()\n{\n    Point chat = { 0, 5 };\n    Point nouveau = deplacer(chat, 3);\n    cout << chat.x << ' ' << nouveau.x << '\\n';\n    return 0;\n}",
+          "lines": [
+            "Une position à l'écran.",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Retourne un Point. Le paramètre `p` est une copie.",
+            "",
+            "Modifie la copie.",
+            "Renvoie la copie modifiée.",
+            "",
+            "",
+            "",
+            "",
+            "Le chat est en x = 0.",
+            "On récupère le nouveau point.",
+            "L'original n'a pas bougé : 0. Le nouveau : 3.",
+            "",
+            ""
+          ],
+          "output": "0 3"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : oublier le `&` dans une fonction qui doit modifier. Ça compile, mais la fonction change une copie... et la copie disparaît. Bogue silencieux ! 🙀"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Une struct passée sans `&` : que reçoit la fonction ?",
+          "a": "Une copie. Les changements sont perdus à la fin de la fonction."
+        },
+        {
+          "q": "Comment écrire un paramètre qui modifie le chat original ?",
+          "a": "`Chat& chat`"
+        },
+        {
+          "q": "Comment passer une struct juste pour la lire, sans copie ?",
+          "a": "`const Chat& chat`"
+        },
+        {
+          "q": "Une fonction peut-elle retourner une struct ?",
+          "a": "Oui : `Chat creerChaton()` puis `return c;`."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "struct Chat\n{\n    string nom;\n    int faim;\n};\n\nvoid nourrir(Chat chat)\n{\n    chat.faim = 0;\n}\n\nint main()\n{\n    Chat tigrou = { \"Tigrou\", 8 };\n    nourrir(tigrou);\n    cout << tigrou.faim;\n    return 0;\n}",
+          "choices": [
+            "8",
+            "0",
+            "Erreur de compilation",
+            "7"
+          ],
+          "answer": 0,
+          "hint": "Y a-t-il un `&` dans le paramètre de `nourrir` ?",
+          "explain": "Sans `&`, la fonction nourrit une copie de Tigrou. Le vrai Tigrou a toujours faim : 8. Pour obtenir 0, il faudrait `Chat& chat`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nChat creerChaton(string nom)\n{\n    Chat c = { nom, 0 };\n    return c;\n}\n\nint main()\n{\n    Chat bebe = creerChaton(\"Nugget\");\n    bebe.age += 1;\n    cout << bebe.nom << ' ' << bebe.age;\n    return 0;\n}",
+          "answer": "Nugget 1",
+          "hint": "La fonction retourne un chat tout neuf.",
+          "explain": "`creerChaton` retourne un Chat avec le nom Nugget et l'âge 0. Dans le main, on ajoute 1 à l'âge."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nvoid vieillir(const Chat& chat)\n{\n    ++chat.age;\n}",
+          "answer": 8,
+          "hint": "Que promet `const` ?",
+          "explain": "Erreur de compilation : le paramètre est `const`, on ne peut pas changer `chat.age`. Il faut `Chat& chat` sans const."
+        },
+        {
+          "type": "fill",
+          "q": "Complète le paramètre pour que le vrai chat soit renommé.",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nvoid renommer(___ chat, string nouveauNom)\n{\n    chat.nom = nouveauNom;\n}\n\nint main()\n{\n    Chat c = { \"Minou\", 2 };\n    renommer(c, \"Luna\");\n    cout << c.nom;\n    return 0;\n}",
+          "choices": [
+            "Chat&",
+            "Chat",
+            "const Chat&",
+            "const Chat"
+          ],
+          "answer": 0,
+          "hint": "On veut modifier l'original, pas une copie.",
+          "explain": "`Chat&` donne accès au vrai chat. Avec `Chat`, on renomme une copie (affiche Minou). Avec `const`, ça ne compile pas."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher le nouvel âge.",
+          "lines": [
+            "void feterAnniversaire(Chat& chat)",
+            "{",
+            "    ++chat.age;",
+            "    cout << chat.nom << \" a \" << chat.age << \" ans\";",
+            "}"
+          ],
+          "hint": "On veut afficher le **nouvel** âge.",
+          "explain": "L'en-tête, puis le bloc. Dans le bloc, on augmente l'âge AVANT de l'afficher."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi passer une struct avec `const &` à une fonction qui l'affiche ?",
+          "a": "Le `&` évite de copier tous les champs (une string, c'est long à copier). Le `const` protège : la fonction ne peut pas modifier le chat par erreur."
+        },
+        {
+          "q": "Qu'arrive-t-il si on oublie le `&` dans une fonction qui doit modifier une struct ?",
+          "a": "La fonction modifie une copie. La copie est détruite à la fin de la fonction. L'original ne change pas, et le compilateur ne dit rien : c'est un bogue silencieux."
+        }
+      ]
+    },
+    {
+      "id": "s12-tableau-struct",
+      "title": "Tableau / vector de struct",
+      "lesson": [
+        {
+          "type": "code",
+          "text": "Un tableau de struct : chaque case contient un chat entier. On choisit la case, **puis** le champ.",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nint main()\n{\n    Chat refuge[3] = { { \"Mimi\", 3 }, { \"Pixel\", 1 }, { \"Luna\", 7 } };\n    cout << refuge[2].nom << '\\n';\n    refuge[1].age = 2;\n    cout << refuge[1].age << '\\n';\n    return 0;\n}",
+          "lines": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "3 chats. Chaque chat entre accolades.",
+            "Case 2, puis champ nom : Luna.",
+            "Change l'âge du chat de la case 1.",
+            "Affiche 2.",
+            "",
+            ""
+          ],
+          "output": "Luna\n2"
+        },
+        {
+          "type": "memory",
+          "text": "Les chats sont collés l'un après l'autre. Dans chaque case : tous les champs du chat.",
+          "boxes": [
+            {
+              "name": "refuge[0].nom",
+              "value": "\"Mimi\"",
+              "type": "string",
+              "size": "~32 octets"
+            },
+            {
+              "name": "refuge[0].age",
+              "value": "3",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "refuge[1].nom",
+              "value": "\"Pixel\"",
+              "type": "string",
+              "size": "~32 octets"
+            },
+            {
+              "name": "refuge[1].age",
+              "value": "2",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "refuge[2].nom",
+              "value": "\"Luna\"",
+              "type": "string",
+              "size": "~32 octets"
+            },
+            {
+              "name": "refuge[2].age",
+              "value": "7",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "Un vector de struct peut grandir. On ajoute un chat avec `push_back({ ... })`.",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nint main()\n{\n    vector<Chat> refuge;\n    refuge.push_back({ \"Mimi\", 3 });\n    refuge.push_back({ \"Tigrou\", 10 });\n    for (const Chat& chat : refuge)\n    {\n        cout << chat.nom << \" : \" << chat.age << '\\n';\n    }\n    return 0;\n}",
+          "lines": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Un vector de Chat, vide.",
+            "Ajoute un chat. Les accolades créent le Chat.",
+            "Un deuxième chat.",
+            "Pour chaque chat du refuge (sans copie grâce au `&`)...",
+            "",
+            "...affiche son nom et son âge.",
+            "",
+            "",
+            ""
+          ],
+          "output": "Mimi : 3\nTigrou : 10"
+        },
+        {
+          "type": "code",
+          "text": "On combine tout : une fonction cherche le chat le plus vieux dans un vector.",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nint trouverPlusVieux(const vector<Chat>& chats)\n{\n    int indiceMax = 0;\n    for (size_t i = 1; i < chats.size(); ++i)\n    {\n        if (chats[i].age > chats[indiceMax].age)\n        {\n            indiceMax = i;\n        }\n    }\n    return indiceMax;\n}\n\nint main()\n{\n    vector<Chat> refuge = { { \"Mimi\", 3 }, { \"Tigrou\", 10 }, { \"Luna\", 7 } };\n    int i = trouverPlusVieux(refuge);\n    cout << refuge[i].nom << '\\n';\n    return 0;\n}",
+          "lines": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Reçoit le vector sans copie. Retourne un indice.",
+            "",
+            "On suppose que le chat 0 est le plus vieux.",
+            "On regarde les autres.",
+            "",
+            "Plus vieux que notre champion ?",
+            "",
+            "Nouveau champion.",
+            "",
+            "",
+            "Retourne l'indice du plus vieux.",
+            "",
+            "",
+            "",
+            "",
+            "3 chats.",
+            "Récupère l'indice.",
+            "Affiche le nom du plus vieux.",
+            "",
+            ""
+          ],
+          "output": "Tigrou"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : `refuge.nom[2]` ne veut rien dire. Le refuge n'a pas de nom ! C'est `refuge[2].nom` : d'abord la case, ensuite le champ."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Comment lire le nom du 3e chat du tableau `refuge` ?",
+          "a": "`refuge[2].nom`"
+        },
+        {
+          "q": "Comment ajouter un chat à un `vector<Chat>` ?",
+          "a": "`refuge.push_back({ \"Mimi\", 3 });`"
+        },
+        {
+          "q": "Comment parcourir un vector de struct sans copier chaque chat ?",
+          "a": "`for (const Chat& chat : refuge)`"
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nint main()\n{\n    Chat t[2] = { { \"Mimi\", 3 }, { \"Pixel\", 1 } };\n    t[0] = t[1];\n    t[1].nom = \"Luna\";\n    cout << t[0].nom << ' ' << t[1].nom;\n    return 0;\n}",
+          "choices": [
+            "Pixel Luna",
+            "Luna Luna",
+            "Mimi Luna",
+            "Pixel Pixel"
+          ],
+          "answer": 0,
+          "hint": "`t[0] = t[1]` copie un chat entier.",
+          "explain": "`t[0]` devient une copie de Pixel. Ensuite, on renomme seulement `t[1]` en Luna. La copie dans `t[0]` reste Pixel."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nint main()\n{\n    vector<Chat> v = { { \"Mimi\", 2 }, { \"Pixel\", 5 } };\n    v.push_back({ \"Luna\", 1 });\n    int total = 0;\n    for (const Chat& c : v)\n    {\n        total += c.age;\n    }\n    cout << v.size() << ' ' << total;\n    return 0;\n}",
+          "answer": "3 8",
+          "hint": "Combien de chats après le push_back ? Additionne leurs âges.",
+          "explain": "Il y a 3 chats. Leurs âges : 2 + 5 + 1 = 8."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nint main()\n{\n    Chat refuge[2] = { { \"Mimi\", 3 }, { \"Pixel\", 1 } };\n    cout << refuge.nom[0];\n    return 0;\n}",
+          "answer": 9,
+          "hint": "Le tableau `refuge` a-t-il un champ `nom` ?",
+          "explain": "Erreur de compilation : `refuge` est un tableau, il n'a pas de champ. On choisit d'abord la case : `refuge[0].nom`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète la boucle pour visiter chaque chat.",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nint main()\n{\n    vector<Chat> refuge = { { \"Mimi\", 3 }, { \"Luna\", 7 } };\n    for (const Chat& chat : ___)\n    {\n        cout << chat.nom << ' ';\n    }\n    return 0;\n}",
+          "choices": [
+            "refuge",
+            "refuge[i]",
+            "Chat",
+            "refuge.size()"
+          ],
+          "answer": 0,
+          "hint": "Après le `:`, on met la collection à parcourir.",
+          "explain": "La boucle « pour chaque » prend le vector entier : `refuge`. `refuge[i]` est un seul chat, et `refuge.size()` est un nombre."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher `Mimi 2`.",
+          "lines": [
+            "vector<Chat> refuge = { { \"Mimi\", 3 } };",
+            "Chat copie = refuge[0];",
+            "copie.nom = \"Mimi 2\";",
+            "refuge.push_back(copie);",
+            "cout << refuge[1].nom;"
+          ],
+          "hint": "Chaque ligne a besoin de la ligne d'avant.",
+          "explain": "On crée le refuge, on copie le chat 0, on renomme la copie, on l'ajoute, puis on affiche le chat 1 : Mimi 2."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi un vector de struct plutôt que deux vectors séparés (noms et âges) ?",
+          "a": "Toutes les infos d'un chat restent ensemble. Pour enlever un chat, un seul `erase` suffit. Avec deux vectors, on risque de les décaler l'un par rapport à l'autre."
+        },
+        {
+          "q": "Dans `refuge[2].nom`, dans quel ordre C++ lit-il ?",
+          "a": "D'abord `refuge[2]` : la case 2, qui est un Chat. Ensuite `.nom` : le champ nom de ce Chat."
+        }
+      ]
+    },
+    {
+      "id": "s12-string",
+      "title": "Manipuler des string",
+      "lesson": [
+        {
+          "type": "code",
+          "text": "Une `string`, c'est une suite de `char`. Chaque lettre a un indice, comme dans un tableau.",
+          "code": "string nom = \"Mimi\";\ncout << nom.length() << ' ' << nom.size() << '\\n';\ncout << nom[0] << nom[3] << '\\n';\nnom[0] = 'K';\ncout << nom << '\\n';",
+          "lines": [
+            "Une string de 4 lettres.",
+            "`length()` et `size()` font la même chose : 4.",
+            "La première lettre (indice 0) et la dernière (indice 3).",
+            "On peut changer une lettre. C'est un `char` : guillemets simples.",
+            "Mimi est devenue Kimi."
+          ],
+          "output": "4 4\nMi\nKimi"
+        },
+        {
+          "type": "memory",
+          "text": "En mémoire, les lettres sont collées. L'objet string retient aussi la longueur, et il peut grandir.",
+          "boxes": [
+            {
+              "name": "nom[0]",
+              "value": "'K'",
+              "type": "char",
+              "size": "1 octet"
+            },
+            {
+              "name": "nom[1]",
+              "value": "'i'",
+              "type": "char",
+              "size": "1 octet"
+            },
+            {
+              "name": "nom[2]",
+              "value": "'m'",
+              "type": "char",
+              "size": "1 octet"
+            },
+            {
+              "name": "nom[3]",
+              "value": "'i'",
+              "type": "char",
+              "size": "1 octet"
+            },
+            {
+              "name": "nom.length()",
+              "value": "4",
+              "type": "size_t",
+              "size": "8 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "**Concaténer** = coller des textes. On utilise `+` et `+=`.",
+          "code": "string prenom = \"Sir\";\nstring nom = \"Moustache\";\nstring complet = prenom + \" \" + nom;\ncomplet += \" III\";\ncout << complet << '\\n';",
+          "lines": [
+            "Un texte.",
+            "Un autre texte.",
+            "On colle : prénom, espace, nom.",
+            "`+=` ajoute à la fin.",
+            "Un nom de chat très chic."
+          ],
+          "output": "Sir Moustache III"
+        },
+        {
+          "type": "code",
+          "text": "**Comparer** : `==` compare lettre par lettre. Majuscules et minuscules sont différentes !",
+          "code": "string a = \"chat\";\nstring b = \"Chat\";\ncout << (a == b) << '\\n';\ncout << (a == \"chat\") << '\\n';\ncout << (b < a) << '\\n';",
+          "lines": [
+            "En minuscules.",
+            "Avec une majuscule.",
+            "Faux (0) : 'c' et 'C' ne sont pas pareils.",
+            "Vrai (1) : même texte exactement.",
+            "Vrai (1) : `<` suit l'ordre des codes ASCII, et 'C' (67) vient avant 'c' (99)."
+          ],
+          "output": "0\n1\n1"
+        },
+        {
+          "type": "code",
+          "text": "**Valider** : on vérifie chaque caractère avec une boucle. Ici : le code doit contenir seulement des chiffres.",
+          "code": "string code = \"12a4\";\nbool estValide = true;\nfor (size_t i = 0; i < code.length(); ++i)\n{\n    if (code[i] < '0' || code[i] > '9')\n    {\n        estValide = false;\n    }\n}\nif (!estValide)\n{\n    cout << \"Code invalide\" << '\\n';\n}",
+          "lines": [
+            "Le texte tapé par l'utilisateur (par exemple).",
+            "On suppose que c'est bon.",
+            "On visite chaque caractère.",
+            "",
+            "Pas entre '0' et '9' ? Ce n'est pas un chiffre.",
+            "",
+            "Un seul intrus suffit.",
+            "",
+            "",
+            "Si le code n'est pas valide...",
+            "",
+            "...on avertit. Le 'a' est l'intrus.",
+            ""
+          ],
+          "output": "Code invalide"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : `\"Bonjour \" + \"Mimi\"` ne compile pas ! Deux textes entre guillemets ne sont pas des `string`. Il faut au moins une variable string dans le `+`."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quelle différence entre `length()` et `size()` pour une string ?",
+          "a": "Aucune ! Les deux donnent le nombre de caractères."
+        },
+        {
+          "q": "Comment coller deux strings ?",
+          "a": "Avec `+` (nouvelle string) ou `+=` (ajoute à la fin)."
+        },
+        {
+          "q": "`\"Chat\" == \"chat\"` (en strings) : vrai ou faux ?",
+          "a": "Faux. Les majuscules comptent."
+        },
+        {
+          "q": "Quel est le type de `nom[0]` ?",
+          "a": "`char` : un seul caractère."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "string a = \"Tigrou\";\nstring b = \"tigrou\";\ncout << (a == b) << (a < b);",
+          "choices": [
+            "01",
+            "10",
+            "11",
+            "00"
+          ],
+          "answer": 0,
+          "hint": "Les majuscules ont un code ASCII plus petit que les minuscules.",
+          "explain": "Les deux strings sont différentes à cause du T : `==` donne 0. 'T' (84) est plus petit que 't' (116), donc `a < b` donne 1."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "string cri = \"Mi\";\ncri += \"ou\";\ncri = cri + cri;\ncout << cri << ' ' << cri.length();",
+          "answer": "MiouMiou 8",
+          "hint": "Écris la valeur de cri après chaque ligne.",
+          "explain": "Mi devient Miou, puis Miou + Miou = MiouMiou (sans espace !). Ça fait 8 lettres."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "string nom = \"Mimi\";\nstring salut = \"Bonjour \" + \"chat \";\nsalut += nom;\ncout << salut;",
+          "answer": 1,
+          "hint": "Quels sont les deux morceaux du `+` sur cette ligne ?",
+          "explain": "Erreur de compilation : on ne peut pas additionner deux textes entre guillemets. Il faut écrire `string(\"Bonjour \") + \"chat \"` ou tout simplement `\"Bonjour chat \"`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour compter les 'a' dans le mot.",
+          "code": "string mot = \"banana\";\nint nbA = 0;\nfor (size_t i = 0; i < mot.___(); ++i)\n{\n    if (mot[i] == 'a')\n    {\n        ++nbA;\n    }\n}\ncout << nbA;",
+          "choices": [
+            "length",
+            "size_of",
+            "count",
+            "nb"
+          ],
+          "answer": 0,
+          "hint": "Quelle méthode donne le nombre de caractères ?",
+          "explain": "`mot.length()` donne 6. `size()` marcherait aussi, mais `size_of`, `count` et `nb` n'existent pas pour une string."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher `Bonjour Pixel !`.",
+          "lines": [
+            "string nom = \"pixel\";",
+            "nom[0] = 'P';",
+            "string message = \"Bonjour \" + nom;",
+            "message += \" !\";",
+            "cout << message;"
+          ],
+          "hint": "On corrige la majuscule avant de construire le message.",
+          "explain": "On crée nom, on met la majuscule, on construit le message, on ajoute le point d'exclamation, et on affiche : Bonjour Pixel !"
+        }
+      ],
+      "explain": [
+        {
+          "q": "Comment une string est-elle rangée en mémoire ?",
+          "a": "C'est une suite de `char` collés, chacun avec un indice à partir de 0. L'objet string retient aussi sa longueur. Il peut grandir quand on ajoute du texte."
+        },
+        {
+          "q": "Pourquoi `\"Chat\" == \"chat\"` est-il faux pour des strings ?",
+          "a": "La comparaison se fait caractère par caractère, avec leur code ASCII. 'C' vaut 67 et 'c' vaut 99. Ce ne sont pas les mêmes caractères."
+        }
+      ]
+    },
+    {
+      "id": "s12-find-substr",
+      "title": "find, substr et conversions",
+      "lesson": [
+        {
+          "type": "code",
+          "text": "`find` cherche un texte et donne sa **position**. S'il ne trouve rien, il retourne `string::npos`.",
+          "code": "string phrase = \"Le chat dort\";\nsize_t pos = phrase.find(\"chat\");\ncout << pos << '\\n';\nif (phrase.find(\"chien\") == string::npos)\n{\n    cout << \"Pas de chien ici\" << '\\n';\n}",
+          "lines": [
+            "La phrase où on cherche.",
+            "« chat » commence à l'indice 3. Le type est `size_t`.",
+            "Affiche 3.",
+            "`npos` veut dire « pas trouvé ».",
+            "",
+            "Ouf, le chat est tranquille. 😺",
+            ""
+          ],
+          "output": "3\nPas de chien ici"
+        },
+        {
+          "type": "code",
+          "text": "`substr(debut, longueur)` découpe un morceau. Le 2e nombre est une **longueur**, pas une position de fin !",
+          "code": "string phrase = \"Le chat dort\";\ncout << phrase.substr(3, 4) << '\\n';\ncout << phrase.substr(8) << '\\n';",
+          "lines": [
+            "",
+            "4 caractères à partir de l'indice 3 : chat.",
+            "Sans longueur : jusqu'à la fin. Donc dort."
+          ],
+          "output": "chat\ndort"
+        },
+        {
+          "type": "code",
+          "text": "`insert(position, texte)` glisse un texte à l'intérieur.",
+          "code": "string nom = \"Moustache\";\nnom.insert(0, \"Sir \");\nnom.insert(nom.length(), \" 1er\");\ncout << nom << '\\n';",
+          "lines": [
+            "",
+            "Position 0 : au tout début.",
+            "Position = longueur : à la fin.",
+            "Affiche le résultat."
+          ],
+          "output": "Sir Moustache 1er"
+        },
+        {
+          "type": "code",
+          "text": "**Convertir** : `stoi` (texte → int), `stod` (texte → double), `to_string` (nombre → texte).",
+          "code": "string texteAge = \"7\";\nint age = stoi(texteAge);\nstring textePoids = \"4.5\";\ndouble poids = stod(textePoids);\nstring message = \"Âge dans 1 an : \" + to_string(age + 1);\ncout << message << '\\n';\ncout << poids * 2 << '\\n';",
+          "lines": [
+            "Du texte, pas un nombre.",
+            "Maintenant un vrai `int` : 7.",
+            "Encore du texte.",
+            "Un vrai `double` : 4.5.",
+            "`to_string` transforme 8 en texte pour le coller.",
+            "",
+            "On peut calculer avec le double."
+          ],
+          "output": "Âge dans 1 an : 8\n9"
+        },
+        {
+          "type": "code",
+          "text": "Tout ensemble : découper une ligne `nom;âge`. Tu vas t'en servir avec les fichiers !",
+          "code": "string ligne = \"Mimi;3\";\nsize_t pos = ligne.find(';');\nstring nom = ligne.substr(0, pos);\nint age = stoi(ligne.substr(pos + 1));\ncout << nom << \" a \" << age << \" ans\" << '\\n';",
+          "lines": [
+            "Une ligne avec un séparateur.",
+            "Position du `;` : 4.",
+            "De 0, longueur 4 : Mimi.",
+            "Après le `;` jusqu'à la fin : \"3\", converti en int.",
+            ""
+          ],
+          "output": "Mimi a 3 ans"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : `stoi(\"trois\")` fait planter le programme (exception). Et compare `find` à `string::npos`, pas à -1."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Que retourne `find` s'il ne trouve rien ?",
+          "a": "`string::npos`"
+        },
+        {
+          "q": "Que donne `s.substr(3, 4)` ?",
+          "a": "4 caractères à partir de l'indice 3."
+        },
+        {
+          "q": "Quelles fonctions pour convertir texte ↔ nombre ?",
+          "a": "`stoi` (→ int), `stod` (→ double), `to_string` (nombre → string)."
+        },
+        {
+          "q": "Comment ajouter \"Sir \" au début de `nom` ?",
+          "a": "`nom.insert(0, \"Sir \");`"
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "string s = \"croquettes\";\ncout << s.substr(2, 5);",
+          "choices": [
+            "oquet",
+            "oque",
+            "oqu",
+            "roque"
+          ],
+          "answer": 0,
+          "hint": "Le 2e nombre est une longueur. Compte 5 lettres à partir de l'indice 2.",
+          "explain": "Indice 2 = 'o'. On prend 5 lettres : o, q, u, e, t. Si tu as dit `oqu` ou `oque`, tu as pris le 5 pour une position de fin."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "string s = \"miaou miaou\";\ncout << s.find(\"a\") << ' ' << s.find(\"ou\");",
+          "answer": "2 3",
+          "hint": "`find` donne la **première** position trouvée. On compte à partir de 0.",
+          "explain": "m=0, i=1, a=2, o=3. Le premier 'a' est à 2. Le premier « ou » commence à 3. `find` s'arrête au premier trouvé."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "string saisie = \"trois\";\nint nb = stoi(saisie);\ncout << nb * 2;",
+          "answer": 1,
+          "hint": "Est-ce que \"trois\" ressemble à un nombre pour l'ordinateur ?",
+          "explain": "Erreur à l'exécution : ça compile, mais `stoi` ne peut pas convertir des lettres. Le programme plante (exception `invalid_argument`). Il faut valider le texte avant de convertir."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour afficher `Trouvé !` quand le mot est présent.",
+          "code": "string texte = \"Un chat sur le toit\";\nif (texte.find(\"chat\") ___ string::npos)\n{\n    cout << \"Trouvé !\";\n}",
+          "choices": [
+            "!=",
+            "==",
+            "<",
+            ">="
+          ],
+          "answer": 0,
+          "hint": "`npos` veut dire « pas trouvé ». On veut le contraire.",
+          "explain": "Trouvé = la position n'est **pas** npos, donc `!=`. Avec `==`, on afficherait seulement quand le mot est absent."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher `Âge : 2`.",
+          "lines": [
+            "string ligne = \"Pixel,1\";",
+            "size_t pos = ligne.find(',');",
+            "int age = stoi(ligne.substr(pos + 1));",
+            "string message = \"Âge : \" + to_string(age + 1);",
+            "cout << message;"
+          ],
+          "hint": "Chaque ligne utilise une variable de la ligne d'avant.",
+          "explain": "On trouve la virgule, on découpe après elle, on convertit en int, on reconvertit en texte avec +1, puis on affiche : Âge : 2."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi compare-t-on le résultat de `find` à `string::npos` ?",
+          "a": "`find` retourne une position de type `size_t`, qui n'est jamais négative. Quand il ne trouve rien, il retourne `npos`, une valeur spéciale très grande. Comparer à `npos` est clair et toujours correct."
+        },
+        {
+          "q": "Pourquoi faut-il `stoi` pour calculer avec un nombre lu comme texte ?",
+          "a": "Le texte \"7\" est un caractère, pas une valeur. On ne peut pas faire de maths avec. `stoi` le transforme en `int` 7. `to_string` fait le chemin inverse."
+        }
+      ]
+    }
+  ],
+  "aideMemoire": [
+    {
+      "title": "Définir une struct",
+      "code": "struct Chat\n{\n    string nom;\n    int age = 0;\n};",
+      "note": "N'oublie pas le `;` à la fin ! `= 0` : valeur par défaut."
+    },
+    {
+      "title": "Créer et utiliser",
+      "code": "Chat mimi = { \"Mimi\", 3 };\nmimi.age += 1;\ncout << mimi.nom;",
+      "note": "Le point pour lire un champ. `Chat b = mimi;` fait une copie."
+    },
+    {
+      "title": "Struct dans un .h",
+      "code": "// Chat.h\n#pragma once\n#include <string>\nstruct Chat { std::string nom; };\n\n// main.cpp\n#include \"Chat.h\"",
+      "note": "Guillemets pour nos fichiers, < > pour la bibliothèque."
+    },
+    {
+      "title": "struct et fonctions",
+      "code": "void afficher(const Chat& c);\nvoid modifier(Chat& c);\nChat creer();",
+      "note": "Sans `&` : copie. `const &` : lecture sans copie."
+    },
+    {
+      "title": "Tableau / vector de struct",
+      "code": "vector<Chat> refuge;\nrefuge.push_back({ \"Mimi\", 3 });\ncout << refuge[0].nom;",
+      "note": "D'abord la case, ensuite le champ."
+    },
+    {
+      "title": "string : la base",
+      "code": "s.length();   // ou s.size()\ns[0];         // un char\ns + \" !\";     // concaténer\ns == \"chat\";  // comparer",
+      "note": "Les majuscules comptent dans les comparaisons."
+    },
+    {
+      "title": "find et substr",
+      "code": "size_t pos = s.find(\";\");\nif (pos != string::npos) { ... }\ns.substr(debut, longueur);\ns.insert(position, \"texte\");",
+      "note": "npos = pas trouvé. substr : le 2e nombre est une longueur."
+    },
+    {
+      "title": "Conversions",
+      "code": "int n = stoi(\"42\");\ndouble d = stod(\"4.5\");\nstring t = to_string(42);",
+      "note": "stoi plante si le texte n'est pas un nombre."
+    }
+  ]
+}

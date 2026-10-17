@@ -1,0 +1,193 @@
+{
+ "course": "420-1C6-JR Programmation structurée",
+ "session": "Automne 2026",
+ "week1Start": "2026-08-24",
+ "breakAfterWeek": 7,
+ "weeks": [
+  {
+   "week": 1,
+   "type": "teach",
+   "title": "Premiers pas"
+  },
+  {
+   "week": 2,
+   "type": "teach",
+   "title": "Entrées, sorties et conditions"
+  },
+  {
+   "week": 3,
+   "type": "teach",
+   "title": "Switch, constantes et portée"
+  },
+  {
+   "week": 4,
+   "type": "review",
+   "title": "Révision · Examen 1",
+   "reviewWeeks": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "week": 5,
+   "type": "teach",
+   "title": "Les boucles"
+  },
+  {
+   "week": 6,
+   "type": "review",
+   "title": "Exercices sur les boucles",
+   "reviewWeeks": [
+    5
+   ]
+  },
+  {
+   "week": 7,
+   "type": "review",
+   "title": "Révision · Examen 2",
+   "reviewWeeks": [
+    1,
+    2,
+    3,
+    5
+   ]
+  },
+  {
+   "week": 8,
+   "type": "teach",
+   "title": "Les fonctions"
+  },
+  {
+   "week": 9,
+   "type": "teach",
+   "title": "Modulo et hasard"
+  },
+  {
+   "week": 10,
+   "type": "review",
+   "title": "Révision · Examen 3",
+   "reviewWeeks": [
+    8,
+    9
+   ]
+  },
+  {
+   "week": 11,
+   "type": "teach",
+   "title": "Tableaux et vector"
+  },
+  {
+   "week": 12,
+   "type": "teach",
+   "title": "Structures et chaînes"
+  },
+  {
+   "week": 13,
+   "type": "teach",
+   "title": "Les fichiers texte"
+  },
+  {
+   "week": 14,
+   "type": "review",
+   "title": "Synthèse · Volets A et B",
+   "reviewWeeks": [
+    1,
+    2,
+    3,
+    5,
+    8,
+    9,
+    11,
+    12,
+    13
+   ]
+  },
+  {
+   "week": 15,
+   "type": "review",
+   "title": "Synthèse · Volets A et B",
+   "reviewWeeks": [
+    1,
+    2,
+    3,
+    5,
+    8,
+    9,
+    11,
+    12,
+    13
+   ]
+  }
+ ],
+ "exams": [
+  {
+   "id": "ex1",
+   "label": "Examen 1",
+   "week": 4,
+   "weight": "10 %",
+   "mockWeeks": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "id": "ex2",
+   "label": "Examen 2",
+   "week": 7,
+   "weight": "25 %",
+   "mockWeeks": [
+    1,
+    2,
+    3,
+    5
+   ]
+  },
+  {
+   "id": "ex3",
+   "label": "Examen 3",
+   "week": 10,
+   "weight": "15 %",
+   "mockWeeks": [
+    1,
+    2,
+    3,
+    5,
+    8,
+    9
+   ]
+  },
+  {
+   "id": "voletb",
+   "label": "Volet B (entretiens)",
+   "week": 13,
+   "weight": "20 %",
+   "mockWeeks": null
+  },
+  {
+   "id": "voleta",
+   "label": "Volet A (TP remis)",
+   "week": 15,
+   "weight": "10 %",
+   "mockWeeks": null
+  },
+  {
+   "id": "voletc",
+   "label": "Volet C (final)",
+   "week": 16,
+   "weight": "20 %",
+   "mockWeeks": [
+    1,
+    2,
+    3,
+    5,
+    8,
+    9,
+    11,
+    12,
+    13
+   ]
+  }
+ ]
+}

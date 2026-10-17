@@ -1,0 +1,161 @@
+{
+ "id": "normes",
+ "title": "Normes de programmation",
+ "lesson": [
+  {
+   "type": "talk",
+   "text": "Les **normes**, c'est la façon « propre » d'écrire du code. Le prof les note dans le Volet A (10 %) et le Volet B !\nDu code qui marche mais illisible = des points perdus. 😿"
+  },
+  {
+   "type": "talk",
+   "text": "**Variables et fonctions** : camelCase, noms descriptifs.\nVariables = noms (`nbSacs`, `prixTotal`).\nFonctions = verbe + sujet (`calculerMoyenne`, `afficherMenu`)."
+  },
+  {
+   "type": "talk",
+   "text": "**Constantes** : UPPER_SNAKE_CASE → `PRIX_SAC`, `NB_MAX_ESSAIS`.\nPas de « nombres magiques » : au lieu de `* 12.5` partout, une constante bien nommée."
+  },
+  {
+   "type": "code",
+   "text": "Un fichier propre, avec en-tête, constante et commentaire utile :",
+   "code": "/*\n    Fichier : main.cpp\n    Auteur  : Sis\n    Date    : 2026-09-28\n    But     : Calcule le prix total d'un panier de croquettes\n*/\n#include <iostream>\nusing namespace std;\n\nconst double PRIX_SAC = 12.5;\n\nint main()\n{\n    int nbSacs = 3;\n    double prixTotal = nbSacs * PRIX_SAC; // prix avant taxes\n    cout << prixTotal << '\\n';\n    return 0;\n}",
+   "lines": [
+    "Début du commentaire d'en-tête.",
+    "Nom du fichier.",
+    "Qui l'a écrit.",
+    "Quand.",
+    "À quoi sert le programme.",
+    "Fin de l'en-tête.",
+    "Inclut la librairie d'entrée/sortie.",
+    "Évite d'écrire std:: partout.",
+    "",
+    "Constante en UPPER_SNAKE_CASE : plus de nombre magique.",
+    "",
+    "Début du programme.",
+    "Accolade sur sa propre ligne (style du cours).",
+    "Variable en camelCase, nom descriptif.",
+    "Commentaire qui explique le POURQUOI, pas l'évidence.",
+    "Affiche 37.5.",
+    "Le programme se termine bien.",
+    "Fin de main."
+   ],
+   "output": "37.5"
+  },
+  {
+   "type": "tip",
+   "text": "⚠️ Un bon commentaire explique le **pourquoi**. `i = i + 1; // ajoute 1 à i` ne sert à rien. `// on saute la case 0 : réservée au titre` aide vraiment."
+  },
+  {
+   "type": "talk",
+   "text": "**Mise en page** : accolade `{` sur sa propre ligne, indentation de 4 espaces à chaque niveau, une instruction par ligne, une ligne vide entre les blocs d'idées. Ton code doit respirer ! 🫁"
+  }
+ ],
+ "cards": [
+  {
+   "q": "Quel style pour une variable ? Pour une constante ?",
+   "a": "Variable : camelCase (`nbEtudiants`).\nConstante : UPPER_SNAKE_CASE (`NB_MAX`)."
+  },
+  {
+   "q": "Comment nommer une fonction ?",
+   "a": "Verbe d'action + sujet, en camelCase : `calculerTotal`, `afficherMenu`, `lireNote`."
+  },
+  {
+   "q": "C'est quoi un « nombre magique » ?",
+   "a": "Un nombre écrit directement dans le code sans explication (ex : `* 0.14975`). On le remplace par une constante nommée (`TAUX_TAXES`)."
+  },
+  {
+   "q": "Que met-on dans l'en-tête d'un fichier ?",
+   "a": "Nom du fichier, auteur, date et but du programme, dans un commentaire `/* ... */` en haut."
+  }
+ ],
+ "puzzles": [
+  {
+   "type": "normes",
+   "q": "Quel nom respecte les normes pour une variable qui compte les chats ?",
+   "choices": [
+    "nbChats",
+    "NbChats",
+    "nb_chats",
+    "x"
+   ],
+   "answer": 0,
+   "hint": "Variable → camelCase, descriptif.",
+   "explain": "`nbChats` est en camelCase et descriptif. `NbChats` commence par une majuscule, `nb_chats` utilise des `_`, et `x` ne dit rien."
+  },
+  {
+   "type": "normes",
+   "q": "Quel nom pour la constante du nombre maximum d'essais ?",
+   "choices": [
+    "NB_MAX_ESSAIS",
+    "nbMaxEssais",
+    "NbMaxEssais",
+    "max"
+   ],
+   "answer": 0,
+   "hint": "Constante → tout en majuscules.",
+   "explain": "Les constantes sont en UPPER_SNAKE_CASE : `NB_MAX_ESSAIS`. `nbMaxEssais` serait le style d'une variable normale."
+  },
+  {
+   "type": "normes",
+   "q": "Quel est le meilleur nom pour une fonction qui calcule la moyenne ?",
+   "choices": [
+    "calculerMoyenne",
+    "moyenne",
+    "CalculerMoyenne",
+    "calcul_moy"
+   ],
+   "answer": 0,
+   "hint": "Verbe + sujet, camelCase.",
+   "explain": "Une fonction fait une action : verbe + sujet en camelCase → `calculerMoyenne`. `moyenne` ressemble à une variable."
+  },
+  {
+   "type": "normes",
+   "q": "Lequel est le commentaire le plus utile ?",
+   "choices": [
+    "// on commence à 1 : la case 0 contient le titre",
+    "// ajoute 1 à i",
+    "// boucle",
+    "// variable i"
+   ],
+   "answer": 0,
+   "hint": "Un bon commentaire explique le pourquoi.",
+   "explain": "Le premier explique une décision (pourquoi 1 et pas 0). Les autres répètent ce que le code dit déjà."
+  },
+  {
+   "type": "normes",
+   "q": "Comment remplacer le nombre magique dans `prix = prix * 1.14975;` ?",
+   "choices": [
+    "const double TAUX_TAXES = 1.14975;",
+    "double x = 1.14975;",
+    "int tauxTaxes = 1.14975;",
+    "// 1.14975 = taxes"
+   ],
+   "answer": 0,
+   "hint": "Constante, bon type, bon style.",
+   "explain": "Une constante `double` en UPPER_SNAKE_CASE. `int` couperait les décimales, `x` n'a pas de sens, et un commentaire ne remplace pas une constante."
+  },
+  {
+   "type": "order",
+   "q": "Remets l'en-tête et le début du fichier dans le bon ordre.",
+   "lines": [
+    "/*",
+    "    Fichier : main.cpp",
+    "    But     : Jeu de devinette",
+    "*/",
+    "#include <iostream>",
+    "using namespace std;"
+   ],
+   "hint": "L'en-tête vient tout en haut, avant les #include.",
+   "explain": "D'abord le commentaire d'en-tête, ensuite les `#include`, puis `using namespace std;`."
+  }
+ ],
+ "explain": [
+  {
+   "q": "Pourquoi utiliser une constante au lieu d'écrire le nombre directement ?",
+   "a": "Le nom explique ce que le nombre veut dire. Si la valeur change (ex : les taxes), on la modifie à un seul endroit. Et `const` empêche de la modifier par erreur."
+  },
+  {
+   "q": "Pourquoi le nom d'une fonction commence-t-il par un verbe ?",
+   "a": "Parce qu'une fonction FAIT quelque chose. `afficherMenu()` dit tout de suite ce qui va arriver quand on l'appelle, alors qu'un nom comme `menu()` est ambigu."
+  }
+ ]
+}

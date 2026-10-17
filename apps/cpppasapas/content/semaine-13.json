@@ -1,0 +1,691 @@
+{
+  "week": 13,
+  "title": "Les fichiers texte",
+  "notions": [
+    {
+      "id": "s13-ecrire",
+      "title": "Écrire dans un fichier",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Quand le programme finit, les variables disparaissent. 😿 Un **fichier texte** garde les données. Il faut `#include <fstream>`."
+        },
+        {
+          "type": "code",
+          "text": "`ofstream` = **o**utput : on écrit dans un fichier, exactement comme avec `cout`. Après, **chats.txt** contient deux lignes : Mimi et Pixel.",
+          "code": "ofstream fichier(\"chats.txt\");\nfichier << \"Mimi\" << '\\n';\nfichier << \"Pixel\" << '\\n';\nfichier.close();\ncout << \"Fichier écrit !\" << '\\n';",
+          "lines": [
+            "Ouvre (ou crée) chats.txt pour écrire.",
+            "Écrit Mimi dans le fichier, pas à l'écran.",
+            "Écrit Pixel sur la ligne suivante.",
+            "Ferme le fichier : tout est bien enregistré.",
+            "Seule cette ligne s'affiche à la console."
+          ],
+          "output": "Fichier écrit !"
+        },
+        {
+          "type": "code",
+          "text": "L'ouverture peut rater. On vérifie avec `is_open()`. Ici, **scores.txt** contient ensuite `Score : 42`.",
+          "code": "ofstream fichier(\"scores.txt\");\nif (!fichier.is_open())\n{\n    cout << \"Erreur d'ouverture\" << '\\n';\n}\nelse\n{\n    int score = 42;\n    fichier << \"Score : \" << score << '\\n';\n    fichier.close();\n    cout << \"Sauvegardé\" << '\\n';\n}",
+          "lines": [
+            "Essaie d'ouvrir le fichier.",
+            "Pas ouvert ? (dossier absent, fichier protégé...)",
+            "",
+            "On avertit l'utilisateur.",
+            "",
+            "Sinon, tout va bien.",
+            "",
+            "",
+            "On écrit du texte ET des nombres, comme avec cout.",
+            "On ferme.",
+            "Message pour l'utilisateur.",
+            ""
+          ],
+          "output": "Sauvegardé"
+        },
+        {
+          "type": "code",
+          "text": "Attention : par défaut, `ofstream` utilise `ios::out`, qui **efface** l'ancien contenu. Si chats.txt contenait Mimi et Pixel, il ne contient plus que Luna !",
+          "code": "ofstream fichier(\"chats.txt\", ios::out);\nfichier << \"Luna\" << '\\n';\nfichier.close();",
+          "lines": [
+            "`ios::out` : écrire en partant de zéro. (C'est le mode par défaut.)",
+            "Le fichier ne contient que Luna.",
+            "On ferme."
+          ],
+          "output": ""
+        },
+        {
+          "type": "code",
+          "text": "On peut sauvegarder un vector de struct : une ligne par chat, avec un séparateur `;`. **refuge.txt** contient `Mimi;3` puis `Tigrou;10`.",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nint main()\n{\n    vector<Chat> refuge = { { \"Mimi\", 3 }, { \"Tigrou\", 10 } };\n    ofstream fichier(\"refuge.txt\");\n    for (const Chat& chat : refuge)\n    {\n        fichier << chat.nom << ';' << chat.age << '\\n';\n    }\n    fichier.close();\n    return 0;\n}",
+          "lines": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Deux chats à sauvegarder.",
+            "Ouvre refuge.txt en écriture.",
+            "Pour chaque chat...",
+            "",
+            "...une ligne : nom, point-virgule, âge.",
+            "",
+            "On ferme.",
+            "",
+            ""
+          ],
+          "output": ""
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : si le fichier n'existe pas, `ofstream` le **crée**. S'il existe, il l'**efface**. Et n'oublie pas `close()` quand tu as fini."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quel include pour les fichiers ?",
+          "a": "`#include <fstream>`"
+        },
+        {
+          "q": "Comment écrire « Mimi » dans chats.txt ?",
+          "a": "`ofstream f(\"chats.txt\");` puis `f << \"Mimi\" << '\\n';`"
+        },
+        {
+          "q": "Que fait `ofstream` sur un fichier qui existe déjà ?",
+          "a": "Il efface son contenu (mode `ios::out` par défaut)."
+        },
+        {
+          "q": "Comment savoir si l'ouverture a marché ?",
+          "a": "`if (fichier.is_open())`"
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche à la console ?",
+          "code": "ofstream fichier(\"notes.txt\");\nfichier << \"Miaou\" << '\\n';\ncout << \"OK\" << '\\n';\nfichier.close();",
+          "choices": [
+            "OK",
+            "Miaou\nOK",
+            "Miaou",
+            "Rien du tout"
+          ],
+          "answer": 0,
+          "hint": "Où va ce qu'on envoie à `fichier` ? Et à `cout` ?",
+          "explain": "Miaou va dans le fichier notes.txt, pas à l'écran. Seul `cout` affiche à la console : OK."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche à la console.",
+          "code": "ofstream fichier(\"chats.txt\");\nint nb = 0;\nfor (int i = 1; i <= 3; ++i)\n{\n    fichier << \"Chat \" << i << '\\n';\n    ++nb;\n}\nfichier.close();\ncout << nb << \" lignes\";",
+          "answer": "3 lignes",
+          "hint": "Les lignes « Chat 1 », « Chat 2 »... vont dans le fichier. Qu'est-ce qui va à la console ?",
+          "explain": "Le fichier reçoit 3 lignes (Chat 1, Chat 2, Chat 3). La console affiche seulement le compteur : 3 lignes."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "ifstream fichier(\"chats.txt\");\nfichier << \"Mimi\" << '\\n';\nfichier.close();",
+          "answer": 0,
+          "hint": "Le i de ifstream veut dire input (entrée).",
+          "explain": "Erreur de compilation : `ifstream` sert à **lire**, il n'a pas de `<<`. Le compilateur se plaint à la ligne 2, mais la vraie erreur est le type : il faut `ofstream`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour écrire dans journal.txt.",
+          "code": "___ fichier(\"journal.txt\");\nfichier << \"Segfault a mangé\" << '\\n';\nfichier.close();",
+          "choices": [
+            "ofstream",
+            "ifstream",
+            "cout",
+            "string"
+          ],
+          "answer": 0,
+          "hint": "On veut une sortie (output) vers un fichier.",
+          "explain": "`ofstream` ouvre un fichier en écriture. `ifstream` sert à lire, et `cout` écrit à l'écran, pas dans un fichier."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour écrire le menu dans menu.txt.",
+          "lines": [
+            "ofstream fichier(\"menu.txt\");",
+            "if (fichier.is_open())",
+            "{",
+            "    fichier << \"Croquettes au thon\" << '\\n';",
+            "    fichier.close();",
+            "}"
+          ],
+          "hint": "On ouvre, on vérifie, on écrit, on ferme.",
+          "explain": "On ouvre le fichier, on vérifie qu'il est ouvert, on écrit, puis on ferme à la fin."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi vérifier `is_open()` après avoir ouvert un fichier ?",
+          "a": "L'ouverture peut échouer : dossier qui n'existe pas, fichier protégé ou déjà utilisé. Sans vérifier, le programme écrit dans le vide et on perd les données sans le savoir."
+        },
+        {
+          "q": "Que se passe-t-il si on ouvre un `ofstream` sur un fichier qui existe déjà ?",
+          "a": "Par défaut (mode `ios::out`), le contenu est effacé. On repart d'un fichier vide. Pour garder l'ancien contenu, il faut `ios::app`."
+        }
+      ]
+    },
+    {
+      "id": "s13-lire",
+      "title": "Lire un fichier (getline)",
+      "lesson": [
+        {
+          "type": "code",
+          "text": "`ifstream` = **i**nput : on lit un fichier. `getline` lit une ligne entière. Ici, **chats.txt** contient Mimi, Pixel et Luna.",
+          "code": "ifstream fichier(\"chats.txt\");\nstring ligne;\nwhile (getline(fichier, ligne))\n{\n    cout << \"Chat : \" << ligne << '\\n';\n}\nfichier.close();",
+          "lines": [
+            "Ouvre chats.txt en lecture.",
+            "Une string pour recevoir chaque ligne.",
+            "Lit une ligne. S'il n'y a plus rien, la boucle s'arrête.",
+            "",
+            "Affiche la ligne lue (sans le '\\n').",
+            "",
+            "On ferme."
+          ],
+          "output": "Chat : Mimi\nChat : Pixel\nChat : Luna"
+        },
+        {
+          "type": "code",
+          "text": "Si le fichier n'existe pas, `ifstream` ne le crée **pas**. `is_open()` retourne faux.",
+          "code": "ifstream fichier(\"introuvable.txt\");\nif (!fichier.is_open())\n{\n    cout << \"Fichier introuvable !\" << '\\n';\n}",
+          "lines": [
+            "Ce fichier n'existe pas.",
+            "L'ouverture a raté.",
+            "",
+            "On avertit au lieu de lire du vide.",
+            ""
+          ],
+          "output": "Fichier introuvable !"
+        },
+        {
+          "type": "code",
+          "text": "On peut aussi lire avec `>>`, comme avec `cin`. Ça lit **un mot** (ou un nombre). Ici, **scores.txt** contient `Pixel 42`.",
+          "code": "ifstream fichier(\"scores.txt\");\nstring nom;\nint score;\nfichier >> nom >> score;\ncout << nom << \" a \" << score << \" points\" << '\\n';",
+          "lines": [
+            "",
+            "",
+            "",
+            "`>>` lit Pixel (s'arrête à l'espace), puis le nombre 42.",
+            ""
+          ],
+          "output": "Pixel a 42 points"
+        },
+        {
+          "type": "code",
+          "text": "Le grand combo : on relit **refuge.txt** (`Mimi;3` et `Tigrou;10`) et on remplit un vector de chats.",
+          "code": "struct Chat\n{\n    string nom;\n    int age;\n};\n\nint main()\n{\n    vector<Chat> refuge;\n    ifstream fichier(\"refuge.txt\");\n    string ligne;\n    while (getline(fichier, ligne))\n    {\n        size_t pos = ligne.find(';');\n        Chat chat;\n        chat.nom = ligne.substr(0, pos);\n        chat.age = stoi(ligne.substr(pos + 1));\n        refuge.push_back(chat);\n    }\n    fichier.close();\n    cout << refuge.size() << \" chats, le 2e : \" << refuge[1].nom << '\\n';\n    return 0;\n}",
+          "lines": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Le vector à remplir.",
+            "Ouvre le fichier sauvegardé.",
+            "",
+            "Pour chaque ligne du fichier...",
+            "",
+            "...trouve le `;`.",
+            "Un chat vide.",
+            "Avant le `;` : le nom.",
+            "Après le `;` : l'âge, converti en int.",
+            "Ajoute le chat au refuge.",
+            "",
+            "",
+            "Vérifie le résultat.",
+            "",
+            ""
+          ],
+          "output": "2 chats, le 2e : Tigrou"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : `fichier >> mot` s'arrête au premier espace. Pour une ligne complète, utilise `getline`. Et boucle avec `while (getline(fichier, ligne))`, pas avec `eof()`."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Comment lire une ligne complète d'un fichier ?",
+          "a": "`getline(fichier, ligne);`"
+        },
+        {
+          "q": "Comment lire toutes les lignes d'un fichier ?",
+          "a": "`while (getline(fichier, ligne))` : s'arrête tout seul à la fin."
+        },
+        {
+          "q": "Différence entre `fichier >> mot` et `getline` ?",
+          "a": "`>>` lit un mot (s'arrête aux espaces). `getline` lit toute la ligne."
+        },
+        {
+          "q": "`ifstream` sur un fichier absent : que se passe-t-il ?",
+          "a": "Rien n'est créé. `is_open()` retourne faux."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Le fichier nom.txt contient `Sir Moustache`. Qu'est-ce qui s'affiche ?",
+          "code": "ifstream fichier(\"nom.txt\");\nstring nom;\nfichier >> nom;\ncout << nom;",
+          "choices": [
+            "Sir",
+            "Sir Moustache",
+            "Moustache",
+            "SirMoustache"
+          ],
+          "answer": 0,
+          "hint": "`>>` s'arrête au premier espace.",
+          "explain": "`>>` lit un seul mot : Sir. Pour avoir Sir Moustache, il faut `getline(fichier, nom)`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Le fichier ages.txt contient trois lignes : `3`, `10` et `7`. Écris exactement ce qui s'affiche.",
+          "code": "ifstream fichier(\"ages.txt\");\nstring ligne;\nint total = 0;\nwhile (getline(fichier, ligne))\n{\n    total += stoi(ligne);\n}\ncout << total;",
+          "answer": "20",
+          "hint": "Chaque ligne est du texte. `stoi` la transforme en nombre.",
+          "explain": "On lit \"3\", \"10\" puis \"7\". Chacun est converti en int et additionné : 20. Sans `stoi`, on ne pourrait pas additionner."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "ifstream fichier(\"chats.txt\");\nstring ligne;\nwhile (getline(ligne, fichier))\n{\n    cout << ligne << '\\n';\n}",
+          "answer": 2,
+          "hint": "Regarde l'ordre des paramètres de getline.",
+          "explain": "Erreur de compilation : `getline` veut d'abord le fichier (d'où on lit), puis la string (où on range). Il faut `getline(fichier, ligne)`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour lire le fichier chats.txt.",
+          "code": "___ fichier(\"chats.txt\");\nstring ligne;\ngetline(fichier, ligne);\ncout << ligne;",
+          "choices": [
+            "ifstream",
+            "ofstream",
+            "string",
+            "cin"
+          ],
+          "answer": 0,
+          "hint": "On veut une entrée (input) depuis un fichier.",
+          "explain": "`ifstream` ouvre en lecture. Attention : `ofstream` ouvrirait en écriture... et **effacerait** le fichier !"
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher le plat du jour.",
+          "lines": [
+            "ifstream fichier(\"menu.txt\");",
+            "if (fichier.is_open())",
+            "{",
+            "    string ligne;",
+            "    getline(fichier, ligne);",
+            "    cout << \"Plat du jour : \" << ligne;",
+            "}"
+          ],
+          "hint": "On ouvre, on vérifie, puis on lit avant d'afficher.",
+          "explain": "On ouvre, on vérifie l'ouverture, on crée la string, on lit la ligne, puis on l'affiche."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi écrit-on `while (getline(fichier, ligne))` ?",
+          "a": "`getline` essaie de lire une ligne. S'il réussit, la condition est vraie. À la fin du fichier, il échoue et la condition devient fausse. La boucle s'arrête pile au bon moment."
+        },
+        {
+          "q": "Quelle différence entre `fichier >> mot` et `getline(fichier, ligne)` ?",
+          "a": "`>>` saute les espaces et lit un seul mot ou nombre. `getline` lit toute la ligne jusqu'au retour à la ligne, espaces compris."
+        }
+      ]
+    },
+    {
+      "id": "s13-append",
+      "title": "Ajouter à la fin (ios::app)",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "`ofstream` efface le fichier à chaque ouverture. Pour **ajouter à la fin** (un journal, un historique), on utilise le mode `ios::app` (app = append)."
+        },
+        {
+          "type": "code",
+          "text": "Le fichier **journal.txt** contenait `Pixel a dormi`. Après : `Pixel a dormi`, puis `Mimi a mangé`.",
+          "code": "ofstream journal(\"journal.txt\", ios::app);\njournal << \"Mimi a mangé\" << '\\n';\njournal.close();",
+          "lines": [
+            "Ouvre en mode ajout : l'ancien contenu reste.",
+            "Écrit à la fin du fichier.",
+            ""
+          ],
+          "output": ""
+        },
+        {
+          "type": "code",
+          "text": "Comparons. `ios::out` efface, `ios::app` ajoute. À la fin, **test.txt** contient A, B et C.",
+          "code": "ofstream f1(\"test.txt\", ios::out);\nf1 << \"A\" << '\\n';\nf1.close();\nofstream f2(\"test.txt\", ios::app);\nf2 << \"B\" << '\\n';\nf2.close();\nofstream f3(\"test.txt\", ios::app);\nf3 << \"C\" << '\\n';\nf3.close();",
+          "lines": [
+            "`ios::out` : on part d'un fichier vide.",
+            "Contenu : A",
+            "",
+            "`ios::app` : on garde A.",
+            "Contenu : A, B",
+            "",
+            "Encore en ajout.",
+            "Contenu : A, B, C",
+            ""
+          ],
+          "output": ""
+        },
+        {
+          "type": "code",
+          "text": "`fstream` sait lire ET écrire. On choisit avec le mode : `ios::in` (lire), `ios::out` (écrire), `ios::app` (ajouter). Ici, **scores.txt** contenait `Pixel 42`.",
+          "code": "fstream fichier(\"scores.txt\", ios::in);\nstring ligne;\ngetline(fichier, ligne);\nfichier.close();\nfichier.open(\"scores.txt\", ios::out | ios::app);\nfichier << \"Nouveau : 99\" << '\\n';\nfichier.close();\ncout << \"Ancien : \" << ligne << '\\n';",
+          "lines": [
+            "Ouvre en lecture.",
+            "",
+            "Lit la première ligne.",
+            "On ferme avant de changer de mode.",
+            "Réouvre en ajout. Le `|` combine deux modes.",
+            "Ajoute une ligne à la fin.",
+            "",
+            "Affiche ce qu'on avait lu."
+          ],
+          "output": "Ancien : Pixel 42"
+        },
+        {
+          "type": "code",
+          "text": "Une petite fonction journal. Le fichier se ferme tout seul à la fin de la fonction. Chaque appel ajoute une ligne. 🐾",
+          "code": "void ajouterAuJournal(const string& message)\n{\n    ofstream journal(\"journal.txt\", ios::app);\n    journal << message << '\\n';\n}\n\nint main()\n{\n    ajouterAuJournal(\"Segfault a renversé le bol\");\n    ajouterAuJournal(\"Segfault a fait une sieste\");\n    return 0;\n}",
+          "lines": [
+            "Reçoit le message à noter.",
+            "",
+            "Ouvre en ajout à chaque appel.",
+            "Écrit le message.",
+            "Fin de la fonction : `journal` est détruit et le fichier se ferme.",
+            "",
+            "",
+            "",
+            "Première ligne du journal.",
+            "Deuxième ligne, sous la première.",
+            "",
+            ""
+          ],
+          "output": ""
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : un journal ouvert sans `ios::app` ne garde que la **dernière** ligne écrite. Chaque ouverture efface tout !"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Comment ajouter à la fin d'un fichier sans l'effacer ?",
+          "a": "`ofstream f(\"journal.txt\", ios::app);`"
+        },
+        {
+          "q": "Quel est le mode par défaut d'un `ofstream` ?",
+          "a": "`ios::out` : il efface le contenu."
+        },
+        {
+          "q": "À quoi sert `ios::in` ?",
+          "a": "Ouvrir en lecture (utile avec `fstream`)."
+        },
+        {
+          "q": "Comment combiner deux modes ?",
+          "a": "Avec `|` : `ios::out | ios::app`."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "ofstream f(\"log.txt\");\nf << \"A\" << '\\n';\nf.close();\nf.open(\"log.txt\", ios::app);\nf << \"B\" << '\\n';\nf.close();\nifstream lecture(\"log.txt\");\nstring ligne;\nint nb = 0;\nwhile (getline(lecture, ligne))\n{\n    ++nb;\n}\ncout << nb;",
+          "choices": [
+            "2",
+            "1",
+            "3",
+            "0"
+          ],
+          "answer": 0,
+          "hint": "La 2e ouverture efface-t-elle le fichier ?",
+          "explain": "La 1re ouverture crée le fichier avec A. La 2e est en `ios::app` : B s'ajoute après A. Le fichier a 2 lignes. On aurait 1 sans `ios::app`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Au départ, chats.txt contient Mimi et Pixel. Écris exactement ce qui s'affiche.",
+          "code": "ofstream f(\"chats.txt\");\nf << \"Luna\" << '\\n';\nf.close();\nifstream lecture(\"chats.txt\");\nstring ligne;\nwhile (getline(lecture, ligne))\n{\n    cout << ligne << ' ';\n}",
+          "answer": "Luna",
+          "hint": "Quel est le mode par défaut de `ofstream` ?",
+          "explain": "`ofstream` sans mode = `ios::out` : Mimi et Pixel sont effacés. Il ne reste que Luna."
+        },
+        {
+          "type": "bug",
+          "q": "Le journal ne garde que le dernier repas. Quelle ligne cause le bogue ?",
+          "code": "void noterRepas(const string& repas)\n{\n    ofstream journal(\"repas.txt\");\n    journal << repas << '\\n';\n}",
+          "answer": 2,
+          "hint": "Que devient l'ancien contenu à chaque ouverture ?",
+          "explain": "Bogue de logique : sans `ios::app`, chaque appel efface le fichier. Le journal ne garde que le dernier repas. Il faut `ofstream journal(\"repas.txt\", ios::app);`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour ajouter une ligne sans effacer le journal.",
+          "code": "ofstream journal(\"journal.txt\", ___);\njournal << \"Sieste\" << '\\n';\njournal.close();",
+          "choices": [
+            "ios::app",
+            "ios::in",
+            "ios::out",
+            "ios::end"
+          ],
+          "answer": 0,
+          "hint": "app = append = ajouter.",
+          "explain": "`ios::app` écrit à la fin et garde l'ancien contenu. `ios::out` effacerait tout, et `ios::in` sert à lire."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour ajouter une ligne au journal.",
+          "lines": [
+            "fstream fichier;",
+            "fichier.open(\"journal.txt\", ios::out | ios::app);",
+            "fichier << \"Sieste de 3 h\" << '\\n';",
+            "fichier.close();"
+          ],
+          "hint": "On déclare, on ouvre, on écrit, on ferme.",
+          "explain": "On crée la variable fstream, on l'ouvre en ajout, on écrit, puis on ferme."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Quelle différence entre `ios::out` et `ios::app` ?",
+          "a": "`ios::out` efface le fichier et écrit depuis le début. `ios::app` garde le contenu et écrit à la fin."
+        },
+        {
+          "q": "Pourquoi un fichier journal s'ouvre-t-il avec `ios::app` ?",
+          "a": "Un journal doit garder tout l'historique. Avec `ios::app`, chaque exécution ajoute ses lignes à la suite, sans perdre les anciennes."
+        }
+      ]
+    },
+    {
+      "id": "s13-chemins",
+      "title": "Chemins de fichiers",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "`\"chats.txt\"`, sans dossier, c'est un **chemin relatif**. Le programme cherche le fichier dans son **dossier de travail**. Mais c'est lequel ? 🤔"
+        },
+        {
+          "type": "talk",
+          "text": "Lancé depuis **Visual Studio** (F5 ou Ctrl+F5) : le dossier de travail est le **dossier du projet**. Celui où il y a tes `.cpp` et le `.vcxproj`. Mets chats.txt là !"
+        },
+        {
+          "type": "talk",
+          "text": "Lancé en **double-cliquant le .exe** (dans `x64/Debug`, par exemple) : le dossier de travail est celui du **.exe**. Le fichier doit être à côté du .exe."
+        },
+        {
+          "type": "code",
+          "text": "On peut viser un sous-dossier : `donnees/chats.txt`. Et `../` remonte d'un dossier. Ici, **donnees/chats.txt** contient Mimi.",
+          "code": "ifstream fichier(\"donnees/chats.txt\");\nif (!fichier.is_open())\n{\n    cout << \"Introuvable\" << '\\n';\n}\nelse\n{\n    string ligne;\n    getline(fichier, ligne);\n    cout << ligne << '\\n';\n}",
+          "lines": [
+            "Le sous-dossier donnees, dans le dossier de travail.",
+            "Mauvais chemin ?",
+            "",
+            "On le dit.",
+            "",
+            "Sinon...",
+            "",
+            "",
+            "...on lit la première ligne.",
+            "Et on l'affiche.",
+            ""
+          ],
+          "output": "Mimi"
+        },
+        {
+          "type": "code",
+          "text": "Un **chemin absolu** part du disque (`C:`). Dans une string, `\\` s'écrit `\\\\`. Ou utilise `/`, ça marche aussi sous Windows.",
+          "code": "string chemin = \"C:\\\\Cours\\\\420-1C6\\\\chats.txt\";\ncout << chemin << '\\n';\nstring chemin2 = \"C:/Cours/420-1C6/chats.txt\";\ncout << chemin2 << '\\n';",
+          "lines": [
+            "Chaque `\\\\` dans le code donne un seul `\\` dans le texte.",
+            "Affiche le chemin avec des `\\` simples.",
+            "Même chemin, avec des `/`.",
+            ""
+          ],
+          "output": "C:\\Cours\\420-1C6\\chats.txt\nC:/Cours/420-1C6/chats.txt"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : `\"C:\\notes.txt\"` contient `\\n`... un retour à la ligne ! Double les `\\\\` ou utilise `/`. Et un chemin absolu marche seulement sur **ton** ordi."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Lancé depuis Visual Studio, où le programme cherche-t-il `\"chats.txt\"` ?",
+          "a": "Dans le dossier du projet (avec les .cpp)."
+        },
+        {
+          "q": "En double-cliquant le .exe, où cherche-t-il `\"chats.txt\"` ?",
+          "a": "Dans le dossier du .exe (ex. x64/Debug)."
+        },
+        {
+          "q": "Comment écrire un `\\` dans une string C++ ?",
+          "a": "`\\\\` (ou utiliser `/` à la place)."
+        },
+        {
+          "q": "Que veut dire `../chats.txt` ?",
+          "a": "Remonte d'un dossier, puis cherche chats.txt."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "string chemin = \"C:\\\\Cours\\\\chats.txt\";\ncout << chemin;",
+          "choices": [
+            "C:\\Cours\\chats.txt",
+            "C:\\\\Cours\\\\chats.txt",
+            "C:/Cours/chats.txt",
+            "C:Courschats.txt"
+          ],
+          "answer": 0,
+          "hint": "Dans une string, `\\\\` est une séquence d'échappement.",
+          "explain": "`\\\\` dans le code devient un seul `\\` à l'affichage. Le texte affiché est donc `C:\\Cours\\chats.txt`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Le programme est lancé depuis Visual Studio. Le dossier du projet contient un chats.txt avec `Projet`. Le dossier x64/Debug contient un autre chats.txt avec `Exe`. Écris ce qui s'affiche.",
+          "code": "ifstream fichier(\"chats.txt\");\nstring ligne;\ngetline(fichier, ligne);\ncout << ligne;",
+          "answer": "Projet",
+          "hint": "Depuis Visual Studio, le dossier de travail est le dossier du projet.",
+          "explain": "Lancé depuis VS, `\"chats.txt\"` est cherché dans le dossier du projet : on lit Projet. Le fichier de x64/Debug serait lu seulement en double-cliquant le .exe."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "ifstream fichier(\"C:\\Cours\\notes.txt\");\nif (!fichier.is_open())\n{\n    cout << \"Introuvable\" << '\\n';\n}",
+          "answer": 0,
+          "hint": "Que devient `\\n` dans une string ?",
+          "explain": "Bogue de logique : `\\n` devient un retour à la ligne et `\\C` n'est pas valide. Le chemin est faux, le fichier est introuvable. Il faut `\"C:\\\\Cours\\\\notes.txt\"` ou `\"C:/Cours/notes.txt\"`."
+        },
+        {
+          "type": "fill",
+          "q": "chats.txt est dans le sous-dossier `donnees` du projet. Complète le chemin.",
+          "code": "ifstream fichier(\"___\");\nstring ligne;\ngetline(fichier, ligne);\ncout << ligne;",
+          "choices": [
+            "donnees/chats.txt",
+            "chats.txt",
+            "chats/donnees.txt",
+            "/chats.txt"
+          ],
+          "answer": 0,
+          "hint": "Le dossier d'abord, puis le fichier.",
+          "explain": "`donnees/chats.txt` : on entre dans donnees, puis on prend chats.txt. Juste `chats.txt` chercherait dans le dossier du projet."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour ouvrir donnees/chats.txt.",
+          "lines": [
+            "string dossier = \"donnees/\";",
+            "string chemin = dossier + \"chats.txt\";",
+            "ifstream fichier(chemin);",
+            "if (fichier.is_open())",
+            "{",
+            "    cout << \"Ouvert : \" << chemin;",
+            "}"
+          ],
+          "hint": "On construit le chemin avant d'ouvrir le fichier.",
+          "explain": "On colle le dossier et le nom du fichier, on ouvre avec ce chemin, puis on vérifie avant d'afficher."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi un fichier trouvé depuis Visual Studio devient-il introuvable quand on double-clique le .exe ?",
+          "a": "Un chemin relatif dépend du dossier de travail. Depuis VS, c'est le dossier du projet. En double-cliquant, c'est le dossier du .exe. Il faut copier le fichier à côté du .exe."
+        },
+        {
+          "q": "Pourquoi éviter un chemin absolu comme `C:\\Users\\moi\\chats.txt` dans un TP ?",
+          "a": "Ce dossier existe seulement sur ton ordi. Chez le prof, le programme ne trouvera rien. Un chemin relatif suit le projet partout."
+        }
+      ]
+    }
+  ],
+  "aideMemoire": [
+    {
+      "title": "Les 3 types",
+      "code": "#include <fstream>\nofstream sortie(\"a.txt\");   // écrire\nifstream entree(\"a.txt\");   // lire\nfstream f(\"a.txt\", ios::in); // les deux",
+      "note": "o = output (écrire), i = input (lire)."
+    },
+    {
+      "title": "Écrire",
+      "code": "ofstream fichier(\"chats.txt\");\nfichier << \"Mimi\" << '\\n';\nfichier.close();",
+      "note": "Crée le fichier s'il n'existe pas. L'efface s'il existe."
+    },
+    {
+      "title": "Lire ligne par ligne",
+      "code": "ifstream fichier(\"chats.txt\");\nstring ligne;\nwhile (getline(fichier, ligne))\n{\n    cout << ligne << '\\n';\n}",
+      "note": "`>>` lit un mot. `getline` lit toute la ligne."
+    },
+    {
+      "title": "Vérifier l'ouverture",
+      "code": "if (!fichier.is_open())\n{\n    cout << \"Erreur\" << '\\n';\n}",
+      "note": "Toujours vérifier avant de lire ou d'écrire."
+    },
+    {
+      "title": "Ajouter à la fin",
+      "code": "ofstream journal(\"journal.txt\", ios::app);\njournal << \"Nouvelle ligne\" << '\\n';",
+      "note": "`ios::app` garde l'ancien contenu."
+    },
+    {
+      "title": "Les modes",
+      "code": "ios::in    // lire\nios::out   // écrire (efface)\nios::app   // ajouter à la fin\nios::out | ios::app",
+      "note": "Le `|` combine les modes."
+    },
+    {
+      "title": "Chemins",
+      "code": "\"chats.txt\"            // relatif\n\"donnees/chats.txt\"    // sous-dossier\n\"../chats.txt\"         // dossier parent\n\"C:\\\\Cours\\\\chats.txt\" // absolu",
+      "note": "Depuis VS : relatif au dossier du projet. Depuis le .exe : relatif au dossier du .exe."
+    }
+  ]
+}

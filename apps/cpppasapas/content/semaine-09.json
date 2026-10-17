@@ -1,0 +1,826 @@
+{
+  "week": 9,
+  "title": "Modulo et hasard",
+  "notions": [
+    {
+      "id": "s9-modulo",
+      "title": "Le modulo %",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "`%` s'appelle **modulo**. Il donne le **reste** de la division entière.\n`17 % 5` : 17 = 3 × 5 + **2**, donc le reste est 2."
+        },
+        {
+          "type": "code",
+          "text": "`/` donne le quotient, `%` donne le reste.",
+          "code": "cout << 17 / 5 << '\\n';\ncout << 17 % 5 << '\\n';\ncout << 10 % 2 << '\\n';\ncout << 3 % 7 << '\\n';",
+          "lines": [
+            "Combien de fois 5 rentre dans 17 : 3.",
+            "Ce qui reste : 2.",
+            "10 est divisible par 2 : reste 0.",
+            "7 ne rentre pas dans 3 : tout reste, donc 3."
+          ],
+          "output": "3\n2\n0\n3"
+        },
+        {
+          "type": "talk",
+          "text": "Pair ou impair ? Si `n % 2 == 0`, n est **pair**. Sinon, il est **impair**."
+        },
+        {
+          "type": "code",
+          "text": "Faire une action **tous les N tours** : ici, un Miaou tous les 3 tours. 🐱",
+          "code": "for (int i = 1; i <= 9; ++i)\n{\n    cout << i << \" \";\n    if (i % 3 == 0)\n    {\n        cout << \"Miaou! \";\n    }\n}",
+          "lines": [
+            "i va de 1 à 9.",
+            "",
+            "Affiche le numéro du tour.",
+            "Vrai seulement pour 3, 6, 9 (les multiples de 3).",
+            "",
+            "L'action spéciale.",
+            "",
+            ""
+          ],
+          "output": "1 2 3 Miaou! 4 5 6 Miaou! 7 8 9 Miaou! "
+        },
+        {
+          "type": "talk",
+          "text": "Pour n positif, `n % k` donne toujours un résultat entre **0 et k - 1**. Par exemple, `n % 6` donne 0, 1, 2, 3, 4 ou 5. On va s'en servir pour le hasard !"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : `%` marche seulement avec des **entiers**. `7.5 % 2` → erreur de compilation. Et `n % 0` fait planter le programme, comme une division par 0."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Que donne l'opérateur `%` ?",
+          "a": "Le reste de la division entière."
+        },
+        {
+          "q": "Combien vaut `17 % 5` ?",
+          "a": "2 (17 = 3 × 5 + 2)."
+        },
+        {
+          "q": "Comment tester si n est pair ?",
+          "a": "`if (n % 2 == 0)`"
+        },
+        {
+          "q": "Quelles valeurs peut donner `n % 6` (n positif) ?",
+          "a": "De 0 à 5."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int compteur = 0;\nfor (int i = 0; i < 20; ++i)\n{\n    if (i % 5 == 0)\n    {\n        ++compteur;\n    }\n}\ncout << compteur;",
+          "choices": [
+            "4",
+            "3",
+            "5",
+            "20"
+          ],
+          "answer": 0,
+          "hint": "N'oublie pas que i commence à 0. Et 0 % 5, ça vaut combien ?",
+          "explain": "La condition est vraie pour i = 0, 5, 10, 15 : 4 fois. On oublie souvent 0 (0 % 5 vaut 0). 20 n'est pas inclus, car i < 20."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "for (int i = 1; i <= 10; ++i)\n{\n    if (i % 4 == 0)\n    {\n        cout << i << \" \";\n    }\n}",
+          "answer": "4 8",
+          "hint": "Quels nombres entre 1 et 10 sont des multiples de 4 ?",
+          "explain": "`i % 4 == 0` est vrai pour les multiples de 4 : 4 et 8. 12 dépasse 10."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "double prix = 7.5;\nint nbChats = 4;\ncout << prix % 2 << '\\n';\ncout << nbChats % 2 << '\\n';",
+          "answer": 2,
+          "hint": "Avec quel type de nombre le modulo fonctionne-t-il ?",
+          "explain": "Erreur de compilation : `%` ne marche pas avec un `double`. `nbChats % 2` est correct, car nbChats est un `int`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour afficher « Impair » quand n est impair.",
+          "code": "int n = 7;\nif (n % 2 ___ 0)\n{\n    cout << \"Impair\";\n}",
+          "choices": [
+            "!=",
+            "==",
+            "=",
+            "<"
+          ],
+          "answer": 0,
+          "hint": "Un nombre impair a un reste de 1 quand on le divise par 2.",
+          "explain": "Impair = le reste n'est pas 0, donc `!= 0`. `==` testerait pair. `=` est une affectation, pas une comparaison."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher « Pair » quand n est pair.",
+          "lines": [
+            "int n = 8;",
+            "if (n % 2 == 0)",
+            "{",
+            "    cout << \"Pair\";",
+            "}"
+          ],
+          "hint": "On déclare la variable avant de la tester.",
+          "explain": "D'abord `n`, puis la condition, puis le bloc entre accolades. 8 % 2 vaut 0, donc Pair s'affiche."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi i % 3 == 0 permet de faire une action tous les 3 tours ?",
+          "a": "`i % 3` donne le reste de i divisé par 3. Ce reste vaut 0 seulement pour les multiples de 3 : 3, 6, 9... Donc la condition est vraie un tour sur trois."
+        },
+        {
+          "q": "Quelle est la différence entre / et % avec des int ?",
+          "a": "`/` donne le quotient : combien de fois ça rentre. `%` donne le reste : ce qui dépasse. Par exemple, 17 / 5 = 3 et 17 % 5 = 2."
+        }
+      ]
+    },
+    {
+      "id": "s9-chiffres",
+      "title": "Extraire des chiffres",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Truc magique : `n % 10` donne le **dernier chiffre**. `n / 10` **enlève** le dernier chiffre. ✨"
+        },
+        {
+          "type": "code",
+          "text": "On découpe 472 en morceaux.",
+          "code": "int n = 472;\ncout << n % 10 << '\\n';\ncout << n / 10 << '\\n';\ncout << n / 10 % 10 << '\\n';\ncout << n / 100 << '\\n';",
+          "lines": [
+            "",
+            "Dernier chiffre (les unités) : 2.",
+            "On enlève le 2 : il reste 47.",
+            "47, puis son dernier chiffre : 7 (les dizaines).",
+            "On enlève deux chiffres : 4 (les centaines)."
+          ],
+          "output": "2\n47\n7\n4"
+        },
+        {
+          "type": "memory",
+          "text": "Résultat en mémoire, si on range chaque chiffre dans sa variable :",
+          "boxes": [
+            {
+              "name": "n",
+              "value": "472",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "unites",
+              "value": "2",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "dizaines",
+              "value": "7",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "centaines",
+              "value": "4",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "Avec une boucle, on traite **tous** les chiffres : ici, on les additionne.",
+          "code": "int n = 2025;\nint somme = 0;\nwhile (n > 0)\n{\n    somme = somme + n % 10;\n    n = n / 10;\n}\ncout << somme << '\\n';",
+          "lines": [
+            "",
+            "",
+            "Tant qu'il reste des chiffres...",
+            "",
+            "On ajoute le dernier chiffre.",
+            "On l'enlève : 2025 → 202 → 20 → 2 → 0.",
+            "",
+            "5 + 2 + 0 + 2 = 9."
+          ],
+          "output": "9"
+        },
+        {
+          "type": "code",
+          "text": "Même idée pour le temps : on découpe des secondes en heures, minutes, secondes.",
+          "code": "int totalSecondes = 3725;\nint heures = totalSecondes / 3600;\nint minutes = totalSecondes % 3600 / 60;\nint secondes = totalSecondes % 60;\ncout << heures << \"h \" << minutes << \"m \" << secondes << \"s\" << '\\n';",
+          "lines": [
+            "",
+            "3600 secondes dans une heure : 1.",
+            "Le reste après les heures (125), divisé par 60 : 2.",
+            "Ce qui reste après les minutes : 5.",
+            ""
+          ],
+          "output": "1h 2m 5s"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Attention : la boucle `while (n > 0)` avec `n = n / 10` **détruit** n (il finit à 0). Si tu as besoin du nombre après, travaille sur une copie."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Comment obtenir le dernier chiffre de n ?",
+          "a": "`n % 10`"
+        },
+        {
+          "q": "Comment enlever le dernier chiffre de n ?",
+          "a": "`n / 10` (division entière)."
+        },
+        {
+          "q": "Comment obtenir le chiffre des dizaines ?",
+          "a": "`n / 10 % 10`"
+        },
+        {
+          "q": "Comment convertir des secondes en minutes + secondes ?",
+          "a": "`minutes = total / 60;` et `secondes = total % 60;`"
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int n = 3859;\ncout << n / 100 % 10;",
+          "choices": [
+            "8",
+            "5",
+            "38",
+            "9"
+          ],
+          "answer": 0,
+          "hint": "Fais-le en deux étapes : d'abord `/ 100`, ensuite `% 10`.",
+          "explain": "3859 / 100 = 38 (division entière), puis 38 % 10 = 8. C'est le chiffre des centaines. 38 oublie le `% 10`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int n = 123;\nwhile (n > 0)\n{\n    cout << n % 10;\n    n = n / 10;\n}",
+          "answer": "321",
+          "hint": "On affiche toujours le DERNIER chiffre en premier.",
+          "explain": "Tour 1 : affiche 3, n devient 12. Tour 2 : 2, n devient 1. Tour 3 : 1, n devient 0. Le nombre sort à l'envers : 321."
+        },
+        {
+          "type": "bug",
+          "q": "Ce code doit compter les chiffres de 456, mais il ne s'arrête jamais. Quelle ligne est en faute ?",
+          "code": "int n = 456;\nint nbChiffres = 0;\nwhile (n > 0)\n{\n    ++nbChiffres;\n    n = n % 10;\n}\ncout << nbChiffres;",
+          "answer": 5,
+          "hint": "Qu'est-ce que n devient après chaque tour ?",
+          "explain": "Bug de logique (boucle infinie) : `n % 10` garde le dernier chiffre (6), puis 6 encore, pour toujours. Il faut `n = n / 10;` pour enlever un chiffre à chaque tour."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour afficher 2:15.",
+          "code": "int total = 135;\nint minutes = total / 60;\nint secondes = total ___ 60;\ncout << minutes << \":\" << secondes;",
+          "choices": [
+            "%",
+            "/",
+            "-",
+            "*"
+          ],
+          "answer": 0,
+          "hint": "Les secondes, c'est ce qui reste après les minutes complètes.",
+          "explain": "135 % 60 = 15 : le reste après 2 minutes complètes. `/` redonnerait 2, et `-` donnerait 75."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher « 7 5 » (les chiffres de 57, du dernier au premier).",
+          "lines": [
+            "int n = 57;",
+            "while (n > 0)",
+            "{",
+            "    cout << n % 10 << \" \";",
+            "    n = n / 10;",
+            "}"
+          ],
+          "hint": "Dans la boucle : on affiche le chiffre AVANT de l'enlever.",
+          "explain": "Il faut afficher `n % 10`, PUIS faire `n = n / 10`. Si on enlève le chiffre avant de l'afficher, on perd le 7 : ça affiche seulement « 5 »."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Comment trouver le chiffre des dizaines d'un nombre ?",
+          "a": "D'abord `n / 10` enlève le chiffre des unités. Ensuite `% 10` garde le dernier chiffre qui reste. Pour 472 : 472 / 10 = 47, puis 47 % 10 = 7."
+        },
+        {
+          "q": "Pourquoi la boucle while (n > 0) avec n = n / 10 finit-elle toujours ?",
+          "a": "À chaque tour, `n = n / 10` enlève un chiffre, donc n devient plus petit. Quand il n'y a plus de chiffres, n vaut 0. La condition devient fausse et la boucle s'arrête."
+        }
+      ]
+    },
+    {
+      "id": "s9-time-srand",
+      "title": "time et srand",
+      "lesson": [
+        {
+          "type": "code",
+          "text": "`time(0)` (dans `<ctime>`) donne le **timestamp** : le nombre de secondes depuis le 1er janvier 1970. Il change chaque seconde. (exemple — ça change à chaque fois)",
+          "code": "#include <iostream>\n#include <ctime>\nusing namespace std;\n\nint main()\n{\n    cout << time(0) << '\\n';\n}",
+          "lines": [
+            "",
+            "Pour utiliser `time`.",
+            "",
+            "",
+            "",
+            "",
+            "Affiche le nombre de secondes depuis 1970.",
+            ""
+          ],
+          "output": "1790604000"
+        },
+        {
+          "type": "talk",
+          "text": "`rand()` (dans `<cstdlib>`) donne un nombre **pseudo-aléatoire** entre 0 et `RAND_MAX` (au moins 32767).\n« Pseudo », parce qu'il est calculé par une formule, à partir d'un point de départ : la **graine** (seed)."
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Sans `srand`, la graine est toujours la même. Donc les MÊMES nombres à chaque exécution. Tu relances ton jeu de dés... et c'est toujours la même partie. 😿"
+        },
+        {
+          "type": "code",
+          "text": "`srand(time(0))` : la graine = l'heure actuelle. Une seule fois, au début de `main`. (exemple — ça change à chaque fois)",
+          "code": "#include <iostream>\n#include <cstdlib>\n#include <ctime>\nusing namespace std;\n\nint main()\n{\n    srand(time(0));\n    cout << rand() << '\\n';\n    cout << rand() << '\\n';\n}",
+          "lines": [
+            "",
+            "Pour `rand` et `srand`.",
+            "Pour `time`.",
+            "",
+            "",
+            "",
+            "",
+            "Choisit la graine avec l'heure. UNE seule fois.",
+            "Un premier nombre au hasard.",
+            "Un deuxième nombre, différent.",
+            ""
+          ],
+          "output": "18467\n6334"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : ne mets JAMAIS `srand` dans une boucle. `time(0)` change seulement une fois par seconde. Dans la même seconde, tu remets la même graine → le même nombre répété."
+        },
+        {
+          "type": "talk",
+          "text": "Le timestamp sert aussi à mesurer une durée : `fin - debut` donne le nombre de secondes écoulées. Avec `/ 60` et `% 60`, tu as les minutes et les secondes !"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Que renvoie `time(0)` ?",
+          "a": "Le timestamp : le nombre de secondes depuis le 1er janvier 1970. Il faut `#include <ctime>`."
+        },
+        {
+          "q": "À quoi sert `srand` ?",
+          "a": "À choisir la graine du générateur de nombres. On l'appelle une seule fois, au début de `main`."
+        },
+        {
+          "q": "Pourquoi `srand(time(0))` ?",
+          "a": "L'heure change à chaque exécution, donc la graine change, et les nombres aussi."
+        },
+        {
+          "q": "Que se passe-t-il sans `srand` ?",
+          "a": "On obtient les mêmes nombres à chaque exécution du programme."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "bug",
+          "q": "Ce code affiche 5 fois le même nombre. Quelle ligne est en faute ?",
+          "code": "for (int i = 0; i < 5; ++i)\n{\n    srand(time(0));\n    cout << rand() << \" \";\n}",
+          "answer": 2,
+          "hint": "Combien de fois la graine est-elle choisie ? Et en combien de temps ?",
+          "explain": "Bug de logique (ça compile) : `srand` est dans la boucle. Les 5 tours se font dans la même seconde, donc même graine, donc même nombre. Il faut sortir `srand(time(0));` avant la boucle."
+        },
+        {
+          "type": "predict",
+          "q": "Tu lances ce programme 3 fois de suite. Que remarques-tu ?",
+          "code": "#include <iostream>\n#include <cstdlib>\nusing namespace std;\n\nint main()\n{\n    cout << rand() << '\\n';\n}",
+          "choices": [
+            "Le même nombre les 3 fois",
+            "3 nombres différents",
+            "0 les 3 fois",
+            "Erreur : il manque srand"
+          ],
+          "answer": 0,
+          "hint": "Qui choisit la graine ici ?",
+          "explain": "Sans `srand`, la graine est toujours la même, donc la suite de nombres aussi : même nombre à chaque fois. Ce n'est pas une erreur de compilation : `srand` est optionnel."
+        },
+        {
+          "type": "fill",
+          "q": "Complète l'include qui manque pour `time`.",
+          "code": "#include <iostream>\n#include <cstdlib>\n#include ___\nusing namespace std;\n\nint main()\n{\n    srand(time(0));\n    cout << rand() << '\\n';\n}",
+          "choices": [
+            "<ctime>",
+            "<cstdlib>",
+            "<random>",
+            "<time>"
+          ],
+          "answer": 0,
+          "hint": "c + time.",
+          "explain": "`time` vient de `<ctime>`. `<cstdlib>` donne `rand` et `srand`, mais pas `time`. `<time>` n'existe pas en C++."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "long long debut = 1700000000;\nlong long fin = 1700000125;\ncout << (fin - debut) / 60 << \" min \" << (fin - debut) % 60 << \" s\";",
+          "answer": "2 min 5 s",
+          "hint": "fin - debut = 125 secondes.",
+          "explain": "125 / 60 = 2 minutes, et 125 % 60 = 5 secondes. Réponse : 2 min 5 s."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher 3 nombres au hasard.",
+          "lines": [
+            "srand(time(0));",
+            "for (int i = 0; i < 3; ++i)",
+            "{",
+            "    cout << rand() << '\\n';",
+            "}"
+          ],
+          "hint": "La graine se choisit une seule fois.",
+          "explain": "`srand(time(0));` vient en premier, AVANT la boucle. Dans la boucle, il serait appelé 3 fois dans la même seconde → 3 fois le même nombre."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi appeler srand une seule fois ?",
+          "a": "`srand` choisit le point de départ de la suite de nombres. Si je le rappelle dans une boucle, `time(0)` donne la même valeur pendant toute la seconde. Je repars du même point, donc j'obtiens le même nombre encore et encore."
+        },
+        {
+          "q": "Pourquoi dit-on que rand() est pseudo-aléatoire ?",
+          "a": "Les nombres sont calculés par une formule, à partir de la graine. Avec la même graine, on obtient toujours la même suite. Ça a l'air du hasard, mais c'est prévisible."
+        }
+      ]
+    },
+    {
+      "id": "s9-rand-intervalle",
+      "title": "rand() dans un intervalle",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "`rand()` donne un GROS nombre. Pour le ramener dans un petit intervalle, on utilise... le modulo ! `rand() % 6` donne de 0 à 5."
+        },
+        {
+          "type": "code",
+          "text": "Un dé à 6 faces : on ajoute 1 pour avoir de 1 à 6. 🎲 (exemple — ça change à chaque fois)",
+          "code": "srand(time(0));\nint de = rand() % 6 + 1;\ncout << \"Tu as fait \" << de << '\\n';",
+          "lines": [
+            "La graine, une seule fois.",
+            "`% 6` → 0 à 5, puis `+ 1` → 1 à 6.",
+            ""
+          ],
+          "output": "Tu as fait 4"
+        },
+        {
+          "type": "talk",
+          "text": "Formule générale, pour un nombre entre `min` et `max` (inclus) :\n`min + rand() % (max - min + 1)`\nLe `+ 1` permet d'inclure `max`."
+        },
+        {
+          "type": "code",
+          "text": "Un nombre de croquettes entre 10 et 20. (exemple — ça change à chaque fois)",
+          "code": "srand(time(0));\nint borneMin = 10;\nint borneMax = 20;\nint croquettes = borneMin + rand() % (borneMax - borneMin + 1);\ncout << croquettes << \" croquettes\" << '\\n';",
+          "lines": [
+            "",
+            "",
+            "",
+            "`% 11` → 0 à 10, puis `+ 10` → 10 à 20.",
+            ""
+          ],
+          "output": "14 croquettes"
+        },
+        {
+          "type": "memory",
+          "text": "Pas à pas, si `rand()` donne 28417 :",
+          "boxes": [
+            {
+              "name": "rand()",
+              "value": "28417",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "rand() % 11",
+              "value": "4",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "croquettes = 10 + 4",
+              "value": "14",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : `rand() % 6` donne de 0 à 5, PAS de 1 à 6. Oublier le `+ 1`, c'est LE bug des dés."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Valeurs possibles de `rand() % 6` ?",
+          "a": "De 0 à 5."
+        },
+        {
+          "q": "Valeurs possibles de `rand() % 6 + 1` ?",
+          "a": "De 1 à 6."
+        },
+        {
+          "q": "Formule pour un nombre entre min et max inclus ?",
+          "a": "`min + rand() % (max - min + 1)`"
+        },
+        {
+          "q": "Combien de valeurs différentes donne `rand() % N` ?",
+          "a": "N valeurs : de 0 à N - 1."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Quelles valeurs possibles pour x ?",
+          "code": "srand(time(0));\nint x = rand() % 10 + 5;",
+          "choices": [
+            "5 à 14",
+            "5 à 15",
+            "0 à 9",
+            "10 à 15"
+          ],
+          "answer": 0,
+          "hint": "D'abord `rand() % 10`, puis on ajoute 5 aux deux bouts.",
+          "explain": "`rand() % 10` donne 0 à 9. Plus 5 : 5 à 14. 15 est impossible, car le reste ne vaut jamais 10."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour obtenir un nombre entre 1 et 100 (inclus).",
+          "code": "srand(time(0));\nint nombre = rand() % ___ + 1;\ncout << nombre << '\\n';",
+          "choices": [
+            "100",
+            "99",
+            "101",
+            "1"
+          ],
+          "answer": 0,
+          "hint": "Il faut 100 valeurs possibles.",
+          "explain": "`rand() % 100` donne 0 à 99, puis `+ 1` → 1 à 100. Avec 99, on n'aurait jamais 100. Avec 101, on pourrait avoir 101."
+        },
+        {
+          "type": "bug",
+          "q": "On veut un nombre entre 20 et 30 inclus. Quelle ligne est en faute ?",
+          "code": "srand(time(0));\nint borneMin = 20;\nint borneMax = 30;\nint nombre = borneMin + rand() % borneMax;\ncout << nombre << '\\n';",
+          "answer": 3,
+          "hint": "Combien de valeurs y a-t-il entre 20 et 30 inclus ?",
+          "explain": "Bug de logique (ça compile) : `rand() % 30` donne 0 à 29, donc le nombre va de 20 à 49. Il faut `rand() % (borneMax - borneMin + 1)`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Imagine que rand() a donné 23. Écris exactement ce qui s'affiche.",
+          "code": "int tirage = 23; // imagine que rand() a donne 23\ncout << tirage % 6 + 1 << \" \" << 10 + tirage % 5;",
+          "answer": "6 13",
+          "hint": "23 % 6, puis 23 % 5.",
+          "explain": "23 % 6 = 5, plus 1 → 6. 23 % 5 = 3, plus 10 → 13. Réponse : 6 13."
+        },
+        {
+          "type": "predict",
+          "q": "Combien de valeurs différentes peut prendre n ?",
+          "code": "srand(time(0));\nint n = 3 + rand() % (8 - 3 + 1);",
+          "choices": [
+            "6",
+            "5",
+            "8",
+            "3"
+          ],
+          "answer": 0,
+          "hint": "Calcule ce qu'il y a entre les parenthèses.",
+          "explain": "8 - 3 + 1 = 6, donc `rand() % 6` donne 6 valeurs (0 à 5). Plus 3 : de 3 à 8, soit 6 valeurs. 5 oublie le `+ 1`."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi faut-il + 1 dans rand() % (max - min + 1) ?",
+          "a": "`rand() % N` donne de 0 à N - 1, donc N valeurs. Entre min et max inclus, il y a max - min + 1 valeurs. Sans le + 1, max ne sortirait jamais."
+        },
+        {
+          "q": "Comment obtenir un dé de 1 à 6 avec rand() ?",
+          "a": "`rand() % 6` donne de 0 à 5. J'ajoute 1 pour décaler : de 1 à 6. Donc `rand() % 6 + 1`."
+        }
+      ]
+    },
+    {
+      "id": "s9-refactoriser",
+      "title": "Refactoriser en fonctions",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "**Refactoriser**, c'est réorganiser ton code SANS changer ce qu'il fait. Si tu copies-colles le même bout de code, c'est le signal : fais-en une fonction ! 🧹"
+        },
+        {
+          "type": "code",
+          "text": "Avant : la même formule, recopiée 3 fois. Facile de se tromper ! (exemple — ça change à chaque fois)",
+          "code": "srand(time(0));\nint de1 = 1 + rand() % (6 - 1 + 1);\nint de2 = 1 + rand() % (6 - 1 + 1);\nint bonus = 10 + rand() % (20 - 10 + 1);\ncout << de1 + de2 + bonus << '\\n';",
+          "lines": [
+            "",
+            "Formule n°1...",
+            "... la même, recopiée...",
+            "... et encore une fois.",
+            ""
+          ],
+          "output": "23"
+        },
+        {
+          "type": "code",
+          "text": "Après : la formule est dans UNE fonction. `main` se lit comme une phrase. (exemple — ça change à chaque fois)",
+          "code": "int genererNombre(int borneMin, int borneMax)\n{\n    return borneMin + rand() % (borneMax - borneMin + 1);\n}\n\nint main()\n{\n    srand(time(0));\n    int de1 = genererNombre(1, 6);\n    int de2 = genererNombre(1, 6);\n    int bonus = genererNombre(10, 20);\n    cout << de1 + de2 + bonus << '\\n';\n}",
+          "lines": [
+            "Nom clair : verbe + sujet. Les bornes en paramètres.",
+            "",
+            "La formule, écrite une seule fois.",
+            "",
+            "",
+            "",
+            "",
+            "srand reste dans main, une seule fois.",
+            "Un dé.",
+            "Un autre dé.",
+            "Un bonus entre 10 et 20.",
+            "Même résultat qu'avant, en plus clair.",
+            ""
+          ],
+          "output": "23"
+        },
+        {
+          "type": "talk",
+          "text": "Les avantages :\n• un seul endroit à corriger ;\n• des noms clairs : `genererNombre(1, 6)` ;\n• tu peux la réutiliser dans d'autres projets. Mets-la dans `Outils.h` et `Outils.cpp` !"
+        },
+        {
+          "type": "code",
+          "text": "Autre exemple : on réutilise la somme des chiffres, sans recopier la boucle.",
+          "code": "int calculerSommeChiffres(int n)\n{\n    int somme = 0;\n    while (n > 0)\n    {\n        somme = somme + n % 10;\n        n = n / 10;\n    }\n    return somme;\n}\n\nint main()\n{\n    cout << calculerSommeChiffres(472) << '\\n';\n    cout << calculerSommeChiffres(2025) << '\\n';\n}",
+          "lines": [
+            "n est passé par valeur : c'est une copie.",
+            "",
+            "",
+            "",
+            "",
+            "Ajoute le dernier chiffre.",
+            "L'enlève. On détruit la copie, pas l'original !",
+            "",
+            "Renvoie le total.",
+            "",
+            "",
+            "",
+            "",
+            "4 + 7 + 2 = 13.",
+            "2 + 0 + 2 + 5 = 9.",
+            ""
+          ],
+          "output": "13\n9"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : `srand(time(0))` reste dans `main`, PAS dans `genererNombre`. Sinon, chaque appel remet la graine → les mêmes nombres !"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Que veut dire refactoriser ?",
+          "a": "Réorganiser le code sans changer son résultat."
+        },
+        {
+          "q": "Quel est le signal qu'il faut créer une fonction ?",
+          "a": "Du code copié-collé à plusieurs endroits."
+        },
+        {
+          "q": "Où mettre `srand` quand on a une fonction `genererNombre` ?",
+          "a": "Une seule fois dans `main`. Jamais dans la fonction."
+        },
+        {
+          "q": "Comment réutiliser une fonction dans un autre projet ?",
+          "a": "Prototype dans un .h, corps dans un .cpp, puis `#include \"Outils.h\"`."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "bug",
+          "q": "Ce code affiche souvent 3 fois le même nombre. Quelle ligne est en faute ?",
+          "code": "int genererNombre(int borneMin, int borneMax)\n{\n    srand(time(0));\n    return borneMin + rand() % (borneMax - borneMin + 1);\n}\n\nint main()\n{\n    for (int i = 0; i < 3; ++i)\n    {\n        cout << genererNombre(1, 6) << \" \";\n    }\n}",
+          "answer": 2,
+          "hint": "Combien de fois la graine est-elle choisie ?",
+          "explain": "Bug de logique (ça compile) : `srand` est appelé à chaque appel de la fonction. Dans la même seconde, même graine → même nombre. `srand` doit être une seule fois au début de `main`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int obtenirDernierChiffre(int n)\n{\n    return n % 10;\n}\n\nint main()\n{\n    int total = 0;\n    total = total + obtenirDernierChiffre(47);\n    total = total + obtenirDernierChiffre(125);\n    cout << total;\n}",
+          "answer": "12",
+          "hint": "Le dernier chiffre de 47, puis celui de 125.",
+          "explain": "47 % 10 = 7 et 125 % 10 = 5. 7 + 5 = 12."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour que la fonction compte les chiffres de n.",
+          "code": "int compterChiffres(int n)\n{\n    int nb = 0;\n    while (n > 0)\n    {\n        ++nb;\n        n = n ___ 10;\n    }\n    return nb;\n}\n\nint main()\n{\n    cout << compterChiffres(90210);\n}",
+          "choices": [
+            "/",
+            "%",
+            "-",
+            "*"
+          ],
+          "answer": 0,
+          "hint": "À chaque tour, il faut enlever un chiffre.",
+          "explain": "`n / 10` enlève un chiffre : 90210 a 5 chiffres, donc 5. Avec `%`, n deviendrait 0 tout de suite (90210 % 10 = 0) et on aurait 1."
+        },
+        {
+          "type": "predict",
+          "q": "Avec cette fonction, quel appel donne un nombre entre 10 et 20 inclus ?",
+          "code": "int genererNombre(int borneMin, int borneMax)\n{\n    return borneMin + rand() % (borneMax - borneMin + 1);\n}",
+          "choices": [
+            "genererNombre(10, 20)",
+            "genererNombre(20, 10)",
+            "genererNombre(10, 21)",
+            "genererNombre(10, 11)"
+          ],
+          "answer": 0,
+          "hint": "Regarde l'ordre des paramètres : d'abord le min, ensuite le max.",
+          "explain": "Les paramètres sont (borneMin, borneMax), et la formule inclut déjà le + 1. Donc `genererNombre(10, 20)`. `(10, 21)` pourrait donner 21."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes de main dans le bon ordre.",
+          "lines": [
+            "int main()",
+            "{",
+            "    srand(time(0));",
+            "    int de = lancerDe();",
+            "    cout << de << '\\n';",
+            "}"
+          ],
+          "hint": "La graine doit être choisie avant de lancer le dé.",
+          "explain": "`srand` vient en premier, puis on appelle `lancerDe()`, puis on affiche. Si on lance avant `srand`, le premier dé est toujours le même."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi créer une fonction genererNombre au lieu de réécrire la formule ?",
+          "a": "La formule est longue et facile à mal recopier. Avec une fonction, je l'écris une seule fois, bien testée. `genererNombre(1, 6)` est clair à lire, et si je trouve un bug, je le corrige à un seul endroit."
+        },
+        {
+          "q": "Qu'est-ce qui ne doit pas changer quand on refactorise ?",
+          "a": "Le comportement du programme : il doit calculer et afficher exactement la même chose qu'avant. On change seulement l'organisation : fonctions, noms, fichiers. Et on reteste après pour vérifier."
+        }
+      ]
+    }
+  ],
+  "aideMemoire": [
+    {
+      "title": "Modulo %",
+      "code": "17 % 5   // 2",
+      "note": "Le reste de la division. Entiers seulement."
+    },
+    {
+      "title": "Pair ?",
+      "code": "if (n % 2 == 0)",
+      "note": "Reste 0 = pair. Sinon impair."
+    },
+    {
+      "title": "Tous les N tours",
+      "code": "if (i % 3 == 0)\n{\n    ...\n}",
+      "note": "Vrai pour les multiples de 3."
+    },
+    {
+      "title": "Chiffres",
+      "code": "n % 10       // dernier chiffre\nn / 10       // enlève le dernier\nn / 10 % 10  // dizaines",
+      "note": "Boucle : while (n > 0)"
+    },
+    {
+      "title": "Secondes → min et s",
+      "code": "int minutes = total / 60;\nint secondes = total % 60;",
+      "note": "Même idée avec 3600 pour les heures."
+    },
+    {
+      "title": "Graine",
+      "code": "#include <cstdlib>\n#include <ctime>\n\nsrand(time(0));",
+      "note": "UNE seule fois, au début de main. Jamais dans une boucle."
+    },
+    {
+      "title": "Dé 1 à 6",
+      "code": "rand() % 6 + 1",
+      "note": "rand() % 6 seul donne 0 à 5."
+    },
+    {
+      "title": "Intervalle",
+      "code": "min + rand() % (max - min + 1)",
+      "note": "min et max inclus."
+    },
+    {
+      "title": "Fonction réutilisable",
+      "code": "int genererNombre(int borneMin, int borneMax)\n{\n    return borneMin + rand() % (borneMax - borneMin + 1);\n}",
+      "note": "Écrite une fois, appelée partout."
+    }
+  ]
+}

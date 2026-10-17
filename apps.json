@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "id": "cpppasapas",
+    "name": "C++ Pas à Pas",
+    "description": "Apprends le C++ du cours 420-1C6 avec Segfault, le chat glitché.",
+    "url": "apps/cpppasapas/index.html",
+    "category": "Learning",
+    "addedAt": 1792252800000
+  }
+]

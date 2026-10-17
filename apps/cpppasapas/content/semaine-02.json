@@ -1,0 +1,1004 @@
+{
+  "week": 2,
+  "title": "Entrées, sorties et conditions",
+  "notions": [
+    {
+      "id": "s2-string",
+      "title": "Les string et cout",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Un `string`, c'est une variable qui contient du **texte**.\nPour l'utiliser, on ajoute `#include <string>` en haut du fichier."
+        },
+        {
+          "type": "code",
+          "text": "Un nom de chat dans une variable :",
+          "code": "#include <iostream>\n#include <string>\nusing namespace std;\n\nint main()\n{\n    string nomChat = \"Segfault\";\n    cout << \"Bonjour \" << nomChat << '\\n';\n    return 0;\n}",
+          "lines": [
+            "Pour `cout`.",
+            "Pour le type `string`.",
+            "Pour écrire `string` et `cout` sans `std::`.",
+            "",
+            "",
+            "",
+            "Crée une variable texte qui contient Segfault.",
+            "Affiche un texte, puis le contenu de la variable.",
+            "",
+            ""
+          ],
+          "output": "Bonjour Segfault"
+        },
+        {
+          "type": "talk",
+          "text": "`cout` et `string` habitent dans une « famille » appelée **namespace** `std`.\nSans `using namespace std;`, il faut écrire leur nom complet : `std::cout`, `std::string`."
+        },
+        {
+          "type": "code",
+          "text": "Le même genre de programme, sans `using namespace std;` :",
+          "code": "#include <iostream>\n#include <string>\n\nint main()\n{\n    std::string nom = \"Minou\";\n    std::cout << nom << '\\n';\n    return 0;\n}",
+          "lines": [
+            "",
+            "",
+            "Pas de `using namespace std;` ici !",
+            "",
+            "",
+            "Il faut écrire `std::string`.",
+            "Et `std::cout`.",
+            "",
+            ""
+          ],
+          "output": "Minou"
+        },
+        {
+          "type": "code",
+          "text": "`+` colle deux `string`. `<<` mélange texte et nombres dans `cout` :",
+          "code": "string prenom = \"Seg\";\nstring nom = prenom + \"fault\";\nint age = 3;\ncout << nom << \" a \" << age << \" ans et pese \" << 4.5 << \" kg\" << '\\n';",
+          "lines": [
+            "Un premier morceau de texte.",
+            "`+` colle les deux textes : Segfault.",
+            "Un nombre entier.",
+            "`<<` enchaîne du texte, un `int` et un `double` sans problème."
+          ],
+          "output": "Segfault a 3 ans et pese 4.5 kg"
+        },
+        {
+          "type": "memory",
+          "text": "Un `string` garde tous ses caractères, dans l'ordre :",
+          "boxes": [
+            {
+              "name": "prenom",
+              "value": "\"Seg\"",
+              "type": "string",
+              "size": "3 caractères"
+            },
+            {
+              "name": "nom",
+              "value": "\"Segfault\"",
+              "type": "string",
+              "size": "8 caractères"
+            },
+            {
+              "name": "age",
+              "value": "3",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quel `#include` pour utiliser `string` ?",
+          "a": "`#include <string>`"
+        },
+        {
+          "q": "Que permet `using namespace std;` ?",
+          "a": "D'écrire `cout` et `string` au lieu de `std::cout` et `std::string`."
+        },
+        {
+          "q": "Que fait `+` entre deux `string` ?",
+          "a": "Il colle les deux textes (concaténation), sans espace."
+        },
+        {
+          "q": "Comment afficher un texte et un nombre ensemble ?",
+          "a": "Avec plusieurs `<<` : `cout << \"Age : \" << age;`"
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "string a = \"Croq\";\nstring b = \"uettes\";\ncout << a + b << '\\n';",
+          "choices": [
+            "Croquettes",
+            "Croq uettes",
+            "a + b",
+            "Croq+uettes"
+          ],
+          "answer": 0,
+          "hint": "`+` ajoute-t-il un espace ?",
+          "explain": "`+` colle les deux textes, sans espace : Croquettes. `a + b` n'est pas entre guillemets, donc ce n'est pas du texte."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "string nom = \"Seg\";\nint vies = 9;\ncout << nom << vies << \" vies\" << '\\n';",
+          "answer": "Seg9 vies",
+          "hint": "Où sont les espaces ?",
+          "explain": "Il n'y a pas d'espace entre `nom` et `vies`, donc Seg9. L'espace vient seulement du texte \" vies\"."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "#include <iostream>\n#include <string>\n\nint main()\n{\n    std::string nom = \"Minou\";\n    cout << nom << '\\n';\n    return 0;\n}",
+          "answer": 6,
+          "hint": "Est-ce qu'il y a un `using namespace std;` ?",
+          "explain": "Erreur de compilation : sans `using namespace std;`, il faut écrire `std::cout`. La ligne du `std::string` est correcte : c'est le `cout` qui a oublié son `std::`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète l'include qui permet d'utiliser `string`.",
+          "code": "#include <iostream>\n#include ___\nusing namespace std;\n\nint main()\n{\n    string mot = \"Miaou\";\n    cout << mot << '\\n';\n    return 0;\n}",
+          "choices": [
+            "<string>",
+            "<strings>",
+            "<str>",
+            "<cstring>"
+          ],
+          "answer": 0,
+          "hint": "Le nom de l'include est le même que le nom du type.",
+          "explain": "Le type `string` vient de `<string>`. `<cstring>` existe aussi, mais c'est pour les vieux textes du langage C."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher Segfault!",
+          "lines": [
+            "string prenom = \"Seg\";",
+            "string nom = prenom + \"fault\";",
+            "nom = nom + \"!\";",
+            "cout << nom << '\\n';"
+          ],
+          "hint": "On affiche seulement quand le texte est complet.",
+          "explain": "On crée « Seg », on ajoute « fault », puis « ! », et on affiche à la fin. Afficher plus tôt donnerait un texte incomplet."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi écrit-on `using namespace std;` ?",
+          "a": "`cout`, `cin` et `string` sont rangés dans le namespace `std`. La ligne `using namespace std;` permet d'écrire leur nom court. Sinon, il faut écrire `std::cout` partout."
+        },
+        {
+          "q": "Pourquoi `\"Seg\" + \"fault\"` ne compile pas, alors que `prenom + \"fault\"` fonctionne ?",
+          "a": "Deux textes entre guillemets ne sont pas des `string` : C++ ne sait pas les additionner. Si au moins un des deux est une variable `string`, le `+` colle les textes."
+        }
+      ]
+    },
+    {
+      "id": "s2-format",
+      "title": "std::format",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "`format` fabrique un texte avec des **trous** `{}`. Chaque `{}` est remplacé par une valeur, dans l'ordre.\nIl faut `#include <format>`. Tu verras aussi `std::format` : c'est la même chose."
+        },
+        {
+          "type": "code",
+          "text": "Remplir les trous :",
+          "code": "#include <iostream>\n#include <string>\n#include <format>\nusing namespace std;\n\nint main()\n{\n    string nom = \"Segfault\";\n    int age = 3;\n    cout << format(\"{} a {} ans\", nom, age) << '\\n';\n    return 0;\n}",
+          "lines": [
+            "",
+            "",
+            "Pour utiliser `format`.",
+            "",
+            "",
+            "",
+            "",
+            "Une variable texte.",
+            "Une variable entière.",
+            "Le 1er `{}` reçoit `nom`, le 2e reçoit `age`.",
+            "",
+            ""
+          ],
+          "output": "Segfault a 3 ans"
+        },
+        {
+          "type": "talk",
+          "text": "Pour les réels, `{:.2f}` veut dire : **2 décimales**, arrondi.\n`{:.1f}` donne 1 décimale, `{:.0f}` aucune."
+        },
+        {
+          "type": "code",
+          "text": "Des prix bien propres 💰 :",
+          "code": "double prix = 12.5;\ndouble taxe = 1.876;\ncout << format(\"Prix : {:.2f} $\", prix) << '\\n';\ncout << format(\"Taxe : {:.2f} $\", taxe) << '\\n';\ncout << format(\"Total : {:.1f} $\", prix + taxe) << '\\n';",
+          "lines": [
+            "Un prix.",
+            "Une taxe avec 3 décimales.",
+            "12.5 devient 12.50 (2 décimales).",
+            "1.876 est arrondi à 1.88.",
+            "14.376 est arrondi à 1 décimale : 14.4."
+          ],
+          "output": "Prix : 12.50 $\nTaxe : 1.88 $\nTotal : 14.4 $"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège : il faut autant de valeurs que de `{}`.\nS'il manque une valeur, c'est une erreur de compilation. Compte tes trous, comme je compte mes croquettes 😼."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quel `#include` pour utiliser `format` ?",
+          "a": "`#include <format>`"
+        },
+        {
+          "q": "Que fait `{}` dans `format` ?",
+          "a": "C'est un trou, remplacé par la valeur suivante dans la liste."
+        },
+        {
+          "q": "Que veut dire `{:.2f}` ?",
+          "a": "Afficher le réel avec exactement 2 décimales (arrondi)."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "cout << format(\"{:.2f}\", 3.14159) << '\\n';",
+          "choices": [
+            "3.14",
+            "3.14159",
+            "3.1",
+            "3.15"
+          ],
+          "answer": 0,
+          "hint": "Combien de décimales demande `.2f` ?",
+          "explain": "`.2f` garde 2 décimales. 3.14159 arrondi donne 3.14 (le chiffre suivant est 1, on n'arrondit pas vers le haut)."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int nb = 7;\ndouble poids = 4.256;\ncout << format(\"{} chats {:.1f} kg\", nb, poids) << '\\n';",
+          "answer": "7 chats 4.3 kg",
+          "hint": "`{:.1f}` : une seule décimale, arrondie.",
+          "explain": "Le 1er trou reçoit 7. Le 2e reçoit 4.256 avec 1 décimale : 4.3 (car 5 arrondit vers le haut)."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "string nom = \"Minou\";\nint age = 2;\ncout << format(\"{} a {} ans et {} vies\", nom, age) << '\\n';",
+          "answer": 2,
+          "hint": "Compte les `{}` et compte les valeurs.",
+          "explain": "Erreur de compilation : 3 trous `{}` mais seulement 2 valeurs. Le compilateur vérifie que le compte est bon."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour afficher « Moyenne : 78.46 ».",
+          "code": "double moyenne = 78.456;\ncout << format(\"Moyenne : ___\", moyenne) << '\\n';",
+          "choices": [
+            "{:.2f}",
+            "{.2f}",
+            "{:2f}",
+            "(:.2f)"
+          ],
+          "answer": 0,
+          "hint": "Il faut les accolades, les deux-points ET le point.",
+          "explain": "`{:.2f}` = 2 décimales. `{:2f}` (sans point) veut dire une largeur de 2 et afficherait 78.456000. `{.2f}` ne compile pas."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "cout << format(\"{:.0f}\", 2.7) << '\\n';",
+          "choices": [
+            "3",
+            "2",
+            "2.7",
+            "2.70"
+          ],
+          "answer": 0,
+          "hint": "`format` arrondit. Il ne coupe pas.",
+          "explain": "`.0f` = aucune décimale, avec arrondi : 2.7 devient 3. Le 2 serait une troncation, comme `(int)2.7`."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi utiliser `{:.2f}` pour afficher un prix ?",
+          "a": "Un prix a toujours 2 décimales. `{:.2f}` arrondit et garde toujours 2 décimales, même 12.50. Avec un `cout` simple, on verrait 12.5."
+        },
+        {
+          "q": "Qu'arrive-t-il si le nombre de `{}` ne correspond pas au nombre de valeurs ?",
+          "a": "S'il manque des valeurs, le programme ne compile pas. Le compilateur vérifie le texte de `format` et voit qu'un trou ne peut pas être rempli."
+        }
+      ]
+    },
+    {
+      "id": "s2-cin",
+      "title": "Lire avec cin",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "`cin >>` lit ce que l'utilisateur tape au clavier et le range dans une variable.\nLa flèche `>>` pointe **vers la variable**."
+        },
+        {
+          "type": "code",
+          "text": "L'utilisateur tape Segfault, puis 3, puis 4.5 (avec Entrée après chaque) :",
+          "code": "string nom;\nint age;\ndouble poids;\ncout << \"Nom : \";\ncin >> nom;\ncout << \"Age : \";\ncin >> age;\ncout << \"Poids : \";\ncin >> poids;\ncout << nom << \" a \" << age << \" ans et pese \" << poids << \" kg\" << '\\n';",
+          "lines": [
+            "Une boîte vide pour du texte.",
+            "Une boîte vide pour un entier.",
+            "Une boîte vide pour un réel.",
+            "On demande le nom (pas de `'\\n'` : on tape sur la même ligne).",
+            "Lit un mot et le range dans `nom`.",
+            "On demande l'âge.",
+            "Lit un entier.",
+            "On demande le poids.",
+            "Lit un réel.",
+            "Affiche tout."
+          ],
+          "output": "Nom : Segfault\nAge : 3\nPoids : 4.5\nSegfault a 3 ans et pese 4.5 kg"
+        },
+        {
+          "type": "memory",
+          "text": "Après les trois `cin`, les boîtes sont remplies :",
+          "boxes": [
+            {
+              "name": "nom",
+              "value": "\"Segfault\"",
+              "type": "string",
+              "size": "8 caractères"
+            },
+            {
+              "name": "age",
+              "value": "3",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "poids",
+              "value": "4.5",
+              "type": "double",
+              "size": "8 octets"
+            }
+          ]
+        },
+        {
+          "type": "talk",
+          "text": "Attention : `cin >>` dans un `string` lit **un seul mot**. Il s'arrête au premier espace."
+        },
+        {
+          "type": "code",
+          "text": "L'utilisateur tape « Segfault le chat » :",
+          "code": "string nom;\ncout << \"Nom : \";\ncin >> nom;\ncout << \"Bonjour \" << nom << '\\n';",
+          "lines": [
+            "Une boîte texte.",
+            "On demande le nom.",
+            "Lit seulement jusqu'au premier espace : Segfault.",
+            "« le chat » n'a pas été lu !"
+          ],
+          "output": "Nom : Segfault le chat\nBonjour Segfault"
+        },
+        {
+          "type": "tip",
+          "text": "Sous Windows (Visual Studio) : `system(\"pause\");` attend qu'on appuie sur une touche.\n`system(\"cls\");` efface l'écran de la console. Pratique pour un menu propre !"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quel opérateur utilise `cin` ?",
+          "a": "`>>` (la flèche pointe vers la variable)."
+        },
+        {
+          "q": "Si on tape « Miss Minou », que lit `cin >> nom;` ?",
+          "a": "Seulement « Miss ». `cin >>` s'arrête au premier espace."
+        },
+        {
+          "q": "À quoi sert `system(\"cls\");` ?",
+          "a": "À effacer l'écran de la console (Windows)."
+        },
+        {
+          "q": "À quoi sert `system(\"pause\");` ?",
+          "a": "À attendre que l'utilisateur appuie sur une touche avant de continuer."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "L'utilisateur tape « Minou Chat ». Qu'est-ce qui s'affiche ?",
+          "code": "string nom;\ncin >> nom;\ncout << \"[\" << nom << \"]\" << '\\n';",
+          "choices": [
+            "[Minou]",
+            "[Minou Chat]",
+            "[Chat]",
+            "[]"
+          ],
+          "answer": 0,
+          "hint": "`cin >>` s'arrête à quoi ?",
+          "explain": "`cin >>` lit un seul mot : il s'arrête à l'espace. `nom` contient seulement Minou."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour lire l'âge au clavier.",
+          "code": "int age;\ncout << \"Age : \";\ncin ___ age;",
+          "choices": [
+            ">>",
+            "<<",
+            "=",
+            "<"
+          ],
+          "answer": 0,
+          "hint": "La flèche va du clavier VERS la variable.",
+          "explain": "Avec `cin`, on utilise `>>`. `<<` est pour `cout`, et `cin = age` ne veut rien dire."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int nbCroquettes;\ncout << \"Combien ? \";\ncin << nbCroquettes;\ncout << nbCroquettes * 2 << '\\n';",
+          "answer": 2,
+          "hint": "Dans quel sens va la flèche de `cin` ?",
+          "explain": "Erreur de compilation : `cin` utilise `>>`, pas `<<`. Truc : la flèche pointe vers l'endroit où vont les données."
+        },
+        {
+          "type": "predict-typed",
+          "q": "L'utilisateur tape « 4 2.5 ». Écris exactement ce qui s'affiche.",
+          "code": "int nb;\ndouble prix;\ncin >> nb >> prix;\ncout << nb * prix << '\\n';",
+          "answer": "10",
+          "hint": "`cin` lit 4 dans `nb`, puis 2.5 dans `prix`.",
+          "explain": "On peut enchaîner les `>>`. 4 * 2.5 = 10.0, et `cout` affiche un réel sans décimale inutile : 10."
+        },
+        {
+          "type": "order",
+          "q": "Remets dans l'ordre : déclarer, demander, lire, afficher.",
+          "lines": [
+            "int age;",
+            "cout << \"Age : \";",
+            "cin >> age;",
+            "cout << \"Dans 1 an : \" << age + 1 << '\\n';"
+          ],
+          "hint": "On pose la question AVANT de lire la réponse.",
+          "explain": "On déclare la boîte, on affiche la question, on lit, puis on utilise la valeur. Lire avant de demander laisserait l'utilisateur deviner quoi taper."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi `cin >> nom` ne lit que « Segfault » quand on tape « Segfault le chat » ?",
+          "a": "`cin >>` considère l'espace comme une séparation. Il lit un mot et s'arrête. Le reste (« le chat ») attend pour le prochain `cin`."
+        },
+        {
+          "q": "Pourquoi afficher un message avant chaque `cin` ?",
+          "a": "Sinon, le programme attend en silence et l'utilisateur ne sait pas quoi taper. Le message lui dit ce qu'on attend : un nom, un âge, etc."
+        }
+      ]
+    },
+    {
+      "id": "s2-division",
+      "title": "Division et conversions",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "C++ évalue une expression étape par étape, en regardant les **types**.\n`int / int` donne un `int` : la partie décimale est **coupée** (troncation), pas arrondie. Si au moins un côté est un `double`, on a une vraie division."
+        },
+        {
+          "type": "code",
+          "text": "Trois divisions, trois résultats :",
+          "code": "cout << 7 / 2 << '\\n';\ncout << 7.0 / 2 << '\\n';\ncout << 7 / 2.0 << '\\n';",
+          "lines": [
+            "`int / int` : 3.5 est coupé à 3.",
+            "`double / int` : vraie division, 3.5.",
+            "`int / double` : vraie division aussi."
+          ],
+          "output": "3\n3.5\n3.5"
+        },
+        {
+          "type": "code",
+          "text": "Le piège : ranger dans un `double` ne suffit pas !",
+          "code": "int total = 17;\nint nbChats = 4;\ndouble partage = total / nbChats;\ndouble partageOk = (double)total / nbChats;\ncout << partage << '\\n';\ncout << partageOk << '\\n';",
+          "lines": [
+            "17 croquettes.",
+            "4 chats.",
+            "`17 / 4` est calculé en `int` (4) AVANT d'aller dans le `double`.",
+            "`(double)` convertit `total` en 17.0 d'abord : vraie division.",
+            "Affiche 4.",
+            "Affiche 4.25."
+          ],
+          "output": "4\n4.25"
+        },
+        {
+          "type": "memory",
+          "text": "Deux boîtes `double`, deux valeurs différentes :",
+          "boxes": [
+            {
+              "name": "partage",
+              "value": "4",
+              "type": "double",
+              "size": "8 octets"
+            },
+            {
+              "name": "partageOk",
+              "value": "4.25",
+              "type": "double",
+              "size": "8 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "`(int)` coupe la partie décimale (troncation) :",
+          "code": "double note = 89.9;\nint noteEntiere = (int)note;\ncout << noteEntiere << '\\n';\ncout << (int)-2.7 << '\\n';",
+          "lines": [
+            "Une note avec décimales.",
+            "`(int)` garde seulement la partie entière : 89.",
+            "Affiche 89 (pas 90 : on coupe, on n'arrondit pas !).",
+            "Pour un négatif, on coupe aussi vers zéro : -2."
+          ],
+          "output": "89\n-2"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique d'examen : `(double)(a / b)` convertit **trop tard**.\nLa division `int` est déjà faite. Mets le `(double)` sur `a` : `(double)a / b`."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Combien donne `7 / 2` en C++ ?",
+          "a": "3. `int / int` donne un `int` : la partie décimale est coupée."
+        },
+        {
+          "q": "Comment obtenir 3.5 avec deux variables `int` a = 7 et b = 2 ?",
+          "a": "`(double)a / b`"
+        },
+        {
+          "q": "Combien donne `(int)9.99` ?",
+          "a": "9. `(int)` coupe, il n'arrondit pas."
+        },
+        {
+          "q": "`double r = 7 / 2;` : que vaut `r` ?",
+          "a": "3. La division est faite en `int` avant d'être rangée dans le `double`."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int a = 9;\nint b = 2;\ndouble r = a / b;\ncout << r << '\\n';",
+          "choices": [
+            "4",
+            "4.5",
+            "5",
+            "4.0"
+          ],
+          "answer": 0,
+          "hint": "Quel est le type de `a / b` ?",
+          "explain": "`a / b` est `int / int` : 4.5 est coupé à 4 AVANT d'aller dans `r`. `cout` affiche un `double` de 4 comme « 4 », pas « 4.0 »."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "cout << (double)(9 / 2) << \" \" << (double)9 / 2 << '\\n';",
+          "answer": "4 4.5",
+          "hint": "Dans le premier, qu'est-ce qui est calculé en premier : la division ou la conversion ?",
+          "explain": "`(double)(9 / 2)` : la division `int` donne 4, puis devient 4.0 (affiché 4). `(double)9 / 2` convertit 9 d'abord : 4.5."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "cout << 10 / 4 * 2.0 << '\\n';",
+          "choices": [
+            "4",
+            "5",
+            "4.5",
+            "5.0"
+          ],
+          "answer": 0,
+          "hint": "De gauche à droite. Quel est le type de `10 / 4` ?",
+          "explain": "On commence par `10 / 4` en `int` : 2. Ensuite `2 * 2.0` = 4. Le 2.0 arrive trop tard pour sauver la division ! Le 5 viendrait d'une vraie division 2.5."
+        },
+        {
+          "type": "bug",
+          "q": "La moyenne affichée est 83.00 au lieu de 83.33. Quelle ligne contient l'erreur ?",
+          "code": "int somme = 250;\nint nbNotes = 3;\ndouble moyenne = somme / nbNotes;\ncout << format(\"{:.2f}\", moyenne) << '\\n';",
+          "answer": 2,
+          "hint": "Le `format` fait bien son travail. Le problème arrive avant.",
+          "explain": "Erreur de logique (ça compile) : `somme / nbNotes` est une division `int`, donc 83. Il faut écrire `(double)somme / nbNotes`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour afficher 83.33.",
+          "code": "int somme = 250;\nint nbNotes = 3;\ndouble moyenne = ___ somme / nbNotes;\ncout << format(\"{:.2f}\", moyenne) << '\\n';",
+          "choices": [
+            "(double)",
+            "(int)",
+            "double",
+            "(string)"
+          ],
+          "answer": 0,
+          "hint": "Il faut convertir `somme` en réel AVANT la division.",
+          "explain": "`(double)somme` devient 250.0, donc la division est réelle : 83.33. `(int)` ne change rien (83.00), et `double` sans parenthèses ne compile pas."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi `7 / 2` donne 3 en C++ ?",
+          "a": "Les deux nombres sont des `int`, donc le résultat est un `int`. Un `int` ne peut pas garder .5, alors C++ coupe la partie décimale. Il n'arrondit pas."
+        },
+        {
+          "q": "Quelle différence entre `(double)(a / b)` et `(double)a / b` ?",
+          "a": "Dans `(double)(a / b)`, la division `int` est faite d'abord : les décimales sont déjà perdues. Dans `(double)a / b`, `a` devient un réel avant la division, donc on garde les décimales."
+        }
+      ]
+    },
+    {
+      "id": "s2-if",
+      "title": "Conditions if / else",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Un `bool` vaut `true` (vrai) ou `false` (faux).\nLes comparaisons `>`, `>=`, `<`, `<=`, `==` (égal) et `!=` (différent) donnent un `bool`."
+        },
+        {
+          "type": "code",
+          "text": "`cout` affiche un `bool` comme 1 (vrai) ou 0 (faux) :",
+          "code": "int age = 3;\nbool estAdulte = age >= 2;\ncout << estAdulte << '\\n';\ncout << (age == 3) << '\\n';\ncout << (age != 3) << '\\n';",
+          "lines": [
+            "Un chat de 3 ans.",
+            "`3 >= 2` est vrai : `estAdulte` vaut `true`.",
+            "`true` s'affiche 1.",
+            "3 == 3 est vrai : 1. Les parenthèses sont obligatoires ici.",
+            "3 != 3 est faux : 0."
+          ],
+          "output": "1\n1\n0"
+        },
+        {
+          "type": "memory",
+          "text": "Un `bool` est une toute petite boîte :",
+          "boxes": [
+            {
+              "name": "age",
+              "value": "3",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "estAdulte",
+              "value": "true",
+              "type": "bool",
+              "size": "1 octet"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "`if / else if / else` : C++ teste de haut en bas et s'arrête au **premier** vrai.",
+          "code": "int note = 72;\nif (note >= 90)\n{\n    cout << \"Excellent!\" << '\\n';\n}\nelse if (note >= 60)\n{\n    cout << \"Reussi\" << '\\n';\n}\nelse\n{\n    cout << \"Echec\" << '\\n';\n}",
+          "lines": [
+            "La note à tester.",
+            "`72 >= 90` ? Faux, on passe au suivant.",
+            "",
+            "Pas exécuté.",
+            "",
+            "`72 >= 60` ? Vrai !",
+            "",
+            "Exécuté. Les autres blocs sont sautés.",
+            "",
+            "Le `else` attrape tout le reste. Ici, on ne vient pas.",
+            "",
+            "Pas exécuté.",
+            ""
+          ],
+          "output": "Reussi"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège : `=` range une valeur, `==` compare. `if (vies = 0)` met 0 dans `vies` !\nEt jamais de `;` juste après `if (...)`."
+        },
+        {
+          "type": "code",
+          "text": "On peut mettre un `if` dans un `if` (imbrication) :",
+          "code": "bool aFaim = true;\nint nbCroquettes = 0;\nif (aFaim)\n{\n    if (nbCroquettes > 0)\n    {\n        cout << \"Miam!\" << '\\n';\n    }\n    else\n    {\n        cout << \"MIAOU!!!\" << '\\n';\n    }\n}",
+          "lines": [
+            "Le chat a faim.",
+            "Mais le bol est vide.",
+            "`aFaim` est vrai : on entre.",
+            "",
+            "`0 > 0` ? Faux.",
+            "",
+            "Pas exécuté.",
+            "",
+            "Le `else` du `if` intérieur.",
+            "",
+            "Exécuté : le chat crie 😾.",
+            "",
+            "Ferme le `if (aFaim)`."
+          ],
+          "output": "MIAOU!!!"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quelles sont les deux valeurs d'un `bool` ?",
+          "a": "`true` et `false`. `cout` les affiche 1 et 0."
+        },
+        {
+          "q": "Quelle différence entre `=` et `==` ?",
+          "a": "`=` range une valeur (assignation). `==` compare deux valeurs."
+        },
+        {
+          "q": "Dans un `if / else if / else`, combien de blocs s'exécutent ?",
+          "a": "Un seul : le premier dont la condition est vraie (ou le `else`)."
+        },
+        {
+          "q": "Comment écrire « différent de » ?",
+          "a": "`!=`"
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int note = 85;\nif (note >= 60)\n{\n    cout << \"Reussi\" << '\\n';\n}\nelse if (note >= 80)\n{\n    cout << \"Tres bien\" << '\\n';\n}\nelse\n{\n    cout << \"Echec\" << '\\n';\n}",
+          "choices": [
+            "Reussi",
+            "Tres bien",
+            "Reussi\nTres bien",
+            "Echec"
+          ],
+          "answer": 0,
+          "hint": "C++ s'arrête au PREMIER test vrai.",
+          "explain": "`85 >= 60` est vrai en premier, donc Reussi. Le `else if` n'est jamais testé. Pour avoir Tres bien, il faut tester `>= 80` en premier."
+        },
+        {
+          "type": "bug",
+          "q": "Le programme affiche « Vies : 0 » au lieu de « Vies : 3 ». Quelle ligne contient l'erreur ?",
+          "code": "int nbVies = 3;\nif (nbVies = 0)\n{\n    cout << \"Game over\" << '\\n';\n}\ncout << \"Vies : \" << nbVies << '\\n';",
+          "answer": 1,
+          "hint": "Un seul `=`, ça compare ou ça range ?",
+          "explain": "Erreur de logique : `nbVies = 0` RANGE 0 dans la variable (et vaut faux). Il faut `==` pour comparer. Le compilateur donne au mieux un avertissement."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int a = 5;\nint b = 8;\ncout << (a > b) << (a != b) << (a <= 5) << '\\n';",
+          "answer": "011",
+          "hint": "Chaque comparaison affiche 1 (vrai) ou 0 (faux).",
+          "explain": "`5 > 8` est faux (0), `5 != 8` est vrai (1), `5 <= 5` est vrai (1). Collés : 011."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour afficher « Chaud » quand la température dépasse 25.",
+          "code": "int temperature = 30;\nif (temperature ___ 25)\n{\n    cout << \"Chaud\" << '\\n';\n}\nelse\n{\n    cout << \"Correct\" << '\\n';\n}",
+          "choices": [
+            ">",
+            "<",
+            "==",
+            "<="
+          ],
+          "answer": 0,
+          "hint": "« Dépasse » = plus grand que.",
+          "explain": "`temperature > 25` est vrai pour 30, donc Chaud. Avec `<` ou `<=`, on afficherait Correct."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans le bon ordre.",
+          "lines": [
+            "int age;",
+            "cin >> age;",
+            "bool estMajeur = age >= 18;",
+            "if (estMajeur)",
+            "{",
+            "    cout << \"Majeur\" << '\\n';",
+            "}"
+          ],
+          "hint": "On ne peut tester l'âge qu'après l'avoir lu.",
+          "explain": "Déclarer, lire, calculer le `bool`, puis le tester. Calculer `estMajeur` avant le `cin` utiliserait un âge vide."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi l'ordre des `else if` est-il important ?",
+          "a": "C++ teste de haut en bas et s'arrête au premier test vrai. Si on met `>= 60` avant `>= 90`, une note de 95 tombe dans le `>= 60`. Il faut mettre le test le plus strict en premier."
+        },
+        {
+          "q": "Que se passe-t-il si on écrit `if (x = 5)` au lieu de `if (x == 5)` ?",
+          "a": "Le `=` range 5 dans `x` au lieu de comparer. La condition vaut 5, donc toujours vraie. Le programme compile, mais la logique est fausse."
+        }
+      ]
+    },
+    {
+      "id": "s2-logiques",
+      "title": "Opérateurs logiques",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Pour combiner des conditions :\n`&&` = ET (les deux doivent être vraies), `||` = OU (au moins une), `!` = NON (inverse)."
+        },
+        {
+          "type": "code",
+          "text": "Un chat de 20 ans (oui, un vieux sage) sans billet :",
+          "code": "int age = 20;\nbool aBillet = false;\ncout << (age >= 18 && aBillet) << '\\n';\ncout << (age >= 18 || aBillet) << '\\n';\ncout << !aBillet << '\\n';",
+          "lines": [
+            "L'âge.",
+            "Pas de billet.",
+            "Vrai ET faux : faux (0).",
+            "Vrai OU faux : vrai (1).",
+            "NON faux : vrai (1)."
+          ],
+          "output": "0\n1\n1"
+        },
+        {
+          "type": "talk",
+          "text": "Priorité : `!` d'abord, puis les comparaisons, puis `&&`, puis `||`.\n`&&` passe avant `||`, comme `*` passe avant `+`. Dans le doute : des parenthèses !"
+        },
+        {
+          "type": "code",
+          "text": "Mêmes valeurs, parenthèses différentes :",
+          "code": "bool a = true;\nbool b = true;\nbool c = false;\ncout << (a || b && c) << '\\n';\ncout << ((a || b) && c) << '\\n';",
+          "lines": [
+            "",
+            "",
+            "",
+            "`b && c` d'abord (faux), puis `a || faux` : vrai (1).",
+            "Parenthèses d'abord (vrai), puis `vrai && c` : faux (0)."
+          ],
+          "output": "1\n0"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège : `0 <= note <= 100` ne marche PAS comme en maths ! Écris `note >= 0 && note <= 100`.\nEt `!(a && b)` n'est pas `!a && !b` : c'est `!a || !b` (loi de De Morgan)."
+        },
+        {
+          "type": "code",
+          "text": "Vérifier qu'une note est entre 0 et 100 :",
+          "code": "int note = 150;\nif (note >= 0 && note <= 100)\n{\n    cout << \"Note valide\" << '\\n';\n}\nelse\n{\n    cout << \"Note invalide\" << '\\n';\n}",
+          "lines": [
+            "Une note bizarre.",
+            "`150 >= 0` est vrai, mais `150 <= 100` est faux. Vrai ET faux = faux.",
+            "",
+            "Pas exécuté.",
+            "",
+            "",
+            "",
+            "Exécuté.",
+            ""
+          ],
+          "output": "Note invalide"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quand `a && b` est-il vrai ?",
+          "a": "Seulement quand `a` ET `b` sont vrais tous les deux."
+        },
+        {
+          "q": "Quand `a || b` est-il vrai ?",
+          "a": "Quand au moins un des deux est vrai."
+        },
+        {
+          "q": "Qui passe en premier : `&&` ou `||` ?",
+          "a": "`&&`. Donc `a || b && c` = `a || (b && c)`."
+        },
+        {
+          "q": "À quoi équivaut `!(a && b)` ?",
+          "a": "`!a || !b` (loi de De Morgan)."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "bool estChat = false;\nbool aFaim = true;\nbool dort = false;\ncout << (estChat && aFaim || !dort) << '\\n';",
+          "choices": [
+            "1",
+            "0",
+            "true",
+            "Erreur de compilation"
+          ],
+          "answer": 0,
+          "hint": "`&&` passe avant `||`.",
+          "explain": "C++ lit `(estChat && aFaim) || !dort` = faux || vrai = vrai, donc 1. Le 0 vient de l'erreur de lire `estChat && (aFaim || !dort)`. Et `cout` affiche 1, pas « true »."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "bool a = true;\nbool b = false;\ncout << !(a && b) << \" \" << (!a && !b) << '\\n';",
+          "answer": "1 0",
+          "hint": "Calcule chaque morceau séparément. Le `!` devant la parenthèse s'applique au résultat.",
+          "explain": "`a && b` est faux, donc `!(a && b)` = 1. `!a && !b` = `faux && vrai` = 0. Ils ne sont PAS pareils : le bon inverse est `!a || !b`."
+        },
+        {
+          "type": "bug",
+          "q": "Une note de 120 est acceptée. Quelle ligne contient l'erreur ?",
+          "code": "int note = 120;\nif (note >= 0 || note <= 100)\n{\n    cout << \"Note valide\" << '\\n';\n}",
+          "answer": 1,
+          "hint": "Pour être entre 0 et 100, il faut respecter UNE ou LES DEUX conditions ?",
+          "explain": "Erreur de logique : avec `||`, il suffit que `note >= 0` soit vrai. Toutes les notes positives passent ! Il faut `&&` pour être entre 0 et 100."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int note = 150;\nif (0 <= note <= 100)\n{\n    cout << \"Valide\" << '\\n';\n}\nelse\n{\n    cout << \"Invalide\" << '\\n';\n}",
+          "choices": [
+            "Valide",
+            "Invalide",
+            "Erreur de compilation",
+            "Rien"
+          ],
+          "answer": 0,
+          "hint": "C++ fait `0 <= note` en premier. Que donne ce résultat ?",
+          "explain": "`0 <= 150` donne vrai (1). Ensuite `1 <= 100` est vrai ! Donc Valide. C++ compile ça, mais ce n'est pas un intervalle : il faut `note >= 0 && note <= 100`."
+        },
+        {
+          "type": "fill",
+          "q": "Le chat sort seulement s'il ne pleut pas ET qu'il ne neige pas. Complète.",
+          "code": "bool pleut = false;\nbool neige = true;\nif (!(pleut ___ neige))\n{\n    cout << \"Sortir\" << '\\n';\n}\nelse\n{\n    cout << \"Rester\" << '\\n';\n}",
+          "choices": [
+            "||",
+            "&&",
+            "==",
+            "!="
+          ],
+          "answer": 0,
+          "hint": "« Ni pluie ni neige » = NON (pluie OU neige).",
+          "explain": "De Morgan : `!pleut && !neige` = `!(pleut || neige)`. Avec `&&` dans la parenthèse, le chat sortirait sous la neige, car il ne fait pas les deux à la fois."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi `0 <= note <= 100` ne fonctionne pas comme en maths ?",
+          "a": "C++ calcule `0 <= note` d'abord, ce qui donne 0 ou 1. Ensuite il compare ce 0 ou 1 avec 100 : c'est toujours vrai. Il faut deux comparaisons reliées par `&&`."
+        },
+        {
+          "q": "Pourquoi `!(a && b)` n'est pas pareil que `!a && !b` ?",
+          "a": "`!(a && b)` est vrai dès qu'UN des deux est faux. `!a && !b` exige que les DEUX soient faux. La loi de De Morgan dit : `!(a && b)` = `!a || !b`. Le `&&` devient `||`."
+        }
+      ]
+    }
+  ],
+  "aideMemoire": [
+    {
+      "title": "string",
+      "code": "#include <string>\nstring nom = \"Segfault\";\nnom = nom + \"!\";",
+      "note": "Du texte. `+` colle deux string."
+    },
+    {
+      "title": "std:: ou using",
+      "code": "std::cout << \"Miaou\";\n// ou, avec using namespace std;\ncout << \"Miaou\";",
+      "note": "cout, cin et string sont dans le namespace std."
+    },
+    {
+      "title": "format",
+      "code": "#include <format>\ncout << format(\"{} a {:.2f} $\", nom, prix) << '\\n';",
+      "note": "{} = trou. {:.2f} = 2 décimales, arrondi."
+    },
+    {
+      "title": "cin",
+      "code": "int age;\ncout << \"Age : \";\ncin >> age;",
+      "note": "`>>` vers la variable. Un string : un seul mot."
+    },
+    {
+      "title": "Division",
+      "code": "7 / 2          // 3\n7.0 / 2        // 3.5\n(double)a / b  // vraie division",
+      "note": "int / int = int (coupé, pas arrondi)."
+    },
+    {
+      "title": "Conversions",
+      "code": "(int)89.9     // 89\n(double)17    // 17.0",
+      "note": "(int) coupe les décimales."
+    },
+    {
+      "title": "Comparaisons",
+      "code": "==  !=  <  <=  >  >=",
+      "note": "Donnent un bool. `=` range, `==` compare."
+    },
+    {
+      "title": "if / else if / else",
+      "code": "if (note >= 90)\n{\n    ...\n}\nelse if (note >= 60)\n{\n    ...\n}\nelse\n{\n    ...\n}",
+      "note": "Un seul bloc s'exécute : le premier vrai."
+    },
+    {
+      "title": "Logiques",
+      "code": "&&  ET\n||  OU\n!   NON",
+      "note": "Priorité : `!` puis `&&` puis `||`. `!(a && b)` = `!a || !b`"
+    },
+    {
+      "title": "Console (Windows)",
+      "code": "system(\"pause\");\nsystem(\"cls\");",
+      "note": "pause attend une touche. cls efface l'écran."
+    }
+  ]
+}

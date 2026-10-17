@@ -1,0 +1,1289 @@
+{
+ "tracers": [
+  {
+   "id": "tr-while",
+   "title": "while : compte à rebours",
+   "code": "int n = 3;\nwhile (n > 0)\n{\n    cout << n << ' ';\n    --n;\n}\ncout << \"Go!\";",
+   "vars": [
+    "n"
+   ],
+   "steps": [
+    {
+     "line": 0,
+     "vars": {
+      "n": 3
+     },
+     "out": "",
+     "note": "n = 3",
+     "change": {
+      "var": "n",
+      "value": 3
+     }
+    },
+    {
+     "line": 1,
+     "vars": {
+      "n": 3
+     },
+     "out": "",
+     "note": "Test : 3 > 0 → vrai"
+    },
+    {
+     "line": 3,
+     "vars": {
+      "n": 3
+     },
+     "out": "3 ",
+     "note": "Affiche 3 et un espace"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "n": 2
+     },
+     "out": "3 ",
+     "note": "--n → n = 2",
+     "change": {
+      "var": "n",
+      "value": 2
+     }
+    },
+    {
+     "line": 1,
+     "vars": {
+      "n": 2
+     },
+     "out": "3 ",
+     "note": "Test : 2 > 0 → vrai"
+    },
+    {
+     "line": 3,
+     "vars": {
+      "n": 2
+     },
+     "out": "3 2 ",
+     "note": "Affiche 2 et un espace"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "n": 1
+     },
+     "out": "3 2 ",
+     "note": "--n → n = 1",
+     "change": {
+      "var": "n",
+      "value": 1
+     }
+    },
+    {
+     "line": 1,
+     "vars": {
+      "n": 1
+     },
+     "out": "3 2 ",
+     "note": "Test : 1 > 0 → vrai"
+    },
+    {
+     "line": 3,
+     "vars": {
+      "n": 1
+     },
+     "out": "3 2 1 ",
+     "note": "Affiche 1 et un espace"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "n": 0
+     },
+     "out": "3 2 1 ",
+     "note": "--n → n = 0",
+     "change": {
+      "var": "n",
+      "value": 0
+     }
+    },
+    {
+     "line": 1,
+     "vars": {
+      "n": 0
+     },
+     "out": "3 2 1 ",
+     "note": "Test : 0 > 0 → faux"
+    },
+    {
+     "line": 6,
+     "vars": {
+      "n": 0
+     },
+     "out": "3 2 1 Go!",
+     "note": "Sortie de la boucle : affiche Go! 🚀"
+    }
+   ]
+  },
+  {
+   "id": "tr-imbriquees",
+   "title": "for imbriqués (rectangle)",
+   "code": "for (int i = 1; i <= 2; ++i)\n{\n    for (int j = 1; j <= 3; ++j)\n    {\n        cout << '*';\n    }\n    cout << '\\n';\n}",
+   "vars": [
+    "i",
+    "j"
+   ],
+   "steps": [
+    {
+     "line": 0,
+     "vars": {
+      "i": 1,
+      "j": null
+     },
+     "out": "",
+     "note": "Départ : i = 1",
+     "change": {
+      "var": "i",
+      "value": 1
+     }
+    },
+    {
+     "line": 0,
+     "vars": {
+      "i": 1,
+      "j": null
+     },
+     "out": "",
+     "note": "Test : 1 <= 2 → vrai"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 1,
+      "j": 1
+     },
+     "out": "",
+     "note": "Départ : j = 1",
+     "change": {
+      "var": "j",
+      "value": 1
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 1,
+      "j": 1
+     },
+     "out": "",
+     "note": "Test : 1 <= 3 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "i": 1,
+      "j": 1
+     },
+     "out": "*",
+     "note": "Affiche '*'"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 1,
+      "j": 2
+     },
+     "out": "*",
+     "note": "++j → j = 2",
+     "change": {
+      "var": "j",
+      "value": 2
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 1,
+      "j": 2
+     },
+     "out": "*",
+     "note": "Test : 2 <= 3 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "i": 1,
+      "j": 2
+     },
+     "out": "**",
+     "note": "Affiche '*'"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 1,
+      "j": 3
+     },
+     "out": "**",
+     "note": "++j → j = 3",
+     "change": {
+      "var": "j",
+      "value": 3
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 1,
+      "j": 3
+     },
+     "out": "**",
+     "note": "Test : 3 <= 3 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "i": 1,
+      "j": 3
+     },
+     "out": "***",
+     "note": "Affiche '*'"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 1,
+      "j": 4
+     },
+     "out": "***",
+     "note": "++j → j = 4",
+     "change": {
+      "var": "j",
+      "value": 4
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 1,
+      "j": 4
+     },
+     "out": "***",
+     "note": "Test : 4 <= 3 → faux"
+    },
+    {
+     "line": 6,
+     "vars": {
+      "i": 1,
+      "j": null
+     },
+     "out": "***\n",
+     "note": "Retour à la ligne. j n'existe plus ici (portée) !"
+    },
+    {
+     "line": 0,
+     "vars": {
+      "i": 2,
+      "j": null
+     },
+     "out": "***\n",
+     "note": "++i → i = 2",
+     "change": {
+      "var": "i",
+      "value": 2
+     }
+    },
+    {
+     "line": 0,
+     "vars": {
+      "i": 2,
+      "j": null
+     },
+     "out": "***\n",
+     "note": "Test : 2 <= 2 → vrai"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 2,
+      "j": 1
+     },
+     "out": "***\n",
+     "note": "Départ : j = 1",
+     "change": {
+      "var": "j",
+      "value": 1
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 2,
+      "j": 1
+     },
+     "out": "***\n",
+     "note": "Test : 1 <= 3 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "i": 2,
+      "j": 1
+     },
+     "out": "***\n*",
+     "note": "Affiche '*'"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 2,
+      "j": 2
+     },
+     "out": "***\n*",
+     "note": "++j → j = 2",
+     "change": {
+      "var": "j",
+      "value": 2
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 2,
+      "j": 2
+     },
+     "out": "***\n*",
+     "note": "Test : 2 <= 3 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "i": 2,
+      "j": 2
+     },
+     "out": "***\n**",
+     "note": "Affiche '*'"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 2,
+      "j": 3
+     },
+     "out": "***\n**",
+     "note": "++j → j = 3",
+     "change": {
+      "var": "j",
+      "value": 3
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 2,
+      "j": 3
+     },
+     "out": "***\n**",
+     "note": "Test : 3 <= 3 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "i": 2,
+      "j": 3
+     },
+     "out": "***\n***",
+     "note": "Affiche '*'"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 2,
+      "j": 4
+     },
+     "out": "***\n***",
+     "note": "++j → j = 4",
+     "change": {
+      "var": "j",
+      "value": 4
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 2,
+      "j": 4
+     },
+     "out": "***\n***",
+     "note": "Test : 4 <= 3 → faux"
+    },
+    {
+     "line": 6,
+     "vars": {
+      "i": 2,
+      "j": null
+     },
+     "out": "***\n***\n",
+     "note": "Retour à la ligne. j n'existe plus ici (portée) !"
+    },
+    {
+     "line": 0,
+     "vars": {
+      "i": 3,
+      "j": null
+     },
+     "out": "***\n***\n",
+     "note": "++i → i = 3",
+     "change": {
+      "var": "i",
+      "value": 3
+     }
+    },
+    {
+     "line": 0,
+     "vars": {
+      "i": 3,
+      "j": null
+     },
+     "out": "***\n***\n",
+     "note": "Test : 3 <= 2 → faux"
+    },
+    {
+     "line": 7,
+     "vars": {
+      "i": null,
+      "j": null
+     },
+     "out": "***\n***\n",
+     "note": "Fin ! 2 lignes de 3 étoiles ⚡"
+    }
+   ]
+  },
+  {
+   "id": "tr-triangle",
+   "title": "Triangle (col <= ligne)",
+   "code": "for (int ligne = 1; ligne <= 3; ++ligne)\n{\n    for (int col = 1; col <= ligne; ++col)\n    {\n        cout << '*';\n    }\n    cout << '\\n';\n}",
+   "vars": [
+    "ligne",
+    "col"
+   ],
+   "steps": [
+    {
+     "line": 0,
+     "vars": {
+      "ligne": 1,
+      "col": null
+     },
+     "out": "",
+     "note": "Départ : ligne = 1",
+     "change": {
+      "var": "ligne",
+      "value": 1
+     }
+    },
+    {
+     "line": 0,
+     "vars": {
+      "ligne": 1,
+      "col": null
+     },
+     "out": "",
+     "note": "Test : 1 <= 3 → vrai"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 1,
+      "col": 1
+     },
+     "out": "",
+     "note": "Départ : col = 1",
+     "change": {
+      "var": "col",
+      "value": 1
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 1,
+      "col": 1
+     },
+     "out": "",
+     "note": "Test : col 1 <= ligne 1 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "ligne": 1,
+      "col": 1
+     },
+     "out": "*",
+     "note": "Affiche '*'"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 1,
+      "col": 2
+     },
+     "out": "*",
+     "note": "++col → col = 2",
+     "change": {
+      "var": "col",
+      "value": 2
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 1,
+      "col": 2
+     },
+     "out": "*",
+     "note": "Test : col 2 <= ligne 1 → faux"
+    },
+    {
+     "line": 6,
+     "vars": {
+      "ligne": 1,
+      "col": null
+     },
+     "out": "*\n",
+     "note": "Retour à la ligne"
+    },
+    {
+     "line": 0,
+     "vars": {
+      "ligne": 2,
+      "col": null
+     },
+     "out": "*\n",
+     "note": "++ligne → ligne = 2",
+     "change": {
+      "var": "ligne",
+      "value": 2
+     }
+    },
+    {
+     "line": 0,
+     "vars": {
+      "ligne": 2,
+      "col": null
+     },
+     "out": "*\n",
+     "note": "Test : 2 <= 3 → vrai"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 2,
+      "col": 1
+     },
+     "out": "*\n",
+     "note": "Départ : col = 1",
+     "change": {
+      "var": "col",
+      "value": 1
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 2,
+      "col": 1
+     },
+     "out": "*\n",
+     "note": "Test : col 1 <= ligne 2 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "ligne": 2,
+      "col": 1
+     },
+     "out": "*\n*",
+     "note": "Affiche '*'"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 2,
+      "col": 2
+     },
+     "out": "*\n*",
+     "note": "++col → col = 2",
+     "change": {
+      "var": "col",
+      "value": 2
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 2,
+      "col": 2
+     },
+     "out": "*\n*",
+     "note": "Test : col 2 <= ligne 2 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "ligne": 2,
+      "col": 2
+     },
+     "out": "*\n**",
+     "note": "Affiche '*'"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 2,
+      "col": 3
+     },
+     "out": "*\n**",
+     "note": "++col → col = 3",
+     "change": {
+      "var": "col",
+      "value": 3
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 2,
+      "col": 3
+     },
+     "out": "*\n**",
+     "note": "Test : col 3 <= ligne 2 → faux"
+    },
+    {
+     "line": 6,
+     "vars": {
+      "ligne": 2,
+      "col": null
+     },
+     "out": "*\n**\n",
+     "note": "Retour à la ligne"
+    },
+    {
+     "line": 0,
+     "vars": {
+      "ligne": 3,
+      "col": null
+     },
+     "out": "*\n**\n",
+     "note": "++ligne → ligne = 3",
+     "change": {
+      "var": "ligne",
+      "value": 3
+     }
+    },
+    {
+     "line": 0,
+     "vars": {
+      "ligne": 3,
+      "col": null
+     },
+     "out": "*\n**\n",
+     "note": "Test : 3 <= 3 → vrai"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 3,
+      "col": 1
+     },
+     "out": "*\n**\n",
+     "note": "Départ : col = 1",
+     "change": {
+      "var": "col",
+      "value": 1
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 3,
+      "col": 1
+     },
+     "out": "*\n**\n",
+     "note": "Test : col 1 <= ligne 3 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "ligne": 3,
+      "col": 1
+     },
+     "out": "*\n**\n*",
+     "note": "Affiche '*'"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 3,
+      "col": 2
+     },
+     "out": "*\n**\n*",
+     "note": "++col → col = 2",
+     "change": {
+      "var": "col",
+      "value": 2
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 3,
+      "col": 2
+     },
+     "out": "*\n**\n*",
+     "note": "Test : col 2 <= ligne 3 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "ligne": 3,
+      "col": 2
+     },
+     "out": "*\n**\n**",
+     "note": "Affiche '*'"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 3,
+      "col": 3
+     },
+     "out": "*\n**\n**",
+     "note": "++col → col = 3",
+     "change": {
+      "var": "col",
+      "value": 3
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 3,
+      "col": 3
+     },
+     "out": "*\n**\n**",
+     "note": "Test : col 3 <= ligne 3 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "ligne": 3,
+      "col": 3
+     },
+     "out": "*\n**\n***",
+     "note": "Affiche '*'"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 3,
+      "col": 4
+     },
+     "out": "*\n**\n***",
+     "note": "++col → col = 4",
+     "change": {
+      "var": "col",
+      "value": 4
+     }
+    },
+    {
+     "line": 2,
+     "vars": {
+      "ligne": 3,
+      "col": 4
+     },
+     "out": "*\n**\n***",
+     "note": "Test : col 4 <= ligne 3 → faux"
+    },
+    {
+     "line": 6,
+     "vars": {
+      "ligne": 3,
+      "col": null
+     },
+     "out": "*\n**\n***\n",
+     "note": "Retour à la ligne"
+    },
+    {
+     "line": 0,
+     "vars": {
+      "ligne": 4,
+      "col": null
+     },
+     "out": "*\n**\n***\n",
+     "note": "++ligne → ligne = 4",
+     "change": {
+      "var": "ligne",
+      "value": 4
+     }
+    },
+    {
+     "line": 0,
+     "vars": {
+      "ligne": 4,
+      "col": null
+     },
+     "out": "*\n**\n***\n",
+     "note": "Test : 4 <= 3 → faux"
+    },
+    {
+     "line": 7,
+     "vars": {
+      "ligne": null,
+      "col": null
+     },
+     "out": "*\n**\n***\n",
+     "note": "Fin ! Un triangle : la boucle intérieure dépend de ligne 🔺"
+    }
+   ]
+  },
+  {
+   "id": "tr-break",
+   "title": "for + break",
+   "code": "for (int i = 1; i <= 10; ++i)\n{\n    if (i * i > 10)\n    {\n        break;\n    }\n    cout << i << ' ';\n}",
+   "vars": [
+    "i"
+   ],
+   "steps": [
+    {
+     "line": 0,
+     "vars": {
+      "i": 1
+     },
+     "out": "",
+     "note": "Départ : i = 1",
+     "change": {
+      "var": "i",
+      "value": 1
+     }
+    },
+    {
+     "line": 0,
+     "vars": {
+      "i": 1
+     },
+     "out": "",
+     "note": "Test : 1 <= 10 → vrai"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 1
+     },
+     "out": "",
+     "note": "Test : 1*1 = 1 > 10 → faux"
+    },
+    {
+     "line": 6,
+     "vars": {
+      "i": 1
+     },
+     "out": "1 ",
+     "note": "Affiche 1"
+    },
+    {
+     "line": 0,
+     "vars": {
+      "i": 2
+     },
+     "out": "1 ",
+     "note": "++i → i = 2",
+     "change": {
+      "var": "i",
+      "value": 2
+     }
+    },
+    {
+     "line": 0,
+     "vars": {
+      "i": 2
+     },
+     "out": "1 ",
+     "note": "Test : 2 <= 10 → vrai"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 2
+     },
+     "out": "1 ",
+     "note": "Test : 2*2 = 4 > 10 → faux"
+    },
+    {
+     "line": 6,
+     "vars": {
+      "i": 2
+     },
+     "out": "1 2 ",
+     "note": "Affiche 2"
+    },
+    {
+     "line": 0,
+     "vars": {
+      "i": 3
+     },
+     "out": "1 2 ",
+     "note": "++i → i = 3",
+     "change": {
+      "var": "i",
+      "value": 3
+     }
+    },
+    {
+     "line": 0,
+     "vars": {
+      "i": 3
+     },
+     "out": "1 2 ",
+     "note": "Test : 3 <= 10 → vrai"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 3
+     },
+     "out": "1 2 ",
+     "note": "Test : 3*3 = 9 > 10 → faux"
+    },
+    {
+     "line": 6,
+     "vars": {
+      "i": 3
+     },
+     "out": "1 2 3 ",
+     "note": "Affiche 3"
+    },
+    {
+     "line": 0,
+     "vars": {
+      "i": 4
+     },
+     "out": "1 2 3 ",
+     "note": "++i → i = 4",
+     "change": {
+      "var": "i",
+      "value": 4
+     }
+    },
+    {
+     "line": 0,
+     "vars": {
+      "i": 4
+     },
+     "out": "1 2 3 ",
+     "note": "Test : 4 <= 10 → vrai"
+    },
+    {
+     "line": 2,
+     "vars": {
+      "i": 4
+     },
+     "out": "1 2 3 ",
+     "note": "Test : 4*4 = 16 > 10 → vrai"
+    },
+    {
+     "line": 4,
+     "vars": {
+      "i": 4
+     },
+     "out": "1 2 3 ",
+     "note": "break ! On sort de la boucle tout de suite 💥"
+    },
+    {
+     "line": 7,
+     "vars": {
+      "i": null
+     },
+     "out": "1 2 3 ",
+     "note": "Fin. i n'existe plus après la boucle."
+    }
+   ]
+  }
+ ],
+ "traceTables": [
+  {
+   "id": "tt-somme",
+   "title": "Somme de 1 à 4",
+   "code": "int s = 0;\nfor (int i = 1; i <= 4; ++i)\n{\n    s = s + i;\n}",
+   "columns": [
+    "i",
+    "s"
+   ],
+   "rows": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     3
+    ],
+    [
+     3,
+     6
+    ],
+    [
+     4,
+     10
+    ]
+   ],
+   "hint": "s = ancien s + i"
+  },
+  {
+   "id": "tt-facto",
+   "title": "Factorielle de 4",
+   "code": "int f = 1;\nfor (int i = 1; i <= 4; ++i)\n{\n    f = f * i;\n}",
+   "columns": [
+    "i",
+    "f"
+   ],
+   "rows": [
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     2
+    ],
+    [
+     3,
+     6
+    ],
+    [
+     4,
+     24
+    ]
+   ],
+   "hint": "f = ancien f × i"
+  },
+  {
+   "id": "tt-double",
+   "title": "Doubler jusqu'à 20",
+   "code": "int x = 1;\nint tours = 0;\nwhile (x < 20)\n{\n    x = x * 2;\n    ++tours;\n}",
+   "columns": [
+    "tours",
+    "x"
+   ],
+   "rows": [
+    [
+     1,
+     2
+    ],
+    [
+     2,
+     4
+    ],
+    [
+     3,
+     8
+    ],
+    [
+     4,
+     16
+    ],
+    [
+     5,
+     32
+    ]
+   ],
+   "hint": "x double à chaque tour ; la boucle s'arrête dès que x >= 20"
+  },
+  {
+   "id": "tt-rebours",
+   "title": "Compte à rebours par 3",
+   "code": "int n = 10;\nint compte = 0;\ndo\n{\n    n = n - 3;\n    ++compte;\n} while (n > 0);",
+   "columns": [
+    "compte",
+    "n"
+   ],
+   "rows": [
+    [
+     1,
+     7
+    ],
+    [
+     2,
+     4
+    ],
+    [
+     3,
+     1
+    ],
+    [
+     4,
+     -2
+    ]
+   ],
+   "hint": "Le do-while fait le tour AVANT de tester. n peut devenir négatif !"
+  }
+ ],
+ "stars": [
+  {
+   "id": "et-triangle",
+   "type": "fill",
+   "title": "Triangle qui grandit",
+   "pattern": "*\n**\n***\n****",
+   "code": "for (int ligne = 1; ligne <= 4; ++ligne)\n{\n    for (int col = 1; col <= ___; ++col)\n    {\n        cout << '*';\n    }\n    cout << '\\n';\n}",
+   "choices": [
+    "ligne",
+    "4",
+    "ligne + 1",
+    "col"
+   ],
+   "answer": 0,
+   "hint": "Combien d'étoiles sur la ligne 3 ?",
+   "explain": "La ligne 1 a 1 étoile, la ligne 2 en a 2... donc la boucle intérieure va jusqu'à `ligne`."
+  },
+  {
+   "id": "et-inverse",
+   "type": "fill",
+   "title": "Triangle à l'envers",
+   "pattern": "****\n***\n**\n*",
+   "code": "for (int ligne = 4; ligne >= 1; ___)\n{\n    for (int col = 1; col <= ligne; ++col)\n    {\n        cout << '*';\n    }\n    cout << '\\n';\n}",
+   "choices": [
+    "--ligne",
+    "++ligne",
+    "ligne = 1",
+    "--col"
+   ],
+   "answer": 0,
+   "hint": "ligne commence à 4 et doit arriver à 1.",
+   "explain": "On part de 4 et on descend jusqu'à 1 : il faut `--ligne`. Avec `++ligne`, la boucle ne finirait jamais... ou presque 😵"
+  },
+  {
+   "id": "et-rectangle",
+   "type": "fill",
+   "title": "Rectangle 3 × 5",
+   "pattern": "#####\n#####\n#####",
+   "code": "for (int ligne = 1; ligne <= 3; ++ligne)\n{\n    for (int col = 1; col ___ 5; ++col)\n    {\n        cout << '#';\n    }\n    cout << '\\n';\n}",
+   "choices": [
+    "<=",
+    "<",
+    ">=",
+    "=="
+   ],
+   "answer": 0,
+   "hint": "col va de 1 à 5 inclus.",
+   "explain": "Pour 5 colonnes avec col qui commence à 1, il faut `col <= 5`. Avec `<`, on n'en a que 4 : l'erreur « off-by-one » classique !"
+  },
+  {
+   "id": "dessin-escalier",
+   "type": "draw",
+   "title": "Dessine ce que ça affiche",
+   "code": "for (int i = 1; i <= 3; ++i)\n{\n    for (int j = 1; j <= i * 2; ++j)\n    {\n        cout << '*';\n    }\n    cout << '\\n';\n}",
+   "rows": 3,
+   "cols": 7,
+   "grid": [
+    "**     ",
+    "****   ",
+    "****** "
+   ],
+   "hint": "Calcule i * 2 pour chaque ligne.",
+   "explain": "Ligne i : `i * 2` étoiles → 2, 4, 6."
+  },
+  {
+   "id": "dessin-carre",
+   "type": "draw",
+   "title": "Dessine ce que ça affiche",
+   "code": "for (int i = 1; i <= 3; ++i)\n{\n    for (int j = 1; j <= 3; ++j)\n    {\n        if (i == j)\n        {\n            cout << 'X';\n        }\n        else\n        {\n            cout << '.';\n        }\n    }\n    cout << '\\n';\n}",
+   "rows": 3,
+   "cols": 4,
+   "grid": [
+    "X.. ",
+    ".X. ",
+    "..X "
+   ],
+   "hint": "Le X apparaît quand ligne = colonne.",
+   "explain": "X seulement quand i == j : c'est la diagonale."
+  },
+  {
+   "id": "dessin-espaces",
+   "type": "draw",
+   "title": "Dessine ce que ça affiche",
+   "code": "for (int i = 1; i <= 3; ++i)\n{\n    for (int e = 1; e <= 3 - i; ++e)\n    {\n        cout << ' ';\n    }\n    for (int j = 1; j <= i; ++j)\n    {\n        cout << '*';\n    }\n    cout << '\\n';\n}",
+   "rows": 3,
+   "cols": 4,
+   "grid": [
+    "  * ",
+    " ** ",
+    "*** "
+   ],
+   "hint": "Ligne 1 : 2 espaces puis 1 étoile.",
+   "explain": "D'abord `3 - i` espaces, puis `i` étoiles : un triangle collé à droite."
+  }
+ ],
+ "menus": [
+  {
+   "id": "menu-jeu",
+   "title": "Menu de jeu",
+   "template": [
+    "int choix = -1;",
+    "do",
+    "{",
+    "    cout << \"1. Jouer\\n2. Regles\\n0. Quitter\\n\";",
+    "    cin >> choix;",
+    "    switch (choix)",
+    "    {",
+    "    [[0]]",
+    "        cout << \"C'est parti!\\n\";",
+    "        [[1]]",
+    "    case 2:",
+    "        cout << \"Regles: miaou.\\n\";",
+    "        break;",
+    "    [[2]]",
+    "        cout << \"Bye!\\n\";",
+    "        break;",
+    "    default:",
+    "        cout << \"Choix invalide\\n\";",
+    "        break;",
+    "    }",
+    "} while ([[3]]);"
+   ],
+   "answers": [
+    "case 1:",
+    "break;",
+    "case 0:",
+    "choix != 0"
+   ],
+   "blocks": [
+    "case 1:",
+    "break;",
+    "case 0:",
+    "choix != 0",
+    "choix == 0",
+    "continue;",
+    "case '1':"
+   ],
+   "options": [
+    {
+     "key": "1",
+     "text": "C'est parti!"
+    },
+    {
+     "key": "2",
+     "text": "Regles: miaou."
+    },
+    {
+     "key": "0",
+     "text": "Bye!",
+     "quit": true
+    }
+   ],
+   "invalid": "Choix invalide",
+   "menuText": "1. Jouer\n2. Regles\n0. Quitter",
+   "explain": {
+    "choix == 0": "Avec `choix == 0`, le menu s'arrête dès que tu choisis autre chose que 0... l'inverse de ce qu'on veut !",
+    "continue;": "`continue` dans un switch à l'intérieur d'une boucle saute à la fin du tour : ça marche par hasard ici, mais le prof veut `break;` pour sortir du switch.",
+    "case '1':": "`'1'` est un caractère (code 49), pas l'entier 1. choix est un int : il faut `case 1:`.",
+    "missing-break": "Sans `break;`, le case 1 « tombe » dans le case 2 : les deux messages s'affichent !"
+   }
+  }
+ ]
+}

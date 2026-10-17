@@ -1,0 +1,1195 @@
+{
+  "week": 8,
+  "title": "Les fonctions",
+  "notions": [
+    {
+      "id": "s8-creer-appeler",
+      "title": "Créer et appeler une fonction",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Une **fonction**, c'est une recette avec un nom. Tu l'écris une fois. Ensuite, tu l'**appelles** autant de fois que tu veux. 🐱"
+        },
+        {
+          "type": "code",
+          "text": "On crée `afficherMiaou()` au-dessus de `main`. Puis on l'appelle deux fois.",
+          "code": "void afficherMiaou()\n{\n    cout << \"Miaou !\" << '\\n';\n}\n\nint main()\n{\n    cout << \"Debut\" << '\\n';\n    afficherMiaou();\n    afficherMiaou();\n    cout << \"Fin\" << '\\n';\n}",
+          "lines": [
+            "En-tête : `void` (ne renvoie rien), le nom, puis `()` (aucun paramètre).",
+            "Ouvre le corps de la fonction.",
+            "Le travail de la fonction : afficher Miaou.",
+            "Ferme le corps. On revient à celui qui a appelé.",
+            "",
+            "Le programme commence toujours ici.",
+            "",
+            "Affiche Debut.",
+            "Appel n°1 : on saute dans afficherMiaou, puis on revient.",
+            "Appel n°2 : même chose.",
+            "Affiche Fin.",
+            ""
+          ],
+          "output": "Debut\nMiaou !\nMiaou !\nFin"
+        },
+        {
+          "type": "talk",
+          "text": "Nom d'une fonction = **verbe d'action + sujet**, en camelCase.\nBons exemples : `calculerMoyenne`, `afficherMenu`, `lireAge`.\nÀ éviter : `moyenne` (pas de verbe), `Calcul_moyenne`."
+        },
+        {
+          "type": "talk",
+          "text": "En mémoire, il y a la **pile d'appels**. Quand `main` appelle une fonction, `main` se met en pause. Un nouvel étage est posé sur la pile, avec les variables de la fonction."
+        },
+        {
+          "type": "memory",
+          "text": "Exemple : `main` a `int nbChats = 3;`. Il appelle `nourrirChats()`, qui a `int croquettes = 10;`. Pendant l'appel, la pile ressemble à ça (le haut en premier) :",
+          "boxes": [
+            {
+              "name": "croquettes  [nourrirChats]  ← en haut",
+              "value": "10",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "nbChats  [main]  (en pause)",
+              "value": "3",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : le compilateur lit de haut en bas. Si tu appelles une fonction écrite **après** `main`, il ne la connaît pas encore → erreur « identificateur introuvable ». Écris-la avant `main` (ou utilise un prototype, voir plus loin)."
+        }
+      ],
+      "cards": [
+        {
+          "q": "C'est quoi une fonction ?",
+          "a": "Un bloc de code avec un nom. On l'écrit une fois et on peut l'appeler plusieurs fois."
+        },
+        {
+          "q": "Comment nommer une fonction ?",
+          "a": "Verbe d'action + sujet, en camelCase. Ex. : `calculerMoyenne`, `afficherMenu`."
+        },
+        {
+          "q": "Que se passe-t-il quand `main` appelle une fonction ?",
+          "a": "`main` se met en pause. Un nouvel étage est ajouté sur la pile d'appels. La fonction s'exécute, puis on revient juste après l'appel."
+        },
+        {
+          "q": "Que deviennent les variables d'une fonction à la fin de l'appel ?",
+          "a": "Elles sont détruites : leur étage est retiré de la pile d'appels."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "void afficherA()\n{\n    cout << \"A\";\n}\n\nvoid afficherB()\n{\n    cout << \"B\";\n    afficherA();\n}\n\nint main()\n{\n    afficherA();\n    afficherB();\n    cout << \"C\";\n}",
+          "choices": [
+            "ABAC",
+            "ABC",
+            "AABC",
+            "BAC"
+          ],
+          "answer": 0,
+          "hint": "Suis `main` ligne par ligne. Attention : `afficherB` appelle aussi `afficherA`.",
+          "explain": "`main` affiche A, puis `afficherB` affiche B et appelle `afficherA` (A), puis C. Réponse : ABAC. ABC oublie l'appel caché dans `afficherB`."
+        },
+        {
+          "type": "normes",
+          "q": "Quel nom de fonction respecte les normes du cours ?",
+          "choices": [
+            "calculerMoyenne",
+            "moyenne",
+            "CalculerMoyenne",
+            "calculer_moyenne"
+          ],
+          "answer": 0,
+          "hint": "Verbe d'action + sujet, et la première lettre en minuscule.",
+          "explain": "`calculerMoyenne` a un verbe et est en camelCase. `moyenne` n'a pas de verbe, `CalculerMoyenne` commence par une majuscule, et `calculer_moyenne` utilise un souligné."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int main()\n{\n    afficherMenu();\n}\n\nvoid afficherMenu()\n{\n    cout << \"1. Jouer\" << '\\n';\n}",
+          "answer": 2,
+          "hint": "Le compilateur lit le fichier de haut en bas.",
+          "explain": "Erreur de compilation : à la ligne de l'appel, `afficherMenu` n'est pas encore connue, car elle est écrite après `main`. Il faut la déplacer avant `main` ou ajouter un prototype. La définition, elle, est correcte."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "void miauler()\n{\n    cout << \"Miaou \";\n}\n\nint main()\n{\n    for (int i = 0; i < 3; ++i)\n    {\n        miauler();\n    }\n    cout << \"Fin\";\n}",
+          "answer": "Miaou Miaou Miaou Fin",
+          "hint": "La boucle fait 3 tours. Chaque tour appelle la fonction une fois.",
+          "explain": "La fonction est appelée 3 fois (i = 0, 1, 2), puis `main` affiche Fin. Réponse : Miaou Miaou Miaou Fin."
+        },
+        {
+          "type": "order",
+          "q": "Remets dans l'ordre ce qui se passe quand `main` appelle `afficherScore()`.",
+          "lines": [
+            "main arrive à la ligne afficherScore();",
+            "main se met en pause",
+            "Un nouvel étage est ajouté sur la pile d'appels",
+            "Le code de afficherScore() s'exécute",
+            "L'étage de afficherScore() est retiré de la pile",
+            "main continue juste après l'appel"
+          ],
+          "hint": "Pense à une pile d'assiettes : on pose, on travaille, on enlève.",
+          "explain": "L'appel met `main` en pause et empile un étage. Quand la fonction finit, son étage disparaît et `main` reprend juste après l'appel."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi utiliser des fonctions au lieu de tout mettre dans main ?",
+          "a": "Pour ne pas répéter le même code. Si je dois corriger quelque chose, je le corrige à un seul endroit. Et `main` devient plus court et plus facile à lire."
+        },
+        {
+          "q": "Que se passe-t-il en mémoire quand main appelle une fonction ?",
+          "a": "`main` se met en pause. Un nouvel étage est ajouté sur la pile d'appels, avec les variables de la fonction. À la fin, cet étage est retiré et on revient juste après l'appel dans `main`."
+        }
+      ]
+    },
+    {
+      "id": "s8-parametres-return",
+      "title": "Paramètres et return",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Un **paramètre**, c'est une info que tu donnes à la fonction. Tu l'écris entre les parenthèses, avec son type. S'il y en a plusieurs, sépare-les par des virgules."
+        },
+        {
+          "type": "code",
+          "text": "Une fonction avec 2 paramètres, appelée 2 fois avec des valeurs différentes.",
+          "code": "void afficherChat(string nom, int age)\n{\n    cout << nom << \" a \" << age << \" ans\" << '\\n';\n}\n\nint main()\n{\n    afficherChat(\"Segfault\", 3);\n    afficherChat(\"Pixel\", 7);\n}",
+          "lines": [
+            "Deux paramètres : `nom` (string) et `age` (int).",
+            "",
+            "Utilise les paramètres comme des variables normales.",
+            "",
+            "",
+            "",
+            "",
+            "Les **arguments** \"Segfault\" et 3 vont dans nom et age.",
+            "Nouvel appel, nouvelles valeurs.",
+            ""
+          ],
+          "output": "Segfault a 3 ans\nPixel a 7 ans"
+        },
+        {
+          "type": "talk",
+          "text": "`return` renvoie une valeur à celui qui a appelé. Le type écrit avant le nom (`int`, `double`, `char`, `string`) dit quel genre de valeur sort."
+        },
+        {
+          "type": "code",
+          "text": "`calculerMoyenne` renvoie un `double`. `main` le garde dans une variable.",
+          "code": "double calculerMoyenne(double a, double b)\n{\n    return (a + b) / 2;\n}\n\nint main()\n{\n    double moyenne = calculerMoyenne(70, 85);\n    cout << moyenne << '\\n';\n}",
+          "lines": [
+            "Type de retour `double`, deux paramètres `double`.",
+            "",
+            "Calcule, puis renvoie le résultat. La fonction finit ici.",
+            "",
+            "",
+            "",
+            "",
+            "La valeur renvoyée (77.5) est rangée dans `moyenne`.",
+            "Affiche 77.5.",
+            ""
+          ],
+          "output": "77.5"
+        },
+        {
+          "type": "memory",
+          "text": "Passage **par valeur** : la fonction reçoit une **copie**. Si `main` appelle `calculerMoyenne(note, 85)` avec `note` à 70, la pile contient :",
+          "boxes": [
+            {
+              "name": "a  [calculerMoyenne]",
+              "value": "70 (copie de note)",
+              "type": "double",
+              "size": "8 octets"
+            },
+            {
+              "name": "b  [calculerMoyenne]",
+              "value": "85",
+              "type": "double",
+              "size": "8 octets"
+            },
+            {
+              "name": "note  [main]",
+              "value": "70",
+              "type": "double",
+              "size": "8 octets"
+            }
+          ]
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : les arguments doivent suivre l'**ordre** et le **type** des paramètres. `afficherChat(3, \"Segfault\")` → erreur de compilation."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Paramètre ou argument ?",
+          "a": "Paramètre = la variable dans l'en-tête (`int age`). Argument = la valeur donnée à l'appel (`3`)."
+        },
+        {
+          "q": "Que fait `return` ?",
+          "a": "Il renvoie une valeur à l'appelant et termine la fonction tout de suite."
+        },
+        {
+          "q": "Passage par valeur, ça veut dire quoi ?",
+          "a": "La fonction reçoit une copie. Si elle modifie la copie, la variable de `main` ne change pas."
+        },
+        {
+          "q": "Quels types de retour peut-on utiliser ?",
+          "a": "`int`, `double`, `char`, `string`... ou `void` si la fonction ne renvoie rien."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "void doubler(int n)\n{\n    n = n * 2;\n}\n\nint main()\n{\n    int croquettes = 5;\n    doubler(croquettes);\n    cout << croquettes;\n}",
+          "choices": [
+            "5",
+            "10",
+            "0",
+            "Erreur de compilation"
+          ],
+          "answer": 0,
+          "hint": "`n` est-il la même boîte que `croquettes`, ou une copie ?",
+          "explain": "Passage par valeur : `n` est une copie. La fonction double la copie, pas `croquettes`. Donc 5 s'affiche, pas 10."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int calculerMoyenne(int a, int b)\n{\n    return (a + b) / 2;\n}\n\nint main()\n{\n    cout << calculerMoyenne(7, 8);\n}",
+          "answer": "7",
+          "hint": "Regarde le type de retour et le type des paramètres.",
+          "explain": "7 + 8 = 15, et 15 / 2 entre deux `int` donne 7 (division entière). Pour avoir 7.5, il faudrait des `double`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète le type de retour pour avoir 7.5.",
+          "code": "___ calculerAire(double largeur, double hauteur)\n{\n    return largeur * hauteur;\n}\n\nint main()\n{\n    cout << calculerAire(2.5, 3);\n}",
+          "choices": [
+            "double",
+            "void",
+            "int",
+            "string"
+          ],
+          "answer": 0,
+          "hint": "Le résultat a des décimales.",
+          "explain": "`double` garde les décimales : 7.5. Avec `int`, on perdrait le .5 (affiche 7). `void` ne peut rien renvoyer, et `string` n'accepte pas un nombre."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "void afficherChat(string nom, int age)\n{\n    cout << nom << \" : \" << age << '\\n';\n}\n\nint main()\n{\n    afficherChat(3, \"Pixel\");\n}",
+          "answer": 7,
+          "hint": "Compare l'ordre des arguments avec l'ordre des paramètres.",
+          "explain": "Erreur de compilation : les arguments sont inversés. Le premier paramètre est un `string`, le deuxième un `int`. Il faut écrire `afficherChat(\"Pixel\", 3);`."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int donnerNombre()\n{\n    return 1;\n    return 2;\n}\n\nint main()\n{\n    cout << donnerNombre() + donnerNombre();\n}",
+          "choices": [
+            "2",
+            "3",
+            "4",
+            "12"
+          ],
+          "answer": 0,
+          "hint": "Que fait `return` à la fonction ?",
+          "explain": "Le premier `return` renvoie 1 et termine la fonction : `return 2;` n'est jamais exécuté. 1 + 1 = 2."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Quelle est la différence entre un paramètre et la valeur de retour ?",
+          "a": "Le paramètre, c'est ce qui ENTRE dans la fonction. La valeur de retour, c'est ce qui SORT, avec `return`. Il peut y avoir plusieurs paramètres, mais une seule valeur revient."
+        },
+        {
+          "q": "Pourquoi la variable de main ne change pas quand la fonction modifie son paramètre ?",
+          "a": "Parce que le paramètre est passé par valeur. La fonction reçoit une copie, dans sa propre boîte sur la pile. Elle modifie la copie, pas l'original."
+        }
+      ]
+    },
+    {
+      "id": "s8-void-retour",
+      "title": "void et retour anticipé",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "`void` veut dire : la fonction ne renvoie **rien**. Elle fait une action (afficher, par exemple), et c'est tout."
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : on ne peut pas ranger le résultat d'une fonction `void` dans une variable. `int x = afficherMenu();` → erreur : il n'y a rien à ranger !"
+        },
+        {
+          "type": "talk",
+          "text": "**Retour anticipé** (early exit) : dans une fonction `void`, `return;` fait sortir tout de suite. C'est parfait pour refuser un cas invalide dès le début."
+        },
+        {
+          "type": "code",
+          "text": "Si le nombre est invalide, on sort avant la suite.",
+          "code": "void donnerCroquettes(int nb)\n{\n    if (nb <= 0)\n    {\n        cout << \"Nombre invalide\" << '\\n';\n        return;\n    }\n    cout << \"Voici \" << nb << \" croquettes\" << '\\n';\n}\n\nint main()\n{\n    donnerCroquettes(-2);\n    donnerCroquettes(4);\n}",
+          "lines": [
+            "Fonction `void` avec un paramètre.",
+            "",
+            "Cas invalide ?",
+            "",
+            "On avertit...",
+            "... et on sort tout de suite. La ligne 8 n'est pas exécutée.",
+            "",
+            "On arrive ici seulement si nb est valide.",
+            "",
+            "",
+            "",
+            "",
+            "-2 : sortie anticipée.",
+            "4 : on va jusqu'au bout.",
+            ""
+          ],
+          "output": "Nombre invalide\nVoici 4 croquettes"
+        },
+        {
+          "type": "code",
+          "text": "Ça marche aussi avec une valeur : le premier `return` atteint gagne.",
+          "code": "string evaluerNote(int note)\n{\n    if (note < 60)\n    {\n        return \"Echec\";\n    }\n    return \"Reussite\";\n}\n\nint main()\n{\n    cout << evaluerNote(45) << '\\n';\n    cout << evaluerNote(82) << '\\n';\n}",
+          "lines": [
+            "Type de retour `string`.",
+            "",
+            "Moins de 60 ?",
+            "",
+            "Renvoie \"Echec\" et sort.",
+            "",
+            "Sinon, on arrive ici.",
+            "",
+            "",
+            "",
+            "",
+            "45 → Echec.",
+            "82 → Reussite.",
+            ""
+          ],
+          "output": "Echec\nReussite"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Une fonction qui n'est pas `void` doit **toujours** atteindre un `return`, peu importe le chemin. Sinon : avertissement, et une valeur n'importe quoi."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Que veut dire `void` ?",
+          "a": "La fonction ne renvoie aucune valeur."
+        },
+        {
+          "q": "Que fait `return;` dans une fonction `void` ?",
+          "a": "Il sort de la fonction tout de suite, sans rien renvoyer."
+        },
+        {
+          "q": "Pourquoi faire un retour anticipé ?",
+          "a": "Pour régler les cas invalides au début, et éviter de mettre tout le code dans un gros `else`."
+        },
+        {
+          "q": "Une fonction `int` sans `return` dans un chemin ?",
+          "a": "Avertissement du compilateur, et la valeur renvoyée est imprévisible. Il faut un `return` dans tous les chemins."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "void verifierAge(int age)\n{\n    if (age < 0)\n    {\n        cout << \"X\";\n        return;\n    }\n    cout << \"OK\";\n}\n\nint main()\n{\n    verifierAge(-1);\n    verifierAge(5);\n}",
+          "answer": "XOK",
+          "hint": "Pour -1, est-ce qu'on arrive à la ligne qui affiche OK ?",
+          "explain": "-1 affiche X puis sort avec `return;`, donc pas de OK. 5 saute le `if` et affiche OK. Réponse : XOK."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "void afficherScore(int score)\n{\n    cout << \"Score : \" << score << '\\n';\n}\n\nint main()\n{\n    int total = afficherScore(10);\n}",
+          "answer": 7,
+          "hint": "Que renvoie une fonction `void` ?",
+          "explain": "Erreur de compilation : `afficherScore` est `void`, elle ne renvoie rien. On ne peut donc pas ranger son résultat dans `total`. On l'appelle simplement : `afficherScore(10);`."
+        },
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int trouverTour(int limite)\n{\n    int total = 0;\n    for (int i = 1; i <= 10; ++i)\n    {\n        total = total + i;\n        if (total > limite)\n        {\n            return i;\n        }\n    }\n    return 0;\n}\n\nint main()\n{\n    cout << trouverTour(10);\n}",
+          "choices": [
+            "5",
+            "4",
+            "10",
+            "15"
+          ],
+          "answer": 0,
+          "hint": "Calcule total à chaque tour : 1, 3, 6...",
+          "explain": "total vaut 1, 3, 6, 10, puis 15 au tour i = 5. 15 > 10, donc `return i;` renvoie 5 et arrête la boucle ET la fonction. 4 est un piège : à i = 4, total vaut 10, pas plus que 10."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour sortir de la fonction si b vaut 0.",
+          "code": "void afficherDivision(int a, int b)\n{\n    if (b == 0)\n    {\n        cout << \"Division par zero !\";\n        ___\n    }\n    cout << a / b;\n}\n\nint main()\n{\n    afficherDivision(8, 0);\n}",
+          "choices": [
+            "return;",
+            "return 0;",
+            "break;",
+            "exit;"
+          ],
+          "answer": 0,
+          "hint": "La fonction est `void`.",
+          "explain": "`return;` sort d'une fonction `void`. `return 0;` est interdit dans une `void`, et `break;` sert aux boucles et aux `switch`, pas aux `if`."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "void afficherChoix(int choix)\n{\n    if (choix < 1)\n    {\n        return 0;\n    }\n    cout << \"Choix : \" << choix;\n}",
+          "answer": 4,
+          "hint": "Regarde le type de retour de la fonction.",
+          "explain": "Erreur de compilation : la fonction est `void`, elle ne peut pas renvoyer 0. Il faut écrire `return;` tout court."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi faire un retour anticipé au début d'une fonction ?",
+          "a": "Pour régler tout de suite les cas invalides. Après le `if`, je sais que les données sont bonnes. Ça évite un gros `if/else` avec tout le code imbriqué dedans."
+        },
+        {
+          "q": "Quelle est la différence entre return; et return 0; ?",
+          "a": "`return;` sort d'une fonction `void` sans rien renvoyer. `return 0;` renvoie une valeur, donc il va dans une fonction avec un type comme `int`. Mettre `return 0;` dans une `void`, c'est une erreur de compilation."
+        }
+      ]
+    },
+    {
+      "id": "s8-prototypes-fichiers",
+      "title": "Prototypes et fichiers .h/.cpp",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Le **prototype**, c'est la carte d'identité de la fonction : type de retour, nom, paramètres... et un `;`. Le **corps**, c'est le code entre `{ }`."
+        },
+        {
+          "type": "code",
+          "text": "Avec un prototype en haut, on peut écrire le corps **après** `main`.",
+          "code": "int additionner(int a, int b);\n\nint main()\n{\n    cout << additionner(2, 3) << '\\n';\n}\n\nint additionner(int a, int b)\n{\n    return a + b;\n}",
+          "lines": [
+            "Le prototype : l'en-tête + `;`. Pas de corps.",
+            "",
+            "",
+            "",
+            "L'appel marche : le compilateur connaît déjà la fonction.",
+            "",
+            "",
+            "Le corps : même en-tête, sans `;`.",
+            "",
+            "",
+            ""
+          ],
+          "output": "5"
+        },
+        {
+          "type": "talk",
+          "text": "Dans un vrai projet, on sépare :\n• `Outils.h` (fichier d'en-tête) : les **prototypes**.\n• `Outils.cpp` (fichier d'implémentation) : les **corps**.\n• `main.cpp` fait `#include \"Outils.h\"`.\nGuillemets = ton fichier. Chevrons `< >` = la bibliothèque standard."
+        },
+        {
+          "type": "code",
+          "text": "Le .h et le .cpp de notre boîte à outils.",
+          "code": "// Fichier : Outils.h\n#pragma once\n#include <string>\nusing namespace std;\n\nvoid afficherTitre(string titre);\nint calculerDouble(int n);\n\n// Fichier : Outils.cpp\n#include <iostream>\n#include \"Outils.h\"\nusing namespace std;\n\nvoid afficherTitre(string titre)\n{\n    cout << \"== \" << titre << \" ==\" << '\\n';\n}\n\nint calculerDouble(int n)\n{\n    return n * 2;\n}",
+          "lines": [
+            "Début du fichier d'en-tête.",
+            "Inclure ce fichier une seule fois (on en reparle).",
+            "Le .h utilise `string`, donc il l'inclut lui-même.",
+            "",
+            "",
+            "Prototype n°1.",
+            "Prototype n°2.",
+            "",
+            "Début du fichier d'implémentation.",
+            "Pour `cout`.",
+            "Le .cpp inclut son propre .h.",
+            "",
+            "",
+            "Corps n°1 : même en-tête que le prototype.",
+            "",
+            "",
+            "",
+            "",
+            "Corps n°2.",
+            "",
+            "",
+            ""
+          ],
+          "output": ""
+        },
+        {
+          "type": "code",
+          "text": "Et `main.cpp` n'a qu'à inclure `Outils.h` pour utiliser les fonctions.",
+          "code": "// Fichier : main.cpp\n#include <iostream>\n#include \"Outils.h\"\nusing namespace std;\n\nint main()\n{\n    afficherTitre(\"Chats\");\n    cout << calculerDouble(21) << '\\n';\n}",
+          "lines": [
+            "",
+            "",
+            "Guillemets : c'est un fichier de notre projet.",
+            "",
+            "",
+            "",
+            "",
+            "Appelle une fonction de Outils.cpp.",
+            "Affiche 42.",
+            ""
+          ],
+          "output": "== Chats ==\n42"
+        },
+        {
+          "type": "code",
+          "text": "Astuce du cours : un fichier `Constantes.h` regroupe toutes les constantes du projet.",
+          "code": "// Fichier : Constantes.h\n#pragma once\n\nconst int NB_VIES = 9;\nconst double PRIX_CROQUETTES = 4.99;\n\n// Fichier : main.cpp\n#include <iostream>\n#include \"Constantes.h\"\nusing namespace std;\n\nint main()\n{\n    cout << NB_VIES << \" vies\" << '\\n';\n}",
+          "lines": [
+            "",
+            "",
+            "",
+            "Constante : nom en MAJUSCULES.",
+            "Une autre constante.",
+            "",
+            "",
+            "",
+            "On inclut les constantes.",
+            "",
+            "",
+            "",
+            "",
+            "Utilise NB_VIES comme si elle était ici.",
+            ""
+          ],
+          "output": "9 vies"
+        }
+      ],
+      "cards": [
+        {
+          "q": "C'est quoi un prototype ?",
+          "a": "L'en-tête de la fonction suivi d'un `;`, sans corps. Ex. : `int additionner(int a, int b);`"
+        },
+        {
+          "q": "Que met-on dans le .h et dans le .cpp ?",
+          "a": ".h = les prototypes (et les constantes). .cpp = les corps des fonctions."
+        },
+        {
+          "q": "`#include \"Outils.h\"` ou `#include <iostream>` ?",
+          "a": "Guillemets = un fichier de ton projet. Chevrons = la bibliothèque standard."
+        },
+        {
+          "q": "À quoi sert `Constantes.h` ?",
+          "a": "Regrouper toutes les constantes du projet au même endroit, puis l'inclure là où on en a besoin."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "fill",
+          "q": "Complète le prototype.",
+          "code": "double calculerTaxe(double prix)___\n\nint main()\n{\n    cout << calculerTaxe(100) << '\\n';\n}\n\ndouble calculerTaxe(double prix)\n{\n    return prix * 0.15;\n}",
+          "choices": [
+            ";",
+            "{ }",
+            ",",
+            "."
+          ],
+          "answer": 0,
+          "hint": "Un prototype finit comme une instruction.",
+          "explain": "Un prototype finit par `;`. Avec `{ }`, on aurait deux corps pour la même fonction → erreur de redéfinition."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int calculerDouble(int n);\n\nint main()\n{\n    cout << calculerDouble(4);\n}\n\ndouble calculerDouble(int n)\n{\n    return n * 2;\n}",
+          "answer": 7,
+          "hint": "Compare le prototype et l'en-tête du corps, mot par mot.",
+          "explain": "Erreur de compilation : le prototype dit `int`, mais le corps dit `double`. Les deux en-têtes doivent être identiques."
+        },
+        {
+          "type": "predict",
+          "q": "Quel prototype faut-il mettre dans le .h pour cette fonction ?",
+          "code": "string repeterMot(string mot, int fois)\n{\n    string resultat = \"\";\n    for (int i = 0; i < fois; ++i)\n    {\n        resultat = resultat + mot;\n    }\n    return resultat;\n}",
+          "choices": [
+            "string repeterMot(string mot, int fois);",
+            "repeterMot(string mot, int fois);",
+            "string repeterMot(string mot, int fois)",
+            "void repeterMot(string mot, int fois);"
+          ],
+          "answer": 0,
+          "hint": "Il faut le type de retour, le nom, les paramètres... et quoi à la fin ?",
+          "explain": "Le prototype recopie l'en-tête exact et ajoute `;`. Sans type de retour ou sans `;`, ça ne compile pas. `void` serait faux : la fonction renvoie un `string`."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes du fichier Nom.h dans le bon ordre.",
+          "lines": [
+            "#pragma once",
+            "#include <string>",
+            "using namespace std;",
+            "string creerNom(string prenom);"
+          ],
+          "hint": "Le prototype utilise `string` : il doit être connu avant.",
+          "explain": "`#pragma once` va en premier. Ensuite on inclut `<string>` et on ajoute `using namespace std;`. Le prototype vient en dernier, quand `string` est connu."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Ce projet a 3 fichiers. Écris exactement ce qui s'affiche.",
+          "code": "// Fichier : Chat.h\n#pragma once\n\nint calculerAgeHumain(int ageChat);\n\n// Fichier : Chat.cpp\n#include \"Chat.h\"\n\nint calculerAgeHumain(int ageChat)\n{\n    return ageChat * 7;\n}\n\n// Fichier : main.cpp\n#include <iostream>\n#include \"Chat.h\"\nusing namespace std;\n\nint main()\n{\n    cout << calculerAgeHumain(3);\n}",
+          "answer": "21",
+          "hint": "main.cpp connaît la fonction grâce au .h. Le corps est dans Chat.cpp.",
+          "explain": "Le prototype dans Chat.h permet l'appel. Le corps dans Chat.cpp calcule 3 × 7 = 21."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi séparer le code en fichiers .h et .cpp ?",
+          "a": "Le .h dit QUELLES fonctions existent : les prototypes. Le .cpp dit COMMENT elles marchent. N'importe quel fichier peut inclure le .h pour utiliser les fonctions, et le projet reste bien rangé."
+        },
+        {
+          "q": "Pourquoi faut-il un prototype si la fonction est écrite après main ?",
+          "a": "Le compilateur lit de haut en bas. Quand il voit l'appel dans `main`, il doit déjà connaître le nom, les paramètres et le type de retour. Le prototype lui donne ces infos d'avance."
+        }
+      ]
+    },
+    {
+      "id": "s8-liens-pragma",
+      "title": "Erreurs de liens et #pragma once",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Construire un programme, c'est 2 étapes :\n1. **Compilation** : chaque .cpp est traduit **séparément** en fichier objet (.obj).\n2. **Édition de liens** : l'éditeur de liens (linker) assemble les .obj et relie chaque appel au corps de la fonction."
+        },
+        {
+          "type": "talk",
+          "text": "Si tu écris le prototype mais **pas le corps** : la compilation passe, car le prototype suffit. Mais l'éditeur de liens cherche le corps... et ne le trouve pas. Visual Studio affiche : `LNK2019 : symbole externe non résolu`. 🙀"
+        },
+        {
+          "type": "code",
+          "text": "Ce code compile... mais l'édition de liens échoue. Aucun .exe n'est créé, donc rien ne s'affiche.",
+          "code": "void afficherMenu();\n\nint main()\n{\n    afficherMenu();\n}",
+          "lines": [
+            "Prototype : OK pour le compilateur.",
+            "",
+            "",
+            "",
+            "L'appel compile. Mais où est le corps ? Nulle part → LNK2019.",
+            ""
+          ],
+          "output": ""
+        },
+        {
+          "type": "talk",
+          "text": "Autre problème : un .h peut être inclus **deux fois** dans le même .cpp. Par exemple, `main.cpp` inclut `Constantes.h` et `Chat.h`, et `Chat.h` inclut aussi `Constantes.h`. Sans protection → erreur « redéfinition ». La solution : `#pragma once` en première ligne du .h."
+        },
+        {
+          "type": "code",
+          "text": "Avec `#pragma once`, `Constantes.h` est inclus une seule fois, même s'il est demandé deux fois.",
+          "code": "// Fichier : Constantes.h\n#pragma once\nconst int NB_VIES = 9;\n\n// Fichier : Chat.h\n#pragma once\n#include \"Constantes.h\"\n\n// Fichier : main.cpp\n#include <iostream>\n#include \"Constantes.h\"\n#include \"Chat.h\"\nusing namespace std;\n\nint main()\n{\n    cout << NB_VIES << '\\n';\n}",
+          "lines": [
+            "",
+            "La protection.",
+            "",
+            "",
+            "",
+            "",
+            "Chat.h inclut aussi Constantes.h.",
+            "",
+            "",
+            "",
+            "1re inclusion de Constantes.h.",
+            "2e inclusion (cachée dans Chat.h) : ignorée grâce à `#pragma once`.",
+            "",
+            "",
+            "",
+            "",
+            "Affiche 9.",
+            ""
+          ],
+          "output": "9"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège des .h : chaque fichier doit inclure ce qu'il utilise. Si ton .h utilise `string` sans `#include <string>` et `using namespace std;` → erreur. Pareil pour un `enum` : il doit être défini **avant** le prototype qui l'utilise."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Compilation ou édition de liens ?",
+          "a": "Compilation : chaque .cpp est traduit séparément. Édition de liens : on assemble les fichiers et on relie chaque appel au corps de la fonction."
+        },
+        {
+          "q": "Que veut dire LNK2019 ?",
+          "a": "Symbole externe non résolu : un prototype existe, mais le corps est introuvable (oublié, ou nom/paramètres différents)."
+        },
+        {
+          "q": "À quoi sert `#pragma once` ?",
+          "a": "Empêcher qu'un .h soit inclus deux fois dans le même .cpp."
+        },
+        {
+          "q": "Pourquoi mettre `#include <string>` dans un .h ?",
+          "a": "Parce que chaque fichier doit inclure ce qu'il utilise. Le .h ne « voit » pas les includes écrits ailleurs."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Que se passe-t-il quand on construit ce projet ?",
+          "code": "// Fichier : Outils.h\n#pragma once\nint calculerCarre(int n);\n\n// Fichier : Outils.cpp\n#include \"Outils.h\"\nint calculerCare(int n)\n{\n    return n * n;\n}\n\n// Fichier : main.cpp\n#include <iostream>\n#include \"Outils.h\"\nusing namespace std;\nint main()\n{\n    cout << calculerCarre(5);\n}",
+          "choices": [
+            "Erreur de liens (LNK2019)",
+            "Affiche 25",
+            "Erreur de compilation dans main.cpp",
+            "Affiche 0"
+          ],
+          "answer": 0,
+          "hint": "Lis très attentivement le nom de la fonction dans Outils.cpp.",
+          "explain": "Faute de frappe : le corps s'appelle `calculerCare`, pas `calculerCarre`. main.cpp compile grâce au prototype, mais l'éditeur de liens ne trouve aucun corps pour `calculerCarre` → LNK2019."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne de ce .h provoque l'erreur ?",
+          "code": "// Fichier : Chat.h\n#pragma once\n\nvoid afficherNom(string nom);",
+          "answer": 3,
+          "hint": "Qu'est-ce que `string` pour ce fichier ?",
+          "explain": "Erreur de compilation : `string` est inconnu dans ce .h. Il manque `#include <string>` et `using namespace std;` avant le prototype."
+        },
+        {
+          "type": "fill",
+          "q": "Complète la première ligne du fichier d'en-tête.",
+          "code": "___\n#include <string>\nusing namespace std;\n\nstring creerSalutation(string nom);",
+          "choices": [
+            "#pragma once",
+            "#include once",
+            "#pragma unique",
+            "using once;"
+          ],
+          "answer": 0,
+          "hint": "C'est une directive qui commence par `#pragma`.",
+          "explain": "`#pragma once` empêche d'inclure le .h deux fois. Les autres choix n'existent pas en C++."
+        },
+        {
+          "type": "order",
+          "q": "Remets les étapes de construction dans l'ordre.",
+          "lines": [
+            "Tu écris Outils.h, Outils.cpp et main.cpp",
+            "Le compilateur traduit chaque .cpp séparément",
+            "Il produit un fichier objet (.obj) par .cpp",
+            "L'éditeur de liens assemble les .obj",
+            "Il relie chaque appel au corps de sa fonction",
+            "Le fichier .exe est créé"
+          ],
+          "hint": "D'abord compiler, ensuite relier.",
+          "explain": "La compilation traite chaque .cpp séparément. Ensuite seulement, l'édition de liens assemble tout. C'est pour ça qu'un corps oublié n'est détecté qu'à la fin (LNK2019)."
+        },
+        {
+          "type": "predict",
+          "q": "Pourquoi ce .h ne compile pas ?",
+          "code": "// Fichier : Jeu.h\n#pragma once\n\nvoid choisirCouleur(Couleur c);\n\nenum Couleur\n{\n    ROUGE,\n    BLEU\n};",
+          "choices": [
+            "Couleur est utilisé avant d'être défini",
+            "Il manque #include <string>",
+            "Un enum ne peut pas aller dans un .h",
+            "Il manque void devant enum"
+          ],
+          "answer": 0,
+          "hint": "Le compilateur lit de haut en bas, même dans un .h.",
+          "explain": "À la ligne du prototype, le type `Couleur` n'existe pas encore. Il faut définir l'`enum` avant le prototype. Un `enum` dans un .h, c'est parfaitement correct."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Que se passe-t-il si j'oublie le corps de la fonction ?",
+          "a": "La compilation passe, car le prototype suffit pour vérifier l'appel. Mais à l'édition de liens, le linker cherche le corps et ne le trouve pas. Visual Studio affiche LNK2019 : symbole externe non résolu."
+        },
+        {
+          "q": "À quoi sert #pragma once ?",
+          "a": "Un .h peut être inclus plusieurs fois dans le même .cpp, directement ou à travers un autre .h. Sans protection, tout serait défini deux fois → erreur de redéfinition. `#pragma once` dit : inclus-moi une seule fois."
+        }
+      ]
+    },
+    {
+      "id": "s8-reference",
+      "title": "Passage par référence (&)",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Par valeur, la fonction reçoit une copie. Avec `&` après le type, elle reçoit une **référence** : un autre nom pour la **même boîte**. Elle peut donc modifier l'original."
+        },
+        {
+          "type": "code",
+          "text": "Le `&` change tout : `croquettes` est vraiment doublé.",
+          "code": "void doubler(int& n)\n{\n    n = n * 2;\n}\n\nint main()\n{\n    int croquettes = 5;\n    doubler(croquettes);\n    cout << croquettes << '\\n';\n}",
+          "lines": [
+            "`int&` : n sera un autre nom pour la variable reçue.",
+            "",
+            "Modifie la boîte d'origine.",
+            "",
+            "",
+            "",
+            "",
+            "croquettes vaut 5.",
+            "n devient un surnom de croquettes.",
+            "Affiche 10.",
+            ""
+          ],
+          "output": "10"
+        },
+        {
+          "type": "memory",
+          "text": "**Par valeur** (`void doubler(int n)`) : 2 boîtes. La fonction change seulement sa copie.",
+          "boxes": [
+            {
+              "name": "n  [doubler]  (copie)",
+              "value": "10",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "croquettes  [main]",
+              "value": "5",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "memory",
+          "text": "**Par référence** (`void doubler(int& n)`) : 1 seule boîte, avec 2 noms.",
+          "boxes": [
+            {
+              "name": "croquettes  [main]  =  n  [doubler]",
+              "value": "10",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "Utile aussi pour « renvoyer » 2 résultats : on échange deux variables.",
+          "code": "void echanger(int& a, int& b)\n{\n    int temp = a;\n    a = b;\n    b = temp;\n}\n\nint main()\n{\n    int x = 1;\n    int y = 9;\n    echanger(x, y);\n    cout << x << \" \" << y << '\\n';\n}",
+          "lines": [
+            "a et b sont des références vers x et y.",
+            "",
+            "Garde la valeur de a (1) de côté.",
+            "a prend la valeur de b (9).",
+            "b prend l'ancienne valeur de a (1).",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "x et y sont échangés pour vrai.",
+            "Affiche 9 1.",
+            ""
+          ],
+          "output": "9 1"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : avec `&`, il faut donner une **variable**. `doubler(5);` → erreur : on ne peut pas modifier le nombre 5 !"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Que fait `&` dans un paramètre ?",
+          "a": "Il crée une référence : la fonction travaille sur la variable originale, pas sur une copie."
+        },
+        {
+          "q": "Quand utiliser le passage par référence ?",
+          "a": "Quand la fonction doit modifier la variable de l'appelant, ou « renvoyer » plusieurs résultats."
+        },
+        {
+          "q": "Peut-on appeler `doubler(5)` si le paramètre est `int&` ?",
+          "a": "Non. Une référence doit être liée à une variable."
+        },
+        {
+          "q": "Valeur ou référence, en mémoire ?",
+          "a": "Valeur : 2 boîtes (l'original + la copie). Référence : 1 seule boîte, avec 2 noms."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "void ajouter(int a, int& b)\n{\n    a = a + 1;\n    b = b + 1;\n}\n\nint main()\n{\n    int x = 1;\n    int y = 1;\n    ajouter(x, y);\n    cout << x << y;\n}",
+          "choices": [
+            "12",
+            "22",
+            "11",
+            "21"
+          ],
+          "answer": 0,
+          "hint": "Un seul des deux paramètres a un `&`.",
+          "explain": "`a` est une copie de x : x reste 1. `b` est une référence vers y : y devient 2. Donc 12. 22 serait vrai si les deux avaient `&`."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "void doubler(int& n)\n{\n    n = n * 2;\n}\n\nint main()\n{\n    int vies = 9;\n    doubler(vies);\n    doubler(3);\n}",
+          "answer": 9,
+          "hint": "Une référence est un surnom pour... quoi ?",
+          "explain": "Erreur de compilation : `int&` doit recevoir une variable. On ne peut pas créer une référence vers le nombre 3. `doubler(vies);` est correct."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour que la gamelle de main soit vraiment remplie.",
+          "code": "void remplirGamelle(int___ croquettes)\n{\n    croquettes = 100;\n}\n\nint main()\n{\n    int gamelle = 0;\n    remplirGamelle(gamelle);\n    cout << gamelle;\n}",
+          "choices": [
+            "&",
+            "*",
+            "[]",
+            "+"
+          ],
+          "answer": 0,
+          "hint": "On veut modifier l'original, pas une copie.",
+          "explain": "`int&` crée une référence : `croquettes` est la même boîte que `gamelle`, qui devient 100. Sans `&`, gamelle resterait à 0."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int retirerVie(int& vies)\n{\n    vies = vies - 1;\n    return vies * 10;\n}\n\nint main()\n{\n    int vies = 9;\n    int points = retirerVie(vies);\n    cout << vies << \" \" << points;\n}",
+          "answer": "8 80",
+          "hint": "La fonction modifie `vies` ET renvoie une valeur.",
+          "explain": "Par référence, `vies` de main passe de 9 à 8. Le `return` renvoie 8 × 10 = 80. Réponse : 8 80."
+        },
+        {
+          "type": "bug",
+          "q": "Ce code devrait afficher « 9 1 », mais il affiche « 1 9 ». Quelle ligne est en faute ?",
+          "code": "void echanger(int a, int b)\n{\n    int temp = a;\n    a = b;\n    b = temp;\n}\n\nint main()\n{\n    int x = 1;\n    int y = 9;\n    echanger(x, y);\n    cout << x << \" \" << y;\n}",
+          "answer": 0,
+          "hint": "Est-ce que la fonction travaille sur x et y, ou sur des copies ?",
+          "explain": "Bug de logique (ça compile) : les paramètres sont passés par valeur. La fonction échange des copies, et x et y ne bougent pas. Il faut `int& a, int& b`."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi passer par référence dans la fonction echanger ?",
+          "a": "Parce que la fonction doit modifier les variables de `main`. Par valeur, elle échangerait seulement des copies, et x et y resteraient pareils. Avec `&`, a et b sont d'autres noms pour les mêmes boîtes que x et y."
+        },
+        {
+          "q": "Pourquoi ne pas mettre & partout ?",
+          "a": "Avec `&`, la fonction peut changer ma variable, et ça ne se voit pas à l'appel. C'est une source de bugs. On utilise `&` seulement quand on VEUT modifier l'original. Sinon, par valeur, c'est plus sûr."
+        }
+      ]
+    },
+    {
+      "id": "s8-debogueur",
+      "title": "Déboguer (points d'arrêt, pile d'appels)",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Le **débogueur**, c'est une loupe sur ton programme pendant qu'il roule. 🔍\n**Point d'arrêt** : clique dans la marge grise à gauche d'une ligne (ou F9). Un rond rouge apparaît. Lance avec F5 : le programme s'arrête **avant** d'exécuter cette ligne."
+        },
+        {
+          "type": "talk",
+          "text": "La fenêtre **Automatique** montre les variables autour de la ligne actuelle, avec leur valeur. Une valeur qui vient de changer s'affiche en rouge."
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Pour avancer :\n• **F10** (pas à pas principal) : exécute la ligne, **sans entrer** dans les fonctions appelées.\n• **F11** (pas à pas détaillé) : **entre** dans la fonction appelée.\nSi tu veux voir ce qui se passe DANS une fonction, c'est F11 !"
+        },
+        {
+          "type": "code",
+          "text": "Mettons un point d'arrêt sur `return n * n;` (ligne 3), puis F5.",
+          "code": "int calculerCarre(int n)\n{\n    return n * n;\n}\n\nint calculerSomme(int a, int b)\n{\n    return calculerCarre(a) + calculerCarre(b);\n}\n\nint main()\n{\n    cout << calculerSomme(2, 3) << '\\n';\n}",
+          "lines": [
+            "",
+            "",
+            "🔴 Point d'arrêt ici.",
+            "",
+            "",
+            "",
+            "",
+            "Appelle calculerCarre deux fois.",
+            "",
+            "",
+            "",
+            "",
+            "Appelle calculerSomme.",
+            ""
+          ],
+          "output": "13"
+        },
+        {
+          "type": "memory",
+          "text": "Au premier arrêt, la fenêtre **Pile d'appels** montre 3 étages. Le haut = la fonction qui roule maintenant :",
+          "boxes": [
+            {
+              "name": "n  [calculerCarre]  ← en haut",
+              "value": "2",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "a  [calculerSomme]",
+              "value": "2",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "b  [calculerSomme]",
+              "value": "3",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "[main]  (en bas)",
+              "value": "en pause",
+              "type": "—",
+              "size": "—"
+            }
+          ]
+        },
+        {
+          "type": "talk",
+          "text": "La Pile d'appels te dit **qui a appelé qui**. Double-clique sur un étage pour voir les variables de cet appel. Super utile quand une fonction reçoit une mauvaise valeur : tu remontes la pile pour trouver d'où elle vient."
+        }
+      ],
+      "cards": [
+        {
+          "q": "C'est quoi un point d'arrêt ?",
+          "a": "Un rond rouge (F9) sur une ligne. Le programme s'arrête avant d'exécuter cette ligne."
+        },
+        {
+          "q": "Que montre la fenêtre Automatique ?",
+          "a": "Les variables autour de la ligne actuelle et leurs valeurs."
+        },
+        {
+          "q": "Que montre la Pile d'appels ?",
+          "a": "Les fonctions en cours. En haut : celle qui s'exécute. En dessous : celles qui l'ont appelée, jusqu'à `main`."
+        },
+        {
+          "q": "F10 ou F11 ?",
+          "a": "F10 exécute la ligne sans entrer dans les fonctions. F11 entre dans la fonction appelée."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Le programme est arrêté sur `return n * n;` pour la première fois. Que montre la Pile d'appels, du haut vers le bas ?",
+          "code": "int calculerCarre(int n)\n{\n    return n * n;\n}\n\nint calculerSomme(int a, int b)\n{\n    return calculerCarre(a) + calculerCarre(b);\n}\n\nint main()\n{\n    cout << calculerSomme(2, 3) << '\\n';\n}",
+          "choices": [
+            "calculerCarre → calculerSomme → main",
+            "main → calculerSomme → calculerCarre",
+            "calculerCarre → main",
+            "calculerSomme → calculerCarre → main"
+          ],
+          "answer": 0,
+          "hint": "En haut : la fonction qui roule maintenant. En bas : le début de tout.",
+          "explain": "`main` a appelé `calculerSomme`, qui a appelé `calculerCarre`. La plus récente est en haut. `calculerCarre → main` oublie l'étage du milieu."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Point d'arrêt sur la ligne `total = total + i;`. Le programme s'arrête quand i vaut 3. Quelle valeur de total vois-tu dans la fenêtre Automatique ?",
+          "code": "int total = 0;\nfor (int i = 1; i <= 5; ++i)\n{\n    total = total + i;\n}",
+          "answer": "3",
+          "hint": "Le point d'arrêt s'arrête AVANT d'exécuter la ligne.",
+          "explain": "Avant le tour i = 3, on a seulement ajouté 1 et 2 : total vaut 3. On pourrait croire 6, mais la ligne du tour 3 n'est pas encore exécutée."
+        },
+        {
+          "type": "order",
+          "q": "Remets les étapes de débogage dans l'ordre.",
+          "lines": [
+            "Cliquer dans la marge pour mettre un point d'arrêt",
+            "Lancer le programme avec F5",
+            "Le programme s'arrête sur la ligne",
+            "Regarder les valeurs dans la fenêtre Automatique",
+            "Avancer ligne par ligne avec F10 ou F11"
+          ],
+          "hint": "On ne peut pas regarder les variables avant que le programme soit arrêté.",
+          "explain": "D'abord on place le point d'arrêt, puis on lance. Une fois arrêté, on inspecte les variables, puis on avance."
+        },
+        {
+          "type": "fill",
+          "q": "Tu es arrêté sur cette ligne. Tu veux ENTRER dans calculerSomme. Quelle touche ?",
+          "code": "int main()\n{\n    int r = calculerSomme(2, 3); // point d'arret ici, puis ___\n    cout << r;\n}",
+          "choices": [
+            "F11",
+            "F10",
+            "F9",
+            "F5"
+          ],
+          "answer": 0,
+          "hint": "Pas à pas **détaillé**.",
+          "explain": "F11 entre dans la fonction appelée. F10 exécuterait tout `calculerSomme` d'un coup, sans y entrer. F9 place un point d'arrêt et F5 continue jusqu'au prochain."
+        },
+        {
+          "type": "predict",
+          "q": "Le programme est arrêté DANS `afficherEtoile()`. Combien d'étages a la Pile d'appels ?",
+          "code": "void afficherEtoile()\n{\n    cout << \"*\";\n}\n\nvoid afficherLigne()\n{\n    afficherEtoile();\n    afficherEtoile();\n}\n\nint main()\n{\n    afficherLigne();\n}",
+          "choices": [
+            "3",
+            "2",
+            "4",
+            "1"
+          ],
+          "answer": 0,
+          "hint": "Compte : qui roule, qui a appelé, et qui a appelé celui-là.",
+          "explain": "3 étages : `afficherEtoile` (en haut), `afficherLigne`, puis `main`. Même si `afficherEtoile` est appelée 2 fois, c'est une à la fois : jamais 4 étages."
+        }
+      ],
+      "explain": [
+        {
+          "q": "À quoi sert la Pile d'appels quand on débogue ?",
+          "a": "Elle montre les fonctions en cours et qui a appelé qui. Celle du haut est celle qui s'exécute. Si une fonction reçoit une mauvaise valeur, je remonte la pile pour voir d'où vient l'appel."
+        },
+        {
+          "q": "Pourquoi utiliser un point d'arrêt au lieu d'ajouter des cout partout ?",
+          "a": "Le point d'arrêt ne change pas mon code. Je vois toutes les variables d'un coup dans la fenêtre Automatique, et j'avance ligne par ligne. Avec des `cout`, je dois deviner quoi afficher, puis les enlever après."
+        }
+      ]
+    }
+  ],
+  "aideMemoire": [
+    {
+      "title": "Définir une fonction",
+      "code": "int calculerDouble(int n)\n{\n    return n * 2;\n}",
+      "note": "Type de retour, nom (verbe + sujet), paramètres, corps."
+    },
+    {
+      "title": "Prototype",
+      "code": "int calculerDouble(int n);",
+      "note": "L'en-tête + ; sans corps. Va dans le .h."
+    },
+    {
+      "title": "void + retour anticipé",
+      "code": "void afficherAge(int age)\n{\n    if (age < 0)\n    {\n        return;\n    }\n    cout << age;\n}",
+      "note": "void = ne renvoie rien. return; sort tout de suite."
+    },
+    {
+      "title": "Par valeur",
+      "code": "void doubler(int n)",
+      "note": "Copie. L'original ne change pas."
+    },
+    {
+      "title": "Par référence",
+      "code": "void doubler(int& n)",
+      "note": "Même boîte, 2 noms. L'original change. Donner une variable."
+    },
+    {
+      "title": "Fichier .h",
+      "code": "#pragma once\n#include <string>\nusing namespace std;\n\nstring creerNom(string prenom);",
+      "note": "Prototypes + constantes. Inclure ce qu'on utilise."
+    },
+    {
+      "title": "Inclure mon fichier",
+      "code": "#include \"Outils.h\"\n#include \"Constantes.h\"",
+      "note": "Guillemets = mon fichier. Chevrons = bibliothèque."
+    },
+    {
+      "title": "LNK2019",
+      "code": "void afficherMenu(); // corps oublié",
+      "note": "Compile OK, mais édition de liens KO : symbole externe non résolu."
+    },
+    {
+      "title": "Débogueur",
+      "code": "F9  : point d'arrêt\nF5  : lancer\nF10 : pas à pas principal\nF11 : pas à pas détaillé",
+      "note": "Regarde Automatique et Pile d'appels."
+    }
+  ]
+}

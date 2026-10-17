@@ -1,0 +1,292 @@
+[
+ {
+  "term": "Algorithme",
+  "def": "Suite d'étapes précises pour résoudre un problème. Comme une recette de croquettes.",
+  "week": 1
+ },
+ {
+  "term": "Assignation",
+  "def": "Mettre une valeur dans une variable avec `=`. Ex : `age = 20;`",
+  "week": 1
+ },
+ {
+  "term": "Commentaire",
+  "def": "Texte ignoré par le compilateur : `// une ligne` ou `/* plusieurs lignes */`.",
+  "week": 1
+ },
+ {
+  "term": "Compilation",
+  "def": "Traduction du code source C++ en programme exécutable (.exe).",
+  "week": 1
+ },
+ {
+  "term": "Erreur de compilation",
+  "def": "Le compilateur refuse ton code (ex : `;` manquant). Le programme ne démarre pas.",
+  "week": 1
+ },
+ {
+  "term": "Déclaration",
+  "def": "Créer une variable en donnant son type et son nom : `int age;`",
+  "week": 1
+ },
+ {
+  "term": "Littéral",
+  "def": "Valeur écrite directement dans le code : `10`, `1.5`, `'a'`, `\"bonjour\"`.",
+  "week": 1
+ },
+ {
+  "term": "Octet",
+  "def": "8 bits. Un `int` prend souvent 4 octets, un `double` 8, un `char` 1.",
+  "week": 1
+ },
+ {
+  "term": "Syntaxe",
+  "def": "Les règles d'écriture du langage (où vont les `;`, les accolades...).",
+  "week": 1
+ },
+ {
+  "term": "Sémantique",
+  "def": "Le sens du code : ce qu'il fait vraiment. Du code peut compiler et être faux !",
+  "week": 1
+ },
+ {
+  "term": "camelCase",
+  "def": "Style de nom : premier mot en minuscule, les suivants avec majuscule. Ex : `nbEtudiants`.",
+  "week": 1
+ },
+ {
+  "term": "Concaténation",
+  "def": "Coller des morceaux de texte ensemble, ex : `\"Salut \" + nom`.",
+  "week": 2
+ },
+ {
+  "term": "Namespace (espace de noms)",
+  "def": "Un « nom de famille » pour ranger des outils. `std::cout` = cout de la famille std.",
+  "week": 2
+ },
+ {
+  "term": "Troncation",
+  "def": "Couper la partie décimale : `7 / 2` donne `3` avec deux int.",
+  "week": 2
+ },
+ {
+  "term": "Conversion (cast)",
+  "def": "Changer le type d'une valeur : `(double)7 / 2` donne `3.5`.",
+  "week": 2
+ },
+ {
+  "term": "Booléen (bool)",
+  "def": "Type qui vaut seulement `true` ou `false`.",
+  "week": 2
+ },
+ {
+  "term": "Condition",
+  "def": "Expression vraie ou fausse testée par un `if`, un `while`...",
+  "week": 2
+ },
+ {
+  "term": "Constante",
+  "def": "Variable qui ne peut plus changer : `const int NB_MAX = 10;`",
+  "week": 3
+ },
+ {
+  "term": "UPPER_SNAKE_CASE",
+  "def": "Style de nom pour les constantes : tout en majuscules, mots séparés par `_`.",
+  "week": 3
+ },
+ {
+  "term": "Portée (scope)",
+  "def": "Zone du code où une variable existe : entre ses accolades `{ }`.",
+  "week": 3
+ },
+ {
+  "term": "Variable globale",
+  "def": "Déclarée hors de toute fonction : visible partout. À éviter (sauf constantes).",
+  "week": 3
+ },
+ {
+  "term": "enum (énumération)",
+  "def": "Type avec une liste de valeurs nommées : `enum Couleur { ROUGE, VERT };`",
+  "week": 3
+ },
+ {
+  "term": "Epsilon",
+  "def": "Toute petite marge pour comparer deux double : `abs(a - b) < 0.0001`.",
+  "week": 3
+ },
+ {
+  "term": "Opérateur ternaire",
+  "def": "If/else en une ligne : `condition ? siVrai : siFaux`.",
+  "week": 3
+ },
+ {
+  "term": "Jeu de test (plan de test)",
+  "def": "Liste d'entrées + résultats attendus pour vérifier qu'un programme marche.",
+  "week": 3
+ },
+ {
+  "term": "Boucle (itération)",
+  "def": "Répéter un bloc de code tant qu'une condition est vraie.",
+  "week": 5
+ },
+ {
+  "term": "Itération",
+  "def": "Un tour de boucle.",
+  "week": 5
+ },
+ {
+  "term": "Incrémentation",
+  "def": "Ajouter 1 : `++i` (pré) ou `i++` (post).",
+  "week": 5
+ },
+ {
+  "term": "Décrémentation",
+  "def": "Enlever 1 : `--i` ou `i--`.",
+  "week": 5
+ },
+ {
+  "term": "Boucle imbriquée",
+  "def": "Une boucle à l'intérieur d'une autre boucle.",
+  "week": 5
+ },
+ {
+  "term": "Boucle infinie",
+  "def": "Boucle dont la condition ne devient jamais fausse. Le programme gèle !",
+  "week": 5
+ },
+ {
+  "term": "Off-by-one",
+  "def": "Erreur d'un tour de trop ou de moins (ex : `<=` au lieu de `<`).",
+  "week": 5
+ },
+ {
+  "term": "Fonction",
+  "def": "Bloc de code nommé et réutilisable, appelé avec des parenthèses : `calculerMoyenne()`.",
+  "week": 8
+ },
+ {
+  "term": "Paramètre",
+  "def": "Variable qui reçoit une valeur quand on appelle la fonction.",
+  "week": 8
+ },
+ {
+  "term": "Argument",
+  "def": "Valeur donnée à la fonction au moment de l'appel.",
+  "week": 8
+ },
+ {
+  "term": "Prototype",
+  "def": "Déclaration d'une fonction sans son corps : `int doubler(int x);`",
+  "week": 8
+ },
+ {
+  "term": "Valeur de retour",
+  "def": "Ce que la fonction renvoie avec `return`.",
+  "week": 8
+ },
+ {
+  "term": "Passage par valeur",
+  "def": "La fonction reçoit une COPIE : l'original ne change pas.",
+  "week": 8
+ },
+ {
+  "term": "Passage par référence (&)",
+  "def": "La fonction reçoit l'ORIGINAL : elle peut le modifier.",
+  "week": 8
+ },
+ {
+  "term": "Pile d'appels",
+  "def": "Liste des fonctions en cours d'exécution, la plus récente en haut.",
+  "week": 8
+ },
+ {
+  "term": "Édition de liens",
+  "def": "Étape après la compilation qui relie les appels aux corps des fonctions.",
+  "week": 8
+ },
+ {
+  "term": "Erreur de liens",
+  "def": "Le corps d'une fonction est introuvable (ex : LNK2019 dans Visual Studio).",
+  "week": 8
+ },
+ {
+  "term": "Point d'arrêt",
+  "def": "Marque rouge dans Visual Studio où le programme se met en pause pour déboguer.",
+  "week": 8
+ },
+ {
+  "term": "Modulo (%)",
+  "def": "Le reste d'une division entière : `7 % 3` donne `1`.",
+  "week": 9
+ },
+ {
+  "term": "Pseudo-aléatoire",
+  "def": "Nombres qui ont l'air au hasard mais viennent d'un calcul (graine + formule).",
+  "week": 9
+ },
+ {
+  "term": "Graine (seed)",
+  "def": "Valeur de départ du hasard, donnée par `srand(time(0))`.",
+  "week": 9
+ },
+ {
+  "term": "Refactorisation",
+  "def": "Réorganiser du code (ex : en fonctions) sans changer ce qu'il fait.",
+  "week": 9
+ },
+ {
+  "term": "Tableau",
+  "def": "Suite de cases du même type, collées en mémoire : `int notes[5];`",
+  "week": 11
+ },
+ {
+  "term": "Indice (index)",
+  "def": "Numéro d'une case, qui commence à 0.",
+  "week": 11
+ },
+ {
+  "term": "Tableau 2D",
+  "def": "Tableau de tableaux, comme une grille : `int grille[3][4];`",
+  "week": 11
+ },
+ {
+  "term": "vector",
+  "def": "Tableau qui peut grandir : `vector<int> v;` puis `v.push_back(3);`",
+  "week": 11
+ },
+ {
+  "term": "struct (structure)",
+  "def": "Type qui regroupe plusieurs variables : `struct Chat { string nom; int age; };`",
+  "week": 12
+ },
+ {
+  "term": "Membre (champ)",
+  "def": "Une variable à l'intérieur d'une struct : `monChat.nom`.",
+  "week": 12
+ },
+ {
+  "term": "Sous-chaîne",
+  "def": "Morceau d'une string, obtenu avec `substr(debut, longueur)`.",
+  "week": 12
+ },
+ {
+  "term": "string::npos",
+  "def": "Valeur spéciale renvoyée par `find()` quand rien n'est trouvé.",
+  "week": 12
+ },
+ {
+  "term": "Flux (stream)",
+  "def": "Canal par où passent les données : cout, cin, fichiers...",
+  "week": 13
+ },
+ {
+  "term": "ifstream / ofstream",
+  "def": "Flux pour lire (i = input) ou écrire (o = output) dans un fichier.",
+  "week": 13
+ },
+ {
+  "term": "Chemin relatif",
+  "def": "Chemin d'un fichier à partir du dossier courant du programme.",
+  "week": 13
+ }
+]

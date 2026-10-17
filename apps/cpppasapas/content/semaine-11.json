@@ -1,0 +1,1181 @@
+{
+  "week": 11,
+  "title": "Tableaux et vector",
+  "notions": [
+    {
+      "id": "s11-tableaux-1d",
+      "title": "Tableaux 1D",
+      "lesson": [
+        {
+          "type": "code",
+          "text": "Un tableau, c'est plusieurs cases du **même type**, sous un seul nom. Ici : le poids de 4 chats.",
+          "code": "const int NB_CHATS = 4;\nint poids[NB_CHATS] = { 5, 3, 7, 4 };\ncout << poids[0] << '\\n';\ncout << poids[3] << '\\n';",
+          "lines": [
+            "Une constante pour la taille. La taille d'un tableau [] doit être connue à la compilation.",
+            "Crée 4 cases `int` et les remplit dans l'ordre.",
+            "La **première** case a l'indice 0.",
+            "La **dernière** case a l'indice 3 (taille - 1)."
+          ],
+          "output": "5\n4"
+        },
+        {
+          "type": "memory",
+          "text": "En mémoire, les cases sont **collées** les unes aux autres. Chaque `int` prend 4 octets.",
+          "boxes": [
+            {
+              "name": "poids[0]",
+              "value": "5",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "poids[1]",
+              "value": "3",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "poids[2]",
+              "value": "7",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "poids[3]",
+              "value": "4",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "Pour visiter toutes les cases, on utilise une boucle `for`. L'indice `i` va de 0 à taille - 1.",
+          "code": "double croquettes[3] = { 1.5, 2.0, 0.5 };\ndouble total = 0.0;\nfor (int i = 0; i < 3; ++i)\n{\n    total += croquettes[i];\n}\ncout << \"Total : \" << total << '\\n';",
+          "lines": [
+            "Un tableau de `double` : les portions de croquettes (en tasses).",
+            "L'accumulateur commence à 0.",
+            "i prend 0, 1, 2. On s'arrête AVANT 3.",
+            "",
+            "Ajoute la case numéro i au total.",
+            "",
+            "Affiche la somme."
+          ],
+          "output": "Total : 4"
+        },
+        {
+          "type": "code",
+          "text": "Tous les types marchent : `int`, `double`, `char`, `string`... Et `{}` met tout à zéro.",
+          "code": "string noms[3] = { \"Mimi\", \"Tigrou\", \"Pixel\" };\nchar initiales[3] = { 'M', 'T', 'P' };\nint vies[5] = {};\ncout << noms[1] << ' ' << initiales[2] << ' ' << vies[4] << '\\n';",
+          "lines": [
+            "Un tableau de 3 `string`.",
+            "Un tableau de 3 `char` (guillemets simples !).",
+            "`{}` vide : les 5 cases valent 0.",
+            "Case 1 de noms, case 2 de initiales, case 4 de vies."
+          ],
+          "output": "Tigrou P 0"
+        },
+        {
+          "type": "code",
+          "text": "Un `enum` donne un **nom** à chaque indice. Plus lisible que `grammes[1]` ! 😸",
+          "code": "enum Repas { MATIN, MIDI, SOIR, NB_REPAS };\nint grammes[NB_REPAS] = { 40, 25, 50 };\ncout << \"Midi : \" << grammes[MIDI] << \" g\" << '\\n';",
+          "lines": [
+            "MATIN vaut 0, MIDI vaut 1, SOIR vaut 2... et NB_REPAS vaut 3 : pratique pour la taille !",
+            "Le tableau a exactement NB_REPAS cases.",
+            "`grammes[MIDI]` = `grammes[1]`, mais on comprend tout de suite."
+          ],
+          "output": "Midi : 25 g"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : `for (int i = 0; i <= NB; ++i)` sort du tableau ! La case `t[NB]` n'existe pas. C++ ne vérifie pas : tu lis n'importe quoi en mémoire. Et `sizeof(t)` donne des **octets**, pas un nombre de cases."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quel est l'indice de la première case d'un tableau ?",
+          "a": "0. Toujours."
+        },
+        {
+          "q": "Un tableau a 10 cases. Quel est le dernier indice ?",
+          "a": "9 (taille - 1)."
+        },
+        {
+          "q": "Que contient `int t[5] = {};` ?",
+          "a": "Cinq cases qui valent 0."
+        },
+        {
+          "q": "`int t[5];` → que donne `sizeof(t)` ?",
+          "a": "20 : des **octets** (5 × 4). Le nombre de cases = `sizeof(t) / sizeof(t[0])`."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "enum Jour { LUNDI, MARDI, MERCREDI, NB_JOURS };\nint siestes[NB_JOURS] = { 2, 5, 3 };\ncout << siestes[MARDI] + NB_JOURS;",
+          "choices": [
+            "8",
+            "7",
+            "5",
+            "6"
+          ],
+          "answer": 0,
+          "hint": "Un enum commence à 0. Combien vaut MARDI ? Et NB_JOURS ?",
+          "explain": "MARDI vaut 1, donc `siestes[1]` = 5. NB_JOURS vaut 3. 5 + 3 = 8. Si tu as dit 7, tu as compté l'enum à partir de 1."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "const int TAILLE = 5;\nint t[TAILLE] = { 1, 2, 3, 4, 5 };\nfor (int i = 0; i <= TAILLE; ++i)\n{\n    cout << t[i] << ' ';\n}",
+          "answer": 2,
+          "hint": "Quel est le dernier indice valide ? Et le dernier i de la boucle ?",
+          "explain": "Bogue de logique : avec `<=`, i vaut 5 au dernier tour et `t[5]` n'existe pas. Ça compile, mais on lit hors du tableau. Il faut `i < TAILLE`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int notes[5] = { 80, 75, 90, 60, 100 };\ncout << sizeof(notes) << ' ' << sizeof(notes) / sizeof(notes[0]);",
+          "answer": "20 5",
+          "hint": "`sizeof` compte des octets. Un `int` = 4 octets.",
+          "explain": "`sizeof(notes)` = 5 cases × 4 octets = 20. Divisé par la taille d'une case (4), on retrouve 5 cases. Ce n'est pas `5 5` !"
+        },
+        {
+          "type": "fill",
+          "q": "Complète la boucle pour afficher toutes les cases, sans sortir du tableau.",
+          "code": "const int NB = 4;\nint t[NB] = { 9, 8, 7, 6 };\nfor (int i = 0; i ___ NB; ++i)\n{\n    cout << t[i];\n}",
+          "choices": [
+            "<",
+            "<=",
+            ">",
+            ">="
+          ],
+          "answer": 0,
+          "hint": "Les indices vont de 0 à NB - 1.",
+          "explain": "`i < NB` s'arrête à 3, le dernier indice. `<=` irait jusqu'à `t[4]` : hors du tableau !"
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour compter toutes les pattes.",
+          "lines": [
+            "int pattes[3] = { 4, 4, 3 };",
+            "int total = 0;",
+            "for (int i = 0; i < 3; ++i)",
+            "{",
+            "    total += pattes[i];",
+            "}",
+            "cout << total << '\\n';"
+          ],
+          "hint": "Déclare d'abord, boucle ensuite, affiche à la fin.",
+          "explain": "On crée le tableau et l'accumulateur, on additionne chaque case dans la boucle, puis on affiche 11."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi les indices d'un tableau commencent-ils à 0 ?",
+          "a": "L'indice est un **décalage** depuis le début du tableau. La case 0 est au début : décalage de 0. La case i est à « début + i × taille d'une case »."
+        },
+        {
+          "q": "Qu'arrive-t-il si on lit `t[5]` dans un tableau de 5 cases ?",
+          "a": "C++ ne vérifie pas les indices. On lit la mémoire juste après le tableau. On obtient une valeur bizarre, ou le programme plante. C'est un comportement indéfini."
+        }
+      ]
+    },
+    {
+      "id": "s11-ajout-suppression",
+      "title": "Ajouter/supprimer dans un tableau",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Un tableau [] a une taille **fixe**. Le truc : on prend un tableau assez grand (la **capacité**) et un **compteur** des cases utilisées."
+        },
+        {
+          "type": "code",
+          "text": "On ajoute à la fin : on écrit dans la case `nbChats`, puis on augmente le compteur.",
+          "code": "const int CAPACITE = 5;\nstring chats[CAPACITE];\nint nbChats = 0;\nchats[nbChats] = \"Mimi\";\n++nbChats;\nchats[nbChats] = \"Pixel\";\n++nbChats;\ncout << nbChats << \" chats\" << '\\n';",
+          "lines": [
+            "Au maximum 5 chats.",
+            "5 cases de `string`, vides au départ.",
+            "Aucune case utilisée pour l'instant.",
+            "Écrit dans la case 0 (car nbChats vaut 0).",
+            "Maintenant nbChats vaut 1.",
+            "Écrit dans la case 1.",
+            "nbChats vaut 2.",
+            "Affiche le compteur, pas la capacité."
+          ],
+          "output": "2 chats"
+        },
+        {
+          "type": "memory",
+          "text": "Le tableau a 5 cases, mais seulement 2 comptent. Les cases après `nbChats` sont ignorées.",
+          "boxes": [
+            {
+              "name": "nbChats",
+              "value": "2",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "chats[0]",
+              "value": "\"Mimi\"",
+              "type": "string",
+              "size": "objet string"
+            },
+            {
+              "name": "chats[1]",
+              "value": "\"Pixel\"",
+              "type": "string",
+              "size": "objet string"
+            },
+            {
+              "name": "chats[2]",
+              "value": "\"\" (libre)",
+              "type": "string",
+              "size": "objet string"
+            },
+            {
+              "name": "chats[3]",
+              "value": "\"\" (libre)",
+              "type": "string",
+              "size": "objet string"
+            },
+            {
+              "name": "chats[4]",
+              "value": "\"\" (libre)",
+              "type": "string",
+              "size": "objet string"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "Pour **supprimer** la case 1 : on décale tout ce qui suit d'une case vers la **gauche**, puis `--nbChats`.",
+          "code": "string chats[5] = { \"Mimi\", \"Pixel\", \"Tigrou\", \"Luna\" };\nint nbChats = 4;\nint aEnlever = 1;\nfor (int i = aEnlever; i < nbChats - 1; ++i)\n{\n    chats[i] = chats[i + 1];\n}\n--nbChats;\nfor (int i = 0; i < nbChats; ++i)\n{\n    cout << chats[i] << ' ';\n}",
+          "lines": [
+            "4 chats utilisés sur 5 cases.",
+            "Le compteur.",
+            "On veut enlever Pixel (case 1).",
+            "De la case 1 jusqu'à l'avant-dernière.",
+            "",
+            "Chaque case reçoit sa voisine de droite.",
+            "",
+            "Un chat de moins.",
+            "Affiche seulement les cases utilisées.",
+            "",
+            "",
+            ""
+          ],
+          "output": "Mimi Tigrou Luna "
+        },
+        {
+          "type": "code",
+          "text": "Pour **insérer** au milieu : on décale vers la **droite**, en partant de la **fin**.",
+          "code": "int t[6] = { 10, 20, 40, 50 };\nint nb = 4;\nint pos = 2;\nfor (int i = nb; i > pos; --i)\n{\n    t[i] = t[i - 1];\n}\nt[pos] = 30;\n++nb;\nfor (int i = 0; i < nb; ++i)\n{\n    cout << t[i] << ' ';\n}",
+          "lines": [
+            "Capacité 6, on en utilise 4.",
+            "Le compteur.",
+            "On veut mettre 30 dans la case 2.",
+            "On part de la fin et on recule jusqu'à pos.",
+            "",
+            "Chaque case reçoit sa voisine de gauche.",
+            "",
+            "La case 2 est libre : on y met 30.",
+            "Une valeur de plus.",
+            "Affiche les 5 valeurs.",
+            "",
+            "",
+            ""
+          ],
+          "output": "10 20 30 40 50 "
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : vérifie `nb < CAPACITE` avant d'ajouter. Et pour insérer, décale depuis la **fin**, sinon tu écrases les valeurs !"
+        }
+      ],
+      "cards": [
+        {
+          "q": "Pourquoi utiliser un compteur avec un tableau [] ?",
+          "a": "La taille est fixe. Le compteur dit combien de cases sont vraiment utilisées."
+        },
+        {
+          "q": "Comment ajouter à la fin ?",
+          "a": "`t[nb] = valeur;` puis `++nb;` (seulement si `nb < CAPACITE`)."
+        },
+        {
+          "q": "Comment supprimer la case i ?",
+          "a": "Décaler vers la gauche : `t[j] = t[j + 1]` de i jusqu'à nb - 2, puis `--nb`."
+        },
+        {
+          "q": "Pour insérer, on décale dans quel sens ?",
+          "a": "Vers la droite, en partant de la **fin** du tableau."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int t[5] = { 7, 8 };\nint nb = 2;\nt[nb] = 9;\n++nb;\ncout << nb << ' ' << t[2];",
+          "choices": [
+            "3 9",
+            "2 9",
+            "3 0",
+            "2 8"
+          ],
+          "answer": 0,
+          "hint": "Dans quelle case le 9 est-il écrit ? Et que devient nb ?",
+          "explain": "nb vaut 2, donc le 9 va dans `t[2]`. Ensuite nb passe à 3. Si tu as dit `2 9`, tu as oublié le `++nb`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int t[5] = { 1, 2, 3, 4, 5 };\nint nb = 5;\nfor (int i = 0; i < nb - 1; ++i)\n{\n    t[i] = t[i + 1];\n}\n--nb;\nfor (int i = 0; i < nb; ++i)\n{\n    cout << t[i];\n}",
+          "answer": "2345",
+          "hint": "On supprime la case 0. Tout glisse vers la gauche.",
+          "explain": "Chaque case prend la valeur de sa voisine de droite : 2 3 4 5. Le compteur passe à 4, donc on n'affiche pas l'ancienne dernière case."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int t[5] = { 1, 2, 3 };\nint nb = 3;\nfor (int i = 0; i < nb; ++i)\n{\n    t[i + 1] = t[i];\n}\nt[0] = 0;\n++nb;",
+          "answer": 2,
+          "hint": "On veut insérer 0 au début. Dans quel sens faut-il décaler ?",
+          "explain": "Bogue de logique : en décalant depuis le début, `t[1]` reçoit 1, puis `t[2]` reçoit ce 1... On obtient 0 1 1 1. Il faut partir de la fin : `for (int i = nb; i > 0; --i)` avec `t[i] = t[i - 1]`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète la condition pour ne jamais dépasser la capacité.",
+          "code": "const int CAPACITE = 3;\nstring chats[CAPACITE];\nint nbChats = 0;\nif (nbChats ___ CAPACITE)\n{\n    chats[nbChats] = \"Mimi\";\n    ++nbChats;\n}\ncout << nbChats;",
+          "choices": [
+            "<",
+            "<=",
+            "==",
+            ">"
+          ],
+          "answer": 0,
+          "hint": "Quand nbChats vaut 3, la case chats[3] existe-t-elle ?",
+          "explain": "On peut ajouter tant que `nbChats < CAPACITE`. Avec `<=`, on écrirait dans `chats[3]` quand le tableau est plein : hors limites !"
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour supprimer la case `pos`.",
+          "lines": [
+            "for (int i = pos; i < nb - 1; ++i)",
+            "{",
+            "    t[i] = t[i + 1];",
+            "}",
+            "--nb;"
+          ],
+          "hint": "On décale d'abord, on diminue le compteur après.",
+          "explain": "La boucle décale les cases vers la gauche à partir de pos. Ensuite seulement, on enlève 1 au compteur."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi faut-il décaler depuis la fin quand on insère ?",
+          "a": "Si on part du début, on écrase la case suivante avant de l'avoir copiée. La même valeur se répète partout. En partant de la fin, chaque valeur est déplacée avant d'être écrasée."
+        },
+        {
+          "q": "Pourquoi garder un compteur séparé de la capacité ?",
+          "a": "La capacité est fixe : c'est le nombre de cases réservées. Le compteur dit combien sont vraiment remplies. On boucle jusqu'au compteur, et on ignore les cases libres."
+        }
+      ]
+    },
+    {
+      "id": "s11-tableaux-fonctions",
+      "title": "Tableaux et fonctions",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "On peut donner un tableau à une fonction. Mais la fonction ne connaît **pas** sa taille : on la passe en paramètre aussi."
+        },
+        {
+          "type": "code",
+          "text": "Une fonction qui calcule la moyenne d'un tableau de notes.",
+          "code": "double calculerMoyenne(const double notes[], int taille)\n{\n    double somme = 0.0;\n    for (int i = 0; i < taille; ++i)\n    {\n        somme += notes[i];\n    }\n    return somme / taille;\n}\n\nint main()\n{\n    double notes[4] = { 80.0, 70.0, 90.0, 60.0 };\n    cout << calculerMoyenne(notes, 4) << '\\n';\n    return 0;\n}",
+          "lines": [
+            "`notes[]` sans taille entre les crochets. `const` : la fonction promet de ne rien modifier.",
+            "",
+            "L'accumulateur.",
+            "On visite les `taille` cases.",
+            "",
+            "Ajoute chaque note.",
+            "",
+            "Retourne la moyenne.",
+            "",
+            "",
+            "",
+            "",
+            "4 notes.",
+            "On passe le **nom** du tableau (sans crochets) et sa taille.",
+            "",
+            ""
+          ],
+          "output": "75"
+        },
+        {
+          "type": "memory",
+          "text": "La fonction ne reçoit **pas une copie**. Elle reçoit l'**adresse** du tableau : les mêmes cases !",
+          "boxes": [
+            {
+              "name": "notes (main)",
+              "value": "[80, 70, 90, 60]",
+              "type": "double[4]",
+              "size": "32 octets"
+            },
+            {
+              "name": "notes (fonction)",
+              "value": "→ adresse de notes[0]",
+              "type": "const double[]",
+              "size": "8 octets"
+            },
+            {
+              "name": "taille (fonction)",
+              "value": "4",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "Donc si la fonction **modifie** le tableau, le `main` voit le changement. Même sans `&` !",
+          "code": "void doublerPortions(int portions[], int taille)\n{\n    for (int i = 0; i < taille; ++i)\n    {\n        portions[i] *= 2;\n    }\n}\n\nint main()\n{\n    int portions[3] = { 1, 2, 3 };\n    doublerPortions(portions, 3);\n    cout << portions[0] << ' ' << portions[2] << '\\n';\n    return 0;\n}",
+          "lines": [
+            "Pas de `const` : la fonction a le droit de modifier.",
+            "",
+            "",
+            "",
+            "Double chaque case... du tableau du main !",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Les portions de départ.",
+            "Appel : le tableau est envoyé par adresse.",
+            "Les cases ont bien changé.",
+            "",
+            ""
+          ],
+          "output": "2 6"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : dans la fonction, `sizeof(t)` donne la taille d'une **adresse** (8 octets), pas du tableau. C'est pour ça qu'on passe toujours la taille. Et mets `const` si la fonction doit seulement lire."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Un tableau [] passé à une fonction est-il copié ?",
+          "a": "Non. La fonction reçoit l'adresse : elle peut modifier les cases originales."
+        },
+        {
+          "q": "Pourquoi passer la taille en paramètre ?",
+          "a": "La fonction ne connaît pas la taille du tableau."
+        },
+        {
+          "q": "À quoi sert `const` dans `const int t[]` ?",
+          "a": "La fonction ne peut pas modifier le tableau. Le compilateur refuse."
+        },
+        {
+          "q": "Une fonction peut-elle retourner un tableau [] ?",
+          "a": "Non, pas directement. On utilise un `vector` pour ça."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "void remettreAZero(int t[], int taille)\n{\n    for (int i = 0; i < taille; ++i)\n    {\n        t[i] = 0;\n    }\n}\n\nint main()\n{\n    int vies[3] = { 9, 9, 9 };\n    remettreAZero(vies, 2);\n    cout << vies[0] << vies[1] << vies[2];\n    return 0;\n}",
+          "choices": [
+            "009",
+            "999",
+            "000",
+            "099"
+          ],
+          "answer": 0,
+          "hint": "Le tableau est-il copié ? Et combien de cases la fonction visite-t-elle ?",
+          "explain": "Le tableau n'est pas copié : la fonction modifie le vrai. Mais taille vaut 2, donc seules les cases 0 et 1 deviennent 0. Ce n'est pas `999` : un tableau [] est toujours modifiable par la fonction."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "void ajouterBonus(const int scores[], int taille)\n{\n    for (int i = 0; i < taille; ++i)\n    {\n        scores[i] += 10;\n    }\n}",
+          "answer": 4,
+          "hint": "Que promet le mot `const` ?",
+          "explain": "Erreur de compilation : le paramètre est `const`, donc on ne peut pas modifier `scores[i]`. Il faut enlever `const` si on veut vraiment changer les scores."
+        },
+        {
+          "type": "fill",
+          "q": "Complète l'appel de la fonction.",
+          "code": "void afficher(const int t[], int taille)\n{\n    for (int i = 0; i < taille; ++i)\n    {\n        cout << t[i] << ' ';\n    }\n}\n\nint main()\n{\n    int chats[3] = { 4, 1, 7 };\n    afficher(___, 3);\n    return 0;\n}",
+          "choices": [
+            "chats",
+            "chats[]",
+            "chats[3]",
+            "&chats[3]"
+          ],
+          "answer": 0,
+          "hint": "À l'appel, on donne juste le nom du tableau.",
+          "explain": "On passe `chats`, sans crochets. `chats[3]` serait une seule case (qui n'existe même pas !), et `chats[]` ne compile pas."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int compterPairs(const int t[], int taille)\n{\n    int compte = 0;\n    for (int i = 0; i < taille; ++i)\n    {\n        if (t[i] % 2 == 0)\n        {\n            ++compte;\n        }\n    }\n    return compte;\n}\n\nint main()\n{\n    int t[5] = { 4, 7, 10, 3, 8 };\n    cout << compterPairs(t, 4);\n    return 0;\n}",
+          "answer": "2",
+          "hint": "Regarde bien la taille donnée à l'appel.",
+          "explain": "On passe 4 comme taille : la fonction ne voit que 4, 7, 10, 3. Il y a 2 pairs (4 et 10). Le 8 est dans la case 4, jamais visitée. Ce n'est pas 3 !"
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour écrire la fonction.",
+          "lines": [
+            "void afficherTout(const string noms[], int taille)",
+            "{",
+            "    for (int i = 0; i < taille; ++i)",
+            "    {",
+            "        cout << noms[i] << '\\n';",
+            "    }",
+            "}"
+          ],
+          "hint": "L'en-tête de la fonction vient en premier.",
+          "explain": "L'en-tête, puis le bloc de la fonction, puis la boucle et son bloc. La boucle va de 0 à taille - 1."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi une fonction peut-elle modifier un tableau [] sans `&` ?",
+          "a": "Le nom du tableau devient l'adresse de sa première case. La fonction reçoit cette adresse, pas une copie. Elle travaille donc sur les mêmes cases que le `main`."
+        },
+        {
+          "q": "Pourquoi `sizeof` dans la fonction ne donne-t-il pas la taille du tableau ?",
+          "a": "Dans la fonction, le paramètre n'est qu'une adresse. `sizeof` donne la taille de l'adresse (8 octets). C'est pour ça qu'on ajoute un paramètre `taille`."
+        }
+      ]
+    },
+    {
+      "id": "s11-tableaux-2d",
+      "title": "Tableaux 2D",
+      "lesson": [
+        {
+          "type": "code",
+          "text": "Un tableau 2D, c'est une **grille** : des lignes et des colonnes. Premier indice = ligne, deuxième = colonne.",
+          "code": "const int NB_LIGNES = 2;\nconst int NB_COLONNES = 3;\nint grille[NB_LIGNES][NB_COLONNES] =\n{\n    { 1, 2, 3 },\n    { 4, 5, 6 }\n};\ncout << grille[1][0] << '\\n';",
+          "lines": [
+            "2 lignes.",
+            "3 colonnes.",
+            "Une grille de 2 × 3 = 6 cases.",
+            "",
+            "La ligne 0.",
+            "La ligne 1.",
+            "",
+            "Ligne 1, colonne 0 : c'est 4."
+          ],
+          "output": "4"
+        },
+        {
+          "type": "memory",
+          "text": "En mémoire, il n'y a pas de grille : c'est **une seule rangée**. La ligne 0, puis la ligne 1, collées.",
+          "boxes": [
+            {
+              "name": "grille[0][0]",
+              "value": "1",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "grille[0][1]",
+              "value": "2",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "grille[0][2]",
+              "value": "3",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "grille[1][0]",
+              "value": "4",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "grille[1][1]",
+              "value": "5",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "grille[1][2]",
+              "value": "6",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "Pour tout parcourir : deux boucles **imbriquées**. La boucle du dehors fait les lignes, celle du dedans fait les colonnes.",
+          "code": "int grille[2][3] = { { 1, 2, 3 }, { 4, 5, 6 } };\nfor (int ligne = 0; ligne < 2; ++ligne)\n{\n    for (int col = 0; col < 3; ++col)\n    {\n        cout << grille[ligne][col] << ' ';\n    }\n    cout << '\\n';\n}",
+          "lines": [
+            "La même grille, sur une ligne.",
+            "Pour chaque ligne...",
+            "",
+            "...on visite chaque colonne.",
+            "",
+            "Affiche la case.",
+            "",
+            "Fin de la ligne : on passe à la ligne suivante à l'écran.",
+            ""
+          ],
+          "output": "1 2 3 \n4 5 6 "
+        },
+        {
+          "type": "code",
+          "text": "En paramètre, on doit donner le **nombre de colonnes**. Le nombre de lignes, on le passe à part.",
+          "code": "const int NB_COLONNES = 3;\n\nint sommeGrille(const int g[][NB_COLONNES], int nbLignes)\n{\n    int somme = 0;\n    for (int i = 0; i < nbLignes; ++i)\n    {\n        for (int j = 0; j < NB_COLONNES; ++j)\n        {\n            somme += g[i][j];\n        }\n    }\n    return somme;\n}\n\nint main()\n{\n    int g[2][NB_COLONNES] = { { 1, 1, 1 }, { 2, 2, 2 } };\n    cout << sommeGrille(g, 2) << '\\n';\n    return 0;\n}",
+          "lines": [
+            "Constante globale : utile dans la fonction ET dans le main.",
+            "",
+            "Premiers crochets vides, deuxièmes **obligatoires**.",
+            "",
+            "",
+            "Chaque ligne...",
+            "",
+            "...chaque colonne.",
+            "",
+            "Additionne la case.",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Une grille 2 × 3.",
+            "On passe le nom et le nombre de lignes.",
+            "",
+            ""
+          ],
+          "output": "9"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : `t[ligne][colonne]`, pas l'inverse ! Si tu échanges les bornes des boucles, tu sors de la grille."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Combien de cases dans `int t[3][4]` ?",
+          "a": "12 : 3 lignes × 4 colonnes."
+        },
+        {
+          "q": "Dans `t[i][j]`, que représentent i et j ?",
+          "a": "i = la ligne, j = la colonne."
+        },
+        {
+          "q": "Quelle taille est obligatoire pour un 2D en paramètre ?",
+          "a": "Le nombre de colonnes : `int g[][NB_COLONNES]`."
+        },
+        {
+          "q": "Comment parcourir un tableau 2D ?",
+          "a": "Deux boucles `for` imbriquées : lignes dehors, colonnes dedans."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "int t[2][3] = { { 1, 2, 3 }, { 4, 5, 6 } };\ncout << t[0][2] + t[1][1];",
+          "choices": [
+            "8",
+            "7",
+            "6",
+            "9"
+          ],
+          "answer": 0,
+          "hint": "Premier indice = ligne. Deuxième = colonne. Tout commence à 0.",
+          "explain": "`t[0][2]` = ligne 0, colonne 2 = 3. `t[1][1]` = ligne 1, colonne 1 = 5. Total 8."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "int t[3][3] = { { 1, 2, 3 }, { 4, 5, 6 }, { 7, 8, 9 } };\nfor (int i = 0; i < 3; ++i)\n{\n    cout << t[i][i];\n}",
+          "answer": "159",
+          "hint": "Même indice pour la ligne et la colonne : c'est la diagonale.",
+          "explain": "On affiche `t[0][0]`, `t[1][1]`, `t[2][2]` : 1, 5 et 9. Pas d'espace entre les chiffres !"
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "int t[2][4] = {};\nfor (int i = 0; i < 4; ++i)\n{\n    for (int j = 0; j < 2; ++j)\n    {\n        t[i][j] = 1;\n    }\n}",
+          "answer": 1,
+          "hint": "Combien de lignes a la grille ? Et i va jusqu'où ?",
+          "explain": "Bogue de logique : `t` a 2 lignes et 4 colonnes. La boucle de i (les lignes) va jusqu'à 3 : on sort de la grille. Il faut `i < 2` dehors et `j < 4` dedans."
+        },
+        {
+          "type": "fill",
+          "q": "Complète le paramètre de la fonction.",
+          "code": "void afficher(const int g[][___], int nbLignes)\n{\n    for (int i = 0; i < nbLignes; ++i)\n    {\n        cout << g[i][0] << ' ';\n    }\n}\n\nint main()\n{\n    int g[2][3] = { { 1, 2, 3 }, { 4, 5, 6 } };\n    afficher(g, 2);\n    return 0;\n}",
+          "choices": [
+            "3",
+            "2",
+            "5",
+            "6"
+          ],
+          "answer": 0,
+          "hint": "Le compilateur doit savoir combien de cases il y a dans une ligne.",
+          "explain": "Il faut le nombre de **colonnes** : 3. Le 2, c'est le nombre de lignes : il est déjà passé dans `nbLignes`."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher la grille `g` de 2 lignes et 3 colonnes.",
+          "lines": [
+            "for (int i = 0; i < 2; ++i)",
+            "{",
+            "    for (int j = 0; j < 3; ++j)",
+            "    {",
+            "        cout << g[i][j];",
+            "    }",
+            "}"
+          ],
+          "hint": "La boucle des lignes est à l'extérieur.",
+          "explain": "La boucle de i (lignes) entoure la boucle de j (colonnes). On affiche `g[i][j]` au centre."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Comment un tableau 2D est-il rangé en mémoire ?",
+          "a": "Ligne par ligne, dans une seule rangée. Après la dernière case de la ligne 0 vient la première case de la ligne 1. La « grille » existe seulement dans notre tête."
+        },
+        {
+          "q": "Pourquoi une fonction a-t-elle besoin du nombre de colonnes d'un 2D ?",
+          "a": "Pour trouver `g[i][j]`, elle calcule la position i × nbColonnes + j. Sans le nombre de colonnes, elle ne sait pas où commence chaque ligne."
+        }
+      ]
+    },
+    {
+      "id": "s11-vector",
+      "title": "Le vector",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Un `vector`, c'est un tableau qui peut **grandir** et **rapetisser**. Et il connaît sa taille ! Il faut `#include <vector>`."
+        },
+        {
+          "type": "code",
+          "text": "On crée un vector avec `{}`, on lit avec `[]` et on ajoute à la fin avec `push_back`.",
+          "code": "vector<int> poids = { 5, 3, 7 };\ncout << poids.size() << '\\n';\npoids.push_back(4);\ncout << poids.size() << ' ' << poids[3] << '\\n';",
+          "lines": [
+            "Un vector de `int` avec 3 valeurs.",
+            "`size()` donne le nombre d'éléments.",
+            "Ajoute 4 à la fin. Le vector grandit tout seul.",
+            "Maintenant 4 éléments. Le dernier est à l'indice 3."
+          ],
+          "output": "3\n4 4"
+        },
+        {
+          "type": "memory",
+          "text": "Le vector garde une petite « fiche » (adresse, taille, capacité). Les vraies cases sont ailleurs, dans une zone qui peut grandir.",
+          "boxes": [
+            {
+              "name": "poids (fiche)",
+              "value": "adresse + taille + capacité",
+              "type": "vector<int>",
+              "size": "~24 octets"
+            },
+            {
+              "name": "poids[0]",
+              "value": "5",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "poids[1]",
+              "value": "3",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "poids[2]",
+              "value": "7",
+              "type": "int",
+              "size": "4 octets"
+            },
+            {
+              "name": "poids[3]",
+              "value": "4",
+              "type": "int",
+              "size": "4 octets"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "`insert` ajoute à une position, `erase` enlève. Les deux veulent une **position** : `v.begin() + i`.",
+          "code": "vector<string> chats = { \"Mimi\", \"Pixel\", \"Luna\" };\nchats.insert(chats.begin() + 1, \"Tigrou\");\nchats.erase(chats.begin());\nfor (size_t i = 0; i < chats.size(); ++i)\n{\n    cout << chats[i] << ' ';\n}",
+          "lines": [
+            "3 chats.",
+            "Insère Tigrou à l'indice 1 : Mimi Tigrou Pixel Luna.",
+            "Enlève l'indice 0 (Mimi) : Tigrou Pixel Luna.",
+            "`size_t` : le type de `size()`. Évite un avertissement.",
+            "",
+            "Affiche chaque chat.",
+            ""
+          ],
+          "output": "Tigrou Pixel Luna "
+        },
+        {
+          "type": "code",
+          "text": "`clear()` vide tout. Le vector est encore là, prêt à resservir.",
+          "code": "vector<double> repas = { 1.5, 2.0 };\nrepas.clear();\ncout << repas.size() << '\\n';\nrepas.push_back(3.5);\ncout << repas[0] << '\\n';",
+          "lines": [
+            "2 repas.",
+            "On vide.",
+            "Taille 0.",
+            "On peut rajouter après.",
+            "Le nouveau premier élément."
+          ],
+          "output": "0\n3.5"
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : `v.erase(2)` ne compile pas ! Écris `v.erase(v.begin() + 2)`. Et `v[i]` ne vérifie pas l'indice : `v.at(i)` le vérifie."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Quel include pour utiliser vector ?",
+          "a": "`#include <vector>`"
+        },
+        {
+          "q": "Comment ajouter une valeur à la fin d'un vector ?",
+          "a": "`v.push_back(valeur);`"
+        },
+        {
+          "q": "Comment enlever l'élément d'indice 2 ?",
+          "a": "`v.erase(v.begin() + 2);`"
+        },
+        {
+          "q": "Que fait `v.clear()` ?",
+          "a": "Enlève tout. Ensuite `v.size()` vaut 0."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "vector<int> v = { 10, 20, 30, 40 };\nv.erase(v.begin() + 1);\ncout << v[1] << ' ' << v.size();",
+          "choices": [
+            "30 3",
+            "20 3",
+            "20 4",
+            "40 3"
+          ],
+          "answer": 0,
+          "hint": "Quel élément est à l'indice 1 ? Qu'est-ce qui glisse ensuite ?",
+          "explain": "On enlève l'indice 1 (le 20). Le vector devient 10 30 40 : `v[1]` = 30 et la taille = 3. `erase` décale tout seul, pas besoin de boucle !"
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "vector<int> v = { 1, 2, 3 };\nv.insert(v.begin(), 0);\nv.push_back(4);\ncout << v[0] << v[4] << v.size();",
+          "answer": "045",
+          "hint": "Écris le vector après chaque ligne.",
+          "explain": "Après insert : 0 1 2 3. Après push_back : 0 1 2 3 4. Donc `v[0]` = 0, `v[4]` = 4 et la taille = 5."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "vector<string> chats = { \"Mimi\", \"Pixel\", \"Luna\" };\nchats.erase(1);\ncout << chats.size();",
+          "answer": 1,
+          "hint": "Que veut `erase` entre ses parenthèses : un nombre ou une position ?",
+          "explain": "Erreur de compilation : `erase` veut une position, pas un indice. Il faut `chats.erase(chats.begin() + 1);`."
+        },
+        {
+          "type": "fill",
+          "q": "Complète pour ajouter Luna à la fin.",
+          "code": "vector<string> chats = { \"Mimi\", \"Pixel\" };\nchats.___(\"Luna\");\ncout << chats.size();",
+          "choices": [
+            "push_back",
+            "insert",
+            "add",
+            "append"
+          ],
+          "answer": 0,
+          "hint": "C'est la méthode « pousse à l'arrière ».",
+          "explain": "`push_back` ajoute à la fin. `insert` a besoin d'une position en plus, et `add` n'existe pas en C++."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes dans l'ordre pour afficher `8 1`.",
+          "lines": [
+            "vector<int> v;",
+            "v.push_back(3);",
+            "v.push_back(8);",
+            "v.erase(v.begin());",
+            "cout << v[0] << ' ' << v.size();"
+          ],
+          "hint": "Il faut un vector avant de le remplir. Et il faut des éléments avant d'en enlever.",
+          "explain": "On crée le vector vide, on ajoute 3 puis 8, on enlève le premier (3). Il reste 8, taille 1."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Quelle est la différence entre un tableau [] et un vector ?",
+          "a": "Un tableau [] a une taille fixe et ne connaît pas sa taille. Un vector grandit avec `push_back`, et `size()` donne sa taille. On peut aussi le retourner d'une fonction."
+        },
+        {
+          "q": "Pourquoi écrit-on `v.erase(v.begin() + i)` et pas `v.erase(i)` ?",
+          "a": "`erase` veut une position (un itérateur), pas un nombre. `v.begin()` est la position de la case 0. En ajoutant i, on avance de i cases."
+        }
+      ]
+    },
+    {
+      "id": "s11-vector-fonctions",
+      "title": "vector et fonctions",
+      "lesson": [
+        {
+          "type": "talk",
+          "text": "Attention, surprise ! Contrairement au tableau [], un `vector` passé à une fonction est **copié**. Pour le modifier, il faut `&`."
+        },
+        {
+          "type": "code",
+          "text": "Sans `&`, la fonction travaille sur une copie. Le vector du `main` ne change pas.",
+          "code": "void ajouterChat(vector<string> chats)\n{\n    chats.push_back(\"Pixel\");\n}\n\nint main()\n{\n    vector<string> chats = { \"Mimi\" };\n    ajouterChat(chats);\n    cout << chats.size() << '\\n';\n    return 0;\n}",
+          "lines": [
+            "Paramètre par valeur : une copie.",
+            "",
+            "Ajoute Pixel... dans la copie.",
+            "La copie disparaît ici.",
+            "",
+            "",
+            "",
+            "Un seul chat.",
+            "Appel.",
+            "Toujours 1 : l'original n'a pas bougé.",
+            "",
+            ""
+          ],
+          "output": "1"
+        },
+        {
+          "type": "code",
+          "text": "Avec `&`, la fonction reçoit le **vrai** vector. Les changements restent.",
+          "code": "void ajouterChat(vector<string>& chats)\n{\n    chats.push_back(\"Pixel\");\n}\n\nint main()\n{\n    vector<string> chats = { \"Mimi\" };\n    ajouterChat(chats);\n    cout << chats.size() << '\\n';\n    return 0;\n}",
+          "lines": [
+            "Le `&` : référence vers l'original.",
+            "",
+            "Ajoute Pixel dans le vrai vector.",
+            "",
+            "",
+            "",
+            "",
+            "Un seul chat au départ.",
+            "Appel (rien ne change ici).",
+            "Maintenant 2 !",
+            "",
+            ""
+          ],
+          "output": "2"
+        },
+        {
+          "type": "memory",
+          "text": "Sans `&` : deux vectors séparés. Avec `&` : deux noms pour le même vector.",
+          "boxes": [
+            {
+              "name": "chats (main)",
+              "value": "{ \"Mimi\" }",
+              "type": "vector<string>",
+              "size": "~24 octets"
+            },
+            {
+              "name": "chats (copie)",
+              "value": "{ \"Mimi\", \"Pixel\" } puis détruit",
+              "type": "vector<string>",
+              "size": "~24 octets"
+            },
+            {
+              "name": "chats (avec &)",
+              "value": "→ même vector que main",
+              "type": "vector<string>&",
+              "size": "adresse"
+            }
+          ]
+        },
+        {
+          "type": "code",
+          "text": "Une fonction peut **retourner** un vector. Impossible avec un tableau [] !",
+          "code": "vector<int> creerCompteARebours(int depart)\n{\n    vector<int> resultat;\n    for (int i = depart; i > 0; --i)\n    {\n        resultat.push_back(i);\n    }\n    return resultat;\n}\n\nint main()\n{\n    vector<int> compte = creerCompteARebours(3);\n    for (int n : compte)\n    {\n        cout << n << ' ';\n    }\n    cout << '\\n';\n    return 0;\n}",
+          "lines": [
+            "Le type de retour est `vector<int>`.",
+            "",
+            "Un vector vide.",
+            "De depart jusqu'à 1.",
+            "",
+            "Ajoute chaque nombre.",
+            "",
+            "Retourne le vector rempli.",
+            "",
+            "",
+            "",
+            "",
+            "Récupère le vector retourné.",
+            "Boucle « pour chaque » : n prend chaque valeur.",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "output": "3 2 1 "
+        },
+        {
+          "type": "tip",
+          "text": "⚠️ Piège classique : pour seulement **lire** un gros vector, écris `const vector<int>& v`. Pas de copie (rapide), et pas de modification par accident."
+        }
+      ],
+      "cards": [
+        {
+          "q": "Un vector passé sans `&` : que se passe-t-il ?",
+          "a": "Il est copié. Les changements dans la fonction sont perdus."
+        },
+        {
+          "q": "Comment écrire un paramètre vector que la fonction peut modifier ?",
+          "a": "`vector<int>& v`"
+        },
+        {
+          "q": "Comment passer un vector juste pour le lire, sans copie ?",
+          "a": "`const vector<int>& v`"
+        },
+        {
+          "q": "Une fonction peut-elle retourner un vector ?",
+          "a": "Oui : `vector<int> creerListe()` puis `return liste;`."
+        }
+      ],
+      "puzzles": [
+        {
+          "type": "predict",
+          "q": "Qu'est-ce qui s'affiche ?",
+          "code": "void vider(vector<int> v)\n{\n    v.clear();\n}\n\nint main()\n{\n    vector<int> v = { 1, 2, 3 };\n    vider(v);\n    cout << v.size();\n    return 0;\n}",
+          "choices": [
+            "3",
+            "0",
+            "1",
+            "Erreur de compilation"
+          ],
+          "answer": 0,
+          "hint": "Y a-t-il un `&` dans le paramètre ?",
+          "explain": "Sans `&`, la fonction vide une **copie**. Le vector du main garde ses 3 éléments. Réponse 0 seulement avec `vector<int>& v`."
+        },
+        {
+          "type": "predict-typed",
+          "q": "Écris exactement ce qui s'affiche.",
+          "code": "void ajouterBonus(vector<int>& scores)\n{\n    for (size_t i = 0; i < scores.size(); ++i)\n    {\n        scores[i] += 5;\n    }\n    scores.push_back(0);\n}\n\nint main()\n{\n    vector<int> scores = { 10, 20 };\n    ajouterBonus(scores);\n    for (int s : scores)\n    {\n        cout << s << ' ';\n    }\n    return 0;\n}",
+          "answer": "15 25 0",
+          "hint": "Avec `&`, tout ce que fait la fonction reste.",
+          "explain": "Chaque score gagne 5 (15, 25), puis on ajoute 0 à la fin. Le `&` garde les changements dans le main."
+        },
+        {
+          "type": "bug",
+          "q": "Quelle ligne contient l'erreur ?",
+          "code": "void ajouterChat(const vector<string>& chats)\n{\n    chats.push_back(\"Luna\");\n}",
+          "answer": 2,
+          "hint": "Que promet `const` ?",
+          "explain": "Erreur de compilation : le vector est `const`, on ne peut pas faire `push_back`. Il faut `vector<string>& chats` (sans const) pour modifier."
+        },
+        {
+          "type": "fill",
+          "q": "Complète le type de retour.",
+          "code": "___ garderPairs(const vector<int>& nombres)\n{\n    vector<int> pairs;\n    for (int n : nombres)\n    {\n        if (n % 2 == 0)\n        {\n            pairs.push_back(n);\n        }\n    }\n    return pairs;\n}\n\nint main()\n{\n    vector<int> p = garderPairs({ 1, 2, 3, 4 });\n    cout << p.size();\n    return 0;\n}",
+          "choices": [
+            "vector<int>",
+            "int",
+            "void",
+            "int[]"
+          ],
+          "answer": 0,
+          "hint": "Quel est le type de `pairs`, la variable retournée ?",
+          "explain": "On retourne `pairs`, un `vector<int>`. `int[]` ne marche pas : une fonction ne peut pas retourner un tableau []."
+        },
+        {
+          "type": "order",
+          "q": "Remets les lignes pour que `creerListe(4)` retourne { 4, 8 }.",
+          "lines": [
+            "vector<int> creerListe(int n)",
+            "{",
+            "    vector<int> liste;",
+            "    liste.push_back(n);",
+            "    liste.push_back(n * 2);",
+            "    return liste;",
+            "}"
+          ],
+          "hint": "On déclare le vector avant de le remplir, et on le retourne à la fin.",
+          "explain": "L'en-tête, puis le vector vide, on ajoute n puis n * 2, et on retourne la liste : { 4, 8 }."
+        }
+      ],
+      "explain": [
+        {
+          "q": "Pourquoi écrire `const vector<int>&` plutôt que `vector<int>` pour un paramètre qu'on lit seulement ?",
+          "a": "Sans `&`, tout le vector est copié : c'est lent s'il est gros. Le `&` évite la copie. Le `const` empêche de le modifier par erreur."
+        },
+        {
+          "q": "Quelle différence entre passer un tableau [] et passer un vector à une fonction ?",
+          "a": "Un tableau [] est toujours passé par adresse : la fonction peut le modifier. Un vector est copié par défaut. Pour le modifier, il faut `&`."
+        }
+      ]
+    }
+  ],
+  "aideMemoire": [
+    {
+      "title": "Déclarer un tableau",
+      "code": "const int NB = 5;\nint t[NB] = { 1, 2, 3, 4, 5 };\nint zeros[NB] = {};",
+      "note": "Indices de 0 à NB - 1. `{}` met tout à 0."
+    },
+    {
+      "title": "Parcourir un tableau",
+      "code": "for (int i = 0; i < NB; ++i)\n{\n    cout << t[i];\n}",
+      "note": "Toujours `<`, jamais `<=` !"
+    },
+    {
+      "title": "Ajouter avec un compteur",
+      "code": "if (nb < CAPACITE)\n{\n    t[nb] = valeur;\n    ++nb;\n}",
+      "note": "Le compteur = nombre de cases utilisées."
+    },
+    {
+      "title": "Supprimer la case pos",
+      "code": "for (int i = pos; i < nb - 1; ++i)\n{\n    t[i] = t[i + 1];\n}\n--nb;",
+      "note": "On décale vers la gauche. Pour insérer : vers la droite, depuis la fin."
+    },
+    {
+      "title": "enum comme indice",
+      "code": "enum Repas { MATIN, MIDI, SOIR, NB_REPAS };\nint grammes[NB_REPAS];\ngrammes[MIDI] = 25;",
+      "note": "Le dernier nom (NB_...) donne la taille."
+    },
+    {
+      "title": "Tableau en paramètre",
+      "code": "void f(int t[], int taille);\nvoid g(const int t[], int taille);",
+      "note": "Pas de copie : la fonction modifie l'original. `const` = lecture seule."
+    },
+    {
+      "title": "Tableau 2D",
+      "code": "int g[NB_LIGNES][NB_COLONNES];\ng[ligne][col] = 1;\nvoid f(int g[][NB_COLONNES], int nbLignes);",
+      "note": "Deux boucles imbriquées. En paramètre : nb de colonnes obligatoire."
+    },
+    {
+      "title": "vector",
+      "code": "#include <vector>\nvector<int> v = { 1, 2 };\nv.push_back(3);\nv.insert(v.begin() + i, x);\nv.erase(v.begin() + i);\nv.size();\nv.clear();",
+      "note": "erase et insert veulent `v.begin() + i`."
+    },
+    {
+      "title": "vector et fonctions",
+      "code": "void lire(const vector<int>& v);\nvoid modifier(vector<int>& v);\nvector<int> creer();",
+      "note": "Sans `&` : copie. Un vector peut être retourné."
+    }
+  ]
+}
