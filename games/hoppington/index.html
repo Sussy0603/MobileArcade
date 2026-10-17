@@ -744,6 +744,7 @@ function newState(){
     tut:0, noAds:false, starter:false, iapDone:{},
     weather:{k:'sunny',until:t+20*60000}, visitor:null, visitorAt:t+4*60000, moonAt:0,
     awayLast:0, memLv:0,
+    rbP:0, rbN:0, runC:0,
   };
 }
 function load(){
@@ -760,6 +761,7 @@ function fixState(o){
   for(const k in d.stats) if(o.stats[k]===undefined) o.stats[k]=d.stats[k];
   for(const k in d.inv) if(o.inv[k]===undefined) o.inv[k]=0;
   for(const k in d.shops) if(o.shops[k]===undefined) o.shops[k]=0;
+  if(o.runC===undefined || o.runC===0 && !o.rbN) o.runC = (o.stats && o.stats.carrots) || 0;
   o.open.forEach(id=>{ if(!o.ar[id]) o.ar[id]=newArea(); });
   if(!AREA(o.cur)) o.cur = 'meadow';
   return o;
@@ -877,7 +879,7 @@ function areaBoost(area){
 }
 function globalMult(t){
   t = t || now();
-  let m = 1 + S.shops.bakery * CONFIG.BAKERY_BONUS;
+  let m = (1 + S.shops.bakery * CONFIG.BAKERY_BONUS) * rbIncMul();
   if(S.ad2x > t) m *= 2;
   if(isWeekend(t)) m *= CONFIG.WEEKEND_MULT;
   if(S.weather.k === 'sunny') m *= 1.1;
@@ -902,7 +904,77 @@ function areaIncome(area){ const n = isNight(), g = globalMult(); return bunsIn(
 /* never less than this for rewards that scale with income */
 const incomeFloor = () => Math.max(2, incomePerSec());
 
-function addC(n){ S.c += n; if(n > 0) S.stats.carrots += n; }
+/* ---------- New Burrow (rebirth, same rules as Fishies) ---------- */
+const NB = {BASE:1e7, GROW:5, MIN:10, PER:0.03, HEAD:150, CAPBASE:1e13};
+const LL = (en, fr) => (S && S.lang === 'fr') ? fr : en;
+const rbMul = () => Math.pow(2, (S && S.rbN) || 0);
+const cP = n => Math.round(n * rbMul());
+const cpr = (cur, n) => cur === 'g' ? n : cP(n);
+const rbNeed = () => NB.BASE * Math.pow(NB.GROW, (S && S.rbN) || 0);
+const rbGain = () => Math.floor(10 * Math.pow(Math.max(0, S.runC || 0) / rbNeed(), 0.4));
+const rbIncMul = () => 1 + NB.PER * ((S && S.rbP) || 0);
+const cMax = () => NB.CAPBASE * rbMul();
+let _capT = 0;
+function capNotice(){ const t = Date.now(); if(t - _capT < 60000) return; _capT = t; toast('🥕 ' + LL('Max carrots reached! Tap your carrots to see what to do.', 'Carottes au max! Touche tes carottes pour voir quoi faire.'), 'gold'); }
+function addC(n){
+  if(n <= 0){ S.c += n; return; }
+  const room = Math.max(0, cMax() - S.c), add = Math.min(n, room);
+  S.c += add; S.stats.carrots += add; S.runC = (S.runC || 0) + add;
+  if(add < n) capNotice();
+}
+function showMaxCarrots(){
+  openModal('🥕 ' + LL('Max carrots!', 'Carottes au max!'), '<div class="reward"><div class="big">🥕</div>' +
+    '<p>' + LL('Your carrots are full at ', 'Tes carottes sont pleines à ') + '<b>' + fmt(cMax()) + '</b>. ' + LL('Carrots stop adding up until you spend some.', 'Les carottes arrêtent de monter tant que tu n’en dépenses pas.') + '</p>' +
+    '<p>🕳️ ' + LL('Start a New Burrow to raise your max to ', 'Fais un Nouveau terrier pour monter ton max à ') + '<b>' + fmt(cMax() * 2) + '</b> ' + LL('and earn Lucky Paws!', 'et gagner des Pattes chanceuses!') + '</p>' +
+    '<button class="btn wide" id="mxRb">🕳️ ' + LL('Go to New Burrow', 'Aller au Nouveau terrier') + '</button>' +
+    '<button class="btn wide ghost" id="mxSp">🛒 ' + LL('Spend it in the Market', 'Dépense-les au Marché') + '</button></div>');
+  $('mxRb').onclick = () => { sfx('tap'); closeModal(); openRebirth(); };
+  $('mxSp').onclick = () => { sfx('tap'); closeModal(); showView('Market'); };
+}
+function openRebirth(){ moreTab = 'rebirth'; showView('More'); }
+function rebirthHtml(){
+  const g = rbGain(), P = S.rbP || 0, ok = g >= NB.MIN;
+  const row = (t, d) => '<div class="card" style="display:block"><div class="nm">' + t + '</div><div class="sub">' + d + '</div></div>';
+  let h = '<div class="center"><div style="font-size:54px">🐾</div><div style="font-size:1.3em;font-weight:900">' + LL('You have ', 'Tu as ') + fmt(P) + ' ' + LL('Lucky Paws', 'Pattes chanceuses') + '</div>' +
+    '<p class="muted">' + LL('Each Lucky Paw gives +3% carrots forever → now ×', 'Chaque Patte chanceuse donne +3% de carottes pour toujours → maintenant ×') + rbIncMul().toFixed(2) + '</p>' +
+    (S.rbN ? '<p class="muted">' + LL('New Burrows: ', 'Nouveaux terriers : ') + S.rbN + '</p>' : '') + '</div>';
+  h += row('🕳️ ' + LL('New Burrow now for +', 'Nouveau terrier maintenant pour +') + fmt(g) + ' 🐾',
+    LL('More carrots made this run = more Lucky Paws. You need at least 10 (about ', 'Plus de carottes faites ce tour = plus de Pattes chanceuses. Il t’en faut au moins 10 (environ ') + fmt(rbNeed()) + LL(' carrots made). Each New Burrow makes Lucky Paws harder to get.', ' carottes faites). Chaque Nouveau terrier rend les Pattes plus dures à avoir.') +
+    '<br>' + LL('Made this run: ', 'Faites ce tour : ') + fmt(S.runC || 0) + ' 🥕');
+  h += row('🔄 ' + LL('Starts over', 'Recommence'), LL('Carrots, bunnies, areas, burrows, clover, shops, food, visitors at the doors, babies on the way, placed decor and town level.', 'Carottes, lapins, zones, terriers, trèfles, boutiques, bouffe, visiteurs aux portes, bébés en route, déco placée et niveau de ville.'));
+  h += row('✅ ' + LL('You keep', 'Tu gardes'), LL('Lucky Paws, album, goals, gems, hats & bows, owned decor, bunnies from gems, events or the Starter bundle, stats and streak.', 'Pattes chanceuses, album, objectifs, gemmes, chapeaux et nœuds, déco achetée, lapins des gemmes, des fêtes ou du Paquet de départ, stats et série.'));
+  h += row('🎁 ' + LL('Head start', 'Coup de pouce'), LL('You start the new run with 150 carrots + 150 per Lucky Paw.', 'Tu recommences avec 150 carottes + 150 par Patte chanceuse.'));
+  h += row('📈 ' + LL('Harder each time', 'Plus dur à chaque fois'), LL('Every New Burrow doubles all carrot prices. Next run: prices ×', 'Chaque Nouveau terrier double tous les prix en carottes. Prochain tour : prix ×') + fmt(rbMul() * 2));
+  h += '<h3>🏅 ' + LL('New Burrow goals', 'Objectifs Nouveau terrier') + '</h3><div class="grid">' + GOALS.filter(b => b.rb).map(b => { const d = S.goals[b.id]; return '<div class="tile' + (d ? '' : ' lock') + '"><div class="big">' + (d ? b.e : '🔒') + '</div>' + L(b.n) + '<div class="muted">+' + b.g + ' 💎</div></div>'; }).join('') + '</div>';
+  h += ok ? '<button class="btn wide mint" id="rbGo">🕳️ ' + LL('New Burrow for +', 'Nouveau terrier pour +') + fmt(g) + ' 🐾</button>' : '<button class="btn wide ghost" disabled>' + LL('Not enough yet', 'Pas encore assez') + '</button>';
+  return h;
+}
+function bindRebirth(){
+  if(!$('rbGo')) return;
+  $('rbGo').onclick = () => { sfx('tap'); const g = rbGain(), P = S.rbP || 0;
+    confirmBox('🕳️ ' + LL('New Burrow?', 'Nouveau terrier?'), LL('Your town starts over, but you get +', 'Ta ville recommence, mais tu gagnes +') + fmt(g) + ' 🐾 (×' + (1 + NB.PER * (P + g)).toFixed(2) + LL(' carrots forever).', ' carottes pour toujours).'), LL('Yes, New Burrow!', 'Oui, Nouveau terrier!'), doRebirth); };
+}
+function doRebirth(){
+  const g = rbGain(); if(g < NB.MIN) return;
+  S.rbP = (S.rbP || 0) + g; S.rbN = (S.rbN || 0) + 1; S.runC = 0;
+  // placed decor goes back to the decor box
+  for(const a in S.ar) (S.ar[a].decor || []).forEach(k => { if(k) S.decorOwn[k] = (S.decorOwn[k] || 0) + 1; });
+  const keep = S.buns.filter(b => b.sp === 'event' || b.sp === 'star' || b.sp === 'gem');
+  const F = newState();
+  S.c = F.c + NB.HEAD * S.rbP; S.xp = 0; S.lv = 1;
+  S.cur = 'meadow'; S.open = ['meadow']; S.ar = {meadow: newArea()};
+  S.shops = F.shops; S.doors = []; S.doorBag = []; S.luresBought = F.luresBought; S.freeAt = F.freeAt; S.nursery = [];
+  S.inv = F.inv; S.visitor = null; S.visitorAt = F.visitorAt;
+  S.buns = [];
+  keep.forEach(b => { b.a = 'meadow'; b.m = {food:90, fur:90, fun:90}; b.rest = 0; b.follow = null; S.buns.push(b); });
+  const first = makeBun({k:'minilop', t:'cuddly', a:'meadow'});
+  if(!S.avatar || !bunById(S.avatar)) S.avatar = first.id;
+  addDoor('wild', {dur: CONFIG.FIRST_VISIT_SEC});
+  computeBuddies(); checkGoals(); saveNow();
+  try{ closeModal(); }catch(e){}
+  showView('Bunnies'); renderAll(); refreshTop();
+  sfx('level'); toast('🐾 ' + LL('New Burrow! +', 'Nouveau terrier! +') + fmt(g) + ' ' + LL('Lucky Paws · carrots ×', 'Pattes chanceuses · carottes ×') + rbIncMul().toFixed(2), 'gold');
+}
 function canPay(cur, n){ return cur === 'g' ? S.g >= n : S.c >= n; }
 function pay(cur, n){
   if(!canPay(cur, n)){ toast(cur === 'g' ? tr('Not enough gems') : tr('Not enough carrots'), 'err'); sfx('err'); return false; }
@@ -988,7 +1060,7 @@ function addToAlbum(b){
 function lurePrice(k){
   const E = LURES[k];
   if(E.cur === 'g') return E.price;
-  return Math.round(E.price * Math.pow(CONFIG.LURE_PRICE_GROWTH, S.luresBought[k] || 0) * Math.pow(3, tierOf(S.cur)));
+  return cP(E.price * Math.pow(CONFIG.LURE_PRICE_GROWTH, S.luresBought[k] || 0) * Math.pow(3, tierOf(S.cur)));
 }
 function addDoor(lure, opt){
   opt = opt || {};
@@ -1006,7 +1078,7 @@ const doorFree = () => S.doors.length < CONFIG.DOOR_SLOTS;
 function welcomeVisitor(d){
   const r = d.forceR !== undefined ? d.forceR : weighted(LURES[d.lure].odds);
   const k = d.forceK || pickKind(r, S.cur);
-  const b = makeBun({k, a: S.cur});
+  const b = makeBun({k, a: S.cur, sp: LURES[d.lure] && LURES[d.lure].cur === 'g' ? 'gem' : null});
   S.stats.welcomed++; taskCount('welcome');
   addXP(10); sfx('hop');
   const K = KIND(k);
@@ -1020,7 +1092,8 @@ function welcomeVisitor(d){
 const rarTag = r => '<span class="tag" style="background:' + RARITY[r].c + ';color:#fff">' + L(RARITY[r]) + '</span>';
 
 /* ---------- bunny levels ---------- */
-function bunLvCost(b){ return Math.round(CONFIG.BUN_LV_COST * CONFIG.RARITY_MULT[b.r] * Math.pow(CONFIG.BUN_LV_GROWTH, b.lv - 1) * Math.pow(2, tierOf(b.a))); }
+function bunLvBase(b){ return Math.round(CONFIG.BUN_LV_COST * CONFIG.RARITY_MULT[b.r] * Math.pow(CONFIG.BUN_LV_GROWTH, b.lv - 1) * Math.pow(2, tierOf(b.a))); }
+function bunLvCost(b){ return cP(bunLvBase(b)); }
 function bunLevelUp(b){
   if(b.lv >= maxLv(b)) return false;
   b.lv++; b.grow += 120; addXP(3);
@@ -1034,13 +1107,13 @@ function addLove(b, n){
     fxAtBun(b, '⬆️ ' + tr('Lv') + ' ' + b.lv);
   }
 }
-function farmPrice(b){ return Math.round((60 + bunLvCost(b) * 1.5) * (stageOf(b) === 1 ? 1 : 0.5)); }
+function farmPrice(b){ return Math.round((60 + bunLvBase(b) * 1.5) * (stageOf(b) === 1 ? 1 : 0.5)); }
 
 /* ---------- area + town costs ---------- */
-function burrowCost(area){ return Math.round(300 * Math.pow(2.1, S.ar[area].burrow) * Math.pow(3, tierOf(area))); }
-function cloverCost(area){ const lv = S.ar[area].clover; return Math.round(100 * Math.pow(1.15, lv) * Math.pow(1.6, lv > 9 ? lv - 9 : 0) * Math.pow(3, tierOf(area))); }
+function burrowCost(area){ return cP(300 * Math.pow(2.1, S.ar[area].burrow) * Math.pow(3, tierOf(area))); }
+function cloverCost(area){ const lv = S.ar[area].clover; return cP(100 * Math.pow(1.15, lv) * Math.pow(1.6, lv > 9 ? lv - 9 : 0) * Math.pow(3, tierOf(area))); }
 const burrowMax = () => CONFIG.SPACE_MAX - CONFIG.SPACE_START;
-function shopCost(k){ return Math.round(SHOPS[k].cost * Math.pow(2.4, S.shops[k])); }
+function shopCost(k){ return cP(SHOPS[k].cost * Math.pow(2.4, S.shops[k])); }
 const nurserySlots = () => CONFIG.NURSERY_START + (S.shops.library >= 3 ? 1 : 0) + (S.shops.library >= 7 ? 1 : 0);
 
 /* ---------- breeding ---------- */
@@ -1096,7 +1169,7 @@ function nextHint(){
 }
 
 /* ---------- rain + full moon visitors (adopt with carrots) ---------- */
-function visitorPrice(r){ return Math.round(Math.max(300 * (r + 1) * (r + 1), incomeFloor() * 90 * (r + 1))); }
+function visitorPrice(r){ return cP(Math.max(300 * (r + 1) * (r + 1), incomeFloor() * 90 * (r + 1))); }
 function spawnVisitor(moon){
   const area = S.cur, A = S.ar[area];
   const dec = A.decor.filter(Boolean).map(k => DECOR[k].attract).filter(Boolean);
@@ -1187,6 +1260,10 @@ const GOALS = [
   {id:'gm3',e:'🃏',n:{en:'Memory: big board',fr:'Mémoire: grand jeu'},g:5,ok:()=>S.stats.best.memory>=3},
   {id:'lv10',e:'🏘️',n:{en:'Town level 10',fr:'Ville niveau 10'},g:10,ok:()=>S.lv>=10},
   {id:'lv20',e:'🏰',n:{en:'Town level 20',fr:'Ville niveau 20'},g:20,ok:()=>S.lv>=20},
+  {id:'rb1',rb:1,e:'🕳️',n:{en:'First New Burrow',fr:'Premier Nouveau terrier'},g:10,ok:()=>(S.rbN||0)>=1},
+  {id:'rb3',rb:1,e:'🐾',n:{en:'3 New Burrows',fr:'3 Nouveaux terriers'},g:25,ok:()=>(S.rbN||0)>=3},
+  {id:'rb10',rb:1,e:'🌟',n:{en:'10 New Burrows',fr:'10 Nouveaux terriers'},g:60,ok:()=>(S.rbN||0)>=10},
+  {id:'rb25',rb:1,e:'♾️',n:{en:'25 New Burrows',fr:'25 Nouveaux terriers'},g:150,ok:()=>(S.rbN||0)>=25},
 ];
 function checkGoals(){
   GOALS.forEach(b => {
@@ -2295,7 +2372,7 @@ function renderMarket(){
   h += '<div class="tabs">' + tabs.map(([k, e, n]) => '<button data-t="'+k+'" class="'+(mTab===k?'on':'')+'">'+e+' '+n+'</button>').join('') + '</div>';
   if(mTab === 'food'){
     FOOD_IDS.forEach(k => {
-      const F = FOODS[k], p5 = Math.round(F.price * 5 * Math.pow(2, tierOf(S.cur)));
+      const F = FOODS[k], p5 = cP(F.price * 5 * Math.pow(2, tierOf(S.cur)));
       h += '<div class="card"><div class="art">'+F.e+'</div><div class="info"><div class="nm">'+L(F)+' ×5</div><div class="sub">'+tr('You have')+' '+(S.inv[k]||0)+' · +'+F.food+' 🍴'+(F.fun?' +'+F.fun+' 😊':'')+'</div></div>'+priceBtn('data-food="'+k+'"','c',p5)+'</div>';
     });
   }
@@ -2313,7 +2390,7 @@ function renderMarket(){
     const local = Object.keys(DECOR).filter(k => DECOR[k].area === S.cur);
     const gen = Object.keys(DECOR).filter(k => !DECOR[k].area && !DECOR[k].ev);
     const row = k => {
-      const D = DECOR[k], cur = D.cur || 'c', p = D.price, lk = (D.lv || 1) > S.lv;
+      const D = DECOR[k], cur = D.cur || 'c', p = cpr(cur, D.price), lk = (D.lv || 1) > S.lv;
       return '<div class="card"><div class="art">'+D.e+'</div><div class="info"><div class="nm">'+L(D)+'</div><div class="sub">'+tr('Owned')+' '+(S.decorOwn[k]||0)+(D.attract?' · 🌧️ '+tr('rarer visitors'):'')+'</div></div>'+(lk?lockedBtn(D.lv):priceBtn('data-dec="'+k+'"',cur,p))+'</div>';
     };
     h += '<h3>'+AREA(S.cur).e+' '+tr('Only in')+' '+L(AREA(S.cur))+'</h3>' + local.map(row).join('');
@@ -2331,7 +2408,7 @@ function renderMarket(){
         if(own) btn = '<span class="tag" style="background:var(--mint)">✔</span>';
         else if(O.reward) btn = '<span class="tag">⭐ '+tr('Level')+' '+O.reward+'</span>';
         else if(!tl || (O.tl || 1) > tl) btn = '<button class="btn ghost sm" disabled>🧵 '+(O.tl||1)+'</button>';
-        else btn = priceBtn('data-out="'+k+'"', O.cur, O.price);
+        else btn = priceBtn('data-out="'+k+'"', O.cur, cpr(O.cur, O.price));
         h += '<div class="card"><div class="art">'+bunSVG({k:'nzwhite',grow:99999,o:{[slot]:k}}, {kind:{ear:'up',c:'#f3e4f7',r:0,g:'plain'}, noShadow:true, view: slot === 'back' ? '10 30 80 80' : '36 14 56 56'})+'</div><div class="info"><div class="nm">'+O.e+' '+L(O)+'</div><div class="sub">'+outfitBonusText(O)+'</div></div>'+btn+'</div>';
       });
     });
@@ -2340,10 +2417,10 @@ function renderMarket(){
   $('iMarket').innerHTML = h;
   const M = $('iMarket');
   M.querySelectorAll('[data-t]').forEach(x => x.onclick = () => { sfx('tap'); mTab = x.dataset.t; renderMarket(); });
-  M.querySelectorAll('[data-food]').forEach(x => x.onclick = () => { const k = x.dataset.food; if(!pay('c', Math.round(FOODS[k].price * 5 * Math.pow(2, tierOf(S.cur))))) return; S.inv[k] = (S.inv[k]||0) + 5; sfx('coin'); renderMarket(); refreshTop(); saveNow(); });
+  M.querySelectorAll('[data-food]').forEach(x => x.onclick = () => { const k = x.dataset.food; if(!pay('c', cP(FOODS[k].price * 5 * Math.pow(2, tierOf(S.cur))))) return; S.inv[k] = (S.inv[k]||0) + 5; sfx('coin'); renderMarket(); refreshTop(); saveNow(); });
   M.querySelectorAll('[data-lure]').forEach(x => x.onclick = () => buyLure(x.dataset.lure));
-  M.querySelectorAll('[data-dec]').forEach(x => x.onclick = () => { const k = x.dataset.dec, D = DECOR[k], cur = D.cur || 'c'; if(!pay(cur, D.price)) return; S.decorOwn[k] = (S.decorOwn[k]||0) + 1; sfx('coin'); addXP(2); toast(D.e + ' ' + tr('Tap a + spot in the meadow to place it')); renderMarket(); refreshTop(); saveNow(); });
-  M.querySelectorAll('[data-out]').forEach(x => x.onclick = () => { const k = x.dataset.out, O = OUTFITS[k]; if(!pay(O.cur, O.price)) return; S.outfits[k] = 1; sfx('coin'); addXP(2); checkGoals(); toast(O.e + ' ' + tr('Hold a grown bunny, then Dress up')); renderMarket(); refreshTop(); saveNow(); });
+  M.querySelectorAll('[data-dec]').forEach(x => x.onclick = () => { const k = x.dataset.dec, D = DECOR[k], cur = D.cur || 'c'; if(!pay(cur, cpr(cur, D.price))) return; S.decorOwn[k] = (S.decorOwn[k]||0) + 1; sfx('coin'); addXP(2); toast(D.e + ' ' + tr('Tap a + spot in the meadow to place it')); renderMarket(); refreshTop(); saveNow(); });
+  M.querySelectorAll('[data-out]').forEach(x => x.onclick = () => { const k = x.dataset.out, O = OUTFITS[k]; if(!pay(O.cur, cpr(O.cur, O.price))) return; S.outfits[k] = 1; sfx('coin'); addXP(2); checkGoals(); toast(O.e + ' ' + tr('Hold a grown bunny, then Dress up')); renderMarket(); refreshTop(); saveNow(); });
   if($('goTown')) $('goTown').onclick = () => showView('Town');
   if(mTab === 'paid') bindPaidShop();
 }
@@ -2383,17 +2460,19 @@ function renderGames(){
 /* ---------- More: album, goals, event, profile ---------- */
 let moreTab = 'album', albumPage = 'p0';
 function renderMore(){
-  const tabs = [['album','📖',tr('Album')],['goals','🏅',tr('Goals')],['profile','👤',tr('Profile')]];
+  const tabs = [['album','📖',tr('Album')],['goals','🏅',tr('Goals')],['rebirth','🕳️',LL('New Burrow','Nouveau terrier')],['profile','👤',tr('Profile')]];
   if(S.ev.id) tabs.splice(1, 0, ['event', EVENTS[S.ev.id].e, L(EVENTS[S.ev.id])]);
   let h = '<div class="tabs">' + tabs.map(([k, e, n]) => '<button data-t="'+k+'" class="'+(moreTab===k?'on':'')+'">'+e+' '+n+'</button>').join('') + '</div>';
   if(moreTab === 'event' && !S.ev.id) moreTab = 'album';
   if(moreTab === 'album') h += albumHtml();
   if(moreTab === 'goals') h += goalsHtml();
   if(moreTab === 'profile') h += profileHtml();
+  if(moreTab === 'rebirth') h += rebirthHtml();
   if(moreTab === 'event') h += eventHtml();
   $('iMore').innerHTML = h;
   $('iMore').querySelectorAll('[data-t]').forEach(x => x.onclick = () => { sfx('tap'); moreTab = x.dataset.t; renderMore(); });
   if(moreTab === 'profile') bindProfile();
+  if(moreTab === 'rebirth') bindRebirth();
   if(moreTab === 'event') bindEvent();
   if(moreTab === 'album'){
     $('iMore').querySelectorAll('[data-pg]').forEach(x => x.onclick = () => { albumPage = x.dataset.pg; renderMore(); });
@@ -2436,7 +2515,7 @@ function profileHtml(){
     '<div class="tag" style="font-size:.9em;margin-top:4px">⭐ '+tr('Town level')+' '+S.lv+' · '+L(titleOf(S.lv))+'</div><p class="muted">'+tr('Pick your avatar from any bunny card.')+'</p></div>';
   const st = S.stats;
   const rows = [['🥕',tr('Carrots made'),fmt(st.carrots)],['🐰',tr('Bunnies'),S.buns.length],['📖',tr('Album'),Object.keys(S.album).length+'/'+KINDS.length],['🚪',tr('Visitors welcomed'),st.welcomed],['🍼',tr('Babies'),st.bred],['💕',tr('Pets'),st.pets],
-    ['🎮',tr('Games played'),st.games],['🗺️',tr('Areas'),S.open.length+'/'+AREAS.length],['⏱️',tr('Time played'),fmtTime(st.play)],['🔥',tr('Streak'),S.daily.streak],['🥕',tr('Per second'),fmt(incomePerSec())],[SEASONS[seasonOf()].e,tr('Season'),L(SEASONS[seasonOf()])]];
+    ['🎮',tr('Games played'),st.games],['🗺️',tr('Areas'),S.open.length+'/'+AREAS.length],['⏱️',tr('Time played'),fmtTime(st.play)],['🔥',tr('Streak'),S.daily.streak],['🕳️',LL('New Burrows','Nouveaux terriers'),S.rbN||0],['🐾',LL('Lucky Paws','Pattes chanceuses'),fmt(S.rbP||0)],['🥕',tr('Per second'),fmt(incomePerSec())],[SEASONS[seasonOf()].e,tr('Season'),L(SEASONS[seasonOf()])]];
   h += '<h3>📊 '+tr('Stats')+'</h3><div class="card" style="display:block">' + rows.map(r => '<div class="row" style="justify-content:space-between;padding:3px 0"><span>'+r[0]+' '+r[1]+'</span><b>'+r[2]+'</b></div>').join('') + '</div>';
   h += '<h3>⚙️ '+tr('Settings')+'</h3>';
   const tg = (id, on, e, n) => '<div class="card"><div class="art">'+e+'</div><div class="info nm">'+n+'</div><button class="btn sm '+(on?'mint':'ghost')+'" id="'+id+'">'+(on?tr('On'):tr('Off'))+'</button></div>';
@@ -2449,7 +2528,7 @@ function profileHtml(){
   h += '<button class="btn wide ghost" id="stTut">🎓 '+tr('Replay tutorial')+'</button>';
   h += '<button class="btn wide ghost" id="stRestore">💳 '+tr('Restore purchases')+'</button>';
   h += '<button class="btn wide ghost" id="stReset" style="color:var(--bad)">🗑️ '+tr('Reset game')+'</button>';
-  h += '<p class="muted center">'+tr('No account — everything saves on this device.')+'<br>Hoppington v1.0</p>';
+  h += '<p class="muted center">'+tr('No account — everything saves on this device.')+'<br>Hoppington v1.0.2</p>';
   return h;
 }
 function bindProfile(){
@@ -3124,7 +3203,7 @@ function boot(){
   }, 1300);
   $('mClose').onclick = closeModal;
   $('modalBg').addEventListener('pointerdown', e => { if(e.target === $('modalBg') && $('mClose').style.display !== 'none') closeModal(); });
-  $('pCarrot').onclick = openBoosts; $('pGem').onclick = () => { mTab = 'paid'; showView('Market'); };
+  $('pCarrot').onclick = () => { if(S.c >= cMax() - 1) showMaxCarrots(); else openBoosts(); }; $('pGem').onclick = () => { mTab = 'paid'; showView('Market'); };
   $('pLevel').onclick = () => showView('Town');
   $('profBtn').onclick = () => { moreTab = 'profile'; showView('More'); };
   $('listBtn').onclick = () => { sfx('tap'); showView('List'); };
