@@ -213,7 +213,7 @@ const TXT = {
     revive: '📺 Ad · Revive', double: '📺 Ad · Double honey', again: 'Play again', doubled: 'Honey doubled!',
     noAd: 'No ad right now — try again in a minute', levelUp: 'Level up! Lv {n}', newBest: 'New best!',
     morebots: 'More bees join at higher levels', you: 'You',
-    feedCut: '{a} cut {b}', feedSelf: '{a} crashed', feedTrap: '{a} trapped {b}', swarmCut: 'Your swarm cut {b}!',
+    feedCut: '{a} cut {b}', feedYouCut: 'You cut {b}!', feedCutYou: '{a} cut you!', feedSelf: '{a} crashed', feedTrap: '{a} trapped {b}', feedYouTrap: 'You trapped {b}!', feedYouCrash: 'You crashed', swarmCut: 'Your swarm cut {b}!',
     adTitle: 'Ad preview', adTip: 'A real video ad plays here in the app.', adClose: 'Close (no reward)',
     pw: { 2: 'Speed', 3: 'Shield', 4: 'Magnet', 5: 'Swarm' },
   },
@@ -232,7 +232,7 @@ const TXT = {
     revive: '📺 Pub · Revivre', double: '📺 Pub · Doubler le miel', again: 'Rejouer', doubled: 'Miel doublé\u00a0!',
     noAd: 'Pas de pub pour l’instant — réessaie dans une minute', levelUp: 'Niveau {n}\u00a0!', newBest: 'Nouveau record\u00a0!',
     morebots: 'Plus d’abeilles aux niveaux plus hauts', you: 'Toi',
-    feedCut: '{a} a coupé {b}', feedSelf: '{a} s’est écrasé', feedTrap: '{a} a piégé {b}', swarmCut: 'Ton essaim a coupé {b}\u00a0!',
+    feedCut: '{a} a coupé {b}', feedYouCut: 'Tu as coupé {b}\u00a0!', feedCutYou: '{a} t\u2019a coupé\u00a0!', feedSelf: '{a} s’est écrasé', feedTrap: '{a} a piégé {b}', feedYouTrap: 'Tu as piégé {b}\u00a0!', feedYouCrash: 'Tu t\u2019es écrasé', swarmCut: 'Ton essaim a coupé {b}\u00a0!',
     adTitle: 'Aperçu de pub', adTip: 'Une vraie pub vidéo joue ici dans l’app.', adClose: 'Fermer (sans prix)',
     pw: { 2: 'Vitesse', 3: 'Bouclier', 4: 'Aimant', 5: 'Essaim' },
   },
@@ -515,8 +515,11 @@ function killEnt(v, by, cause) {
       shake = Math.max(shake, 6); sfx.kill(); buzz(25);
     }
   }
-  const msg = cause === 'self' ? t('feedSelf', { a: v.name })
+  const msg = cause === 'self' ? (v === player ? t('feedYouCrash') : t('feedSelf', { a: v.name }))
+    : v === player && by ? t('feedCutYou', { a: by.name })
+    : cause === 'trapped' && by === player ? t('feedYouTrap', { b: v.name })
     : cause === 'trapped' ? t('feedTrap', { a: by ? by.name : '?', b: v.name })
+    : by === player ? t('feedYouCut', { b: v.name })
     : by ? t('feedCut', { a: by.name, b: v.name }) : t('feedSelf', { a: v.name });
   if (state === 'play' && (v === player || by === player || Math.random() < .6)) feed(msg);
   if (v.bot) {
