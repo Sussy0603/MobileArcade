@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#6b3f26">
+<title>Paw Bistro</title>
+<style>
+/* =====================================================================
+   PAW BISTRO — styles
+   Warm wood diner: brown wood, cream, red checkers, mustard.
+   Change the colors here to restyle the menus.
+===================================================================== */
+:root{
+  --wood:#7a4a2e; --wood2:#a0663f; --wood3:#c98f5e; --cream:#fff4e0; --cream2:#f6e2bf;
+  --red:#d9473b; --red2:#a8322a; --mustard:#f4b73a; --mustard2:#c98a10; --mint:#6fc39b; --mint2:#3d9a70;
+  --ink:#4a2a18; --ink2:#8a6248; --card:#fffaf0; --line:#ead2ac; --bad:#e2554a; --sky:#5aa7e8;
+  --font:"Nunito","Trebuchet MS","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#3d2416;color:var(--ink);font-family:var(--font);font-size:15px}
+body.easy{--font:Verdana,"Segoe UI",Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.12em}
+button{font-family:inherit;font-size:inherit;color:inherit;border:0;cursor:pointer;background:none}
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+
+/* ---------- HUD (top bar while playing) ---------- */
+#hud{display:flex;align-items:center;gap:6px;padding:calc(6px + env(safe-area-inset-top)) 8px 6px;
+  background:linear-gradient(#8a5434,#6b3f26);border-bottom:3px solid #4a2a18;z-index:5;color:var(--cream)}
+.pill{display:flex;align-items:center;gap:5px;background:#fff4e0;color:var(--ink);border-radius:99px;padding:5px 11px;font-weight:900;
+  box-shadow:0 2px 0 #3d2416;white-space:nowrap;transition:transform .12s}
+.pill.bump{transform:scale(1.18)}
+.pill.warn{background:#ffd9d4;color:var(--red2)}
+#hDay{background:var(--red);color:#fff}
+#hud{flex-wrap:wrap;row-gap:7px}
+#hTime{margin-left:auto}
+#goalWrap{order:9;flex:1 1 100%;min-width:0;position:relative;height:16px;margin:0 4px 2px;background:#3d2416;border-radius:99px;box-shadow:inset 0 2px 3px #0006}
+#goalFill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:99px;background:linear-gradient(#ffd56a,var(--mustard));transition:width .25s}
+#goalTxt{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-start;padding-left:8px;font-weight:900;font-size:.82em;color:#fff;text-shadow:0 1px 2px #000a}
+.gstar{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:18px;filter:grayscale(1) brightness(.6);transition:transform .2s}
+.gstar.on{filter:none;transform:translate(-50%,-50%) scale(1.25)}
+#hPause{width:38px;height:38px;border-radius:12px;background:var(--cream);color:var(--ink);font-size:18px;font-weight:900;box-shadow:0 3px 0 #3d2416}
+
+#stage{flex:1;position:relative;min-height:0}
+#cv{position:absolute;left:0;top:0;touch-action:none}
+
+/* ---------- overlays ---------- */
+.ov{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:20;padding:20px;
+  padding-top:calc(20px + env(safe-area-inset-top));background:#2a160bcc}
+.ov.on{display:flex;animation:fade .2s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.08)}100%{transform:scale(1)}}
+.box{background:var(--card);border-radius:24px;padding:18px;width:100%;max-width:400px;max-height:100%;overflow:auto;
+  border:4px solid var(--wood);box-shadow:0 8px 0 #2a160b;animation:pop .28s}
+.box h2{margin:0 0 10px;text-align:center;font-size:1.5em;color:var(--red2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 18px;border-radius:16px;font-weight:900;font-size:1.05em;
+  background:var(--cream2);color:var(--ink);box-shadow:0 4px 0 #b99367;transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #b99367}
+.btn.red{background:var(--red);color:#fff;box-shadow:0 4px 0 var(--red2)}
+.btn.gold{background:var(--mustard);color:var(--ink);box-shadow:0 4px 0 var(--mustard2)}
+.btn.mint{background:var(--mint);color:#fff;box-shadow:0 4px 0 var(--mint2)}
+.btn.wide{display:flex;width:100%;margin-top:10px}
+.btn.big{font-size:1.4em;padding:16px 22px}
+.btn[disabled]{opacity:.45;filter:grayscale(.6)}
+.muted{color:var(--ink2);font-size:.9em}
+.center{text-align:center}
+.row{display:flex;gap:8px}
+.row .btn{flex:1}
+
+/* title screen */
+#title{background:radial-gradient(circle at 50% 30%,#a0663f,#5a3320 70%);justify-content:space-between;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+#tTop{width:100%;display:flex;justify-content:flex-end}
+.sign{background:var(--cream);border:6px solid var(--red);border-radius:28px;padding:14px 22px 10px;text-align:center;box-shadow:0 0 0 5px var(--cream),0 0 0 9px var(--wood),0 12px 0 9px #2a160b;
+  transform:rotate(-2deg);animation:swing 3s ease-in-out infinite}
+@keyframes swing{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+.sign h1{margin:0;font-size:2.6em;line-height:1;color:var(--red);letter-spacing:.02em;text-shadow:3px 3px 0 #f4b73a}
+.sign .sub{font-weight:900;color:var(--ink2);margin-top:4px}
+#tPets{font-size:38px;display:flex;gap:6px;justify-content:center;margin:18px 0 6px}
+#tPets span{display:inline-block;animation:hop 1.2s ease-in-out infinite}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+#tHow{color:var(--cream);font-weight:800;text-align:center;max-width:320px;line-height:1.4}
+#tBtns{width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px}
+
+/* result */
+.stars{display:flex;justify-content:center;gap:8px;font-size:52px;margin:4px 0 8px}
+.stars span{filter:grayscale(1) opacity(.35);transform:scale(.7);transition:all .3s cubic-bezier(.3,1.8,.5,1)}
+.stars span.on{filter:none;transform:scale(1)}
+.stats{display:grid;grid-template-columns:1fr auto;gap:4px 10px;background:var(--cream2);border-radius:14px;padding:10px 14px;font-weight:800;margin-bottom:6px}
+.stats b{text-align:right}
+.bigcoins{text-align:center;font-size:2em;font-weight:900;color:var(--mustard2)}
+
+/* shop */
+#shop .box{display:flex;flex-direction:column;height:100%;max-height:640px;padding:12px}
+.tabs{display:flex;gap:4px;margin-bottom:8px}
+.tabs button{flex:1;padding:9px 2px;border-radius:12px;font-weight:900;background:var(--cream2);font-size:.88em}
+.tabs button.on{background:var(--red);color:#fff}
+#shopList{flex:1;overflow:auto;padding:2px}
+.card{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--line);border-radius:16px;padding:9px;margin-bottom:8px}
+.card .ic{font-size:34px;width:46px;text-align:center;flex-shrink:0}
+.card .tx{flex:1;min-width:0}
+.card .nm{font-weight:900}
+.card .ds{font-size:.82em;color:var(--ink2)}
+.dots{display:flex;gap:3px;margin-top:3px}
+.dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--mustard)}
+.card .btn{padding:9px 11px;font-size:.92em;flex-shrink:0;min-width:84px}
+.card.owned{background:#f1fbf5;border-color:#bfe6d0}
+.tag{display:inline-block;background:var(--mint);color:#fff;font-weight:900;border-radius:99px;padding:5px 11px;font-size:.85em}
+.coinTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.coinTop h2{margin:0}
+
+/* settings */
+.set{display:flex;align-items:center;justify-content:space-between;padding:10px 4px;border-bottom:2px dashed var(--line);font-weight:800}
+.tog{width:58px;height:32px;border-radius:99px;background:#d8c4a6;position:relative;transition:background .2s}
+.tog::after{content:"";position:absolute;left:4px;top:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 2px #0004}
+.tog.on{background:var(--mint)}
+.tog.on::after{left:30px}
+
+#toast{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top));transform:translateX(-50%);z-index:40;pointer-events:none;display:flex;flex-direction:column;gap:6px;align-items:center}
+#toast div{background:var(--ink);color:#fff;padding:8px 16px;border-radius:99px;font-weight:900;animation:pop .25s;box-shadow:0 3px 0 #0004}
+#toast div.gold{background:var(--mustard);color:var(--ink)}
+#toast div.err{background:var(--bad)}
+.ad{font-size:.85em;opacity:.9}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="pill" id="hDay">Day 1</div>
+    <div class="pill" id="hCoins">🪙 0</div>
+    <div id="goalWrap"><div id="goalFill"></div><div id="goalTxt"></div><span class="gstar" id="gs1">⭐</span><span class="gstar" id="gs2">⭐</span><span class="gstar" id="gs3">⭐</span></div>
+    <div class="pill" id="hTime">2:00</div>
+    <button id="hPause" aria-label="Pause">II</button>
+  </div>
+  <div id="stage"><canvas id="cv"></canvas></div>
+</div>
+
+<!-- title -->
+<div class="ov on" id="title">
+  <div id="tTop"><div class="pill" id="tCoins">🪙 0</div></div>
+  <div style="display:flex;flex-direction:column;align-items:center">
+    <div class="sign"><h1>Paw Bistro</h1><div class="sub">🐾 <span data-t>Cozy Pet Diner</span> 🐾</div></div>
+    <div id="tPets"><span>🐶</span><span style="animation-delay:.15s">🐰</span><span style="animation-delay:.3s">🐻</span><span style="animation-delay:.45s">🐼</span><span style="animation-delay:.6s">🦊</span></div>
+    <div id="tHow"></div>
+  </div>
+  <div id="tBtns">
+    <button class="btn red big" id="tPlay">▶ Day 1</button>
+    <div class="row"><button class="btn gold" id="tShop">🛒 Shop</button><button class="btn" id="tSet">⚙️ Settings</button></div>
+  </div>
+</div>
+
+<!-- pause -->
+<div class="ov" id="pause"><div class="box">
+  <h2 id="pTitle">Paused</h2>
+  <button class="btn red wide big" id="pResume">▶ Resume</button>
+  <button class="btn wide" id="pRestart">↻ Restart day</button>
+  <button class="btn wide" id="pMenu">🏠 Menu</button>
+  <div class="row" style="margin-top:10px"><button class="btn" id="pSfx">🔊</button><button class="btn" id="pMus">🎵</button></div>
+</div></div>
+
+<!-- result -->
+<div class="ov" id="result"><div class="box" id="resBox"></div></div>
+
+<!-- shop -->
+<div class="ov" id="shop"><div class="box">
+  <div class="coinTop"><h2>🛒 <span id="shTitle">Shop</span></h2><div class="pill" id="shCoins">🪙 0</div></div>
+  <div class="tabs" id="shTabs"></div>
+  <div id="shopList"></div>
+  <button class="btn wide red" id="shClose">✔ Done</button>
+</div></div>
+
+<!-- settings -->
+<div class="ov" id="settings"><div class="box" id="setBox"></div></div>
+
+<!-- generic modal (ad preview, purchases) -->
+<div class="ov" id="modal" style="z-index:30"><div class="box" id="modalBox"></div></div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   PAW BISTRO — a cozy pet diner game by MOS Arcade
+   ---------------------------------------------------------------------
+   HOW THE CODE IS ORGANIZED
+     1. CONFIG      — every tuning number (change these to change the feel)
+     2. DATA        — dishes, pets, upgrades, decor, styles
+     3. SAVE        — progress saved on the phone (localStorage)
+     4. WORDS       — English + French text
+     5. SOUND       — tiny synth sounds + diner music (no audio files)
+     6. DAY         — starting a day, spawning pets, ending a day
+     7. UPDATE      — moves everything a little bit each frame
+     8. TAPS        — what happens when you tap a table / stove / dish
+     9. DRAW        — paints the restaurant on the canvas
+    10. SCREENS     — title, pause, results, shop, settings
+    11. MONEY       — rewarded ads (AdMob) + Golden Diner pack (Google Play)
+    12. START       — the main loop
+===================================================================== */
+
+/* =====================================================================
+   1. CONFIG — tune the game here
+===================================================================== */
+const CONFIG = {
+  DAY_SECONDS: 120,        // how long each day lasts (seconds)
+  CLOSING_GRACE: 25,       // after closing, seated pets get this long to finish
+  SPAWN_FIRST: 1.2,        // first pet walks in after this many seconds
+  SPAWN_GAP_START: 7,      // seconds between pets on day 1
+  SPAWN_GAP_PER_DAY: 0.3,  // ...gets this much shorter each day
+  SPAWN_GAP_MIN: 3.2,      // ...but never shorter than this
+  SPAWN_JITTER: 0.35,      // random ± part of the gap (0.35 = ±35%)
+  QUEUE_MAX: 4,            // max pets waiting at the door
+  PATIENCE: 24,            // seconds a pet waits at each step before leaving angry
+  PATIENCE_PER_DAY: -0.45, // patience change per day (negative = less patient)
+  PATIENCE_MIN: 12,        // patience never goes under this
+  REFILL_SEATED: 0.35,     // patience given back when seated (0..1)
+  REFILL_ORDER: 0.3,       // patience given back when order goes to kitchen
+  THINK_TIME: 1.5,         // seconds a pet reads the menu
+  EAT_TIME: 2.0,           // seconds a pet eats
+  WALK_SPEED: 280,         // how fast pets walk
+  DISH_FLY: 0.32,          // seconds for a served dish to fly to the table
+  VIP_FROM_DAY: 2,         // VIPs start showing up on this day
+  VIP_CHANCE: 0.09,        // chance a new pet is a VIP
+  VIP_PAY: 3,              // VIPs pay this many times the price
+  VIP_PATIENCE: 0.75,      // VIPs are less patient (0.75 = 75%)
+  TIP_MIN: 0.1,            // tip (part of price) when patience is empty
+  TIP_MAX: 0.6,            // tip when patience is full
+  COMBO_WINDOW: 6,         // serve again within this many seconds to grow the combo
+  COMBO_STEP: 0.1,         // each combo step adds +10% coins
+  COMBO_MAX: 6,            // highest combo
+  GOAL_BASE: 60,           // day 1 coin goal for 1 star
+  GOAL_PER_DAY: 30,        // goal grows this much each day
+  GOAL_GROWTH: 1.03,       // ...and by 3% on top each day
+  STAR2: 1.5,              // 2 stars at goal × 1.5
+  STAR3: 2.1,              // 3 stars at goal × 2.1
+  SHAKE_SMALL: 4, SHAKE_BIG: 8,
+  FREE_COINS_COOLDOWN: 300 // seconds between free-coin ads in the shop
+};
+
+/* =====================================================================
+   2. DATA
+===================================================================== */
+const W = 400, H = 720;   // the restaurant is drawn on a 400×720 board, scaled to the phone
+const DISHES = [
+  {id:'cookie',   e:'🍪', price:8,  cook:3,   day:1},
+  {id:'pancake',  e:'🥞', price:12, cook:4,   day:1},
+  {id:'burger',   e:'🍔', price:16, cook:5,   day:2},
+  {id:'pizza',    e:'🍕', price:20, cook:5.5, day:3},
+  {id:'spaghetti',e:'🍝', price:24, cook:6,   day:5},
+  {id:'cake',     e:'🍰', price:28, cook:6.5, day:7},
+  {id:'sushi',    e:'🍣', price:34, cook:7,   day:9},
+  {id:'sundae',   e:'🍨', price:40, cook:7.5, day:12},
+];
+const PETS = ['🐶','🐱','🐰','🐻','🐼','🐨','🦊','🐷','🐸','🐹','🐯','🐮','🐵','🐧','🐭','🦁'];
+const TABLE_POS = [[105,300],[295,300],[105,425],[295,425],[105,550],[295,550]];
+const STOVE_POS = [[80,100],[200,100],[320,100]];
+const PASS_POS  = [[62,182],[154,182],[246,182],[338,182]];
+const QUEUE_POS = [[110,668],[168,668],[226,668],[284,668]];
+const DOOR = [36,668];
+
+const UPG = {
+  tables:{e:'🍽️', max:6, min:2, cost:[0,0,60,180,420,850], name:'More tables', desc:'Seat more pets at once'},
+  stoves:{e:'🔥', max:3, min:1, cost:[0,250,800], name:'More stoves', desc:'Cook more dishes at once'},
+  fast:  {e:'⏩', max:5, min:0, cost:[90,170,320,600,1100], name:'Speedy chef', desc:'Dishes cook 10% faster per level'},
+  comfy: {e:'🛋️', max:5, min:0, cost:[70,130,240,450,850], name:'Comfy seats', desc:'Pets wait 10% longer per level'},
+  tips:  {e:'🫙', max:5, min:0, cost:[80,150,280,520,950], name:'Tip jar', desc:'Tips +15% per level'},
+};
+const DECOR = [
+  {id:'plant',   e:'🪴', cost:120,  pat:.04, name:'Potted plants', desc:'+4% patience'},
+  {id:'lights',  e:'💡', cost:180,  tip:.05, name:'String lights', desc:'+5% tips'},
+  {id:'clock',   e:'🕰️', cost:250,  pat:.04, name:'Big clock', desc:'+4% patience'},
+  {id:'rug',     e:'🟥', cost:340,  pat:.05, name:'Cozy rug', desc:'+5% patience'},
+  {id:'painting',e:'🖼️', cost:450,  tip:.06, name:'Painting', desc:'+6% tips'},
+  {id:'flowers', e:'🌷', cost:600,  tip:.06, name:'Table flowers', desc:'+6% tips'},
+  {id:'aquarium',e:'🐠', cost:800,  pat:.06, name:'Aquarium', desc:'+6% patience'},
+  {id:'teddy',   e:'🧸', cost:1000, pat:.06, name:'Giant teddy', desc:'+6% patience'},
+  {id:'jukebox', e:'📻', cost:1300, tip:.08, name:'Jukebox', desc:'+8% tips'},
+];
+const FLOORS = {
+  oak:    {cost:0,   name:'Oak planks',     e:'🟫', a:'#c58b58', b:'#b67c4b', line:'#8f5a33'},
+  cherry: {cost:300, name:'Cherry planks',  e:'🟥', a:'#a95440', b:'#984836', line:'#6e2f22'},
+  checker:{cost:600, name:'Diner checkers', e:'🏁', a:'#f6efe2', b:'#2f2a2a', line:null},
+  marble: {cost:-1,  name:'Golden marble',  e:'✨', a:'#f7f1e6', b:'#e9dfcc', line:'#d8c39a'},
+};
+const WALLS = {
+  cream:  {cost:0,   name:'Cream wall',   e:'🟨', a:'#f6e2bf', b:'#efd3a6'},
+  mint:   {cost:250, name:'Mint wall',    e:'🟩', a:'#bfe6cf', b:'#a8dabd'},
+  stripes:{cost:500, name:'Red stripes',  e:'🍬', a:'#fff1e4', b:'#d9473b'},
+  gold:   {cost:-1,  name:'Golden wall',  e:'👑', a:'#f9d877', b:'#eebd43'},
+};
+
+/* =====================================================================
+   3. SAVE — progress lives on the phone only
+===================================================================== */
+const SAVE_KEY = 'pawbistro_v1';
+const freshSave = () => ({
+  coins:0, day:1, best:{}, tables:2, stoves:1, fast:0, comfy:0, tips:0, decor:{},
+  floor:'oak', wall:'cream', floors:{oak:1}, walls:{cream:1},
+  pack:false, noAds:false, sfx:true, mus:true, easy:false, freeAt:0, tut:0, iapDone:{}, served:0,
+  lang:(navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en'
+});
+let S = loadSave();
+function loadSave(){ let s = null; try{ s = JSON.parse(localStorage.getItem(SAVE_KEY)); }catch(e){} return Object.assign(freshSave(), s || {}); }
+function save(){ try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
+
+/* =====================================================================
+   4. WORDS — English + French
+===================================================================== */
+const FR = {
+  'Cozy Pet Diner':'Resto des animaux','Day':'Jour','Shop':'Boutique','Settings':'Réglages',
+  'Seat pets, cook their food and serve it fast. Happy pets tip more!':'Installe les animaux, cuisine leur plat et sers-le vite. Les animaux heureux donnent plus de pourboire !',
+  'Paused':'Pause','Resume':'Reprendre','Restart day':'Recommencer le jour','Menu':'Menu',
+  'Goal':'Objectif','Open!':'Ouvert !','Closing time!':'On ferme !','Closing':'Fermeture',
+  'Kitchen busy!':'Cuisine occupée !','No orders yet':'Pas encore de commande','Counter full!':'Comptoir plein !',
+  'Tap a table to seat a guest':'Touche une table pour asseoir un client',
+  'Tap the kitchen to cook the order':'Touche la cuisine pour préparer la commande',
+  'Tap the dish to serve it':'Touche le plat pour le servir',
+  'Wait for the order…':'Attends la commande…','Cooking…':'Ça cuit…',
+  'Day complete!':'Journée finie !','Almost!':'Presque !','Coins earned':'Pièces gagnées',
+  'Served':'Servis','Left angry':'Partis fâchés','VIPs served':'VIP servis','Best combo':'Meilleur combo',
+  'Next day':'Jour suivant','Try again':'Réessayer','Double coins':'Pièces x2','Pass this day anyway':'Passer ce jour quand même',
+  'Reach the goal to unlock the next day.':"Atteins l'objectif pour débloquer le jour suivant.",
+  'Upgrades':'Améliorations','Decor':'Déco','Style':'Style','Pack':'Pack','Done':'OK',
+  'More tables':'Plus de tables','Seat more pets at once':"Asseoir plus d'animaux à la fois",
+  'More stoves':'Plus de fourneaux','Cook more dishes at once':'Cuisiner plus de plats à la fois',
+  'Speedy chef':'Chef rapide','Dishes cook 10% faster per level':'Les plats cuisent 10 % plus vite par niveau',
+  'Comfy seats':'Sièges douillets','Pets wait 10% longer per level':'Les animaux attendent 10 % plus longtemps par niveau',
+  'Tip jar':'Pot à pourboires','Tips +15% per level':'Pourboires +15 % par niveau',
+  'Potted plants':'Plantes en pot','String lights':'Guirlande lumineuse','Big clock':'Grande horloge','Cozy rug':'Tapis douillet',
+  'Painting':'Tableau','Table flowers':'Fleurs sur les tables','Aquarium':'Aquarium','Giant teddy':'Nounours géant','Jukebox':'Juke-box',
+  '+4% patience':'+4 % patience','+5% patience':'+5 % patience','+6% patience':'+6 % patience',
+  '+5% tips':'+5 % pourboires','+6% tips':'+6 % pourboires','+8% tips':'+8 % pourboires',
+  'Oak planks':'Planches de chêne','Cherry planks':'Planches de cerisier','Diner checkers':'Damier de diner','Golden marble':'Marbre doré',
+  'Cream wall':'Mur crème','Mint wall':'Mur menthe','Red stripes':'Rayures rouges','Golden wall':'Mur doré',
+  'Floor':'Plancher','Wall':'Mur','Use':'Utiliser','In use':'Utilisé','Owned':'Acheté','MAX':'MAX','Pack only':'Pack seulement',
+  'Free coins':'Pièces gratuites','Watch a short ad':'Regarde une courte pub','Ready in':'Prêt dans',
+  'Not enough coins':'Pas assez de pièces','Bought!':'Acheté !',
+  'Sound':'Sons','Music':'Musique','Language':'Langue','Easy-read font':'Police facile à lire','Restore purchases':'Restaurer les achats',
+  'Close':'Fermer','New dish!':'Nouveau plat !','VIP!':'VIP !','Combo':'Combo',
+  'Golden Diner Pack':'Pack Resto Doré','Golden marble floor + golden wall':'Plancher en marbre doré + mur doré',
+  'Get every ad reward without watching ads':'Toutes les récompenses de pub sans regarder de pub',
+  'one time':'une fois','Totally optional! Everything else can be earned by playing.':'Totalement optionnel ! Tout le reste se gagne en jouant.',
+  'Payments are handled securely by Google Play.':'Les paiements sont gérés de façon sécurisée par Google Play.',
+  'Ad preview':'Aperçu de pub','A real video ad plays here in the app.':"Une vraie pub vidéo joue ici dans l'appli.",
+  'Close (no reward)':'Fermer (sans récompense)','No reward this time':'Pas de récompense cette fois',
+  'Golden pack: reward given!':'Pack doré : récompense donnée !',
+  'Demo mode: real payments work in the Android app through Google Play.':"Mode démo : les vrais paiements marchent dans l'appli Android avec Google Play.",
+  'Demo: get it free':'Démo : gratuit','Thank you!':'Merci !','Store error. Please try again.':'Erreur de boutique. Réessaie.',
+  'Store is still loading. Try again in a moment.':'La boutique charge encore. Réessaie dans un moment.',
+  'Checking your purchases...':'Vérification de tes achats...','Restore works in the Android app.':"La restauration marche dans l'appli Android.",
+  'coins':'pièces','Pets are leaving…':'Les animaux partent…','Unlocked':'Débloqué',
+  'Ad rewards without ads':'Récompenses sans pub','Privacy':'Confidentialité'
+};
+const tr = s => S.lang === 'fr' && FR[s] ? FR[s] : s;
+
+/* =====================================================================
+   5. SOUND — tiny synth, no audio files
+===================================================================== */
+let AC = null, master = null, musGain = null;
+function audio(){
+  if(AC) return AC;
+  try{
+    AC = new (window.AudioContext || window.webkitAudioContext)();
+    master = AC.createGain(); master.gain.value = .6; master.connect(AC.destination);
+    musGain = AC.createGain(); musGain.gain.value = .35; musGain.connect(master);
+  }catch(e){ AC = null; }
+  return AC;
+}
+function tone(f, d, type, v, f2, delay, dest){
+  const a = audio(); if(!a) return;
+  const t = a.currentTime + (delay || 0);
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(f, t);
+  if(f2) o.frequency.exponentialRampToValueAtTime(f2, t + d);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v || .1, t + .01); g.gain.exponentialRampToValueAtTime(.001, t + d);
+  o.connect(g); g.connect(dest || master); o.start(t); o.stop(t + d + .05);
+}
+const SFX = {
+  tap:  () => tone(620, .06, 'triangle', .07),
+  seat: () => { tone(440, .08, 'triangle', .12); tone(660, .1, 'triangle', .12, 0, .07); },
+  order:() => tone(880, .12, 'sine', .1, 1180),
+  cook: () => { tone(300, .18, 'triangle', .08, 180); tone(900, .05, 'square', .03, 0, .02); },
+  ding: () => { tone(1320, .35, 'sine', .14); tone(1760, .4, 'sine', .07, 0, .05); },
+  serve:() => { tone(520, .08, 'square', .05); tone(780, .12, 'square', .05, 0, .06); },
+  coin: () => { tone(988, .07, 'square', .05); tone(1319, .16, 'square', .05, 0, .06); },
+  angry:() => tone(240, .35, 'sawtooth', .08, 110),
+  star: () => [784, 988, 1175, 1568].forEach((f, i) => tone(f, .18, 'triangle', .1, 0, i * .07)),
+  buy:  () => { tone(660, .08, 'triangle', .12); tone(990, .15, 'triangle', .12, 0, .08); },
+  nope: () => tone(170, .15, 'square', .06, 120),
+  vip:  () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .2, 'triangle', .1, 0, i * .06)),
+  bell: () => { tone(1568, .5, 'sine', .12); tone(2093, .6, 'sine', .06, 0, .03); },
+};
+function sfx(n){ if(S.sfx && SFX[n]) try{ SFX[n](); }catch(e){} }
+
+/* diner music: little swingy loop */
+const nf = n => { const m = n.match(/([A-G])(#?)(\d)/); const i = {C:0,D:2,E:4,F:5,G:7,A:9,B:11}[m[1]] + (m[2] ? 1 : 0); return 440 * Math.pow(2, (i - 9) / 12 + (+m[3] - 4)); };
+const MEL  = ['E5','G5','A5','G5','E5','D5','C5',null,'D5','E5','G5','E5','D5','C5','A4',null,'C5','E5','G5','A5','C6','A5','G5','E5','D5','E5','D5','C5','D5',null,'G4',null];
+const BASS = ['C3','E3','G3','A3','F3','A3','C4','A3','G3','B3','D4','B3','C3','G3','C3','G3'];
+let musIv = null, musStep = 0, musNext = 0;
+function musicStart(){
+  if(!S.mus || musIv) return;
+  const a = audio(); if(!a) return;
+  musNext = a.currentTime + .1;
+  musIv = setInterval(() => {
+    while(musNext < a.currentTime + .25){
+      const m = MEL[musStep % 32]; if(m) tone(nf(m), .2, 'triangle', .045, 0, musNext - a.currentTime, musGain);
+      if(musStep % 2 === 0){ const b = BASS[(musStep / 2) % 16]; if(b) tone(nf(b), .3, 'sine', .08, 0, musNext - a.currentTime, musGain); }
+      musStep++; musNext += (musStep % 2 ? .25 : .17); // swing
+    }
+  }, 60);
+}
+function musicStop(){ if(musIv){ clearInterval(musIv); musIv = null; } }
+
+/* =====================================================================
+   6. DAY — start, spawn pets, end
+===================================================================== */
+const goalFor = d => Math.round((CONFIG.GOAL_BASE + CONFIG.GOAL_PER_DAY * (d - 1)) * Math.pow(CONFIG.GOAL_GROWTH, d - 1) / 5) * 5;
+const decorBonus = k => DECOR.reduce((s, d) => s + (S.decor[d.id] ? (d[k] || 0) : 0), 0);
+const patienceSecs = vip => Math.max(CONFIG.PATIENCE_MIN, CONFIG.PATIENCE + CONFIG.PATIENCE_PER_DAY * (R.day - 1)) * (1 + .1 * S.comfy + decorBonus('pat')) * (vip ? CONFIG.VIP_PATIENCE : 1);
+const cookTime = d => d.cook * (1 - .1 * S.fast);
+const tipBonus = () => .15 * S.tips + decorBonus('tip');
+
+let mode = 'title';   // 'title' | 'play' | 'result'
+let paused = false;
+let R = null;         // everything about the day being played
+let pid = 0;
+const SEATED = ['toTable','think','order','wait','served','eat'];
+
+function newRun(day){
+  return {
+    day, goal:goalFor(day), t:CONFIG.DAY_SECONDS, time:0, intro:1.8, closing:false, closeT:0, ending:0,
+    pets:[], queue:[], tables:Array(6).fill(null), stoves:Array(3).fill(null), pass:Array(4).fill(null), fly:[],
+    spawnT:CONFIG.SPAWN_FIRST, earned:0, shown:0, served:0, missed:0, vips:0, combo:0, bestCombo:0, lastServe:-99,
+    parts:[], floats:[], shake:0, starsLit:0, pops:{}
+  };
+}
+function startDay(day){
+  R = newRun(day); mode = 'play'; paused = false;
+  hideAll(); $('hud').style.visibility = 'visible';
+  const fresh = DISHES.find(d => d.day === day && day > 1);
+  R.banner = {txt:tr('Day') + ' ' + day, sub:'🎯 ' + tr('Goal') + ' 🪙 ' + R.goal + (fresh ? '   ' + tr('New dish!') + ' ' + fresh.e : ''), t:0};
+  sfx('bell'); musicStart(); updateHud(true);
+}
+function spawnGap(){
+  const g = Math.max(CONFIG.SPAWN_GAP_MIN, CONFIG.SPAWN_GAP_START - CONFIG.SPAWN_GAP_PER_DAY * (R.day - 1));
+  return g * (1 + (Math.random() * 2 - 1) * CONFIG.SPAWN_JITTER);
+}
+function spawnPet(){
+  if(R.queue.length >= CONFIG.QUEUE_MAX) return;
+  const menu = DISHES.filter(d => d.day <= R.day);
+  const vip = R.day >= CONFIG.VIP_FROM_DAY && Math.random() < CONFIG.VIP_CHANCE;
+  const p = {id:++pid, e:pick(PETS), vip, dish:pick(menu), st:'walkin', x:DOOR[0], y:H + 30, tx:DOOR[0], ty:H + 30,
+    pat:1, table:-1, t:0, bob:Math.random() * 6, pop:1, flash:0, combo:1};
+  R.pets.push(p); R.queue.push(p); reflowQueue();
+}
+function reflowQueue(){ R.queue.forEach((p, i) => { p.tx = QUEUE_POS[i][0]; p.ty = QUEUE_POS[i][1]; }); }
+function starsFor(c){ return c >= R.goal * CONFIG.STAR3 ? 3 : c >= R.goal * CONFIG.STAR2 ? 2 : c >= R.goal ? 1 : 0; }
+
+function endDay(){
+  mode = 'result';
+  const stars = starsFor(R.earned);
+  S.coins += R.earned;
+  S.served += R.served;
+  if(stars > (S.best[R.day] || 0)) S.best[R.day] = stars;
+  if(stars > 0 && R.day === S.day) S.day++;
+  save();
+  R.result = {stars, doubled:false, passed:false};
+  showResult();
+}
+
+/* =====================================================================
+   7. UPDATE — runs every frame (dt = seconds since last frame)
+===================================================================== */
+function moveTo(p, dt){
+  const dx = p.tx - p.x, dy = p.ty - p.y, d = Math.hypot(dx, dy), s = CONFIG.WALK_SPEED * dt;
+  if(d <= s){ p.x = p.tx; p.y = p.ty; return true; }
+  p.x += dx / d * s; p.y += dy / d * s; return false;
+}
+function update(dt){
+  R.time += dt;
+  if(R.banner){ R.banner.t += dt; if(R.banner.t > 2.2) R.banner = null; }
+  if(R.intro > 0){ R.intro -= dt; if(R.intro <= 0) floatTxt(W / 2, 600, tr('Open!'), '#fff', 34); return; }
+
+  // clock
+  if(!R.closing){
+    R.t -= dt;
+    if(R.t <= 0){
+      R.t = 0; R.closing = true; sfx('bell');
+      R.banner = {txt:tr('Closing time!'), sub:tr('Pets are leaving…'), t:.4};
+      R.queue.slice().forEach(p => leave(p, false)); R.queue = [];
+    }
+    R.spawnT -= dt;
+    if(R.spawnT <= 0 && !R.closing){ spawnPet(); R.spawnT = spawnGap(); }
+  } else {
+    R.closeT += dt;
+    const busy = R.pets.some(p => SEATED.includes(p.st)) || R.fly.length;
+    if(!busy || R.closeT > CONFIG.CLOSING_GRACE){
+      if(busy) R.pets.forEach(p => { if(SEATED.includes(p.st)) leave(p, false); });
+      R.ending += dt; if(R.ending > .9){ endDay(); return; }
+    }
+  }
+
+  // pets
+  for(const p of R.pets){
+    p.bob += dt * 6; p.pop = Math.max(0, p.pop - dt * 3); p.flash = Math.max(0, p.flash - dt * 2);
+    const drain = dt / patienceSecs(p.vip);
+    switch(p.st){
+      case 'walkin': if(moveTo(p, dt)) p.st = 'queue'; p.pat -= drain * .5; break;
+      case 'queue': moveTo(p, dt); p.pat -= drain; break;
+      case 'toTable': if(moveTo(p, dt)){ p.st = 'think'; p.t = CONFIG.THINK_TIME; p.pop = 1; } break;
+      case 'think': p.t -= dt; if(p.t <= 0){ p.st = 'order'; p.pop = 1; sfx('order'); } break;
+      case 'order': p.pat -= drain; break;
+      case 'wait': p.pat -= drain; break;
+      case 'served': break;
+      case 'eat': p.t -= dt; if(Math.random() < dt * 5) part(p.x + rand(-14, 14), p.y + 20, 'crumb'); if(p.t <= 0) pay(p); break;
+      case 'leave': case 'angry': if(moveTo(p, dt)) p.gone = true; break;
+    }
+    if(p.pat <= 0 && ['walkin','queue','order','wait'].includes(p.st)) angry(p);
+  }
+  R.pets = R.pets.filter(p => !p.gone);
+
+  // stoves
+  for(let i = 0; i < 3; i++){
+    const s = R.stoves[i]; if(!s) continue;
+    if(!s.done){
+      s.t += dt;
+      if(Math.random() < dt * 6) part(STOVE_POS[i][0] + rand(-14, 14), STOVE_POS[i][1] - 18, 'steam');
+      if(s.t >= s.dur){ s.done = true; sfx('ding'); R.pops['s' + i] = 1; }
+    }
+    if(s.done){
+      const slot = R.pass.indexOf(null);
+      if(slot >= 0){ R.pass[slot] = {p:s.p, dish:s.dish, t:0}; R.stoves[i] = null; R.pops['d' + slot] = 1; }
+    }
+  }
+  R.pass.forEach(d => { if(d) d.t += dt; });
+
+  // flying dishes
+  for(const f of R.fly){
+    f.t += dt;
+    if(f.t >= CONFIG.DISH_FLY){
+      f.done = true; const p = f.p;
+      p.st = 'eat'; p.t = CONFIG.EAT_TIME; p.pop = 1;
+      for(let k = 0; k < 8; k++) part(p.x, p.y + 10, 'spark');
+      sfx('serve');
+    }
+  }
+  R.fly = R.fly.filter(f => !f.done);
+
+  // combo timeout
+  if(R.combo && R.time - R.lastServe > CONFIG.COMBO_WINDOW) R.combo = 0;
+
+  // particles & floating text
+  for(const q of R.parts){ q.t += dt; q.x += q.vx * dt; q.y += q.vy * dt; q.vy += (q.g || 0) * dt;
+    if(q.kind === 'coin' && q.t > .25){ q.vx += (q.hx - q.x) * dt * 9; q.vy += (q.hy - q.y) * dt * 9; q.vx *= .9; q.vy *= .9; } }
+  R.parts = R.parts.filter(q => q.t < q.life);
+  for(const f of R.floats){ f.t += dt; f.y -= dt * 38; }
+  R.floats = R.floats.filter(f => f.t < f.life);
+  for(const k in R.pops){ R.pops[k] -= dt * 3; if(R.pops[k] <= 0) delete R.pops[k]; }
+  R.shake = Math.max(0, R.shake - dt * 20);
+  if(S.decor.jukebox && Math.random() < dt * 1.2) part(372, 630, 'note');
+}
+
+function leave(p, isAngry){
+  if(p.table >= 0 && R.tables[p.table] === p) R.tables[p.table] = null;
+  const qi = R.queue.indexOf(p); if(qi >= 0){ R.queue.splice(qi, 1); reflowQueue(); }
+  R.stoves.forEach((s, i) => { if(s && s.p === p) R.stoves[i] = null; });
+  R.pass.forEach((d, i) => { if(d && d.p === p) R.pass[i] = null; });
+  p.st = isAngry ? 'angry' : 'leave'; p.tx = DOOR[0]; p.ty = H + 40;
+}
+function angry(p){
+  leave(p, true);
+  R.missed++; R.combo = 0; R.shake = CONFIG.SHAKE_SMALL; p.flash = 1;
+  floatTxt(p.x, p.y - 40, '💢', '#e2554a', 34); sfx('angry');
+}
+function pay(p){
+  const base = p.dish.price * (p.vip ? CONFIG.VIP_PAY : 1);
+  const tip = p.dish.price * (CONFIG.TIP_MIN + (CONFIG.TIP_MAX - CONFIG.TIP_MIN) * Math.max(0, p.pat)) * (1 + tipBonus());
+  const total = Math.max(1, Math.round((base + tip) * p.combo));
+  R.earned += total; R.served++; const hc = $('hCoins'); hc.classList.add('bump'); setTimeout(() => hc.classList.remove('bump'), 140);
+  if(p.vip){ R.vips++; R.shake = CONFIG.SHAKE_BIG; sfx('vip'); for(let k = 0; k < 18; k++) part(p.x, p.y, 'gold'); }
+  else sfx('coin');
+  floatTxt(p.x, p.y - 34, '+' + total, p.vip ? '#ffd23f' : '#fff', p.vip ? 32 : 26);
+  const hud = hudCoinPos();
+  for(let k = 0; k < Math.min(10, 3 + Math.floor(total / 8)); k++) part(p.x, p.y, 'coin', hud);
+  for(let k = 0; k < 3; k++) part(p.x + rand(-12, 12), p.y - 20, 'heart');
+  if(S.tut < 3){ S.tut++; save(); }
+  leave(p, false); p.happy = true;
+}
+
+/* =====================================================================
+   8. TAPS — the one mechanic: seat → cook → serve
+===================================================================== */
+function tableAt(x, y){ for(let i = 0; i < S.tables; i++){ const [tx, ty] = TABLE_POS[i]; if(Math.hypot(x - tx, y - (ty - 18)) < 62) return i; } return -1; }
+function stoveAt(x, y){ for(let i = 0; i < 3; i++){ const [sx, sy] = STOVE_POS[i]; if(Math.abs(x - sx) < 56 && Math.abs(y - sy) < 52) return i; } return -1; }
+function passAt(x, y){ for(let i = 0; i < 4; i++){ const [px, py] = PASS_POS[i]; if(R.pass[i] && Math.hypot(x - px, y - py) < 44) return i; } return -1; }
+function queueAt(x, y){ for(const p of R.queue){ if(Math.hypot(x - p.x, y - p.y) < 34) return p; } return null; }
+
+function onTap(x, y){
+  if(mode !== 'play' || paused || !R || R.intro > 0) return;
+  audio();
+  const d = passAt(x, y); if(d >= 0) return serve(d);
+  const s = stoveAt(x, y); if(s >= 0) return tapStove(s);
+  const t = tableAt(x, y); if(t >= 0) return tapTable(t);
+  const q = queueAt(x, y); if(q){ const free = firstFreeTable(); if(free >= 0) return seat(q, free); return nope(q.x, q.y); }
+}
+function firstFreeTable(){ for(let i = 0; i < S.tables; i++) if(!R.tables[i]) return i; return -1; }
+function nope(x, y, msg){ sfx('nope'); if(msg) floatTxt(x, y, msg, '#ffe2dc', 18); }
+function seat(p, i){
+  const qi = R.queue.indexOf(p); if(qi < 0) return;
+  R.queue.splice(qi, 1); reflowQueue();
+  R.tables[i] = p; p.table = i; p.st = 'toTable';
+  p.tx = TABLE_POS[i][0]; p.ty = TABLE_POS[i][1] - 46;
+  p.pat = Math.min(1, p.pat + CONFIG.REFILL_SEATED); p.pop = 1;
+  R.pops['t' + i] = 1; sfx('seat');
+}
+function tapTable(i){
+  const p = R.tables[i];
+  if(!p){
+    const front = R.queue.find(q => q.st === 'queue') || R.queue[0];
+    if(front) return seat(front, i);
+    R.pops['t' + i] = .6; return sfx('tap');
+  }
+  if(p.st === 'order') return takeOrder(p);
+  R.pops['t' + i] = .5; sfx('tap');
+}
+function tapStove(i){
+  if(i >= S.stoves) return nope(STOVE_POS[i][0], STOVE_POS[i][1], '🔒');
+  if(R.stoves[i]){ R.pops['s' + i] = .6; return sfx('tap'); }
+  const waiting = R.pets.filter(p => p.st === 'order').sort((a, b) => a.pat - b.pat); // least patient first
+  if(!waiting.length) return nope(STOVE_POS[i][0], STOVE_POS[i][1] + 40, tr('No orders yet'));
+  takeOrder(waiting[0], i);
+}
+function takeOrder(p, stove){
+  let i = stove;
+  if(i === undefined){ i = -1; for(let k = 0; k < S.stoves; k++) if(!R.stoves[k]){ i = k; break; } }
+  if(i < 0){ R.shake = 2; return nope(p.x, p.y - 60, tr('Kitchen busy!')); }
+  R.stoves[i] = {p, dish:p.dish, t:0, dur:cookTime(p.dish), done:false};
+  p.st = 'wait'; p.pat = Math.min(1, p.pat + CONFIG.REFILL_ORDER); p.pop = 1;
+  R.pops['s' + i] = 1; sfx('cook');
+}
+function serve(i){
+  const d = R.pass[i]; R.pass[i] = null;
+  const p = d.p; p.st = 'served';
+  R.combo = (R.time - R.lastServe <= CONFIG.COMBO_WINDOW) ? Math.min(CONFIG.COMBO_MAX, R.combo + 1) : 1;
+  R.lastServe = R.time; R.bestCombo = Math.max(R.bestCombo, R.combo);
+  p.combo = 1 + CONFIG.COMBO_STEP * (R.combo - 1);
+  if(R.combo >= 2) floatTxt(W / 2, 236, tr('Combo') + ' x' + R.combo + '!', '#ffd23f', 22 + R.combo * 2);
+  R.fly.push({p, dish:d.dish, x0:PASS_POS[i][0], y0:PASS_POS[i][1], t:0});
+  sfx('tap');
+}
+
+/* =====================================================================
+   9. DRAW — paints the restaurant
+===================================================================== */
+const cv = $('cv'), ctx = cv.getContext('2d');
+let scale = 1, offX = 0, offY = 0, dpr = 1;
+function resize(){
+  const st = $('stage'), w = st.clientWidth, h = st.clientHeight;
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  scale = Math.min(w / W, h / H); offX = (w - W * scale) / 2; offY = (h - H * scale) / 2;
+}
+const EMO = '"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+function emoji(e, x, y, size){ ctx.font = size + 'px ' + EMO; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(e, x, y); }
+function txt(s, x, y, size, color, stroke){
+  ctx.font = '900 ' + size + 'px ' + getComputedStyle(document.body).getPropertyValue('--font');
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  if(stroke){ ctx.lineWidth = Math.max(3, size / 6); ctx.strokeStyle = stroke; ctx.lineJoin = 'round'; ctx.strokeText(s, x, y); }
+  ctx.fillStyle = color; ctx.fillText(s, x, y);
+}
+function rr(x, y, w, h, r){ ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+function ell(x, y, rx, ry){ ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); }
+const popS = k => { const v = R && R.pops[k]; return v ? 1 + Math.sin(v * Math.PI) * .12 : 1; };
+
+function drawFloor(){
+  const f = FLOORS[S.floor] || FLOORS.oak;
+  if(S.floor === 'checker'){
+    for(let y = 205, r = 0; y < 625; y += 40, r++) for(let x = 0, c = 0; x < W; x += 40, c++){ ctx.fillStyle = (r + c) % 2 ? f.a : f.b; ctx.fillRect(x, y, 40, 40); }
+  } else {
+    ctx.fillStyle = f.a; ctx.fillRect(0, 205, W, 420);
+    for(let y = 205, r = 0; y < 625; y += 30, r++){
+      ctx.fillStyle = r % 2 ? f.a : f.b; ctx.fillRect(0, y, W, 30);
+      ctx.fillStyle = f.line; ctx.globalAlpha = .45; ctx.fillRect(0, y, W, 2);
+      const off = (r * 97) % 130; for(let x = off; x < W; x += 130) ctx.fillRect(x, y, 2, 30);
+      ctx.globalAlpha = 1;
+    }
+    if(S.floor === 'marble'){ ctx.strokeStyle = '#e2c98f'; ctx.globalAlpha = .5; ctx.lineWidth = 1.5;
+      for(let k = 0; k < 9; k++){ ctx.beginPath(); ctx.moveTo(k * 50, 205); ctx.bezierCurveTo(k * 50 + 30, 320, k * 50 - 20, 450, k * 50 + 40, 625); ctx.stroke(); } ctx.globalAlpha = 1; }
+  }
+  // entrance strip
+  ctx.fillStyle = '#5b3420'; ctx.fillRect(0, 625, W, H - 625);
+  ctx.fillStyle = '#6e4129'; for(let x = 0; x < W; x += 24) ctx.fillRect(x, 625, 12, H - 625);
+  ctx.fillStyle = '#d9473b'; rr(70, 640, 250, 56, 14); ctx.fill();
+  ctx.strokeStyle = '#fff4e0'; ctx.setLineDash([6, 6]); ctx.lineWidth = 2; rr(76, 646, 238, 44, 10); ctx.stroke(); ctx.setLineDash([]);
+  // rug
+  if(S.decor.rug){ ctx.fillStyle = '#c0392b'; rr(165, 250, 70, 340, 30); ctx.fill(); ctx.strokeStyle = '#f4b73a'; ctx.lineWidth = 4; rr(172, 257, 56, 326, 24); ctx.stroke(); }
+}
+function drawWall(){
+  const w = WALLS[S.wall] || WALLS.cream;
+  ctx.fillStyle = w.a; ctx.fillRect(0, 0, W, 58);
+  if(S.wall === 'stripes'){ ctx.fillStyle = w.b; for(let x = 0; x < W; x += 28) ctx.fillRect(x, 0, 14, 58); }
+  else { ctx.fillStyle = w.b; for(let x = 0; x < W; x += 40) ctx.fillRect(x, 0, 3, 58); }
+  // backsplash tiles
+  ctx.fillStyle = '#fbf7ef'; ctx.fillRect(0, 58, W, 92);
+  ctx.strokeStyle = '#e3dccf'; ctx.lineWidth = 1;
+  for(let y = 58; y < 150; y += 18){ ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  for(let y = 58, r = 0; y < 150; y += 18, r++) for(let x = (r % 2) * 18; x < W; x += 36){ ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 18); ctx.stroke(); }
+  ctx.fillStyle = '#7a4a2e'; ctx.fillRect(0, 54, W, 6);
+  // wall decor
+  if(S.decor.lights){
+    ctx.strokeStyle = '#3d2416'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(0, 6);
+    for(let x = 0; x <= W; x += 40) ctx.quadraticCurveTo(x + 20, 22, x + 40, 6); ctx.stroke();
+    const cols = ['#ff6b6b','#ffd23f','#6fc39b','#5aa7e8','#ff9ff3'];
+    for(let x = 20, k = 0; x < W; x += 40, k++){ const on = (Math.floor((R ? R.time : performance.now() / 1000) * 2) + k) % 3; ctx.fillStyle = cols[k % 5]; ctx.globalAlpha = on ? 1 : .45; ell(x, 16, 4, 6); ctx.fill(); }
+    ctx.globalAlpha = 1;
+  }
+  if(S.decor.clock){ ctx.fillStyle = '#7a4a2e'; ell(66, 30, 19, 19); ctx.fill(); ctx.fillStyle = '#fff'; ell(66, 30, 15, 15); ctx.fill();
+    const a = (R ? R.time : 0) * .5; ctx.strokeStyle = '#3d2416'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(66, 30); ctx.lineTo(66 + Math.cos(a) * 11, 30 + Math.sin(a) * 11); ctx.moveTo(66, 30); ctx.lineTo(66 + Math.cos(a / 12) * 7, 30 + Math.sin(a / 12) * 7); ctx.stroke(); }
+  if(S.decor.painting){ ctx.fillStyle = '#c98a10'; ctx.fillRect(300, 10, 62, 40); ctx.fillStyle = '#9ad3f5'; ctx.fillRect(305, 15, 52, 30); ctx.fillStyle = '#6fc39b'; ctx.beginPath(); ctx.moveTo(305, 45); ctx.lineTo(325, 26); ctx.lineTo(340, 38); ctx.lineTo(357, 22); ctx.lineTo(357, 45); ctx.fill(); ctx.fillStyle = '#ffd23f'; ell(316, 22, 4, 4); ctx.fill(); }
+  // menu board
+  ctx.fillStyle = '#2f3b33'; rr(150, 8, 100, 42, 6); ctx.fill(); ctx.strokeStyle = '#7a4a2e'; ctx.lineWidth = 4; rr(150, 8, 100, 42, 6); ctx.stroke();
+  const menu = DISHES.filter(d => d.day <= (R ? R.day : S.day)).slice(-4);
+  menu.forEach((d, i) => emoji(d.e, 165 + i * 24, 29, 17));
+}
+function drawKitchen(){
+  for(let i = 0; i < 3; i++){
+    const [x, y] = STOVE_POS[i], locked = i >= S.stoves, s = R && R.stoves[i], sc = popS('s' + i);
+    ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc); ctx.globalAlpha = locked ? .35 : 1;
+    ctx.fillStyle = '#4b4b52'; rr(-48, -30, 96, 72, 10); ctx.fill();
+    ctx.fillStyle = '#6a6a73'; rr(-48, -30, 96, 14, [10, 10, 0, 0]); ctx.fill();
+    ctx.fillStyle = '#2b2b30'; rr(-34, 4, 68, 30, 6); ctx.fill(); // oven door
+    ctx.fillStyle = s && !s.done ? '#ff7b3a' : '#8a8a92'; rr(-24, 10, 48, 16, 4); ctx.fill();
+    ctx.fillStyle = '#e2554a'; ell(-38, 34, 3, 3); ctx.fill(); ell(38, 34, 3, 3); ctx.fill();
+    ctx.restore();
+    if(locked){ emoji('🔒', x, y, 26); continue; }
+    if(s){
+      // pan + dish + progress ring
+      ctx.fillStyle = '#26262a'; ell(x, y - 26, 30, 10); ctx.fill(); ctx.fillRect(x + 26, y - 30, 24, 6);
+      const k = s.done ? 1 : s.t / s.dur, wob = s.done ? Math.sin(performance.now() / 90) * 3 : Math.sin(performance.now() / 60) * 1.5;
+      emoji(s.dish.e, x, y - 36 + wob, 30);
+      ctx.lineWidth = 6; ctx.strokeStyle = '#0005'; ctx.beginPath(); ctx.arc(x - 34, y - 46, 12, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = s.done ? '#6fc39b' : '#ffd23f'; ctx.beginPath(); ctx.arc(x - 34, y - 46, 12, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k); ctx.stroke();
+    } else {
+      ctx.fillStyle = '#26262a'; ell(x, y - 26, 26, 8); ctx.fill();
+      const any = R && R.pets.some(p => p.st === 'order');
+      if(any && mode === 'play'){ const a = .5 + Math.sin(performance.now() / 200) * .5; ctx.strokeStyle = 'rgba(255,210,63,' + a + ')'; ctx.lineWidth = 4; rr(x - 52, y - 34, 104, 80, 12); ctx.stroke(); }
+    }
+  }
+  // pass counter
+  ctx.fillStyle = '#a0663f'; ctx.fillRect(0, 150, W, 56); ctx.fillStyle = '#c98f5e'; ctx.fillRect(0, 150, W, 12);
+  ctx.fillStyle = '#7a4a2e'; ctx.fillRect(0, 200, W, 6);
+  for(let i = 0; i < 4; i++){
+    const [x, y] = PASS_POS[i], d = R && R.pass[i];
+    ctx.fillStyle = '#fff'; ell(x, y + 4, 30, 12); ctx.fill(); ctx.strokeStyle = '#e6dccb'; ctx.lineWidth = 2; ell(x, y + 4, 22, 8); ctx.stroke();
+    if(d){
+      const sc = popS('d' + i) * (1 + Math.sin(d.t * 8) * .06);
+      ctx.save(); ctx.translate(x, y - 6); ctx.scale(sc, sc);
+      ctx.fillStyle = 'rgba(255,230,120,.45)'; ell(0, 6, 34, 22); ctx.fill();
+      emoji(d.dish.e, 0, 0, 34); ctx.restore();
+      emoji(d.p.e, x + 22, y - 26, 16); // who it's for
+    }
+  }
+}
+function drawTable(i){
+  const [x, y] = TABLE_POS[i], locked = i >= S.tables, sc = popS('t' + i);
+  if(locked){ ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.setLineDash([8, 8]); ctx.lineWidth = 3; ell(x, y, 46, 30); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = .55; emoji('🔒', x, y, 22); ctx.globalAlpha = 1; return; }
+  ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ell(0, 30, 50, 14); ctx.fill();
+  ctx.fillStyle = '#5b3420'; ctx.fillRect(-6, 4, 12, 30);
+  ctx.fillStyle = '#7a4a2e'; ell(0, 6, 50, 32); ctx.fill();
+  ctx.fillStyle = '#a0663f'; ell(0, 0, 50, 32); ctx.fill();
+  ctx.save(); ell(0, 0, 44, 27); ctx.clip();
+  for(let yy = -30; yy < 30; yy += 11) for(let xx = -48; xx < 48; xx += 11){ ctx.fillStyle = ((xx + yy) / 11 & 1) ? '#d9473b' : '#fff4e0'; ctx.fillRect(xx, yy, 11, 11); }
+  ctx.restore();
+  if(S.decor.flowers) emoji('🌷', 28, -8, 18);
+  ctx.restore();
+}
+function drawChair(i){
+  if(i >= S.tables) return;
+  const [x, y] = TABLE_POS[i];
+  ctx.fillStyle = '#5b3420'; rr(x - 26, y - 84, 52, 56, 14); ctx.fill();
+  ctx.fillStyle = '#d9473b'; rr(x - 21, y - 79, 42, 46, 11); ctx.fill();
+}
+function patBar(x, y, w, v){
+  ctx.fillStyle = '#0006'; rr(x - w / 2 - 2, y - 4, w + 4, 9, 5); ctx.fill();
+  ctx.fillStyle = v > .5 ? '#6fc39b' : v > .25 ? '#ffd23f' : '#e2554a';
+  rr(x - w / 2, y - 2, Math.max(0, w * v), 5, 3); ctx.fill();
+  emoji(v > .25 ? '❤️' : '💔', x - w / 2 - 8, y + .5, 12);
+}
+function bubble(x, y, content, glow){
+  ctx.fillStyle = glow ? '#fffbe0' : '#fff';
+  rr(x - 24, y - 22, 48, 40, 14); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x - 14, y + 16); ctx.lineTo(x - 22, y + 28); ctx.lineTo(x - 4, y + 16); ctx.fill();
+  if(glow){ ctx.strokeStyle = '#f4b73a'; ctx.lineWidth = 3; rr(x - 24, y - 22, 48, 40, 14); ctx.stroke(); }
+  content();
+}
+function drawPet(p){
+  const hop = (p.st === 'walkin' || p.st === 'toTable' || p.st === 'leave' || p.st === 'angry') ? Math.abs(Math.sin(p.bob * 1.6)) * 7 : Math.sin(p.bob * .5) * 1.5;
+  const sc = 1 + p.pop * .25;
+  const y = p.y - hop;
+  ctx.save(); ctx.translate(p.x, y); ctx.scale(sc, sc);
+  if(p.vip){ ctx.fillStyle = 'rgba(255,215,80,.35)'; ell(0, 0, 30, 30); ctx.fill(); }
+  if(p.flash){ ctx.globalAlpha = .5 + p.flash * .5; }
+  emoji(p.e, 0, 0, 44);
+  if(p.vip) emoji('👑', 0, -28, 20);
+  if(p.st === 'angry') emoji('💢', 18, -18, 18);
+  if(p.happy && p.st === 'leave') emoji('💕', 18, -18, 16);
+  ctx.restore();
+}
+function drawPetUI(p){
+  if(p.st === 'queue' || p.st === 'walkin'){ patBar(p.x, p.y - 34, 34, p.pat); return; }
+  if(p.table < 0 || !SEATED.includes(p.st)) return;
+  const [tx, ty] = TABLE_POS[p.table];
+  const bx = tx + 44, by = ty - 96;
+  if(p.st === 'think') bubble(bx, by, () => txt('…', bx, by - 4, 24, '#8a6248'));
+  if(p.st === 'order'){ const b = Math.sin(performance.now() / 150) * 3; bubble(bx, by + b, () => { emoji(p.dish.e, bx, by + b - 2, 26); emoji('❗', bx + 22, by + b - 22, 16); }, true); }
+  if(p.st === 'wait' || p.st === 'served') bubble(bx, by, () => { ctx.globalAlpha = .55; emoji(p.dish.e, bx, by - 2, 24); ctx.globalAlpha = 1; emoji('⏳', bx + 20, by - 20, 13); });
+  if(p.st === 'eat'){ emoji(p.dish.e, tx, ty - 4, 28); }
+  if(['order','wait'].includes(p.st)) patBar(tx, ty + 42, 54, p.pat);
+}
+function drawDecorFloor(){
+  if(S.decor.plant){ emoji('🪴', 24, 236, 36); emoji('🪴', 376, 236, 36); emoji('🪴', 24, 606, 32); }
+  if(S.decor.aquarium){ ctx.fillStyle = '#7a4a2e'; ctx.fillRect(4, 470, 42, 50); ctx.fillStyle = '#8fd3f4'; ctx.fillRect(6, 446, 38, 30); ctx.strokeStyle = '#fff8'; ctx.lineWidth = 2; ctx.strokeRect(6, 446, 38, 30);
+    const fx = 25 + Math.sin((R ? R.time : 0) * 1.4) * 9; emoji('🐠', fx, 461, 14); }
+  if(S.decor.teddy) emoji('🧸', 377, 470, 40);
+  if(S.decor.jukebox){ ctx.fillStyle = '#c0392b'; rr(352, 632, 40, 64, [18, 18, 4, 4]); ctx.fill(); ctx.fillStyle = '#ffd23f'; rr(358, 640, 28, 18, 9); ctx.fill(); ctx.fillStyle = '#3d2416'; ctx.fillRect(360, 664, 24, 22); }
+}
+function drawDoor(){
+  ctx.fillStyle = '#3d2416'; ctx.fillRect(4, 628, 62, 92);
+  ctx.fillStyle = '#8a5434'; ctx.fillRect(9, 633, 52, 90);
+  ctx.fillStyle = '#bfe6f5'; rr(17, 642, 36, 26, 6); ctx.fill();
+  ctx.fillStyle = '#f4b73a'; ell(53, 690, 3, 3); ctx.fill();
+  const open = !(R && R.closing) && mode === 'play';
+  ctx.fillStyle = open ? '#6fc39b' : '#e2554a'; rr(12, 672, 46, 15, 4); ctx.fill();
+  txt(open ? 'OPEN' : 'CLOSED', 35, 680, 9, '#fff');
+}
+function drawHint(){
+  if(S.tut >= 3 || mode !== 'play' || !R || R.intro > 0 || R.closing) return;
+  let tgt = null, msg = '';
+  const di = R.pass.findIndex(d => d);
+  const ord = R.pets.find(p => p.st === 'order');
+  const free = firstFreeTable();
+  const freeStove = R.stoves.findIndex((s, i) => !s && i < S.stoves);
+  if(di >= 0){ tgt = [PASS_POS[di][0], PASS_POS[di][1] + 10]; msg = tr('Tap the dish to serve it'); }
+  else if(ord && freeStove >= 0){ tgt = [STOVE_POS[freeStove][0], STOVE_POS[freeStove][1] + 20]; msg = tr('Tap the kitchen to cook the order'); }
+  else if(R.queue.some(p => p.st === 'queue') && free >= 0){ tgt = [TABLE_POS[free][0], TABLE_POS[free][1] + 6]; msg = tr('Tap a table to seat a guest'); }
+  else if(R.stoves.some(s => s)) msg = tr('Cooking…');
+  if(tgt){ const b = Math.abs(Math.sin(performance.now() / 250)) * 10; emoji('👆', tgt[0] + 8, tgt[1] + 26 + b, 34); }
+  if(msg){ ctx.font = '900 15px ' + EMO; const w = Math.min(380, msg.length * 8.2 + 30); ctx.fillStyle = 'rgba(61,36,22,.85)'; rr(W / 2 - w / 2, 600, w, 28, 14); ctx.fill(); txt(msg, W / 2, 614, 14, '#fff4e0'); }
+}
+function part(x, y, kind, hud){
+  const q = {x, y, kind, t:0, vx:rand(-60, 60), vy:rand(-120, -40), g:0, life:.8};
+  if(kind === 'coin'){ q.vx = rand(-140, 140); q.vy = rand(-220, -80); q.life = 1.1; q.hx = hud[0]; q.hy = hud[1]; }
+  if(kind === 'steam'){ q.vx = rand(-8, 8); q.vy = rand(-40, -25); q.life = 1.2; q.r = rand(5, 9); }
+  if(kind === 'spark' || kind === 'gold'){ const a = rand(0, Math.PI * 2), s = rand(60, kind === 'gold' ? 260 : 160); q.vx = Math.cos(a) * s; q.vy = Math.sin(a) * s; q.life = .6; }
+  if(kind === 'heart'){ q.vy = rand(-70, -40); q.life = 1.1; }
+  if(kind === 'crumb'){ q.vy = rand(-60, -20); q.g = 300; q.life = .5; }
+  if(kind === 'note'){ q.vx = rand(-15, 15); q.vy = -40; q.life = 1.6; q.e = pick(['🎵','🎶']); }
+  R.parts.push(q);
+}
+function drawParts(){
+  for(const q of R.parts){
+    const a = 1 - q.t / q.life;
+    ctx.globalAlpha = Math.max(0, a);
+    if(q.kind === 'coin') emoji('🪙', q.x, q.y, 18);
+    else if(q.kind === 'steam'){ ctx.fillStyle = '#fff'; ctx.globalAlpha = a * .6; ell(q.x, q.y, q.r * (1 + q.t), q.r * (1 + q.t)); ctx.fill(); }
+    else if(q.kind === 'spark'){ ctx.fillStyle = '#fff6b0'; ell(q.x, q.y, 3, 3); ctx.fill(); }
+    else if(q.kind === 'gold'){ emoji('✨', q.x, q.y, 16); }
+    else if(q.kind === 'heart') emoji('❤️', q.x, q.y, 14);
+    else if(q.kind === 'crumb'){ ctx.fillStyle = '#c98f5e'; ctx.fillRect(q.x, q.y, 3, 3); }
+    else if(q.kind === 'note') emoji(q.e, q.x, q.y, 16);
+  }
+  ctx.globalAlpha = 1;
+}
+function floatTxt(x, y, s, color, size){ R && R.floats.push({x, y, s, color, size:size || 22, t:0, life:1.1}); }
+function drawFloats(){
+  for(const f of R.floats){
+    const k = f.t / f.life, sc = k < .15 ? .6 + k / .15 * .5 : 1.1 - Math.min(.1, (k - .15));
+    ctx.globalAlpha = k > .7 ? (1 - k) / .3 : 1;
+    ctx.save(); ctx.translate(f.x, f.y); ctx.scale(sc, sc); txt(f.s, 0, 0, f.size, f.color, '#3d2416'); ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+}
+function drawFly(){
+  for(const f of R.fly){
+    const k = Math.min(1, f.t / CONFIG.DISH_FLY), [tx, ty] = TABLE_POS[f.p.table];
+    const x = f.x0 + (tx - f.x0) * k, y = f.y0 + (ty - 4 - f.y0) * k - Math.sin(k * Math.PI) * 60;
+    emoji(f.dish.e, x, y, 30 + Math.sin(k * Math.PI) * 10);
+  }
+}
+function drawBanner(){
+  const b = R.banner; if(!b) return;
+  const k = b.t, a = k < .25 ? k / .25 : k > 1.9 ? Math.max(0, (2.2 - k) / .3) : 1, sc = k < .25 ? .7 + k / .25 * .3 : 1;
+  ctx.globalAlpha = a; ctx.save(); ctx.translate(W / 2, 400); ctx.scale(sc, sc);
+  ctx.fillStyle = '#fff4e0'; rr(-150, -50, 300, 100, 22); ctx.fill(); ctx.strokeStyle = '#d9473b'; ctx.lineWidth = 6; rr(-150, -50, 300, 100, 22); ctx.stroke();
+  txt(b.txt, 0, -14, 34, '#d9473b'); txt(b.sub, 0, 24, 15, '#4a2a18');
+  ctx.restore(); ctx.globalAlpha = 1;
+}
+function draw(){
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = '#3d2416'; ctx.fillRect(0, 0, cv.width, cv.height);
+  const sh = R && R.shake ? R.shake : 0;
+  ctx.translate(offX + (sh ? rand(-sh, sh) : 0), offY + (sh ? rand(-sh, sh) : 0)); ctx.scale(scale, scale);
+  ctx.save(); rr(0, 0, W, H, 14); ctx.clip();
+  drawFloor(); drawWall(); drawKitchen(); drawDecorFloor(); drawDoor();
+  if(!R){ ctx.restore(); return; }
+  // chairs → seated pets → tables, row by row (so lower rows sit in front)
+  const seatedAt = i => R.pets.find(p => p.table === i && ['think','order','wait','served','eat'].includes(p.st));
+  for(let row = 0; row < 3; row++){
+    for(const i of [row * 2, row * 2 + 1]){ drawChair(i); const p = seatedAt(i); if(p) drawPet(p); drawTable(i); }
+  }
+  // walking / queued pets on top
+  R.pets.filter(p => !['think','order','wait','served','eat'].includes(p.st)).sort((a, b) => a.y - b.y).forEach(drawPet);
+  R.pets.forEach(drawPetUI);
+  drawFly(); drawParts(); drawFloats(); drawHint(); drawBanner();
+  ctx.restore();
+}
+
+/* =====================================================================
+   10. SCREENS
+===================================================================== */
+const OVS = ['title','pause','result','shop','settings'];
+function hideAll(){ OVS.forEach(id => $(id).classList.remove('on')); }
+function show(id){ $(id).classList.add('on'); }
+function toast(msg, cls){ const d = document.createElement('div'); d.textContent = msg; if(cls) d.className = cls; $('toast').appendChild(d); setTimeout(() => d.remove(), 1800); }
+function hudCoinPos(){
+  const r = $('hCoins').getBoundingClientRect(), c = cv.getBoundingClientRect();
+  return [(r.left + r.width / 2 - c.left - offX) / scale, (r.top + r.height / 2 - c.top - offY) / scale];
+}
+let lastStars = 0;
+function updateHud(force){
+  if(!R) return;
+  R.shown += (R.earned - R.shown) * Math.min(1, .15);
+  if(Math.abs(R.earned - R.shown) < .5) R.shown = R.earned;
+  const max = R.goal * CONFIG.STAR3;
+  $('goalFill').style.width = Math.min(100, R.shown / max * 100) + '%';
+  $('hCoins').textContent = '🪙 ' + Math.round(R.shown); 
+  [[1, 1], [2, CONFIG.STAR2], [3, CONFIG.STAR3]].forEach(([n, m]) => { const el = $('gs' + n); el.style.left = Math.min(96, m / CONFIG.STAR3 * 100) + '%'; el.classList.toggle('on', R.shown >= R.goal * m); });
+  const st = starsFor(Math.round(R.shown));
+  if(st > lastStars && !force){ sfx('star'); $('goalWrap').animate([{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}], 300); }
+  lastStars = force ? 0 : st;
+  $('hDay').textContent = tr('Day') + ' ' + R.day;
+  const s = Math.ceil(R.t);
+  $('hTime').textContent = R.closing ? '🌙 ' + tr('Closing') : '⏱ ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  $('hTime').classList.toggle('warn', !R.closing && R.t <= 10);
+}
+function renderTitle(){
+  mode = 'title'; R = null; $('hud').style.visibility = 'hidden';
+  document.querySelectorAll('[data-t]').forEach(el => { el.dataset.en = el.dataset.en || el.textContent; el.textContent = tr(el.dataset.en); });
+  $('tHow').textContent = tr('Seat pets, cook their food and serve it fast. Happy pets tip more!');
+  $('tPlay').textContent = '▶ ' + tr('Day') + ' ' + S.day;
+  $('tShop').textContent = '🛒 ' + tr('Shop'); $('tSet').textContent = '⚙️ ' + tr('Settings');
+  $('tCoins').textContent = '🪙 ' + S.coins;
+  hideAll(); show('title');
+}
+function pauseGame(){ if(mode !== 'play' || paused) return; paused = true; musicStop();
+  $('pTitle').textContent = tr('Paused'); $('pResume').textContent = '▶ ' + tr('Resume'); $('pRestart').textContent = '↻ ' + tr('Restart day'); $('pMenu').textContent = '🏠 ' + tr('Menu');
+  $('pSfx').textContent = (S.sfx ? '🔊 ' : '🔇 ') + tr('Sound'); $('pMus').textContent = (S.mus ? '🎵 ' : '🚫 ') + tr('Music');
+  show('pause'); }
+function resumeGame(){ paused = false; $('pause').classList.remove('on'); musicStart(); last = performance.now(); }
+
+function showResult(){
+  const r = R.result, stars = r.stars;
+  const head = stars ? tr('Day complete!') : tr('Almost!');
+  let h = '<h2>' + head + '</h2><div class="stars">' + [1, 2, 3].map(i => '<span id="rs' + i + '">⭐</span>').join('') + '</div>' +
+    '<div class="muted center">' + tr('Coins earned') + '</div><div class="bigcoins" id="rCoins">🪙 0</div>' +
+    '<div class="stats"><span>🍽️ ' + tr('Served') + '</span><b>' + R.served + '</b><span>💢 ' + tr('Left angry') + '</span><b>' + R.missed + '</b>' +
+    (R.vips ? '<span>👑 ' + tr('VIPs served') + '</span><b>' + R.vips + '</b>' : '') +
+    '<span>🔥 ' + tr('Best combo') + '</span><b>x' + R.bestCombo + '</b></div>';
+  if(!stars && !r.passed) h += '<p class="muted center">' + tr('Reach the goal to unlock the next day.') + ' (🎯 ' + R.goal + ')</p>';
+  h += stars || r.passed ? '<button class="btn red wide big" id="rNext">▶ ' + tr('Next day') + '</button>' : '<button class="btn red wide big" id="rNext">↻ ' + tr('Try again') + '</button>';
+  if(!r.doubled && R.earned > 0) h += '<button class="btn gold wide" id="rDouble">' + adIcon() + ' ' + tr('Double coins') + ' (+' + R.earned + ')</button>';
+  if(!stars && !r.passed) h += '<button class="btn mint wide" id="rPass">' + adIcon() + ' ' + tr('Pass this day anyway') + '</button>';
+  h += '<div class="row" style="margin-top:10px"><button class="btn" id="rShop">🛒 ' + tr('Shop') + '</button><button class="btn" id="rMenu">🏠 ' + tr('Menu') + '</button></div>';
+  $('resBox').innerHTML = h; hideAll(); show('result'); $('hud').style.visibility = 'hidden';
+  // juice: stars pop one by one, coins tick up
+  for(let i = 1; i <= stars; i++) setTimeout(() => { const el = $('rs' + i); if(el){ el.classList.add('on'); sfx('star'); } }, 250 + i * 320);
+  const target = R.earned * (r.doubled ? 2 : 1); let v = 0; const t0 = performance.now();
+  const tick = () => { const k = Math.min(1, (performance.now() - t0) / 900); v = Math.round(target * (1 - Math.pow(1 - k, 3))); const el = $('rCoins'); if(el) el.textContent = '🪙 ' + v; if(k < 1) requestAnimationFrame(tick); };
+  tick();
+  $('rNext').onclick = () => { sfx('tap'); startDay(S.day); };
+  if($('rDouble')) $('rDouble').onclick = async () => { if(await rewardAd()){ S.coins += R.earned; r.doubled = true; save(); toast('🪙 +' + R.earned, 'gold'); sfx('coin'); showResult(); } };
+  if($('rPass')) $('rPass').onclick = async () => { if(await rewardAd()){ r.passed = true; if(R.day === S.day) S.day++; S.best[R.day] = Math.max(1, S.best[R.day] || 0); save(); sfx('star'); showResult(); } };
+  $('rShop').onclick = () => openShop('result');
+  $('rMenu').onclick = () => { sfx('tap'); renderTitle(); };
+}
+
+/* ---------- shop ---------- */
+let shopTab = 'up', shopFrom = 'title';
+function openShop(from){ shopFrom = from; sfx('tap'); hideAll(); show('shop'); renderShop(); }
+function closeShop(){ sfx('tap'); $('shop').classList.remove('on'); if(shopFrom === 'result') showResult(); else renderTitle(); }
+function renderShop(){
+  $('shTitle').textContent = tr('Shop'); $('shCoins').textContent = '🪙 ' + S.coins; $('shClose').textContent = '✔ ' + tr('Done');
+  $('shTabs').innerHTML = [['up','⬆️ ' + tr('Upgrades')],['decor','🪴 ' + tr('Decor')],['style','🎨 ' + tr('Style')],['pack','👑 ' + tr('Pack')]]
+    .map(([k, l]) => '<button data-k="' + k + '" class="' + (shopTab === k ? 'on' : '') + '">' + l + '</button>').join('');
+  $('shTabs').querySelectorAll('button').forEach(b => b.onclick = () => { shopTab = b.dataset.k; sfx('tap'); renderShop(); });
+  let h = '';
+  if(shopTab === 'up'){
+    const wait = Math.max(0, Math.ceil((S.freeAt - now()) / 1000));
+    const amt = 40 + 20 * S.day;
+    h += '<div class="card" style="background:#fff8e1;border-color:#f4b73a"><div class="ic">🎁</div><div class="tx"><div class="nm">' + tr('Free coins') + ' (+' + amt + ')</div><div class="ds">' + (S.noAds ? '✨ ' + tr('Ad rewards without ads') : tr('Watch a short ad')) + '</div></div>' +
+      (wait ? '<button class="btn" disabled>⏳ ' + Math.floor(wait / 60) + ':' + String(wait % 60).padStart(2, '0') + '</button>' : '<button class="btn gold" id="freeC">' + adIcon() + ' +' + amt + '</button>') + '</div>';
+    for(const k in UPG){
+      const u = UPG[k], lvl = S[k], max = lvl >= u.max;
+      const cost = max ? 0 : u.cost[lvl];
+      const dots = Array.from({length:u.max - u.min}, (_, i) => '<i class="' + (i < lvl - u.min ? 'on' : '') + '"></i>').join('');
+      h += '<div class="card"><div class="ic">' + u.e + '</div><div class="tx"><div class="nm">' + tr(u.name) + (k === 'tables' || k === 'stoves' ? ' (' + lvl + ')' : '') + '</div><div class="ds">' + tr(u.desc) + '</div><div class="dots">' + dots + '</div></div>' +
+        (max ? '<span class="tag">' + tr('MAX') + '</span>' : '<button class="btn ' + (S.coins >= cost ? 'gold' : '') + '" data-up="' + k + '" data-c="' + cost + '">🪙 ' + cost + '</button>') + '</div>';
+    }
+  }
+  if(shopTab === 'decor'){
+    DECOR.forEach(d => {
+      const own = S.decor[d.id];
+      h += '<div class="card ' + (own ? 'owned' : '') + '"><div class="ic">' + d.e + '</div><div class="tx"><div class="nm">' + tr(d.name) + '</div><div class="ds">' + tr(d.desc) + '</div></div>' +
+        (own ? '<span class="tag">✔ ' + tr('Owned') + '</span>' : '<button class="btn ' + (S.coins >= d.cost ? 'gold' : '') + '" data-dec="' + d.id + '">🪙 ' + d.cost + '</button>') + '</div>';
+    });
+  }
+  if(shopTab === 'style'){
+    const sec = (title, set, ownKey, curKey) => {
+      h += '<div class="nm" style="font-weight:900;margin:4px 2px 6px">' + title + '</div>';
+      for(const id in set){
+        const it = set[id], own = S[ownKey][id], cur = S[curKey] === id;
+        let b;
+        if(cur) b = '<span class="tag">✔ ' + tr('In use') + '</span>';
+        else if(own) b = '<button class="btn mint" data-use="' + curKey + ':' + id + '">' + tr('Use') + '</button>';
+        else if(it.cost < 0) b = '<button class="btn" data-packtab="1">👑 ' + tr('Pack only') + '</button>';
+        else b = '<button class="btn ' + (S.coins >= it.cost ? 'gold' : '') + '" data-sty="' + ownKey + ':' + curKey + ':' + id + '" data-c="' + it.cost + '">🪙 ' + it.cost + '</button>';
+        h += '<div class="card ' + (cur ? 'owned' : '') + '"><div class="ic">' + it.e + '</div><div class="tx"><div class="nm">' + tr(it.name) + '</div></div>' + b + '</div>';
+      }
+    };
+    sec('🪵 ' + tr('Floor'), FLOORS, 'floors', 'floor');
+    sec('🧱 ' + tr('Wall'), WALLS, 'walls', 'wall');
+  }
+  if(shopTab === 'pack') h += paidShopHtml();
+  $('shopList').innerHTML = h;
+  // bind
+  if($('freeC')) $('freeC').onclick = async () => { if(await rewardAd()){ const amt = 40 + 20 * S.day; S.coins += amt; S.freeAt = now() + CONFIG.FREE_COINS_COOLDOWN * 1000; save(); sfx('coin'); toast('🪙 +' + amt, 'gold'); renderShop(); } };
+  $('shopList').querySelectorAll('[data-up]').forEach(b => b.onclick = () => { const k = b.dataset.up, c = +b.dataset.c; if(!spend(c, b)) return; S[k]++; done(b); });
+  $('shopList').querySelectorAll('[data-dec]').forEach(b => b.onclick = () => { const d = DECOR.find(x => x.id === b.dataset.dec); if(!spend(d.cost, b)) return; S.decor[d.id] = 1; done(b); });
+  $('shopList').querySelectorAll('[data-sty]').forEach(b => b.onclick = () => { const [ok, ck, id] = b.dataset.sty.split(':'); if(!spend(+b.dataset.c, b)) return; S[ok][id] = 1; S[ck] = id; done(b); });
+  $('shopList').querySelectorAll('[data-use]').forEach(b => b.onclick = () => { const [ck, id] = b.dataset.use.split(':'); S[ck] = id; save(); sfx('tap'); renderShop(); });
+  $('shopList').querySelectorAll('[data-packtab]').forEach(b => b.onclick = () => { shopTab = 'pack'; sfx('tap'); renderShop(); });
+  if(shopTab === 'pack') bindPaidShop();
+}
+function spend(c, btn){
+  if(S.coins < c){ sfx('nope'); toast(tr('Not enough coins'), 'err'); btn.animate([{transform:'translateX(0)'},{transform:'translateX(-6px)'},{transform:'translateX(6px)'},{transform:'translateX(0)'}], 220); return false; }
+  S.coins -= c; return true;
+}
+function done(){ save(); sfx('buy'); toast('✨ ' + tr('Bought!'), 'gold'); renderShop(); }
+
+/* ---------- settings ---------- */
+function openSettings(){
+  sfx('tap');
+  const tg = (id, on, label) => '<div class="set"><span>' + label + '</span><button class="tog ' + (on ? 'on' : '') + '" id="' + id + '" aria-label="' + label + '"></button></div>';
+  $('setBox').innerHTML = '<h2>⚙️ ' + tr('Settings') + '</h2>' +
+    tg('sSfx', S.sfx, '🔊 ' + tr('Sound')) + tg('sMus', S.mus, '🎵 ' + tr('Music')) + tg('sEasy', S.easy, '🔤 ' + tr('Easy-read font')) +
+    '<div class="set"><span>🌐 ' + tr('Language') + '</span><div class="row"><button class="btn ' + (S.lang === 'en' ? 'red' : '') + '" id="sEn">EN</button><button class="btn ' + (S.lang === 'fr' ? 'red' : '') + '" id="sFr">FR</button></div></div>' +
+    '<button class="btn wide" id="sRestore">💳 ' + tr('Restore purchases') + '</button>' +
+    '<button class="btn wide" id="sPriv">🔒 ' + tr('Privacy') + '</button>' +
+    '<button class="btn red wide" id="sClose">✔ ' + tr('Done') + '</button>' +
+    '<p class="muted center">Paw Bistro · MOS Arcade</p>';
+  hideAll(); show('settings');
+  $('sSfx').onclick = () => { S.sfx = !S.sfx; save(); openSettings(); };
+  $('sMus').onclick = () => { S.mus = !S.mus; save(); if(!S.mus) musicStop(); openSettings(); };
+  $('sEasy').onclick = () => { S.easy = !S.easy; document.body.classList.toggle('easy', S.easy); save(); openSettings(); };
+  $('sEn').onclick = () => { S.lang = 'en'; save(); openSettings(); };
+  $('sFr').onclick = () => { S.lang = 'fr'; save(); openSettings(); };
+  $('sRestore').onclick = restorePurchases;
+  $('sPriv').onclick = () => { try{ window.open(PRIVACY_URL, '_blank'); }catch(e){} };
+  $('sClose').onclick = () => { sfx('tap'); renderTitle(); };
+}
+const PRIVACY_URL = 'https://sussy0603.github.io/Arcade/Privacy%20Paw%20Bistro/privacy.html';
+
+/* generic modal */
+let modalOnClose = null;
+function openModal(html){ $('modalBox').innerHTML = html; $('modal').classList.add('on'); }
+function closeModal(){ $('modal').classList.remove('on'); if(modalOnClose){ const f = modalOnClose; modalOnClose = null; f(); } }
+
+/* =====================================================================
+   11. MONEY — rewarded ads (AdMob) + purchases (Google Play Billing)
+   ---------------------------------------------------------------------
+   FAKE FOR NOW: in a browser, ads are a 3-second pretend ad, and
+   purchases are pretend (a "Demo" button gives you the item).
+   Inside the Android app (Capacitor) with the plugins installed, the
+   real ones take over automatically:
+     • @capacitor-community/admob   → rewarded video ads
+     • cordova-plugin-purchase      → Google Play purchases
+   BEFORE RELEASE: put your real AdMob rewarded unit ID below,
+   set MONEY.TESTING to false, and set MONEY.DEMO_BUY to false.
+   Ads are ALWAYS the player's choice. Nothing plays on its own.
+===================================================================== */
+const MONEY = {
+  TESTING: true,
+  DEMO_BUY: true,   // browser only: pretend purchases give the item (for testing)
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917', // Google's TEST rewarded ID — replace with yours
+};
+const PACK = {sku:'golden_diner_pack', price:'$2.99', coins:1000};
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null;
+let adBusy = false;
+const adIcon = () => S.noAds ? '✨' : '📺 ' + (S.lang === 'fr' ? 'Pub' : 'Ad') + ' ·';
+
+/* the one function the game calls. Resolves true if the player earned the reward. */
+async function rewardAd(){
+  if(S.noAds){ toast('✨ ' + tr('Golden pack: reward given!'), 'gold'); return true; }
+  if(adBusy) return false;
+  adBusy = true; musicStop();
+  let ok = false;
+  try{ ok = AdMobP() ? await nativeAd() : await demoAd(); }catch(e){ ok = false; }
+  adBusy = false;
+  if(!ok) toast(tr('No reward this time'), 'err');
+  return ok;
+}
+function nativeAd(){
+  const A = AdMobP();
+  return new Promise(async res => {
+    let earned = false, finished = false; const hs = [];
+    const finish = () => { if(finished) return; finished = true; hs.forEach(h => { try{ h.remove(); }catch(e){} }); res(earned); };
+    try{
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      await A.prepareRewardVideoAd({adId:MONEY.REWARDED_ID, isTesting:MONEY.TESTING});
+      const item = await A.showRewardVideoAd();
+      if(item && item.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    }catch(e){ finish(); }
+  });
+}
+function demoAd(){
+  return new Promise(res => {
+    let n = 3;
+    openModal('<h2>📺 ' + tr('Ad preview') + '</h2><p class="center">' + tr('A real video ad plays here in the app.') + '</p><div class="bigcoins" id="adCd">' + n + '</div>' +
+      '<button class="btn wide" id="adSkip">' + tr('Close (no reward)') + '</button>');
+    const iv = setInterval(() => { n--; const el = $('adCd'); if(el) el.textContent = n; if(n <= 0){ clearInterval(iv); closeModal(); res(true); } }, 1000);
+    $('adSkip').onclick = () => { clearInterval(iv); closeModal(); res(false); };
+  });
+}
+async function adsInit(){ const A = AdMobP(); if(!A) return; try{ await A.initialize({initializeForTesting:MONEY.TESTING}); }catch(e){} }
+
+function grantSku(sku){
+  if(sku !== PACK.sku || S.pack) return '';
+  S.pack = true; S.noAds = true; S.coins += PACK.coins;
+  S.floors.marble = 1; S.walls.gold = 1; S.floor = 'marble'; S.wall = 'gold';
+  return '✨ ' + tr('Golden marble floor + golden wall') + '<br>🪙 +' + PACK.coins + '<br>✨ ' + tr('Ad rewards without ads');
+}
+const PRICES = {};
+const priceOf = (sku, fb) => PRICES[sku] || fb;
+let iapReady = false;
+function iapStore(){ return window.CdvPurchase && CdvPurchase.store; }
+function iapInit(){
+  const C = window.CdvPurchase; if(!C || iapReady) return;
+  const {store, ProductType, Platform} = C; iapReady = true;
+  store.register([{id:PACK.sku, type:ProductType.NON_CONSUMABLE, platform:Platform.GOOGLE_PLAY}]);
+  store.when()
+    .productUpdated(p => { if(p.pricing && p.pricing.price) PRICES[p.id] = p.pricing.price; })
+    .approved(tx => {
+      const tid = tx.transactionId || ('t' + now());
+      if(!S.iapDone[tid]){
+        S.iapDone[tid] = now();
+        (tx.products || []).forEach(it => { const msg = grantSku(it.id); if(msg) showThanks(msg); });
+        save(); if($('shop').classList.contains('on')) renderShop();
+      }
+      tx.finish();
+    });
+  store.error(e => { if(e && e.code !== C.ErrorCode.PAYMENT_CANCELLED) toast(tr('Store error. Please try again.'), 'err'); });
+  store.initialize([Platform.GOOGLE_PLAY]);
+}
+document.addEventListener('deviceready', iapInit, false);
+function showThanks(msg){ openModal('<h2>💝 ' + tr('Thank you!') + '</h2><p class="center" style="font-weight:800;line-height:1.7">' + msg + '</p><button class="btn red wide" id="mOk">✔ ' + tr('Close') + '</button>'); $('mOk').onclick = closeModal; sfx('vip'); }
+function buy(sku){
+  sfx('tap');
+  const st = iapStore();
+  if(st){
+    const p = st.get(sku), offer = p && p.getOffer();
+    if(!offer){ toast(tr('Store is still loading. Try again in a moment.'), 'err'); return; }
+    offer.order(); return;
+  }
+  openModal('<h2>💳 ' + tr('Golden Diner Pack') + '</h2><p class="center"><b>' + PACK.price + '</b></p><p class="muted center">' + tr('Demo mode: real payments work in the Android app through Google Play.') + '</p>' +
+    (MONEY.DEMO_BUY ? '<button class="btn gold wide" id="dmBuy">' + tr('Demo: get it free') + '</button>' : '') + '<button class="btn wide" id="dmNo">' + tr('Close') + '</button>');
+  if($('dmBuy')) $('dmBuy').onclick = () => { closeModal(); const msg = grantSku(sku); save(); renderShop(); if(msg) showThanks(msg); };
+  $('dmNo').onclick = closeModal;
+}
+function restorePurchases(){
+  const st = iapStore();
+  if(st && st.restorePurchases){ st.restorePurchases(); toast(tr('Checking your purchases...')); }
+  else toast(tr('Restore works in the Android app.'));
+}
+function paidShopHtml(){
+  return '<div class="card" style="display:block;text-align:center;border:3px solid #f4b73a;background:linear-gradient(#fffaf0,#fde9b0)">' +
+    '<div style="font-size:1.3em;font-weight:900;color:#a8322a">👑 ' + tr('Golden Diner Pack') + '</div><div style="font-size:44px;margin:6px 0">🏛️🐶✨</div>' +
+    '<div style="text-align:left;line-height:1.9;font-weight:800">✨ ' + tr('Golden marble floor + golden wall') + '<br>🪙 +' + PACK.coins + ' ' + tr('coins') + '<br>📺 ' + tr('Get every ad reward without watching ads') + '</div>' +
+    (S.pack ? '<span class="tag" style="margin-top:8px">✔ ' + tr('Owned') + '</span>' : '<button class="btn red wide" id="buyPack">' + priceOf(PACK.sku, PACK.price) + ' · ' + tr('one time') + '</button>') + '</div>' +
+    '<p class="muted center">' + tr('Totally optional! Everything else can be earned by playing.') + '<br>' + tr('Payments are handled securely by Google Play.') + '</p>' +
+    '<button class="btn wide" id="shRestore">💳 ' + tr('Restore purchases') + '</button>';
+}
+function bindPaidShop(){ if($('buyPack')) $('buyPack').onclick = () => buy(PACK.sku); $('shRestore').onclick = restorePurchases; }
+
+/* =====================================================================
+   12. START — wiring + main loop
+===================================================================== */
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const rand = (a, b) => a + Math.random() * (b - a);
+const now = () => Date.now();
+function $(id){ return document.getElementById(id); }
+
+cv.addEventListener('pointerdown', e => {
+  const r = cv.getBoundingClientRect();
+  onTap((e.clientX - r.left - offX) / scale, (e.clientY - r.top - offY) / scale);
+});
+$('hPause').onclick = () => { sfx('tap'); pauseGame(); };
+$('pResume').onclick = () => { sfx('tap'); resumeGame(); };
+$('pRestart').onclick = () => { sfx('tap'); startDay(R.day); };
+$('pMenu').onclick = () => { sfx('tap'); paused = false; renderTitle(); };
+$('pSfx').onclick = () => { S.sfx = !S.sfx; save(); paused = false; pauseGame(); };
+$('pMus').onclick = () => { S.mus = !S.mus; save(); paused = false; pauseGame(); };
+$('tPlay').onclick = () => { audio(); sfx('tap'); startDay(S.day); };
+$('tShop').onclick = () => { audio(); openShop('title'); };
+$('tSet').onclick = () => { audio(); openSettings(); };
+$('shClose').onclick = closeShop;
+document.addEventListener('visibilitychange', () => { if(document.hidden){ musicStop(); pauseGame(); } });
+window.addEventListener('resize', resize);
+
+let last = performance.now();
+function frame(t){
+  const dt = Math.min(.05, (t - last) / 1000); last = t;
+  if(mode === 'play' && !paused && R){ update(dt); if(mode === 'play') updateHud(); }
+  draw();
+  requestAnimationFrame(frame);
+}
+document.body.classList.toggle('easy', S.easy);
+resize(); renderTitle(); adsInit();
+requestAnimationFrame(frame);
+window.PB = {get S(){ return S; }, get R(){ return R; }, onTap, startDay, CONFIG};
+</script>
+</body>
+</html>

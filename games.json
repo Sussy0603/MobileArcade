@@ -1,5 +1,13 @@
 [
   {
+    "id": "pawbistro",
+    "name": "Paw Bistro",
+    "description": "Seat pets, cook, and serve fast in a cozy diner.",
+    "url": "games/pawbistro/index.html",
+    "category": "Arcade",
+    "addedAt": 1792113254602.748
+  },
+  {
     "id": "buzzio",
     "name": "Buzz.io",
     "description": "Fly a bee, loop back home and claim the honeycomb.",
