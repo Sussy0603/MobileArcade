@@ -175,6 +175,7 @@ button{font-family:inherit;font-size:inherit;color:inherit;border:0;cursor:point
 <div class="ov" id="modal" style="z-index:30"><div class="box" id="modalBox"></div></div>
 
 <div id="toast"></div>
+<canvas id="fx" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:35"></canvas>
 
 <script>
 'use strict';
@@ -216,7 +217,8 @@ const CONFIG = {
   THINK_TIME: 1.5,         // seconds a pet reads the menu
   EAT_TIME: 2.0,           // seconds a pet eats
   WALK_SPEED: 280,         // how fast pets walk
-  DISH_FLY: 0.32,          // seconds for a served dish to fly to the table
+  WAITER_SPEED: 520,       // how fast the penguin waiter walks
+  CONFETTI: 170,           // confetti pieces when you get 3 stars
   VIP_FROM_DAY: 2,         // VIPs start showing up on this day
   VIP_CHANCE: 0.09,        // chance a new pet is a VIP
   VIP_PAY: 3,              // VIPs pay this many times the price
@@ -240,16 +242,17 @@ const CONFIG = {
 ===================================================================== */
 const W = 400, H = 720;   // the restaurant is drawn on a 400×720 board, scaled to the phone
 const DISHES = [
-  {id:'cookie',   e:'🍪', price:8,  cook:3,   day:1},
-  {id:'pancake',  e:'🥞', price:12, cook:4,   day:1},
-  {id:'burger',   e:'🍔', price:16, cook:5,   day:2},
-  {id:'pizza',    e:'🍕', price:20, cook:5.5, day:3},
-  {id:'spaghetti',e:'🍝', price:24, cook:6,   day:5},
-  {id:'cake',     e:'🍰', price:28, cook:6.5, day:7},
-  {id:'sushi',    e:'🍣', price:34, cook:7,   day:9},
-  {id:'sundae',   e:'🍨', price:40, cook:7.5, day:12},
+  {id:'cookie',   e:'🍪', price:8,  cook:3,   day:1, snd:'oven'},
+  {id:'pancake',  e:'🥞', price:12, cook:4,   day:1, snd:'sizzle'},
+  {id:'burger',   e:'🍔', price:16, cook:5,   day:2, snd:'sizzle'},
+  {id:'pizza',    e:'🍕', price:20, cook:5.5, day:3, snd:'oven'},
+  {id:'spaghetti',e:'🍝', price:24, cook:6,   day:5, snd:'bubble'},
+  {id:'cake',     e:'🍰', price:28, cook:6.5, day:7, snd:'oven'},
+  {id:'sushi',    e:'🍣', price:34, cook:7,   day:9, snd:'chop'},
+  {id:'sundae',   e:'🍨', price:40, cook:7.5, day:12, snd:'ice'},
 ];
-const PETS = ['🐶','🐱','🐰','🐻','🐼','🐨','🦊','🐷','🐸','🐹','🐯','🐮','🐵','🐧','🐭','🦁'];
+const PETS = ['🐶','🐱','🐰','🐻','🐼','🐨','🦊','🐷','🐸','🐹','🐯','🐮','🐵','🐭','🦁'];   // 🐧 is the waiter
+const WAITER_HOME = [200, 228];
 const TABLE_POS = [[105,300],[295,300],[105,425],[295,425],[105,550],[295,550]];
 const STOVE_POS = [[80,100],[200,100],[320,100]];
 const PASS_POS  = [[62,182],[154,182],[246,182],[338,182]];
@@ -388,7 +391,34 @@ const SFX = {
   vip:  () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, .2, 'triangle', .1, 0, i * .06)),
   bell: () => { tone(1568, .5, 'sine', .12); tone(2093, .6, 'sine', .06, 0, .03); },
 };
+SFX.fanfare = () => { [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => tone(f, .22, 'triangle', .11, 0, i * .09)); noise(.25, .1, 'highpass', 3000, .7, .62); };
 function sfx(n){ if(S.sfx && SFX[n]) try{ SFX[n](); }catch(e){} }
+
+/* white noise (for sizzles, chops and the confetti pop) */
+let NOISE = null;
+function noise(d, v, type, freq, q, delay){
+  const a = audio(); if(!a) return;
+  if(!NOISE){ NOISE = a.createBuffer(1, a.sampleRate, a.sampleRate); const ch = NOISE.getChannelData(0); for(let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1; }
+  const t = a.currentTime + (delay || 0), src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  src.buffer = NOISE; f.type = type || 'highpass'; f.frequency.value = freq || 2000; f.Q.value = q || .7;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + d);
+  src.connect(f); f.connect(g); g.connect(master); src.start(t, Math.random() * .5); src.stop(t + d + .05);
+}
+/* each dish sounds different while it cooks:
+   start = when the order goes on the stove, loop = soft sound every ~0.85s while cooking */
+const COOK_SND = {
+  sizzle:{ start:() => { noise(.7, .13, 'highpass', 3000); tone(260, .1, 'triangle', .05, 180); },          // 🥞🍔 frying pan
+           loop: () => noise(.55, .035, 'highpass', rand(2500, 4500)) },
+  bubble:{ start:() => { tone(300, .1, 'sine', .08, 600); tone(380, .1, 'sine', .07, 700, .12); },          // 🍝 boiling pot
+           loop: () => { tone(rand(250, 420), .07, 'sine', .045, rand(500, 800)); tone(rand(250, 420), .06, 'sine', .035, rand(500, 800), .2); } },
+  oven:  { start:() => { tone(1200, .05, 'square', .03); tone(90, .45, 'sawtooth', .035, 95, .05); },      // 🍪🍕🍰 oven door + hum
+           loop: () => noise(.6, .025, 'lowpass', 380) },
+  chop:  { start:() => [0, .12, .24].forEach(d => noise(.05, .13, 'bandpass', 2200, 3, d)),                 // 🍣 knife chops
+           loop: () => [0, .13].forEach(d => noise(.04, .07, 'bandpass', rand(1800, 2600), 3, d)) },
+  ice:   { start:() => { tone(2100, .15, 'sine', .06); tone(2600, .2, 'sine', .05, 0, .08); },              // 🍨 ice clinks
+           loop: () => tone(rand(1800, 2800), .08, 'sine', .028) },
+};
+function cookSnd(dish, kind){ if(!S.sfx) return; const c = COOK_SND[dish.snd]; if(c) try{ c[kind](); }catch(e){} }
 
 /* diner music: little swingy loop */
 const nf = n => { const m = n.match(/([A-G])(#?)(\d)/); const i = {C:0,D:2,E:4,F:5,G:7,A:9,B:11}[m[1]] + (m[2] ? 1 : 0); return 440 * Math.pow(2, (i - 9) / 12 + (+m[3] - 4)); };
@@ -427,7 +457,7 @@ const SEATED = ['toTable','think','order','wait','served','eat'];
 function newRun(day){
   return {
     day, goal:goalFor(day), t:CONFIG.DAY_SECONDS, time:0, intro:1.8, closing:false, closeT:0, ending:0,
-    pets:[], queue:[], tables:Array(6).fill(null), stoves:Array(3).fill(null), pass:Array(4).fill(null), fly:[],
+    pets:[], queue:[], tables:Array(6).fill(null), stoves:Array(3).fill(null), pass:Array(4).fill(null), tasks:[], waiter:{x:WAITER_HOME[0], y:WAITER_HOME[1], tx:WAITER_HOME[0], ty:WAITER_HOME[1], task:null, phase:'idle', carry:null, bob:0, dir:1},
     spawnT:CONFIG.SPAWN_FIRST, earned:0, shown:0, served:0, missed:0, vips:0, combo:0, bestCombo:0, lastServe:-99,
     parts:[], floats:[], shake:0, starsLit:0, pops:{}
   };
@@ -491,7 +521,7 @@ function update(dt){
     if(R.spawnT <= 0 && !R.closing){ spawnPet(); R.spawnT = spawnGap(); }
   } else {
     R.closeT += dt;
-    const busy = R.pets.some(p => SEATED.includes(p.st)) || R.fly.length;
+    const busy = R.pets.some(p => SEATED.includes(p.st)) || R.tasks.length || R.waiter.task;
     if(!busy || R.closeT > CONFIG.CLOSING_GRACE){
       if(busy) R.pets.forEach(p => { if(SEATED.includes(p.st)) leave(p, false); });
       R.ending += dt; if(R.ending > .9){ endDay(); return; }
@@ -522,7 +552,13 @@ function update(dt){
     const s = R.stoves[i]; if(!s) continue;
     if(!s.done){
       s.t += dt;
-      if(Math.random() < dt * 6) part(STOVE_POS[i][0] + rand(-14, 14), STOVE_POS[i][1] - 18, 'steam');
+      const [sx, sy] = STOVE_POS[i], k = s.dish.snd;
+      if(k !== 'ice' && k !== 'chop' && Math.random() < dt * 6) part(sx + rand(-14, 14), sy - 18, 'steam');
+      if(k === 'sizzle' && Math.random() < dt * 12) part(sx + rand(-20, 20), sy - 26, 'oil');
+      if(k === 'bubble' && Math.random() < dt * 6) part(sx + rand(-16, 16), sy - 28, 'bubble');
+      if(k === 'ice' && Math.random() < dt * 3) part(sx + rand(-20, 20), sy - 44, 'frost');
+      if(k === 'chop' && Math.random() < dt * 5) part(sx + rand(-16, 16), sy - 30, 'leaf');
+      s.snd = (s.snd || 0) + dt; if(s.snd > .85){ s.snd = 0; cookSnd(s.dish, 'loop'); }
       if(s.t >= s.dur){ s.done = true; sfx('ding'); R.pops['s' + i] = 1; }
     }
     if(s.done){
@@ -532,17 +568,7 @@ function update(dt){
   }
   R.pass.forEach(d => { if(d) d.t += dt; });
 
-  // flying dishes
-  for(const f of R.fly){
-    f.t += dt;
-    if(f.t >= CONFIG.DISH_FLY){
-      f.done = true; const p = f.p;
-      p.st = 'eat'; p.t = CONFIG.EAT_TIME; p.pop = 1;
-      for(let k = 0; k < 8; k++) part(p.x, p.y + 10, 'spark');
-      sfx('serve');
-    }
-  }
-  R.fly = R.fly.filter(f => !f.done);
+  updateWaiter(dt);
 
   // combo timeout
   if(R.combo && R.time - R.lastServe > CONFIG.COMBO_WINDOW) R.combo = 0;
@@ -558,7 +584,37 @@ function update(dt){
   if(S.decor.jukebox && Math.random() < dt * 1.2) part(372, 630, 'note');
 }
 
+/* 🐧 the waiter: walks to the counter, picks up the dish, carries it to the table */
+function walkW(w, dt){
+  const dx = w.tx - w.x, dy = w.ty - w.y, d = Math.hypot(dx, dy), s = CONFIG.WAITER_SPEED * dt;
+  if(Math.abs(dx) > 2) w.dir = dx < 0 ? -1 : 1;
+  if(d <= s){ w.x = w.tx; w.y = w.ty; return true; }
+  w.x += dx / d * s; w.y += dy / d * s; return false;
+}
+function updateWaiter(dt){
+  const w = R.waiter; w.bob += dt * 8;
+  if(!w.task && R.tasks.length){ w.task = R.tasks.shift(); w.phase = 'pick'; }
+  const t = w.task;
+  if(!t){ w.tx = WAITER_HOME[0]; w.ty = WAITER_HOME[1]; walkW(w, dt); return; }
+  if(w.phase === 'pick'){
+    const slot = R.pass.indexOf(t.item);
+    if(slot < 0){ w.task = null; return; }
+    w.tx = PASS_POS[slot][0]; w.ty = 232;
+    if(walkW(w, dt)){ R.pass[slot] = null; w.carry = t.item.dish; w.phase = 'deliver'; sfx('tap'); }
+  } else {
+    const [tx, ty] = TABLE_POS[t.p.table];
+    w.tx = tx + (tx < 200 ? 64 : -64); w.ty = ty + 6;
+    if(walkW(w, dt)){
+      const p = t.p; w.carry = null; w.task = null; w.phase = 'idle';
+      p.st = 'eat'; p.t = CONFIG.EAT_TIME; p.pop = 1;
+      for(let k = 0; k < 8; k++) part(p.x, p.y + 10, 'spark');
+      sfx('serve');
+    }
+  }
+}
 function leave(p, isAngry){
+  R.tasks = R.tasks.filter(t => t.p !== p);
+  if(R.waiter.task && R.waiter.task.p === p){ R.waiter.task = null; R.waiter.carry = null; R.waiter.phase = 'idle'; }
   if(p.table >= 0 && R.tables[p.table] === p) R.tables[p.table] = null;
   const qi = R.queue.indexOf(p); if(qi >= 0){ R.queue.splice(qi, 1); reflowQueue(); }
   R.stoves.forEach((s, i) => { if(s && s.p === p) R.stoves[i] = null; });
@@ -634,16 +690,17 @@ function takeOrder(p, stove){
   if(i < 0){ R.shake = 2; return nope(p.x, p.y - 60, tr('Kitchen busy!')); }
   R.stoves[i] = {p, dish:p.dish, t:0, dur:cookTime(p.dish), done:false};
   p.st = 'wait'; p.pat = Math.min(1, p.pat + CONFIG.REFILL_ORDER); p.pop = 1;
-  R.pops['s' + i] = 1; sfx('cook');
+  R.pops['s' + i] = 1; cookSnd(p.dish, 'start');
 }
 function serve(i){
-  const d = R.pass[i]; R.pass[i] = null;
+  const d = R.pass[i]; if(d.called) return;
+  d.called = true;
   const p = d.p; p.st = 'served';
   R.combo = (R.time - R.lastServe <= CONFIG.COMBO_WINDOW) ? Math.min(CONFIG.COMBO_MAX, R.combo + 1) : 1;
   R.lastServe = R.time; R.bestCombo = Math.max(R.bestCombo, R.combo);
   p.combo = 1 + CONFIG.COMBO_STEP * (R.combo - 1);
   if(R.combo >= 2) floatTxt(W / 2, 236, tr('Combo') + ' x' + R.combo + '!', '#ffd23f', 22 + R.combo * 2);
-  R.fly.push({p, dish:d.dish, x0:PASS_POS[i][0], y0:PASS_POS[i][1], t:0});
+  R.tasks.push({p, item:d}); R.pops['d' + i] = 1;
   sfx('tap');
 }
 
@@ -657,9 +714,10 @@ function resize(){
   dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px';
   scale = Math.min(w / W, h / H); offX = (w - W * scale) / 2; offY = (h - H * scale) / 2;
+  fxResize();
 }
 const EMO = '"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
-function emoji(e, x, y, size){ ctx.font = size + 'px ' + EMO; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(e, x, y); }
+function emoji(e, x, y, size){ ctx.fillStyle = '#000'; ctx.font = size + 'px ' + EMO; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(e, x, y); }
 function txt(s, x, y, size, color, stroke){
   ctx.font = '900 ' + size + 'px ' + getComputedStyle(document.body).getPropertyValue('--font');
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -753,8 +811,9 @@ function drawKitchen(){
     if(d){
       const sc = popS('d' + i) * (1 + Math.sin(d.t * 8) * .06);
       ctx.save(); ctx.translate(x, y - 6); ctx.scale(sc, sc);
-      ctx.fillStyle = 'rgba(255,230,120,.45)'; ell(0, 6, 34, 22); ctx.fill();
+      ctx.fillStyle = d.called ? 'rgba(111,195,155,.5)' : 'rgba(255,230,120,.45)'; ell(0, 6, 34, 22); ctx.fill();
       emoji(d.dish.e, 0, 0, 34); ctx.restore();
+      if(d.called) emoji('✅', x - 24, y - 24, 14);
       emoji(d.p.e, x + 22, y - 26, 16); // who it's for
     }
   }
@@ -835,7 +894,7 @@ function drawDoor(){
 function drawHint(){
   if(S.tut >= 3 || mode !== 'play' || !R || R.intro > 0 || R.closing) return;
   let tgt = null, msg = '';
-  const di = R.pass.findIndex(d => d);
+  const di = R.pass.findIndex(d => d && !d.called);
   const ord = R.pets.find(p => p.st === 'order');
   const free = firstFreeTable();
   const freeStove = R.stoves.findIndex((s, i) => !s && i < S.stoves);
@@ -854,6 +913,10 @@ function part(x, y, kind, hud){
   if(kind === 'heart'){ q.vy = rand(-70, -40); q.life = 1.1; }
   if(kind === 'crumb'){ q.vy = rand(-60, -20); q.g = 300; q.life = .5; }
   if(kind === 'note'){ q.vx = rand(-15, 15); q.vy = -40; q.life = 1.6; q.e = pick(['🎵','🎶']); }
+  if(kind === 'oil'){ q.vx = rand(-90, 90); q.vy = rand(-200, -110); q.g = 600; q.life = .45; }
+  if(kind === 'bubble'){ q.vx = rand(-6, 6); q.vy = rand(-35, -20); q.life = .8; q.r = rand(3, 6); }
+  if(kind === 'frost'){ q.vx = rand(-12, 12); q.vy = rand(-18, -6); q.life = 1.3; }
+  if(kind === 'leaf'){ q.vx = rand(-70, 70); q.vy = rand(-150, -80); q.g = 450; q.life = .6; }
   R.parts.push(q);
 }
 function drawParts(){
@@ -867,6 +930,10 @@ function drawParts(){
     else if(q.kind === 'heart') emoji('❤️', q.x, q.y, 14);
     else if(q.kind === 'crumb'){ ctx.fillStyle = '#c98f5e'; ctx.fillRect(q.x, q.y, 3, 3); }
     else if(q.kind === 'note') emoji(q.e, q.x, q.y, 16);
+    else if(q.kind === 'oil'){ ctx.fillStyle = '#ffd96a'; ell(q.x, q.y, 2.2, 2.2); ctx.fill(); }
+    else if(q.kind === 'bubble'){ ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ell(q.x, q.y, q.r, q.r); ctx.stroke(); }
+    else if(q.kind === 'frost') emoji('❄️', q.x, q.y, 12);
+    else if(q.kind === 'leaf'){ ctx.fillStyle = '#6fc39b'; ctx.fillRect(q.x, q.y, 4, 3); }
   }
   ctx.globalAlpha = 1;
 }
@@ -879,11 +946,24 @@ function drawFloats(){
   }
   ctx.globalAlpha = 1;
 }
-function drawFly(){
-  for(const f of R.fly){
-    const k = Math.min(1, f.t / CONFIG.DISH_FLY), [tx, ty] = TABLE_POS[f.p.table];
-    const x = f.x0 + (tx - f.x0) * k, y = f.y0 + (ty - 4 - f.y0) * k - Math.sin(k * Math.PI) * 60;
-    emoji(f.dish.e, x, y, 30 + Math.sin(k * Math.PI) * 10);
+function drawWaiter(){
+  const w = R.waiter, moving = Math.hypot(w.tx - w.x, w.ty - w.y) > 1;
+  const hop = moving ? Math.abs(Math.sin(w.bob * 1.4)) * 6 : Math.sin(w.bob * .3) * 1.2;
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ell(w.x, w.y + 22, 18, 6); ctx.fill();
+  ctx.save(); ctx.translate(w.x, w.y - hop); ctx.rotate(moving ? Math.sin(w.bob * 1.4) * .08 : 0);
+  ctx.scale(w.dir, 1); emoji('🐧', 0, 0, 42); ctx.restore();
+  // red bow tie
+  const bx = w.x, by = w.y - hop + 11;
+  ctx.fillStyle = '#d9473b';
+  ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx - 8, by - 5); ctx.lineTo(bx - 8, by + 5); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + 8, by - 5); ctx.lineTo(bx + 8, by + 5); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#a8322a'; ell(bx, by, 2.5, 2.5); ctx.fill();
+  // tray with the dish, held up high
+  if(w.carry){
+    const ty = w.y - hop - 36;
+    ctx.fillStyle = '#9aa3ab'; ell(w.x, ty + 13, 23, 6); ctx.fill();
+    ctx.fillStyle = '#e9eef2'; ell(w.x, ty + 11, 21, 5); ctx.fill();
+    emoji(w.carry.e, w.x, ty, 26);
   }
 }
 function drawBanner(){
@@ -908,9 +988,11 @@ function draw(){
     for(const i of [row * 2, row * 2 + 1]){ drawChair(i); const p = seatedAt(i); if(p) drawPet(p); drawTable(i); }
   }
   // walking / queued pets on top
-  R.pets.filter(p => !['think','order','wait','served','eat'].includes(p.st)).sort((a, b) => a.y - b.y).forEach(drawPet);
+  const walkers = R.pets.filter(p => !['think','order','wait','served','eat'].includes(p.st));
+  walkers.push(R.waiter);
+  walkers.sort((a, b) => a.y - b.y).forEach(o => o === R.waiter ? drawWaiter() : drawPet(o));
   R.pets.forEach(drawPetUI);
-  drawFly(); drawParts(); drawFloats(); drawHint(); drawBanner();
+  drawParts(); drawFloats(); drawHint(); drawBanner();
   ctx.restore();
 }
 
@@ -918,6 +1000,31 @@ function draw(){
    10. SCREENS
 ===================================================================== */
 const OVS = ['title','pause','result','shop','settings'];
+/* 🎉 confetti on its own see-through canvas, above every screen */
+const fx = $('fx'), fctx = fx.getContext('2d');
+let confetti = [], fxDirty = false;
+function fxResize(){ fx.width = Math.round(innerWidth * dpr); fx.height = Math.round(innerHeight * dpr); }
+function confettiBurst(n){
+  const cols = ['#d9473b','#f4b73a','#6fc39b','#5aa7e8','#ff9ff3','#fff4e0','#a58cff'];
+  for(let i = 0; i < n; i++){
+    const left = i % 2 === 0;
+    confetti.push({x:left ? -10 : innerWidth + 10, y:innerHeight * rand(.45, .8), vx:(left ? 1 : -1) * rand(220, 620), vy:-rand(380, 900),
+      r:rand(0, 6.28), vr:rand(-12, 12), w:rand(6, 11), h:rand(9, 16), c:pick(cols), t:0, life:rand(2.4, 3.6), sw:rand(0, 6)});
+  }
+  sfx('fanfare');
+}
+function drawFx(dt){
+  if(!confetti.length){ if(fxDirty){ fctx.setTransform(1, 0, 0, 1, 0, 0); fctx.clearRect(0, 0, fx.width, fx.height); fxDirty = false; } return; }
+  fxDirty = true;
+  fctx.setTransform(dpr, 0, 0, dpr, 0, 0); fctx.clearRect(0, 0, innerWidth, innerHeight);
+  for(const c of confetti){
+    c.t += dt; c.vy = Math.min(c.vy + 900 * dt, 240); c.vx *= 1 - 1.4 * dt;
+    c.x += c.vx * dt + Math.sin(c.t * 4 + c.sw) * 40 * dt; c.y += c.vy * dt; c.r += c.vr * dt;
+    fctx.save(); fctx.translate(c.x, c.y); fctx.rotate(c.r); fctx.scale(1, Math.cos(c.t * 8 + c.sw));
+    fctx.globalAlpha = Math.max(0, Math.min(1, (c.life - c.t) / .5)); fctx.fillStyle = c.c; fctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h); fctx.restore();
+  }
+  confetti = confetti.filter(c => c.t < c.life && c.y < innerHeight + 40);
+}
 function hideAll(){ OVS.forEach(id => $(id).classList.remove('on')); }
 function show(id){ $(id).classList.add('on'); }
 function toast(msg, cls){ const d = document.createElement('div'); d.textContent = msg; if(cls) d.className = cls; $('toast').appendChild(d); setTimeout(() => d.remove(), 1800); }
@@ -935,7 +1042,7 @@ function updateHud(force){
   $('hCoins').textContent = '🪙 ' + Math.round(R.shown); 
   [[1, 1], [2, CONFIG.STAR2], [3, CONFIG.STAR3]].forEach(([n, m]) => { const el = $('gs' + n); el.style.left = Math.min(96, m / CONFIG.STAR3 * 100) + '%'; el.classList.toggle('on', R.shown >= R.goal * m); });
   const st = starsFor(Math.round(R.shown));
-  if(st > lastStars && !force){ sfx('star'); $('goalWrap').animate([{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}], 300); }
+  if(st > lastStars && !force){ sfx('star'); if(st === 3) confettiBurst(Math.round(CONFIG.CONFETTI / 2)); $('goalWrap').animate([{transform:'scale(1)'},{transform:'scale(1.08)'},{transform:'scale(1)'}], 300); }
   lastStars = force ? 0 : st;
   $('hDay').textContent = tr('Day') + ' ' + R.day;
   const s = Math.ceil(R.t);
@@ -972,7 +1079,8 @@ function showResult(){
   h += '<div class="row" style="margin-top:10px"><button class="btn" id="rShop">🛒 ' + tr('Shop') + '</button><button class="btn" id="rMenu">🏠 ' + tr('Menu') + '</button></div>';
   $('resBox').innerHTML = h; hideAll(); show('result'); $('hud').style.visibility = 'hidden';
   // juice: stars pop one by one, coins tick up
-  for(let i = 1; i <= stars; i++) setTimeout(() => { const el = $('rs' + i); if(el){ el.classList.add('on'); sfx('star'); } }, 250 + i * 320);
+  for(let i = 1; i <= stars; i++) setTimeout(() => { const el = $('rs' + i); if(el){ el.classList.add('on'); sfx('star'); }
+    if(i === 3 && !r.confetti){ r.confetti = true; confettiBurst(CONFIG.CONFETTI); } }, 250 + i * 320);
   const target = R.earned * (r.doubled ? 2 : 1); let v = 0; const t0 = performance.now();
   const tick = () => { const k = Math.min(1, (performance.now() - t0) / 900); v = Math.round(target * (1 - Math.pow(1 - k, 3))); const el = $('rCoins'); if(el) el.textContent = '🪙 ' + v; if(k < 1) requestAnimationFrame(tick); };
   tick();
@@ -1223,13 +1331,13 @@ let last = performance.now();
 function frame(t){
   const dt = Math.min(.05, (t - last) / 1000); last = t;
   if(mode === 'play' && !paused && R){ update(dt); if(mode === 'play') updateHud(); }
-  draw();
+  draw(); drawFx(dt);
   requestAnimationFrame(frame);
 }
 document.body.classList.toggle('easy', S.easy);
 resize(); renderTitle(); adsInit();
 requestAnimationFrame(frame);
-window.PB = {get S(){ return S; }, get R(){ return R; }, onTap, startDay, CONFIG};
+window.PB = {get S(){ return S; }, get R(){ return R; }, onTap, startDay, CONFIG, confettiBurst};
 </script>
 </body>
 </html>
