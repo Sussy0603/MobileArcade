@@ -6,5 +6,13 @@
     "url": "apps/cpppasapas/index.html",
     "category": "Learning",
     "addedAt": 1792252800000
+  },
+  {
+    "id": "easyread",
+    "name": "Easy Read",
+    "description": "A calm reader for dyslexia: friendly fonts, color tints, a reading ruler and read aloud.",
+    "url": "apps/easyread/index.html",
+    "category": "Learning",
+    "addedAt": 1792508093957
   }
 ]

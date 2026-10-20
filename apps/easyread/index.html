@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Easy Read</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <section class="screen" id="s-home">
+    <header class="top">
+      <div class="brand"><span class="logo" data-icon="glasses"></span><span>Easy Read</span></div>
+      <button class="ibtn" data-go="settings" data-aria="settings"><span data-icon="gear"></span></button>
+    </header>
+    <div class="scroll pad">
+      <button class="card continue hidden" id="home-continue">
+        <span class="k" data-t="continue"></span>
+        <span class="v" id="home-continue-title"></span>
+      </button>
+      <div class="bigbtns">
+        <button class="big" id="home-paste"><span data-icon="paste"></span><span data-t="pasteText"></span></button>
+        <button class="big" id="home-photo"><span data-icon="camera"></span><span data-t="photoText"></span></button>
+        <button class="big" id="home-file"><span data-icon="file"></span><span data-t="openFile"></span></button>
+        <button class="big" data-go="library"><span data-icon="books"></span><span data-t="library"></span></button>
+      </div>
+      <p class="hint" data-t="shareHint"></p>
+    </div>
+  </section>
+
+  <!-- PASTE / EDIT -->
+  <section class="screen" id="s-edit">
+    <header class="top">
+      <button class="ibtn" data-back data-aria="back"><span data-icon="back"></span></button>
+      <h1 id="edit-h"></h1>
+      <span class="sp"></span>
+    </header>
+    <div class="scroll pad editwrap">
+      <label class="lbl" for="edit-title" data-t="title"></label>
+      <input id="edit-title" class="field" type="text" maxlength="80">
+      <div class="row gap">
+        <label class="lbl" for="edit-folder" data-t="folder"></label>
+        <select id="edit-folder" class="field"></select>
+      </div>
+      <textarea id="edit-body" class="field area" spellcheck="false"></textarea>
+      <div class="row gap wrap">
+        <button class="btn" id="edit-pastebtn"><span data-icon="paste"></span><span data-t="pasteBtn"></span></button>
+        <button class="btn" id="edit-clear"><span data-icon="close"></span><span data-t="clear"></span></button>
+      </div>
+    </div>
+    <footer class="bar">
+      <button class="btn primary wide" id="edit-read"><span data-icon="book"></span><span data-t="readIt"></span></button>
+    </footer>
+  </section>
+
+  <!-- READER -->
+  <section class="screen" id="s-reader">
+    <header class="top">
+      <button class="ibtn" data-back data-aria="back"><span data-icon="back"></span></button>
+      <h1 id="rd-title"></h1>
+      <button class="ibtn" id="rd-mark" data-aria="bookmark"><span data-icon="bookmark"></span></button>
+      <button class="ibtn" id="rd-more" data-aria="more"><span data-icon="dots"></span></button>
+    </header>
+    <div class="scroll" id="rd-scroll">
+      <div id="rd-col">
+        <div id="rd-text"></div>
+        <div id="rd-band" class="hidden"></div>
+        <div id="rd-dimtop" class="dim hidden"></div>
+        <div id="rd-dimbot" class="dim hidden"></div>
+      </div>
+    </div>
+    <footer class="bar rdbar">
+      <div class="row">
+        <button class="ctl" id="rd-prev" data-aria="prevLine"><span data-icon="up"></span></button>
+        <button class="ctl play" id="rd-play" data-aria="play"><span data-icon="play"></span></button>
+        <button class="ctl" id="rd-next" data-aria="nextLine"><span data-icon="down"></span></button>
+      </div>
+      <div class="row small">
+        <button class="ctl s" id="rd-aminus" data-aria="smaller"><span class="aa">A−</span></button>
+        <button class="ctl s" id="rd-aplus" data-aria="bigger"><span class="aa lg">A+</span></button>
+        <button class="ctl s" id="rd-tint" data-aria="tint"><span class="swatch" id="rd-tintsw"></span></button>
+        <button class="ctl s" id="rd-ruler" data-aria="ruler"><span data-icon="ruler"></span></button>
+        <button class="ctl s" id="rd-speed" data-aria="speed"><span id="rd-speedv">1×</span></button>
+        <button class="ctl s" data-go="settings" data-aria="settings"><span data-icon="gear"></span></button>
+      </div>
+    </footer>
+  </section>
+
+  <!-- LIBRARY -->
+  <section class="screen" id="s-library">
+    <header class="top">
+      <button class="ibtn" data-back data-aria="back"><span data-icon="back"></span></button>
+      <h1 data-t="library"></h1>
+      <button class="ibtn" id="lib-new" data-aria="newText"><span data-icon="plus"></span></button>
+    </header>
+    <div class="pad libtop">
+      <div class="search"><span data-icon="search"></span><input id="lib-search" type="search" data-ph="search"></div>
+      <div class="chips" id="lib-folders"></div>
+    </div>
+    <div class="scroll pad" id="lib-list"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="screen" id="s-settings">
+    <header class="top">
+      <button class="ibtn" data-back data-aria="back"><span data-icon="back"></span></button>
+      <h1 data-t="settings"></h1>
+      <span class="sp"></span>
+    </header>
+    <div class="scroll pad" id="set-body">
+      <div class="preview" id="set-preview"></div>
+
+      <h2 data-t="presets"></h2>
+      <div class="chips" id="set-presets"></div>
+      <div class="row gap wrap">
+        <button class="btn" id="set-preset-save"><span data-icon="plus"></span><span data-t="savePreset"></span></button>
+      </div>
+
+      <h2 data-t="font"></h2>
+      <div class="grid fonts" id="set-fonts"></div>
+
+      <h2 data-t="text"></h2>
+      <div id="set-sliders"></div>
+
+      <h2 data-t="tint"></h2>
+      <div class="grid tints" id="set-tints"></div>
+
+      <h2 data-t="textColor"></h2>
+      <div class="chips" id="set-colors"></div>
+
+      <h2 data-t="ruler"></h2>
+      <div class="seg" id="set-ruler"></div>
+
+      <h2 data-t="helps"></h2>
+      <div id="set-helps"></div>
+
+      <h2 data-t="readAloud"></h2>
+      <div id="set-voice"></div>
+
+      <h2 data-t="tapWord"></h2>
+      <div class="seg" id="set-tap"></div>
+
+      <h2 data-t="backup"></h2>
+      <p class="hint" data-t="backupHint"></p>
+      <div class="row gap wrap">
+        <button class="btn" id="set-export"><span data-icon="save"></span><span data-t="export"></span></button>
+        <button class="btn" id="set-import"><span data-icon="file"></span><span data-t="import"></span></button>
+      </div>
+
+      <h2 data-t="about"></h2>
+      <div class="row gap wrap">
+        <button class="btn" id="set-welcome"><span data-icon="glasses"></span><span data-t="showWelcome"></span></button>
+      </div>
+      <p class="hint" data-t="privacyNote"></p>
+      <p class="hint small">Easy Read 1.0 · MOS Arcade</p>
+    </div>
+  </section>
+
+</div>
+
+<!-- FOCUS (one sentence) -->
+<div id="focus" class="overlay hidden">
+  <div class="focus-in">
+    <div class="focus-top">
+      <span id="focus-count"></span>
+      <button class="ibtn" id="focus-close" data-aria="close"><span data-icon="close"></span></button>
+    </div>
+    <div id="focus-text"></div>
+    <div class="row focus-ctl">
+      <button class="ctl" id="focus-prev" data-aria="prevSentence"><span data-icon="left"></span></button>
+      <button class="ctl play" id="focus-play" data-aria="play"><span data-icon="play"></span></button>
+      <button class="ctl" id="focus-next" data-aria="nextSentence"><span data-icon="right"></span></button>
+    </div>
+  </div>
+</div>
+
+<!-- generic sheet / dialog -->
+<div id="sheet" class="overlay hidden"><div class="sheet-in" id="sheet-in"></div></div>
+<div id="dialog" class="overlay hidden center"><div class="dialog-in" id="dialog-in"></div></div>
+<div id="bubble" class="hidden"></div>
+<div id="toast" class="hidden"></div>
+
+<!-- welcome -->
+<div id="welcome" class="overlay hidden center">
+  <div class="welcome-in">
+    <div id="wel-art"></div>
+    <h2 id="wel-h"></h2>
+    <p id="wel-p"></p>
+    <div class="dots" id="wel-dots"></div>
+    <div class="row gap">
+      <button class="btn ghost" id="wel-skip" data-t="skip"></button>
+      <button class="btn primary" id="wel-next" data-t="next"></button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="file-txt" accept=".txt,text/plain" class="hidden">
+<input type="file" id="file-json" accept=".json,application/json" class="hidden">
+
+<script src="js/hyph.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
