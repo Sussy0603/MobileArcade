@@ -14,5 +14,13 @@
     "url": "apps/easyread/index.html",
     "category": "Learning",
     "addedAt": 1792508093957
+  },
+  {
+    "id": "chorestars",
+    "name": "Chore Stars",
+    "description": "Earn stars for chores, grow a plant while you focus, visual timers and notes.",
+    "url": "apps/chorestars/index.html",
+    "category": "Productivity",
+    "addedAt": 1792525521675
   }
 ]
