@@ -1,5 +1,13 @@
 [
   {
+    "id": "pixelgarden",
+    "name": "Pixel Garden",
+    "description": "Grow, harvest and cook through the seasons on a cozy pixel farm.",
+    "url": "games/pixelgarden/index.html",
+    "category": "Chill",
+    "addedAt": 1792116854602.748
+  },
+  {
     "id": "pawbistro",
     "name": "Paw Bistro",
     "description": "Seat pets, cook, and serve fast in a cozy diner.",
