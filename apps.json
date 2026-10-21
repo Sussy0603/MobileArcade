@@ -22,5 +22,13 @@
     "url": "apps/chorestars/index.html",
     "category": "Productivity",
     "addedAt": 1792525521675
+  },
+  {
+    "id": "flashdeck",
+    "name": "Flash Deck",
+    "description": "Cozy flashcards: make cards from your notes or a PDF, smart review, quizzes, a focus timer and a breathing bubble.",
+    "url": "apps/flashdeck/index.html",
+    "category": "Learning",
+    "addedAt": 1792608527707
   }
 ]
