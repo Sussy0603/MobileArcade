@@ -356,6 +356,19 @@ const WORDS = {
     undone: 'Undone. Star removed.',
     boostOff: 'Watch a short video: 2× stars for 15 min!', boostOn: '2× stars on! {t} left', watch: 'Watch',
     newChore: 'New chore', editChore: 'Edit chore', name: 'Name', namePh: 'Wash dishes, homework…', emoji: 'Emoji', repeat: 'Repeat',
+    amb: 'Focus sound', ambOff: 'Off', ambWhite: 'White noise', ambBrown: 'Brown noise', vol: 'Volume',
+    shareT: 'Share chores 👥', shareCard: 'Share chores with family or roommates', shareBtn: 'Share',
+    shareP: 'Make a list that everyone can see and tick, live. Each person earns their own stars.',
+    yourName: 'Your name', yourNamePh: 'Sam, Mom, Alex…', newList: 'Start a new shared list', listName: 'List name', listNamePh: 'Our chores',
+    create: 'Create', or: 'or', joinT: 'Join with a code', codePh: 'ABC123', join: 'Join',
+    privacyShare: 'Shared chores and your name are saved online (Google Firebase) so others can see them. Leave any time to remove your name.',
+    people: '{n} people', person: '1 person', inviteCode: 'Invite code', shareCode: '📤 Send the code', copied: 'Code copied!',
+    shareMsg: 'Join my chore list on Chore Stars ⭐ Code: {c}', members: 'People', you: 'you', leave: 'Leave this list',
+    leaveQ: 'Leave this shared list?', leaveP: 'Shared chores stay with the others. Your stars stay with you.', yesLeave: 'Yes, leave',
+    addShared: '👥 Add to the shared list', sharedSec: '👥 {name}', doneBy: '✓ {name}', onlyDoer: 'Done by {name}. Only they can undo it.',
+    errNet: 'Can’t connect. Check your internet and try again.', errNoGroup: 'No shared list with this code.', errFull: 'This list is full (12 people).',
+    errSetup: 'Sharing is not ready yet. Try again later.', needCode: 'Please type the 6-letter code.', joined: 'You joined {name}! 🎉', createdL: 'Shared list ready! 🎉', left: 'You left the list.',
+    removed: 'You are no longer in this shared list.', loading: 'Loading…',
     presets: 'Quick picks', pHome: '🏠 Home', pSchool: '🎒 School', pSelf: '💖 Self-care', orOwn: 'Or make your own',
     save: 'Save', add: 'Add', del: 'Delete', cancel: 'Cancel', ok: 'OK', done: 'Done', close: 'Close', needName: 'Please write a name.',
     delChoreQ: 'Delete this chore?', delChoreP: 'Your stars stay. Only the chore goes away.',
@@ -442,6 +455,19 @@ const WORDS = {
     undone: 'Annulé. Étoile retirée.',
     boostOff: 'Regarde une courte vidéo : étoiles ×2 pendant 15 min!', boostOn: 'Étoiles ×2! Encore {t}', watch: 'Regarder',
     newChore: 'Nouvelle tâche', editChore: 'Modifier la tâche', name: 'Nom', namePh: 'Vaisselle, devoirs…', emoji: 'Émoji', repeat: 'Répéter',
+    amb: 'Son de focus', ambOff: 'Aucun', ambWhite: 'Bruit blanc', ambBrown: 'Bruit brun', vol: 'Volume',
+    shareT: 'Partager les tâches 👥', shareCard: 'Partage tes tâches avec ta famille ou tes colocs', shareBtn: 'Partager',
+    shareP: 'Crée une liste que tout le monde voit et coche, en direct. Chaque personne gagne ses propres étoiles.',
+    yourName: 'Ton nom', yourNamePh: 'Sam, Maman, Alex…', newList: 'Créer une liste partagée', listName: 'Nom de la liste', listNamePh: 'Nos tâches',
+    create: 'Créer', or: 'ou', joinT: 'Rejoindre avec un code', codePh: 'ABC123', join: 'Rejoindre',
+    privacyShare: 'Les tâches partagées et ton nom sont enregistrés en ligne (Google Firebase) pour que les autres les voient. Quitte quand tu veux pour retirer ton nom.',
+    people: '{n} personnes', person: '1 personne', inviteCode: 'Code d’invitation', shareCode: '📤 Envoyer le code', copied: 'Code copié!',
+    shareMsg: 'Rejoins ma liste de tâches dans Chore Stars ⭐ Code : {c}', members: 'Personnes', you: 'toi', leave: 'Quitter cette liste',
+    leaveQ: 'Quitter cette liste partagée?', leaveP: 'Les tâches partagées restent aux autres. Tes étoiles restent à toi.', yesLeave: 'Oui, quitter',
+    addShared: '👥 Ajouter à la liste partagée', sharedSec: '👥 {name}', doneBy: '✓ {name}', onlyDoer: 'Fait par {name}. Seule cette personne peut annuler.',
+    errNet: 'Pas de connexion. Vérifie ton internet et réessaie.', errNoGroup: 'Aucune liste partagée avec ce code.', errFull: 'Cette liste est pleine (12 personnes).',
+    errSetup: 'Le partage n’est pas encore prêt. Réessaie plus tard.', needCode: 'Écris le code de 6 lettres, s’il te plaît.', joined: 'Tu as rejoint {name}! 🎉', createdL: 'Liste partagée prête! 🎉', left: 'Tu as quitté la liste.',
+    removed: 'Tu ne fais plus partie de cette liste partagée.', loading: 'Chargement…',
     presets: 'Choix rapides', pHome: '🏠 Maison', pSchool: '🎒 École', pSelf: '💖 Prendre soin de soi', orOwn: 'Ou crée la tienne',
     save: 'Enregistrer', add: 'Ajouter', del: 'Supprimer', cancel: 'Annuler', ok: 'OK', done: 'Fini', close: 'Fermer', needName: 'Écris un nom, s’il te plaît.',
     delChoreQ: 'Supprimer cette tâche?', delChoreP: 'Tes étoiles restent. Seule la tâche part.',
@@ -523,7 +549,8 @@ function fresh() {
     focus: null, timer: null, boostEnd: 0,
     tset: { min: 5, vis: 'pie' },
     settings: { lang: fr ? 'fr' : 'en', dark: 'auto', dys: false, sound: true, vib: true, endSound: 'chime',
-      focusMin: 25, breakMin: 5, remind: false, remTime: '18:00', evRemind: true, tipsDone: false, askedNotif: false }
+      focusMin: 25, breakMin: 5, remind: false, remTime: '18:00', evRemind: true, tipsDone: false, askedNotif: false, amb: 'off', ambVol: .5, myName: '' },
+    share: null, sharedCache: [], sdone: {}
   };
 }
 let S = load();
@@ -542,13 +569,14 @@ function merge(d, o) {
   r.tot = Object.assign({}, d.tot, o.tot || {});
   r.tset = Object.assign({}, d.tset, o.tset || {});
   for (const k of ['chores', 'garden', 'goals', 'events', 'notes', 'plants', 'themes']) if (!Array.isArray(r[k])) r[k] = d[k];
-  for (const k of ['done', 'days', 'badges', 'flags']) if (!r[k] || typeof r[k] !== 'object') r[k] = {};
+  if (!Array.isArray(r.sharedCache)) r.sharedCache = [];
+  for (const k of ['done', 'days', 'badges', 'flags', 'sdone']) if (!r[k] || typeof r[k] !== 'object') r[k] = {};
   if (!r.plants.includes('sprout')) r.plants.unshift('sprout');
   if (!r.themes.includes('purple')) r.themes.unshift('purple');
   return r;
 }
 let saveT = 0;
-function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} try { syncWidget(); } catch (e) {} }
 function saveSoon() { clearTimeout(saveT); saveT = setTimeout(save, 300); }
 
 function tr(k, vars) {
@@ -584,7 +612,10 @@ const PRESETS = {
 };
 const CHORE_EMO = ['⭐', '🧽', '🛏️', '🧺', '🗑️', '🍽️', '🧹', '🐶', '🐱', '🌱', '🚿', '🪥', '📚', '✏️', '🎒', '📖', '📝', '🎹', '💧', '🧘', '🏃', '🍎', '😴', '🛒', '🚲', '🧴', '💊', '🎨', '💻', '🧑‍🍳', '🚗', '📞'];
 const perKey = c => (c.rep === 'daily' ? dayKey() : c.rep === 'weekly' ? weekKey() : 'once');
-const isDone = c => !!(S.done[c.id] && S.done[c.id].k === perKey(c));
+const isDone = c => (c.shared ? !!(c.done && c.done.k === perKey(c)) : !!(S.done[c.id] && S.done[c.id].k === perKey(c)));
+/* my chores + the shared list's chores (marked shared: true) */
+const sharedList = () => (S.share ? (Share.live ? Share.chores : S.sharedCache) : []).map(c => ({ ...c, shared: true }));
+const allChores = () => S.chores.concat(sharedList());
 function cleanOnce() {   // a one-time chore stays in "Done" on the day it was done, then it goes away
   const today = dayKey();
   S.chores = S.chores.filter(c => !(c.rep === 'once' && S.done[c.id] && dayKey(new Date(S.done[c.id].at)) !== today));
@@ -868,10 +899,11 @@ function draw() {
 const SCREENS = {
   home() {
     const L = lvl();
-    const todo = S.chores.filter(c => !isDone(c) && (c.rep === 'daily' || c.rep === 'once')).length;
-    const anyToday = S.chores.some(c => c.rep === 'daily' || c.rep === 'once');
-    const say = !S.chores.length ? tr('sayNone') : todo === 1 ? tr('sayLeft1') : todo ? tr('sayLeft', { n: todo }) : anyToday ? tr('sayDone') : tr('sayNone');
-    const chSub = !S.chores.length ? tr('choresNone') : todo ? tr('choresLeft', { n: todo }) : tr('choresAllDone');
+    const all = allChores();
+    const todo = all.filter(c => !isDone(c) && (c.rep === 'daily' || c.rep === 'once')).length;
+    const anyToday = all.some(c => c.rep === 'daily' || c.rep === 'once');
+    const say = !all.length ? tr('sayNone') : todo === 1 ? tr('sayLeft1') : todo ? tr('sayLeft', { n: todo }) : anyToday ? tr('sayDone') : tr('sayNone');
+    const chSub = !all.length ? tr('choresNone') : todo ? tr('choresLeft', { n: todo }) : tr('choresAllDone');
     const nN = S.notes.length;
     let ban = '';
     if (S.focus && (S.focus.phase === 'focus' || S.focus.phase === 'break')) ban += `<button class="banner" type="button" data-act="go" data-v="focus"><span>🌱</span><span>${esc(S.focus.phase === 'focus' ? tr('growing') : tr('onBreak'))}</span><span class="t" id="banF">--:--</span></button>`;
@@ -897,14 +929,17 @@ const SCREENS = {
   },
 
   chores() {
-    if (!S.chores.length) return boostHTML() + `<div class="empty">${tw()}<h3>${esc(tr('emptyChT'))}</h3><p>${esc(tr('emptyChP'))}</p><button class="btn" type="button" data-act="fab">+ ${esc(tr('addChore'))}</button></div>`;
+    const shl = sharedList();
+    if (!S.chores.length && !shl.length) return boostHTML() + shareCardHTML() + `<div class="empty">${tw()}<h3>${esc(tr('emptyChT'))}</h3><p>${esc(tr('emptyChP'))}</p><button class="btn" type="button" data-act="fab">+ ${esc(tr('addChore'))}</button></div>`;
     const sec = (title, list) => list.length ? `<h3 class="sec">${esc(title)} <span class="count">${list.length}</span></h3>${list.map(choreRow).join('')}` : '';
-    const open = S.chores.filter(c => !isDone(c)), done = S.chores.filter(isDone);
-    let h = boostHTML();
+    const open = S.chores.filter(c => !isDone(c)), done = S.chores.filter(isDone).concat(shl.filter(isDone));
+    let h = boostHTML() + shareCardHTML();
     h += sec(tr('secToday'), open.filter(c => c.rep === 'daily'));
     h += sec(tr('secWeek'), open.filter(c => c.rep === 'weekly'));
     h += sec(tr('secOnce'), open.filter(c => c.rep === 'once'));
-    if (!open.length) h += `<div class="empty" style="margin-top:14px">${tw()}<h3>${esc(tr('allDoneT'))}</h3><p>${esc(tr('allDoneP'))}</p></div>`;
+    const shOpen = shl.filter(c => !isDone(c)).sort((a, b) => ['daily', 'weekly', 'once'].indexOf(a.rep) - ['daily', 'weekly', 'once'].indexOf(b.rep));
+    if (S.share) h += sec(tr('sharedSec', { name: (Share.group && Share.group.name) || S.share.name || '' }), shOpen);
+    if (!open.length && !shOpen.length) h += `<div class="empty" style="margin-top:14px">${tw()}<h3>${esc(tr('allDoneT'))}</h3><p>${esc(tr('allDoneP'))}</p></div>`;
     h += sec(tr('secDone'), done);
     return h;
   },
@@ -920,7 +955,7 @@ const SCREENS = {
           <div class="ring"><i id="fRing" style="width:0%;${isF ? '' : 'background:var(--star)'}"></i></div>
         </div>
         <div class="btns">${isF ? `<button class="btn danger" type="button" data-act="giveUp">${esc(tr('giveUp'))}</button>` : `<button class="btn soft" type="button" data-act="skipBreak">${esc(tr('skipBreak'))}</button>`}</div>
-        ${isF ? `<p class="hint">${esc(tr('focusRule'))}</p>` : ''}`;
+        ${isF ? `<div class="card" style="margin-top:14px"><h3>🎧 ${esc(tr('amb'))}</h3>${ambHTML()}</div><p class="hint">${esc(tr('focusRule'))}</p>` : ''}`;
     }
     const pl = plantById(S.plant);
     return `<div class="stage">${plantSVG(pl, 1, { sway: true })}<h2 style="margin:4px 0 0">${esc(plantName(pl))}</h2></div>
@@ -933,6 +968,7 @@ const SCREENS = {
         <div class="stepper"><button type="button" data-act="fStep" data-k="breakMin" data-v="-1" aria-label="-1">−</button><div class="val">${st.breakMin} <small style="font-size:20px">${esc(tr('min'))}</small></div><button type="button" data-act="fStep" data-k="breakMin" data-v="1" aria-label="+1">+</button></div>
         <div class="chips" style="justify-content:center;margin-top:12px">${[[25, 5], [50, 10], [15, 3]].map(([a, b]) => `<button class="chip" type="button" data-act="fPreset" data-a="${a}" data-b="${b}" aria-pressed="${st.focusMin === a && st.breakMin === b}">${a}/${b}</button>`).join('')}</div>
       </div>
+      <div class="card"><h3>🎧 ${esc(tr('amb'))}</h3>${ambHTML()}</div>
       <button class="btn" type="button" data-act="startFocus">🌱 ${esc(tr('start'))}</button>
       <p class="hint">${esc(tr('focusRule'))}</p>`;
   },
@@ -1041,11 +1077,25 @@ function boostHTML() {
   if (boostOn()) return `<div class="boost on"><span class="ic">⚡</span><p id="boostTxt">${esc(tr('boostOn', { t: fmtMS(S.boostEnd - Date.now()) }))}</p></div>`;
   return `<div class="boost"><span class="ic">⚡</span><p>${esc(tr('boostOff'))}</p><button class="btn star sm" type="button" data-act="boost">🎬 ${esc(tr('watch'))}</button></div>`;
 }
+function ambHTML() {
+  const st = S.settings;
+  return `<div class="chips">${[['off', 'ambOff', '🔇'], ['white', 'ambWhite', '🌫️'], ['brown', 'ambBrown', '🟤']].map(([v, l, i]) =>
+    `<button class="chip" type="button" data-act="amb" data-v="${v}" aria-pressed="${st.amb === v}">${i} ${esc(tr(l))}</button>`).join('')}</div>
+    ${st.amb !== 'off' ? `<label class="field" style="margin:12px 0 0"><span>🔊 ${esc(tr('vol'))}</span><input type="range" id="ambVol" min="0" max="1" step="0.05" value="${st.ambVol}" style="width:100%;accent-color:var(--btn);height:36px"></label>` : ''}`;
+}
+function shareCardHTML() {
+  if (!S.share) return `<div class="boost" style="border-color:var(--btn)"><span class="ic">👥</span><p>${esc(tr('shareCard'))}</p><button class="btn sm" type="button" data-act="shareOpen">${esc(tr('shareBtn'))}</button></div>`;
+  const g = Share.group, n = g ? g.members.length : 0;
+  return `<button class="banner" type="button" data-act="shareOpen" style="margin:10px 0 0"><span>👥</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc((g && g.name) || S.share.name || '')}</span>
+    <span style="margin-left:auto;font-weight:800;color:var(--soft);font-size:15px;white-space:nowrap">${g ? esc(n === 1 ? tr('person') : tr('people', { n })) + ' · ' : ''}${esc(S.share.code)}</span></button>`;
+}
 function choreRow(c) {
-  const d = isDone(c), rep = { daily: 'repDaily', weekly: 'repWeekly', once: 'repOnce' }[c.rep];
-  return `<div class="row${d ? ' done' : ''}" data-row="${c.id}"><button class="tapzone" type="button" data-act="editChore" data-id="${c.id}">
-      <span class="emo">${c.emoji}</span><span class="info"><span class="name">${esc(c.name)}</span><span class="when">${esc(tr(rep))}</span></span></button>
-    <button class="check${d ? ' on' : ''}" type="button" data-act="toggleChore" data-id="${c.id}" aria-pressed="${d}" aria-label="${esc(tr(d ? 'markUndone' : 'markDone', { name: c.name }))}"><span class="s">⭐</span></button></div>`;
+  const d = isDone(c), rep0 = { daily: 'repDaily', weekly: 'repWeekly', once: 'repOnce' }[c.rep];
+  const rep = c.shared ? null : rep0;
+  const when = c.shared ? tr(rep0) + (d && c.done ? ' · ' + tr('doneBy', { name: c.done.uid === Share.uid ? tr('you') : c.done.name }) : ' · 👥') : tr(rep);
+  return `<div class="row${d ? ' done' : ''}" data-row="${c.id}"><button class="tapzone" type="button" data-act="editChore" data-id="${c.id}"${c.shared ? ' data-sh="1"' : ''}>
+      <span class="emo">${c.emoji}</span><span class="info"><span class="name">${esc(c.name)}</span><span class="when">${esc(when)}</span></span></button>
+    <button class="check${d ? ' on' : ''}" type="button" data-act="toggleChore" data-id="${c.id}"${c.shared ? ' data-sh="1"' : ''} aria-pressed="${d}" aria-label="${esc(tr(d ? 'markUndone' : 'markDone', { name: c.name }))}"><span class="s">⭐</span></button></div>`;
 }
 function nextOcc(e) {    // next time of the event (yearly rolls over to next year)
   const [y, m, d] = e.date.split('-').map(Number), [hh, mm] = (e.time || '00:00').split(':').map(Number);
@@ -1175,28 +1225,38 @@ function checkBadges(silent) {
 }
 
 /* chore add/edit sheet */
+let addToShared = false;   // "add to the shared list" switch in the new-chore sheet
 function choreSheet(c) {
   const f = c ? { ...c } : { name: '', emoji: '⭐', rep: 'daily' };
+  if (!S.share) addToShared = false;
+  const shSw = !c && S.share ? sw('_sh', addToShared, tr('addShared')).replace('data-act="toggle"', 'id="cSh"') : '';
   const fr = S.settings.lang === 'fr';
   const presets = c ? '' : `<p style="font-weight:800;margin:0 4px 8px">${esc(tr('presets'))}</p>${[['home', 'pHome'], ['school', 'pSchool'], ['self', 'pSelf']].map(([g, l]) =>
     `<p style="font-weight:800;color:var(--soft);margin:10px 4px 6px;font-size:15px">${esc(tr(l))}</p><div class="chips">${PRESETS[g].map((p, i) => `<button class="chip" type="button" data-act="preset" data-g="${g}" data-i="${i}">${p[0]} ${esc(fr ? p[2] : p[1])}</button>`).join('')}</div>`).join('')}
     <p style="font-weight:800;margin:18px 4px 8px">${esc(tr('orOwn'))}</p>`;
-  Sheet.open(`<h2 id="sheetTitle">${esc(tr(c ? 'editChore' : 'newChore'))}</h2>${presets}
+  Sheet.open(`<h2 id="sheetTitle">${esc(tr(c ? 'editChore' : 'newChore'))}${c && c.shared ? ' 👥' : ''}</h2>${shSw}${presets}
     <label class="field"><span>${esc(tr('name'))}</span><input class="inp" id="cName" maxlength="40" placeholder="${esc(tr('namePh'))}" value="${esc(f.name)}" autocomplete="off"></label>
     <div class="err hide" id="cErr">${esc(tr('needName'))}</div>
     <div class="field"><span>${esc(tr('emoji'))}</span><div class="emojis" id="cEmo">${CHORE_EMO.map(e => `<button type="button" data-e="${e}" aria-pressed="${e === f.emoji}">${e}</button>`).join('')}</div></div>
     <div class="field"><span>${esc(tr('repeat'))}</span><div class="seg" id="cRep">${[['daily', 'repDaily'], ['weekly', 'repWeekly'], ['once', 'repOnce']].map(([v, l]) => `<button type="button" data-v="${v}" aria-pressed="${v === f.rep}">${esc(tr(l))}</button>`).join('')}</div></div>
     <div class="btns"><button class="btn" type="button" id="cSave">${esc(tr(c ? 'save' : 'add'))}</button>
     ${c ? `<button class="btn danger" type="button" id="cDel">🗑️ ${esc(tr('del'))}</button>` : `<button class="btn soft" type="button" data-act="closeSheet">${esc(tr('cancel'))}</button>`}</div>`);
+  if ($('#cSh')) $('#cSh').onclick = () => { addToShared = !addToShared; $('#cSh').setAttribute('aria-checked', addToShared); };
   $('#cEmo').onclick = e => { const b = e.target.closest('button'); if (!b) return; f.emoji = b.dataset.e; $('#cEmo').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
   $('#cRep').onclick = e => { const b = e.target.closest('button'); if (!b) return; f.rep = b.dataset.v; $('#cRep').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); };
   $('#cSave').onclick = () => {
     const name = $('#cName').value.trim(); if (!name) { $('#cErr').classList.remove('hide'); $('#cName').focus(); return; }
-    if (c) Object.assign(S.chores.find(x => x.id === c.id), { name, emoji: f.emoji, rep: f.rep });
-    else S.chores.push({ id: uid(), name, emoji: f.emoji, rep: f.rep, at: Date.now() });
+    const data = { name, emoji: f.emoji, rep: f.rep };
+    if (c && c.shared) Share.updateChore(c.id, data);
+    else if (c) Object.assign(S.chores.find(x => x.id === c.id), data);
+    else if (addToShared && S.share) Share.addChore(data);
+    else S.chores.push({ id: uid(), ...data, at: Date.now() });
     save(); Sheet.close(); draw(); if (!c) toast(tr('added'));
   };
-  if (c) $('#cDel').onclick = () => confirmBox(tr('delChoreQ'), tr('delChoreP'), tr('del'), true, () => { S.chores = S.chores.filter(x => x.id !== c.id); delete S.done[c.id]; save(); draw(); });
+  if (c) $('#cDel').onclick = () => confirmBox(tr('delChoreQ'), tr('delChoreP'), tr('del'), true, () => {
+    if (c.shared) Share.removeChore(c.id); else { S.chores = S.chores.filter(x => x.id !== c.id); delete S.done[c.id]; }
+    save(); draw();
+  });
 }
 
 function eventSheet(e) {
@@ -1308,18 +1368,24 @@ const ACT = {
   },
   preset(el) {
     const p = PRESETS[el.dataset.g][+el.dataset.i], fr = S.settings.lang === 'fr';
-    S.chores.push({ id: uid(), name: fr ? p[2] : p[1], emoji: p[0], rep: p[3], at: Date.now() });
+    const data = { name: fr ? p[2] : p[1], emoji: p[0], rep: p[3] };
+    if (addToShared && S.share) Share.addChore(data); else S.chores.push({ id: uid(), ...data, at: Date.now() });
     save(); el.setAttribute('aria-pressed', 'true'); el.disabled = true; Sound.play('tap'); toast(tr('added'));
     Sheet.onClose = () => draw();
   },
   toggleChore(el) {
-    const c = S.chores.find(x => x.id === el.dataset.id); if (!c) return;
+    const sh = !!el.dataset.sh, c = (sh ? sharedList() : S.chores).find(x => x.id === el.dataset.id); if (!c) return;
+    if (sh && !Share.ready) { toast(tr('errNet')); Share.connect(); return; }
     if (isDone(c)) {
-      const d = S.done[c.id]; unreward(d.s || 1, d.p || 10); S.tot.chores = Math.max(0, S.tot.chores - 1); addDay('c', -1);
-      delete S.done[c.id]; save(); Sound.play('undo'); toast(tr('undone')); draw();
+      if (sh && c.done.uid !== Share.uid) { toast(tr('onlyDoer', { name: c.done.name })); return; }
+      const d = (sh ? S.sdone[c.id] : S.done[c.id]) || { s: 1, p: 10 }; unreward(d.s || 1, d.p || 10); S.tot.chores = Math.max(0, S.tot.chores - 1); addDay('c', -1);
+      if (sh) { delete S.sdone[c.id]; Share.tick(c, false); } else delete S.done[c.id];
+      save(); Sound.play('undo'); toast(tr('undone')); draw();
     } else {
       const s = boostOn() ? 2 : 1, hr = new Date().getHours();
-      S.done[c.id] = { k: perKey(c), at: Date.now(), s, p: 10 }; S.tot.chores++; addDay('c', 1);
+      const rec = { k: perKey(c), at: Date.now(), s, p: 10 };
+      if (sh) { S.sdone[c.id] = rec; Share.tick(c, true); } else S.done[c.id] = rec;
+      S.tot.chores++; addDay('c', 1);
       if (hr < 7 && hr >= 3) S.flags.bird = 1;
       const daily = S.chores.filter(x => x.rep === 'daily'); if (daily.length >= 5 && daily.every(isDone)) S.flags.clean = 1;
       Sound.play('ding'); el.classList.add('on', 'pop'); flyStar(el);
@@ -1328,7 +1394,12 @@ const ACT = {
       setTimeout(draw, 650);
     }
   },
-  editChore(el) { choreSheet(S.chores.find(x => x.id === el.dataset.id)); },
+  editChore(el) { choreSheet((el.dataset.sh ? sharedList() : S.chores).find(x => x.id === el.dataset.id)); },
+  shareOpen() { shareSheet(); },
+  amb(el) {
+    S.settings.amb = el.dataset.v; save(); draw();
+    if (S.focus && S.focus.phase === 'focus') Noise.start(); else Noise.preview();
+  },
   async boost() { if (await Ads.show()) { S.boostEnd = Date.now() + 15 * 60e3; save(); draw(); confetti(30); } },
 
   pickPlant(el) { S.plant = el.dataset.v; save(); draw(); },
@@ -1374,7 +1445,7 @@ const ACT = {
   export() { Backup.export(); },
   import() { $('#importFile').value = ''; $('#importFile').click(); },
   tips() { showTips(0); },
-  reset() { confirmBox(tr('resetQ'), tr('resetP'), tr('yesErase'), true, () => { const lang = S.settings.lang; S = fresh(); S.settings.lang = lang; S.settings.tipsDone = true; save(); KeepAwake.off(); Notif.schedule(); cur = 'home'; draw(); }); }
+  reset() { confirmBox(tr('resetQ'), tr('resetP'), tr('yesErase'), true, () => { const lang = S.settings.lang; S = fresh(); S.settings.lang = lang; S.settings.tipsDone = true; save(); KeepAwake.off(); Noise.stop(true); Notif.schedule(); cur = 'home'; draw(); }); }
 };
 function unlock(kind, id) {
   if (kind === 'plant') { if (!S.plants.includes(id)) S.plants.push(id); S.plant = id; }
@@ -1389,6 +1460,7 @@ document.addEventListener('click', e => {
 $('#scrim').addEventListener('click', () => Sheet.close());
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && Sheet.isOpen) Sheet.close(); });
 document.addEventListener('input', e => {
+  if (e.target.id === 'ambVol') { S.settings.ambVol = +e.target.value; Noise.setVol(); saveSoon(); if (!(S.focus && S.focus.phase === 'focus')) Noise.preview(); return; }
   if (e.target.id === 'noteQ') { noteQ = e.target.value; const l = $('#noteList'); if (l) l.innerHTML = noteListHTML(); }
 });
 document.addEventListener('change', e => {
@@ -1402,7 +1474,7 @@ const Focus = {
   async start() {
     const st = S.settings, total = st.focusMin * 60e3;
     S.focus = { phase: 'focus', plant: S.plant, total, end: Date.now() + total, beat: Date.now(), min: st.focusMin };
-    save(); KeepAwake.on(); draw();
+    save(); KeepAwake.on(); Noise.start(); draw();
     await Notif.ask(true);
     Notif.at(2000, S.focus.end, tr('grownN'), tr('grownNB'));
   },
@@ -1413,7 +1485,7 @@ const Focus = {
     if (now.getHours() < 5) S.flags.owl = 1;
     if ((S.days[dayKey()] || {}).s >= 4) S.flags.marathon = 1;
     S.focus = { phase: 'done', plant: F.plant, given: s };
-    reward(s, 15); save(); KeepAwake.off(); Notif.cancel([2000, 2002]);
+    reward(s, 15); save(); KeepAwake.off(); Noise.stop(); Notif.cancel([2000, 2002]);
     Sound.end(2); vibrate(); confetti();
     const pl = plantById(F.plant);
     Sheet.open(`<div class="center celebrate">${plantSVG(pl, 1, { sway: true })}<h2 id="sheetTitle">${esc(tr('grownT'))}</h2><p style="margin:-6px 0 4px;color:var(--soft);font-weight:700">${esc(tr('grownP'))}</p>
@@ -1439,7 +1511,7 @@ const Focus = {
   wilt(left) {
     const F = S.focus; if (!F || F.phase !== 'focus') return;
     S.focus = { phase: 'wilted', plant: F.plant, total: F.total, min: F.min, left: Math.max(30e3, left) };
-    save(); KeepAwake.off(); Notif.cancel([2000, 2002]); Sound.play('undo');
+    save(); KeepAwake.off(); Noise.stop(true); Notif.cancel([2000, 2002]); Sound.play('undo');
     this.showWilt();
   },
   showWilt() {
@@ -1451,7 +1523,7 @@ const Focus = {
       if (!(await Ads.show())) return;
       const W2 = S.focus; S.flags.revive = 1;
       S.focus = { phase: 'focus', plant: W2.plant, total: W2.total, min: W2.min, end: Date.now() + W2.left, beat: Date.now() };
-      save(); KeepAwake.on(); Notif.at(2000, S.focus.end, tr('grownN'), tr('grownNB'));
+      save(); KeepAwake.on(); Noise.start(); Notif.at(2000, S.focus.end, tr('grownN'), tr('grownNB'));
       checkBadges(); Sheet.close(); cur = 'focus'; draw(); toast(tr('reviveOk'));
     };
   }
@@ -1497,19 +1569,21 @@ setInterval(tick, 250);
 document.addEventListener('visibilitychange', () => {
   const F = S.focus;
   if (document.hidden) {
+    Noise.stop(true);
     if (F && F.phase === 'focus') { F.hidAt = Date.now(); save(); Notif.at(2002, Date.now() + 1500, tr('comeBackT'), tr('comeBackB')); }
   } else {
     if (F && F.phase === 'focus' && F.hidAt) {
       const away = Date.now() - F.hidAt, left = F.end - F.hidAt; delete F.hidAt; Notif.cancel([2002]);
-      if (away > 10e3) Focus.wilt(left); else save();
+      if (away > 10e3) Focus.wilt(left); else { save(); Noise.start(); }
     }
+    if (S.share) Share.connect();
     draw();
   }
 });
 function checkOnOpen() {   // the app was closed while a plant was growing
   const F = S.focus; if (!F) return;
   if (F.phase === 'focus' && Date.now() - (F.hidAt || F.beat || 0) > 10e3) Focus.wilt(F.end - (F.hidAt || F.beat));
-  else if (F.phase === 'focus') KeepAwake.on();
+  else if (F.phase === 'focus') { KeepAwake.on(); Noise.start(); }
   else if (F.phase === 'wilted') Focus.showWilt();
   else if (F.phase === 'done') { S.focus = null; save(); }
 }
@@ -1670,6 +1744,195 @@ function fakeAd() {
   });
 }
 
+/* focus sound: white or brown noise, made by the app (no sound files) */
+const Noise = {
+  ctx: null, src: null, gain: null, prevT: 0,
+  buffer(kind) {
+    const c = this.ctx, n = c.sampleRate * 6, fade = c.sampleRate * .5, x = new Float32Array(n + fade);
+    let last = 0;
+    for (let i = 0; i < x.length; i++) {
+      const w = Math.random() * 2 - 1;
+      if (kind === 'brown') { last = (last + .02 * w) / 1.02; x[i] = last * 3.5; } else x[i] = w * .3;
+    }
+    const b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = i < fade ? x[i] * (i / fade) + x[n + i] * (1 - i / fade) : x[i];   // seamless loop
+    return b;
+  },
+  vol() { return .01 + .3 * S.settings.ambVol; },
+  start(kind = S.settings.amb) {
+    this.stop(true); clearTimeout(this.prevT);
+    if (kind === 'off') return;
+    try {
+      const c = this.ctx = Sound.c();
+      this.gain = c.createGain(); this.gain.gain.setValueAtTime(.0001, c.currentTime);
+      this.gain.gain.exponentialRampToValueAtTime(this.vol(), c.currentTime + 1.2);
+      this.src = c.createBufferSource(); this.src.buffer = this.buffer(kind); this.src.loop = true;
+      let node = this.src;
+      if (kind === 'white') { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 8000; node.connect(f); node = f; }
+      node.connect(this.gain).connect(c.destination); this.src.start();
+    } catch (e) {}
+  },
+  preview() { this.start(); clearTimeout(this.prevT); this.prevT = setTimeout(() => this.stop(), 2500); },
+  setVol() { if (this.gain && this.ctx) this.gain.gain.setTargetAtTime(this.vol(), this.ctx.currentTime, .1); },
+  stop(now) {
+    if (!this.src) return;
+    const s = this.src, g = this.gain, c = this.ctx; this.src = null;
+    try { if (now) s.stop(); else { g.gain.setTargetAtTime(.0001, c.currentTime, .3); s.stop(c.currentTime + 1.5); } } catch (e) {}
+  }
+};
+
+/* home-screen widget: send stars + level to the phone (only when they change) */
+let widgetLast = '';
+function syncWidget() {
+  const CS = plug('ChoreStars'); if (!CS || !CS.updateWidget) return;
+  const L = lvl(), d = { stars: S.stars, level: L.n, lv: tr('lvShort'), title: lvlTitle(L.n), cur: L.cur, need: L.need, pts: tr('ptsOf', { a: L.cur, b: L.need }) };
+  const k = JSON.stringify(d); if (k === widgetLast) return; widgetLast = k;
+  CS.updateWidget(d).catch(() => {});
+}
+
+/* ══ SHARED LIST (live, with Google Firebase) ═══════════
+   Your Firebase web config goes here (Firebase console → Project settings → Your apps).
+   Data:  groups/{CODE}            name, owner, members [uids], names {uid: name}
+          groups/{CODE}/chores/{id} name, emoji, rep, by, at, done {k, uid, name, at} or null
+   People sign in "anonymously": no email, no password. */
+const FB_CONFIG = null;
+const CODE_ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function loadScript(src) { return new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }); }
+const Share = {
+  db: null, auth: null, uid: null, group: null, chores: [], live: false, ready: false, offG: null, offC: null, busy: null,
+  async init() {
+    if (this.ready) return true;
+    if (!FB_CONFIG) throw new Error('setup');
+    if (this.busy) return this.busy;
+    this.busy = (async () => {
+      if (!window.firebase) { await loadScript('lib/firebase-app-compat.js'); await loadScript('lib/firebase-auth-compat.js'); await loadScript('lib/firebase-firestore-compat.js'); }
+      if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+      this.auth = firebase.auth(); this.db = firebase.firestore();
+      try { this.db.settings({ experimentalAutoDetectLongPolling: true, merge: true }); } catch (e) {}
+      try { await this.db.enablePersistence(); } catch (e) {}
+      await new Promise(r => { const u = this.auth.onAuthStateChanged(x => { u(); r(x); }); });
+      if (!this.auth.currentUser) await this.auth.signInAnonymously();
+      this.uid = this.auth.currentUser.uid; this.ready = true; return true;
+    })();
+    try { return await this.busy; } finally { this.busy = null; }
+  },
+  ref(code = S.share && S.share.code) { return this.db.collection('groups').doc(code); },
+  async create(myName, listName) {
+    await this.init();
+    let code, ref;
+    for (let i = 0; i < 6; i++) {
+      code = Array.from({ length: 6 }, () => CODE_ABC[Math.floor(Math.random() * CODE_ABC.length)]).join('');
+      ref = this.ref(code);
+      try { const snap = await ref.get(); if (!snap.exists) break; } catch (e) { if (e.code === 'permission-denied') break; throw e; }
+    }
+    await ref.set({ name: listName, owner: this.uid, members: [this.uid], names: { [this.uid]: myName }, created: Date.now() });
+    S.share = { code, name: listName }; S.sharedCache = []; S.sdone = {}; save(); this.connect();
+  },
+  async join(code, myName) {
+    await this.init();
+    const ref = this.ref(code), snap = await ref.get({ source: 'server' });
+    if (!snap.exists) throw new Error('nogroup');
+    const g = snap.data();
+    if (!g.members.includes(this.uid) && g.members.length >= 12) throw new Error('full');
+    await ref.update({ members: firebase.firestore.FieldValue.arrayUnion(this.uid), ['names.' + this.uid]: myName });
+    S.share = { code, name: g.name }; S.sharedCache = []; S.sdone = {}; save(); this.connect();
+    return g.name;
+  },
+  async leave() {
+    const code = S.share.code; this.disconnect();
+    S.share = null; S.sharedCache = []; S.sdone = {}; save(); draw();
+    try { await this.init(); await this.ref(code).update({ members: firebase.firestore.FieldValue.arrayRemove(this.uid), ['names.' + this.uid]: firebase.firestore.FieldValue.delete() }); } catch (e) {}
+  },
+  async connect() {
+    if (!S.share || this.offG) return;
+    try { await this.init(); } catch (e) { return; }
+    if (!S.share || this.offG) return;
+    const ref = this.ref();
+    this.offG = ref.onSnapshot(snap => {
+      const g = snap.data();
+      if (!snap.exists || !g.members.includes(this.uid)) { this.disconnect(); S.share = null; S.sharedCache = []; save(); draw(); toast(tr('removed')); return; }
+      this.group = g; if (S.share.name !== g.name) { S.share.name = g.name; save(); }
+      redrawShared(); if (gsOpen) groupSheet();
+    }, () => {});
+    this.offC = ref.collection('chores').onSnapshot(qs => {
+      const today = dayKey();
+      this.chores = qs.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => {
+        if (c.rep === 'once' && c.done && dayKey(new Date(c.done.at)) !== today) { this.removeChore(c.id); return false; }   // one-time chore done yesterday: gone
+        return true;
+      }).sort((a, b) => (a.at || 0) - (b.at || 0));
+      this.live = true;
+      S.sharedCache = this.chores.map(({ id, name, emoji, rep, done }) => ({ id, name, emoji, rep, done })); saveSoon();
+      redrawShared();
+    }, () => {});
+  },
+  disconnect() { try { this.offG && this.offG(); this.offC && this.offC(); } catch (e) {} this.offG = this.offC = null; this.live = false; this.group = null; this.chores = []; },
+  col() { return this.ref().collection('chores'); },
+  addChore(d) { if (!this.ready) return; this.col().add({ ...d, by: this.uid, at: Date.now(), done: null }).catch(() => toast(tr('errNet'))); },
+  updateChore(id, d) { if (!this.ready) return; this.col().doc(id).update(d).catch(() => toast(tr('errNet'))); },
+  removeChore(id) { if (!this.ready) return; this.col().doc(id).delete().catch(() => {}); },
+  tick(c, on) {
+    if (!this.ready) return;
+    const done = on ? { k: perKey(c), uid: this.uid, name: (S.settings.myName || '⭐'), at: Date.now() } : null;
+    const ch = this.chores.find(x => x.id === c.id); if (ch) ch.done = done;   // show it right away
+    this.col().doc(c.id).update({ done }).catch(() => toast(tr('errNet')));
+  }
+};
+function redrawShared() { if (cur === 'chores' || cur === 'home') draw(); }
+function shareErr(e) {
+  const m = String(e && (e.message || e.code) || e);
+  return m === 'setup' ? tr('errSetup') : m === 'nogroup' ? tr('errNoGroup') : m === 'full' ? tr('errFull') : tr('errNet');
+}
+function shareSheet() {
+  if (S.share) return groupSheet();
+  Sheet.open(`<h2 id="sheetTitle">${esc(tr('shareT'))}</h2><p style="color:var(--soft);margin-top:-6px">${esc(tr('shareP'))}</p>
+    <label class="field"><span>${esc(tr('yourName'))}</span><input class="inp" id="shMe" maxlength="20" placeholder="${esc(tr('yourNamePh'))}" value="${esc(S.settings.myName)}" autocomplete="off"></label>
+    <div class="err hide" id="shErr"></div>
+    <div class="card" style="background:var(--bg);box-shadow:none;border:2px solid var(--line)"><h3>✨ ${esc(tr('newList'))}</h3>
+      <label class="field"><span>${esc(tr('listName'))}</span><input class="inp" id="shList" maxlength="30" placeholder="${esc(tr('listNamePh'))}" autocomplete="off"></label>
+      <button class="btn" type="button" id="shCreate">${esc(tr('create'))}</button></div>
+    <p class="hint" style="margin:4px 0 12px">— ${esc(tr('or'))} —</p>
+    <div class="card" style="background:var(--bg);box-shadow:none;border:2px solid var(--line)"><h3>🔑 ${esc(tr('joinT'))}</h3>
+      <label class="field"><span class="hide">${esc(tr('joinT'))}</span><input class="inp" id="shCode" maxlength="6" placeholder="${esc(tr('codePh'))}" autocapitalize="characters" autocomplete="off" style="font:600 28px var(--head);letter-spacing:.25em;text-align:center;text-transform:uppercase"></label>
+      <button class="btn star" type="button" id="shJoin">${esc(tr('join'))}</button></div>
+    <p class="hint" style="font-size:14px">🔒 ${esc(tr('privacyShare'))}</p>`);
+  const err = m => { const e = $('#shErr'); e.textContent = m; e.classList.remove('hide'); e.scrollIntoView({ block: 'center' }); };
+  const me = () => { const v = $('#shMe').value.trim(); if (!v) { err(tr('needName')); $('#shMe').focus(); return ''; } S.settings.myName = v; save(); return v; };
+  const busy = (b, on, label) => { b.disabled = on; b.textContent = on ? tr('loading') : label; };
+  $('#shCreate').onclick = async ev => {
+    const n = me(); if (!n) return; const b = ev.currentTarget;
+    busy(b, true); try { await Share.create(n, $('#shList').value.trim() || tr('listNamePh')); Sheet.close(); cur = 'chores'; draw(); confetti(40); toast(tr('createdL')); groupSheet(); }
+    catch (e) { busy(b, false, tr('create')); err(shareErr(e)); }
+  };
+  $('#shJoin').onclick = async ev => {
+    const n = me(); if (!n) return; const code = $('#shCode').value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (code.length !== 6) { err(tr('needCode')); return; }
+    const b = ev.currentTarget; busy(b, true);
+    try { const name = await Share.join(code, n); Sheet.close(); cur = 'chores'; draw(); confetti(40); toast(tr('joined', { name })); }
+    catch (e) { busy(b, false, tr('join')); err(shareErr(e)); }
+  };
+}
+let gsOpen = false;
+function groupSheet() {
+  if (!S.share) return;
+  const g = Share.group, code = S.share.code;
+  const names = g ? g.members.map(u => (g.names && g.names[u]) || '⭐') : [];
+  const meIdx = g ? g.members.indexOf(Share.uid) : -1;
+  Sheet.open(`<h2 id="sheetTitle">👥 ${esc((g && g.name) || S.share.name)}</h2>
+    <div class="card center" style="background:var(--tint);box-shadow:none"><p style="margin:0;font-weight:800">${esc(tr('inviteCode'))}</p>
+      <div style="font:600 42px/1.2 var(--head);letter-spacing:.2em;margin:4px 0 10px;user-select:all;-webkit-user-select:all">${esc(code)}</div>
+      <button class="btn" type="button" id="gShare">${esc(tr('shareCode'))}</button></div>
+    ${g ? `<h3 class="sec">${esc(tr('members'))} <span class="count">${names.length}</span></h3><div class="card">${names.map((n, i) => `<div style="padding:6px 2px;font-weight:800">${i === meIdx ? '⭐' : '🙂'} ${esc(n)}${i === meIdx ? ` <small style="color:var(--soft)">(${esc(tr('you'))})</small>` : ''}</div>`).join('')}</div>` : `<p class="hint">${esc(tr('loading'))}</p>`}
+    <div class="btns"><button class="btn danger" type="button" id="gLeave">🚪 ${esc(tr('leave'))}</button><button class="btn soft" type="button" data-act="closeSheet">${esc(tr('close'))}</button></div>
+    <p class="hint" style="font-size:14px">🔒 ${esc(tr('privacyShare'))}</p>`, () => { gsOpen = false; });
+  gsOpen = true;
+  $('#gShare').onclick = async () => {
+    const text = tr('shareMsg', { c: code }), CS = plug('ChoreStars');
+    try { if (CS && CS.shareText) { await CS.shareText({ text }); return; } if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { return; }
+    try { await navigator.clipboard.writeText(code); toast(tr('copied')); } catch (e) {}
+  };
+  $('#gLeave').onclick = () => { gsOpen = false; confirmBox(tr('leaveQ'), tr('leaveP'), tr('yesLeave'), true, async () => { await Share.leave(); toast(tr('left')); }); };
+}
+
 /* Android back button + coming back to the app */
 const APP = plug('App');
 if (APP) {
@@ -1686,6 +1949,8 @@ if (APP) {
 /* start */
 draw();
 checkOnOpen();
+if (S.share) Share.connect();
+syncWidget();
 Notif.init();
 Ads.init();
 if (!S.settings.tipsDone) showTips(0);
