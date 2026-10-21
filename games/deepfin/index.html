@@ -399,6 +399,27 @@ html.native h1{font-size:clamp(24px,6vmin,34px);}
   .feat{font-size:12px;}
   .play-btn{margin-top:12px;}
 }
+
+/* ---- shop ---- */
+.shells-pill{display:inline-block;margin-top:10px;padding:4px 12px;border:3px solid var(--line);border-radius:999px;background:#FFF3C4;color:#2A2140;font-weight:900;font-size:13px;box-shadow:2px 3px 0 var(--shadow);}
+.shop-tabs{display:flex;gap:6px;margin-top:12px;}
+.shop-tabs button{flex:1;font:inherit;font-size:13px;font-weight:900;padding:7px 6px;border:3px solid var(--line);border-radius:999px;background:var(--paper);color:var(--ink);cursor:pointer;pointer-events:auto;}
+.shop-tabs button.on{background:#FFD23D;color:#2A2140;}
+.shop-list{margin-top:10px;text-align:left;}
+.shop-item{display:flex;align-items:center;gap:10px;padding:9px 10px;margin-top:8px;border:3px solid var(--line);border-radius:16px;background:var(--paper);}
+.shop-item .si-ico{font-size:24px;width:32px;text-align:center;flex:0 0 auto;}
+.shop-item .si-txt{flex:1;min-width:0;}
+.shop-item .si-name{font-size:14px;font-weight:900;}
+.shop-item .si-desc{font-size:11.5px;font-weight:800;color:var(--ink-soft);line-height:1.35;}
+.shop-item .si-lv{font-size:11px;font-weight:900;color:var(--ink-soft);letter-spacing:.06em;margin-top:2px;}
+.shop-item button{flex:0 0 auto;font:inherit;font-size:12.5px;font-weight:900;padding:7px 10px;border:3px solid var(--line);border-radius:999px;background:#FFD23D;color:#2A2140;cursor:pointer;pointer-events:auto;box-shadow:0 3px 0 var(--shadow);white-space:nowrap;}
+.shop-item button[disabled]{background:var(--paper);color:var(--ink-soft);box-shadow:none;cursor:default;opacity:.8;}
+.shop-item canvas{width:44px;height:30px;flex:0 0 auto;background:#0E2C4C;border-radius:10px;}
+.earned{margin-top:8px;font-size:15px;font-weight:900;}
+.powers{margin-top:8px;font-size:12px;font-weight:800;color:var(--ink-soft);line-height:1.5;text-align:left;}
+#btnShop{font-size:16px;}
+#hudSchool{white-space:nowrap;}
+#hudBest{white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -412,7 +433,7 @@ html.native h1{font-size:clamp(24px,6vmin,34px);}
   <header>
     <span class="badge">🐟 Arcade game</span>
     <h1>Deep Fin</h1>
-    <p>Tap to swim. Gather a school of fish, then dive from the sunny reef down to the dark abyss.</p>
+    <p>Tap to swim. Gather a school of fish, then dive from the sunny reef down to the deep trench.</p>
   </header>
 
   <main class="cabinet">
@@ -424,6 +445,7 @@ html.native h1{font-size:clamp(24px,6vmin,34px);}
       </div>
       <span id="hudSchool" aria-label="Fish in your school">🐠 0</span>
       <span class="grow"></span>
+      <button class="iconbtn" id="btnShop" type="button" aria-label="Shell shop">🐚</button>
       <button class="iconbtn" id="btnPause" type="button" aria-label="Pause">⏸</button>
       <button class="iconbtn" id="btnSnd" type="button" aria-label="Toggle sound">🔊</button>
     </div>
@@ -450,7 +472,6 @@ const rnd = (a = 1, b) => b === undefined ? Math.random() * a : a + Math.random(
 const $ = s => document.querySelector(s);
 const FONT = '"Nunito","Quicksand",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
 
-/* Seeded random, so the Daily Dive is the same ocean for everybody. */
 function mulberry32(a) {
   return function () {
     a |= 0; a = a + 0x6D2B79F5 | 0;
@@ -463,10 +484,10 @@ function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h
 const dayKey = (d = new Date()) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const yesterdayKey = () => { const d = new Date(); d.setDate(d.getDate() - 1); return dayKey(d); };
 
-/* Hex colour mixing for the zone changes. */
 const hx = c => [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
 const mix = (a, b, t) => { const A = hx(a), B = hx(b); return 'rgb(' + A.map((v, i) => Math.round(lerp(v, B[i], t))).join(',') + ')'; };
-const mix3 = (arr, d) => d <= 1 ? mix(arr[0], arr[1], d) : mix(arr[1], arr[2], d - 1);
+// Blend along a list of colours, one per zone. d = 0..(n-1).
+const mixN = (arr, d) => { const i = clamp(Math.floor(d), 0, arr.length - 2); return mix(arr[i], arr[i + 1], clamp(d - i, 0, 1)); };
 
 const GAME = {
   id: 'deepfin',
@@ -477,13 +498,39 @@ const GAME = {
   fwd: true
 };
 
-/* The three zones. `at` = gates passed to reach it. */
+/* The four zones. `at` = gates passed to reach it. */
 const ZONES = [
-  { at: 0,  name: 'Sunny Reef',    sub: 'Collect gold fish for your school' },
-  { at: 12, name: 'Twilight Zone', sub: 'Careful — the kelp sways!' },
-  { at: 28, name: 'The Abyss',     sub: 'Your lamp lights the way' }
+  { at: 0,   name: 'Sunny Reef',    sub: 'Collect gold fish for your school' },
+  { at: 30,  name: 'Twilight Zone', sub: 'Careful — the kelp sways!' },
+  { at: 70,  name: 'The Abyss',     sub: 'Jellyfish ahead! Your lamp lights the way' },
+  { at: 120, name: 'The Trench',    sub: 'Hot vents push you up. Treasure waits!' }
 ];
-const MAX_SCHOOL = 9;
+const MAX_SCHOOL = 12;
+
+/* What a bigger school gives you. */
+const POWERS = [
+  { n: 4,  icon: '🧲', name: 'Shell catchers', desc: 'Your school pulls in shells from farther away' },
+  { n: 6,  icon: '💡', name: 'Glow school',    desc: 'Every fish adds light in the dark' },
+  { n: 9,  icon: '🛡️', name: 'Jelly guard',    desc: 'Jellyfish bounce off your school' },
+  { n: 12, icon: '👑', name: 'Golden school',  desc: 'All points ×2' }
+];
+
+/* Shop. Prices per level. */
+const UPGRADES = [
+  { id: 'start',  icon: '🐠', name: 'Starting school', desc: 'Start each dive with +1 fish per level',      cost: [150, 450, 1000] },
+  { id: 'luck',   icon: '🍀', name: 'Lucky water',     desc: 'More gold fish appear',                       cost: [100, 300, 700] },
+  { id: 'tough',  icon: '💪', name: 'Tough scales',    desc: 'Safe for longer after a hit',                 cost: [120, 350, 800] },
+  { id: 'lamp',   icon: '🔦', name: 'Bright lamp',     desc: 'Bigger light in the deep',                    cost: [150, 400, 900] },
+  { id: 'magnet', icon: '🧲', name: 'Shell magnet',    desc: 'Grab shells and fish from farther',           cost: [200, 500, 1100] }
+];
+const SKINS = [
+  { id: 'orange', name: 'Classic',   body: '#FF9A3D', belly: '#FFB870', stripe: null,      cost: 0 },
+  { id: 'clown',  name: 'Clownfish', body: '#FF7A1A', belly: '#FFB870', stripe: '#FFFFFF', cost: 300 },
+  { id: 'tang',   name: 'Blue Tang', body: '#2F7BFF', belly: '#FFD23D', stripe: '#1A1F5C', cost: 500 },
+  { id: 'koi',    name: 'Pink Koi',  body: '#FF6FAE', belly: '#FFE1EE', stripe: '#FFFFFF', cost: 800 },
+  { id: 'ghost',  name: 'Ghost Glow',body: '#BDF7FF', belly: '#FFFFFF', stripe: '#6FE7F5', cost: 1500 },
+  { id: 'gold',   name: 'Golden',    body: '#FFC21A', belly: '#FFF1A8', stripe: '#FF9A3D', cost: 3000 }
+];
 
 /* ══ theme ═════════════════════════════════════════════ */
 const THEME_KEY = 'mosArcadeTheme';
@@ -512,20 +559,25 @@ syncTheme();
 /* ══ storage ═══════════════════════════════════════════ */
 const QS = new URLSearchParams(location.search);
 const STORE_KEY = 'deepfin-v1' + (QS.get('prefix') ? ':' + QS.get('prefix') : '');
-const DEF = { sound: true, best: 0, plays: 0, deepest: 0, dailyDay: '', dailyBest: 0, streak: 0, lastDaily: '' };
+const DEF = { sound: true, best: 0, plays: 0, deepest: 0, dailyDay: '', dailyBest: 0, streak: 0, lastDaily: '',
+              shells: 0, up: {}, skins: ['orange'], skin: 'orange' };
 const DATA = (() => {
-  try { return Object.assign({}, DEF, JSON.parse(localStorage.getItem(STORE_KEY) || '{}')); }
-  catch (e) { return Object.assign({}, DEF); }
+  let d;
+  try { d = Object.assign({}, DEF, JSON.parse(localStorage.getItem(STORE_KEY) || '{}')); }
+  catch (e) { d = Object.assign({}, DEF); }
+  d.up = Object.assign({ start: 0, luck: 0, tough: 0, lamp: 0, magnet: 0 }, d.up || {});
+  if (!Array.isArray(d.skins) || !d.skins.length) d.skins = ['orange'];
+  return d;
 })();
 if (QS.get('mute') === '1') DATA.sound = false;
 const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(DATA)); } catch (e) {} };
-// A streak only counts if yesterday was played too.
 function liveStreak() {
   return (DATA.lastDaily === dayKey() || DATA.lastDaily === yesterdayKey()) ? DATA.streak : 0;
 }
 const todayDailyBest = () => DATA.dailyDay === dayKey() ? DATA.dailyBest : 0;
+const skinOf = id => SKINS.find(k => k.id === id) || SKINS[0];
 
-/* ══ audio: tiny Web Audio synth, no assets ════════════ */
+/* ══ audio ═════════════════════════════════════════════ */
 const AU = {
   ctx: null,
   ensure() {
@@ -561,7 +613,11 @@ const AU = {
       case 'fail':   this.tone(300, 0.38, 'sawtooth', 0.14, -210); this.noise(0.22, 0.12, 500); break;
       case 'flap':   this.tone(430, 0.08, 'sine', 0.13, 190); break;
       case 'buddy':  this.tone(880, 0.07, 'triangle', 0.13); this.tone(1175, 0.10, 'triangle', 0.11, 0, 0.06); break;
+      case 'shell':  this.tone(1320, 0.06, 'sine', 0.10); break;
+      case 'chest':  [660, 880, 1100, 1320].forEach((f, i) => this.tone(f, 0.12, 'triangle', 0.13, 0, i * 0.06)); break;
+      case 'boing':  this.tone(260, 0.16, 'sine', 0.16, 260); break;
       case 'lose':   this.tone(420, 0.18, 'square', 0.10, -200); this.noise(0.10, 0.10, 1200); break;
+      case 'buy':    this.tone(700, 0.08, 'triangle', 0.14); this.tone(1050, 0.12, 'triangle', 0.12, 0, 0.07); break;
       case 'level':  [440, 550, 660, 880].forEach((f, i) => this.tone(f, 0.10, 'triangle', 0.13, 0, i * 0.07)); break;
       case 'best':   [523, 659, 784, 1047, 784, 1047].forEach((f, i) => this.tone(f, 0.12, 'triangle', 0.14, 0, i * 0.085)); break;
     }
@@ -597,12 +653,42 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   };
 }
 
+/* Shared fish drawing (game + shop previews). */
+function drawFish(g, x, y, s, rot, sk, wagT) {
+  g.save();
+  g.translate(x, y); g.rotate(rot); g.scale(s, s);
+  const wag = Math.sin(wagT) * 0.35;
+  g.fillStyle = sk.body;
+  g.save(); g.rotate(wag);
+  g.beginPath(); g.moveTo(-12, 0); g.lineTo(-24, -9); g.lineTo(-24, 9); g.closePath(); g.fill();
+  g.restore();
+  g.beginPath(); g.ellipse(0, 0, 15, 10, 0, 0, TAU); g.fill();
+  if (sk.stripe) {
+    g.save();
+    g.beginPath(); g.ellipse(0, 0, 15, 10, 0, 0, TAU); g.clip();
+    g.fillStyle = sk.stripe;
+    g.fillRect(-7, -12, 4, 24); g.fillRect(3, -12, 3, 24);
+    g.restore();
+  }
+  g.fillStyle = '#F2EFFF';
+  g.beginPath(); g.moveTo(-2, -3); g.lineTo(2, -3); g.lineTo(0, 4); g.closePath(); g.fill();
+  g.fillStyle = sk.belly;
+  g.beginPath(); g.ellipse(-2, 6, 5, 3.5, 0.5, 0, TAU); g.fill();
+  g.fillStyle = '#fff';
+  g.beginPath(); g.arc(7, -3, 3.4, 0, TAU); g.fill();
+  g.fillStyle = '#1A1028';
+  g.beginPath(); g.arc(8, -3, 1.7, 0, TAU); g.fill();
+  g.restore();
+}
+const BUDDY = { body: '#FFC21A', belly: '#FFE680', stripe: null };
+
 /* ══ the shell the game talks to ═══════════════════════ */
 const S = {
   state: 'ready', game: null, score: 0, overAt: 0,
-  mode: 'normal',       // 'normal' or 'daily'
-  boost: 0,             // buddies earned from the start-boost ad
-  revived: false, overCardUp: false,
+  mode: 'normal',
+  boost: 0,
+  revived: false, overCardUp: false, doubled: false, earned: 0,
+  shopFrom: null,
   fx: { parts: [], shake: 0, texts: [] },
 
   snd(n, p) { AU.play(n, p); },
@@ -621,7 +707,9 @@ const S = {
     hudScore.classList.remove('pop'); void hudScore.offsetWidth; hudScore.classList.add('pop');
   },
   syncSchool(n) {
-    hudSchool.textContent = '🐠 ' + n;
+    // only the newest power shows, so the bar never gets crowded
+    const on = POWERS.filter(P => n >= P.n);
+    hudSchool.textContent = '🐠 ' + n + (on.length ? ' ' + on[on.length - 1].icon : '');
     hudSchool.classList.remove('pop'); void hudSchool.offsetWidth; hudSchool.classList.add('pop');
   },
   syncBest() {
@@ -630,12 +718,12 @@ const S = {
 
   startRun(mode, p) {
     this.mode = mode;
-    this.revived = false; this.overCardUp = false;
+    this.revived = false; this.overCardUp = false; this.doubled = false; this.earned = 0;
     this.score = 0; this.fx.parts.length = 0; this.fx.texts.length = 0; this.fx.shake = 0;
     hudScore.textContent = '0';
     this.syncBest();
-    // The Daily Dive is the same for everyone, so no boosts there.
-    const start = mode === 'normal' ? this.boost : 0;
+    // Daily Dive is the same for everyone: no starting fish there.
+    const start = mode === 'normal' ? Math.min(MAX_SCHOOL, this.boost + DATA.up.start) : 0;
     if (mode === 'normal') this.boost = 0;
     const seed = mode === 'daily' ? hashStr('deepfin:' + dayKey()) : (Math.random() * 4294967296) >>> 0;
     this.game.reset(seed, start);
@@ -648,7 +736,6 @@ const S = {
   endGame() {
     if (this.state !== 'playing') return;
     this.state = 'over'; this.overAt = performance.now();
-    // A second chance continues the same run, so nothing is saved yet.
     if (!this.revived && this.score > 0) {
       setTimeout(() => { if (this.state === 'over') showSecondChance(this.score); }, 380);
       return;
@@ -672,6 +759,9 @@ const S = {
       nb = this.score > DATA.best;
       if (nb) DATA.best = this.score;
     }
+    // Every point becomes a shell to spend in the shop.
+    this.earned = this.score;
+    DATA.shells += this.earned;
     DATA.deepest = Math.max(DATA.deepest, this.game.zone);
     DATA.plays++; save();
     this.syncBest();
@@ -707,20 +797,22 @@ const card = html => { ovl.innerHTML = '<div class="ovcard">' + html + '</div>';
 function showReady() {
   S.state = 'ready';
   const st = liveStreak(), doneToday = DATA.lastDaily === dayKey();
+  const startFish = Math.min(MAX_SCHOOL, S.boost + DATA.up.start);
   card(
     '<div class="big-ico">' + GAME.icon + '</div>' +
     '<h2>' + GAME.title + '</h2>' +
     '<p class="tip">' + GAME.tip + '</p>' +
     '<ul class="feat">' +
-      '<li>🐠 Grab gold fish. They follow you and save you from one hit each.</li>' +
-      '<li>🌊 Dive deeper: reef, twilight, then the dark abyss.</li>' +
+      '<li>🐠 Gold fish join your school. Each one saves you from a hit.</li>' +
+      '<li>🐚 Your points become shells. Spend them in the shop.</li>' +
     '</ul>' +
     '<button class="play-btn" type="button" data-act="go">Play ▶</button>' +
     '<button class="daily-btn" type="button" data-act="daily">📅 Daily Dive' + (doneToday ? ' · best ' + todayDailyBest() : '') + '</button>' +
     '<div class="streak">' + (st > 0 ? '🔥 ' + st + ' day streak' : 'Play the Daily Dive each day for a streak') + '</div>' +
+    '<button class="daily-btn" type="button" data-act="shop">🐚 Shop · ' + DATA.shells + ' shells</button>' +
     (S.boost > 0
-      ? '<div class="boost-on">✓ You start with ' + S.boost + ' fish</div>'
-      : '<button class="ad-btn" type="button" data-act="boost">▶ Watch an ad: start with 3 fish</button>' +
+      ? '<div class="boost-on">✓ You start with ' + startFish + ' fish</div>'
+      : '<button class="ad-btn" type="button" data-act="boost">▶ Watch an ad: +3 fish at the start</button>' +
         '<div class="ad-note">Optional</div>')
   );
 }
@@ -733,9 +825,15 @@ function showOver(score, nb) {
     '<div class="go-score">' + score + '</div>' +
     (nb ? '<div class="new-best">NEW BEST</div>'
         : '<div class="go-best">' + (daily ? 'TODAY\'S BEST ' + todayDailyBest() : 'BEST ' + DATA.best) + '</div>') +
+    '<div class="earned">+' + S.earned + ' 🐚 shells</div>' +
     '<p class="tip">You reached: ' + zoneName + '</p>' +
     (daily ? '<div class="streak">🔥 ' + liveStreak() + ' day streak</div>' : '') +
     '<button class="play-btn" type="button" data-act="go">Play again ▶</button>' +
+    (!S.doubled && S.earned > 0
+      ? '<button class="ad-btn" type="button" data-act="double">▶ Watch an ad: double your shells</button>' +
+        '<div class="ad-note">Optional</div>'
+      : '') +
+    '<button class="daily-btn" type="button" data-act="shop">🐚 Shop · ' + DATA.shells + ' shells</button>' +
     '<button class="link-btn" type="button" data-act="menu">Menu</button>'
   );
 }
@@ -752,13 +850,88 @@ function showPaused() {
   card(
     '<div class="go-label">Paused</div>' +
     '<p class="tip">' + GAME.tip + '</p>' +
+    '<div class="powers">' + POWERS.map(P => P.icon + ' <b>' + P.n + ' fish:</b> ' + P.desc).join('<br>') + '</div>' +
     '<button class="play-btn" type="button" data-act="go">Resume ▶</button>'
   );
 }
+
+/* ══ shop ══════════════════════════════════════════════ */
+let shopTab = 'up';
+function openShop() {
+  if (S.state === 'playing') { S.state = 'paused'; }
+  if (S.shopFrom === null) S.shopFrom = S.state === 'over' && !S.overCardUp ? 'second' : S.state;
+  S.state = S.state === 'over' ? 'over' : S.state;
+  renderShop();
+}
+function closeShop() {
+  const from = S.shopFrom; S.shopFrom = null;
+  if (from === 'ready') showReady();
+  else if (from === 'over') showOver(S.score, false);
+  else if (from === 'second') showSecondChance(S.score);
+  else showPaused();
+}
+function renderShop() {
+  let list = '';
+  if (shopTab === 'up') {
+    list = UPGRADES.map(u => {
+      const lv = DATA.up[u.id], max = u.cost.length;
+      const price = lv < max ? u.cost[lv] : 0;
+      const btn = lv >= max ? '<button disabled>MAX</button>'
+        : '<button type="button" data-act="buy" data-id="' + u.id + '"' + (DATA.shells < price ? ' disabled' : '') + '>🐚 ' + price + '</button>';
+      return '<div class="shop-item"><div class="si-ico">' + u.icon + '</div><div class="si-txt">' +
+        '<div class="si-name">' + u.name + '</div><div class="si-desc">' + u.desc + '</div>' +
+        '<div class="si-lv">LEVEL ' + lv + ' / ' + max + '</div></div>' + btn + '</div>';
+    }).join('');
+  } else if (shopTab === 'skins') {
+    list = SKINS.map(k => {
+      const own = DATA.skins.includes(k.id), on = DATA.skin === k.id;
+      const btn = on ? '<button disabled>✓ ON</button>'
+        : own ? '<button type="button" data-act="wear" data-id="' + k.id + '">Use</button>'
+        : '<button type="button" data-act="buyskin" data-id="' + k.id + '"' + (DATA.shells < k.cost ? ' disabled' : '') + '>🐚 ' + k.cost + '</button>';
+      return '<div class="shop-item"><canvas width="88" height="60" data-skin="' + k.id + '"></canvas><div class="si-txt">' +
+        '<div class="si-name">' + k.name + '</div></div>' + btn + '</div>';
+    }).join('');
+  } else {
+    list = POWERS.map(P => '<div class="shop-item"><div class="si-ico">' + P.icon + '</div><div class="si-txt">' +
+      '<div class="si-name">' + P.n + ' fish: ' + P.name + '</div><div class="si-desc">' + P.desc + '</div></div></div>').join('') +
+      '<div class="shop-item"><div class="si-ico">➕</div><div class="si-txt"><div class="si-name">More points</div>' +
+      '<div class="si-desc">Every 2 fish = +1 point per gate</div></div></div>';
+  }
+  card(
+    '<div class="go-label">Shell shop</div>' +
+    '<div class="shells-pill">🐚 ' + DATA.shells + ' shells</div>' +
+    '<div class="shop-tabs">' +
+      '<button type="button" data-act="tab" data-id="up" class="' + (shopTab === 'up' ? 'on' : '') + '">Upgrades</button>' +
+      '<button type="button" data-act="tab" data-id="skins" class="' + (shopTab === 'skins' ? 'on' : '') + '">Colors</button>' +
+      '<button type="button" data-act="tab" data-id="powers" class="' + (shopTab === 'powers' ? 'on' : '') + '">School</button>' +
+    '</div>' +
+    '<div class="shop-list">' + list + '</div>' +
+    '<button class="play-btn" type="button" data-act="closeshop">Done</button>'
+  );
+  ovl.querySelectorAll('canvas[data-skin]').forEach(c => {
+    const x = c.getContext('2d'); x.setTransform(2, 0, 0, 2, 0, 0);
+    drawFish(x, 25, 15, 0.8, 0, skinOf(c.dataset.skin), 0.6);
+  });
+}
+function buy(id) {
+  const u = UPGRADES.find(x => x.id === id), lv = DATA.up[id];
+  if (!u || lv >= u.cost.length || DATA.shells < u.cost[lv]) return;
+  DATA.shells -= u.cost[lv]; DATA.up[id] = lv + 1; save();
+  AU.play('buy'); toast(u.name + ' → level ' + (lv + 1) + '!');
+  renderShop();
+}
+function buySkin(id) {
+  const k = skinOf(id);
+  if (DATA.skins.includes(id) || DATA.shells < k.cost) return;
+  DATA.shells -= k.cost; DATA.skins.push(id); DATA.skin = id; save();
+  AU.play('buy'); toast(k.name + ' unlocked! 🎉');
+  renderShop();
+}
+
 const unfocus = e => { if (e.detail) e.currentTarget.blur(); };
 ovl.addEventListener('click', async e => {
   const act = e.target.closest('[data-act]');
-  if (!act) return;
+  if (!act || act.disabled) return;
   if (e.detail) act.blur();
   AU.ensure();
   const a = act.dataset.act;
@@ -772,10 +945,26 @@ ovl.addEventListener('click', async e => {
   if (a === 'boost') {
     AU.play('ui');
     const ok = await showRewardedAd();
-    if (ok) { S.boost = 3; AU.play('buddy'); toast('You start your next dive with 3 fish! 🐠'); }
+    if (ok) { S.boost = 3; AU.play('buddy'); toast('+3 fish on your next dive! 🐠'); }
     if (S.state === 'ready') showReady();
     return;
   }
+  if (a === 'double') {
+    AU.play('ui');
+    const ok = await showRewardedAd();
+    if (ok && !S.doubled) {
+      S.doubled = true; DATA.shells += S.earned; S.earned *= 2; save();
+      AU.play('chest'); toast('Shells doubled! 🐚');
+    }
+    if (S.state === 'over') showOver(S.score, false);
+    return;
+  }
+  if (a === 'shop') { AU.play('ui'); openShop(); return; }
+  if (a === 'closeshop') { AU.play('ui'); closeShop(); return; }
+  if (a === 'tab') { AU.play('ui'); shopTab = act.dataset.id; renderShop(); return; }
+  if (a === 'buy') { buy(act.dataset.id); return; }
+  if (a === 'buyskin') { buySkin(act.dataset.id); return; }
+  if (a === 'wear') { DATA.skin = act.dataset.id; save(); AU.play('ui'); renderShop(); return; }
   if (a === 'daily') { AU.play('ui'); S.startRun('daily', null); return; }
   if (a === 'menu') { AU.play('ui'); S.mode = 'normal'; S.syncBest(); showReady(); return; }
   if (a === 'go') doPress({ x: W / 2, y: H * 0.7 }, true);
@@ -788,10 +977,10 @@ const pt = e => {
 };
 function doPress(p, fromBtn) {
   AU.ensure();
+  if (S.shopFrom !== null) return;
   if (S.state === 'ready') S.startRun('normal', fromBtn ? null : p);
   else if (S.state === 'playing') S.game.press(p.x, p.y);
   else if (S.state === 'over') {
-    // Only the Game Over card restarts — the Second Chance card waits for a choice.
     if (S.overCardUp && performance.now() - S.overAt > 450) S.startRun(S.mode, fromBtn ? null : p);
   }
   else if (S.state === 'paused') { S.state = 'playing'; ovl.hidden = true; }
@@ -806,7 +995,6 @@ window.addEventListener('keydown', e => {
   }
   if (e.code === 'Escape' && S.state === 'playing') S.pause();
 });
-// Leaving the app pauses the game and silences it.
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { S.pause(); if (AU.ctx && AU.ctx.state === 'running') AU.ctx.suspend(); }
 });
@@ -853,18 +1041,12 @@ function loop(now) {
 
 /* ══════════════════════════════════════════════════════
    DEEP FIN
-   • School of fish: gold fish in the gaps join you and follow
-     in a line. A hit costs one fish instead of the game.
-     Every 3 fish = +1 point per gate.
-   • Zones: Sunny Reef → Twilight (gaps sway) → Abyss (dark,
-     your lamp lights a circle, kelp edges glow).
-   • Daily Dive: seeded layout, the same for everybody today.
    ══════════════════════════════════════════════════════ */
-const SKY_TOP = ['#2E9BD0', '#2A2A6E', '#050812'];
-const SKY_BOT = ['#0F4C78', '#110E33', '#010205'];
-const KELP_A  = ['#1E7A52', '#24506B', '#0C2420'];
-const KELP_B  = ['#2FA86B', '#3A7896', '#123A33'];
-const SAND    = ['#C9A15E', '#5E5378', '#14121E'];
+const SKY_TOP = ['#2E9BD0', '#2A2A6E', '#050812', '#14040A'];
+const SKY_BOT = ['#0F4C78', '#110E33', '#010205', '#050102'];
+const KELP_A  = ['#1E7A52', '#24506B', '#0C2420', '#2A0E12'];
+const KELP_B  = ['#2FA86B', '#3A7896', '#123A33', '#4A1A20'];
+const SAND    = ['#C9A15E', '#5E5378', '#14121E', '#2A1210'];
 
 class DeepFin {
   constructor(S) { this.S = S; this.t = 0; this.reset(1, 0); }
@@ -874,9 +1056,15 @@ class DeepFin {
     this.speed = 150; this.dead = 0; this.bub = [];
     this.gates = 0; this.zone = 0; this.depth = 0; this.banner = null;
     this.school = []; this.hist = []; this.shield = 0;
+    this.items = [];   // shells, glow shells, chests
+    this.jellies = [];
+    this.vents = [];
+    this.powersOn = 0;
     for (let i = 0; i < buddies; i++) this.school.push({ wig: rnd(TAU) });
+    this.powersOn = POWERS.filter(P => buddies >= P.n).length;
   }
-  fishX() { return W * 0.30; }
+  fishX() { return W * 0.34; }
+  has(n) { return this.school.length >= n; }
   press() {
     if (this.dead > 0) return;
     this.vy = -330;
@@ -885,17 +1073,35 @@ class DeepFin {
   }
   revive() {
     this.dead = 0; this.y = H * 0.45; this.vy = 0;
-    this.cols = this.cols.filter(c => c.x > this.fishX() + 160);
+    const cut = this.fishX() + 160;
+    this.cols = this.cols.filter(c => c.x > cut);
+    this.jellies = this.jellies.filter(j => j.x > cut);
+    this.vents = this.vents.filter(v => v.x > cut);
     this.shield = 2.2;
   }
   idle(dt) {
-    // Keeps the water alive behind the menus.
     this.t += dt;
     if (this.S.state === 'ready') this.y = H * 0.45 + Math.sin(this.t * 2) * 10;
     for (const b of this.bub) { b.y += b.vy * dt; b.life -= dt; }
     this.bub = this.bub.filter(b => b.life > 0);
   }
   zoneFor(n) { let z = 0; ZONES.forEach((Z, i) => { if (n >= Z.at) z = i; }); return z; }
+  lampR() { return 230 + DATA.up.lamp * 45 + (this.has(6) ? this.school.length * 9 : 0); }
+  magnetR() { return 28 + DATA.up.magnet * 22 + (this.has(4) ? 40 + this.school.length * 3 : 0); }
+  addBuddy(x, y) {
+    if (this.school.length >= MAX_SCHOOL) { this.S.addScore(3); this.S.floatText(x, y - 20, '+3'); return; }
+    this.school.push({ wig: rnd(TAU) });
+    this.S.snd('buddy');
+    this.S.burst(x, y, '#FFD23D', 10, 160);
+    this.S.syncSchool(this.school.length);
+    const on = POWERS.filter(P => this.school.length >= P.n).length;
+    if (on > this.powersOn) {
+      const P = POWERS[on - 1];
+      toast(P.icon + ' ' + P.name + '! ' + P.desc);
+      this.S.snd('level');
+    }
+    this.powersOn = on;
+  }
   update(dt) {
     this.t += dt;
     this.depth += (this.zone - this.depth) * Math.min(1, dt * 0.8);
@@ -907,32 +1113,58 @@ class DeepFin {
       if (this.dead <= 0) this.S.endGame();
       return;
     }
-    this.vy = Math.min(520, this.vy + 980 * dt);
+    // hot vents push you up
+    const fx = this.fishX(), r = 15;
+    let inVent = false;
+    for (const v of this.vents) if (fx > v.x - v.w / 2 && fx < v.x + v.w / 2) inVent = true;
+    this.vy = Math.min(520, this.vy + (inVent ? -650 : 980) * dt);
+    this.vy = Math.max(this.vy, -420);
     this.y += this.vy * dt;
     this.hist.unshift(this.y);
-    if (this.hist.length > 120) this.hist.length = 120;
-    this.speed = Math.min(240, 150 + this.gates * 3);
+    if (this.hist.length > 160) this.hist.length = 160;
+    this.speed = Math.min(235, 150 + this.gates * 1.4);
 
     const R = this.R;
     const spacing = Math.max(200, W * 0.58);
     const lastC = this.cols[this.cols.length - 1];
     if (!lastC || lastC.x < W - spacing) {
       const z = this.zoneFor(this.gates + this.cols.filter(c => !c.passed).length);
-      let gapH = Math.max(H * 0.25, H * 0.34 - this.gates * 0.004 * H);
-      if (z === 2) gapH += H * 0.02;          // a little kinder in the dark
-      const sway = z >= 1 ? H * (0.05 + R() * 0.05) : 0;
+      let gapH = Math.max(H * 0.25, H * 0.34 - this.gates * 0.0018 * H);
+      if (z >= 2) gapH += H * 0.02;
+      const sway = z >= 1 ? H * (z >= 3 ? 0.08 : 0.05) + R() * H * 0.05 : 0;
       const base = H * 0.24 + sway + R() * (H * 0.44 - sway * 2);
-      const buddy = this.school.length < MAX_SCHOOL && R() < (z === 0 ? 0.5 : 0.35);
-      this.cols.push({ x: W + 70, base, gapY: base, gapH, sway, ph: R() * TAU, sp: 1.2 + R() * 0.8,
+      const luck = 1 + DATA.up.luck * 0.18;
+      const roll = R();
+      const chest = z >= 2 && roll < 0.07;
+      const buddy = !chest && R() < (z === 0 ? 0.45 : 0.32) * luck;
+      const x0 = W + 70;
+      this.cols.push({ x: x0, base, gapY: base, gapH, sway, ph: R() * TAU, sp: 1.2 + R() * 0.8,
                        w: 62, passed: false, seed: R() * TAU, buddy, got: false });
+      if (chest) this.items.push({ kind: 'chest', x: x0 + 31, y: base, col: this.cols[this.cols.length - 1] });
+      // things in the open water between this column and the next
+      const mid = x0 + 31 + spacing / 2;
+      if (R() < 0.6) {
+        const n = 1 + Math.floor(R() * 3), y0 = H * (0.2 + R() * 0.5);
+        for (let i = 0; i < n; i++) this.items.push({ kind: z >= 2 ? 'glow' : 'shell', x: mid + (i - (n - 1) / 2) * 26, y: y0 + Math.sin(i) * 14 });
+      }
+      if (z >= 2 && R() < (z >= 3 ? 0.55 : 0.4)) {
+        this.jellies.push({ x: mid + (R() - 0.5) * 40, base: H * (0.25 + R() * 0.45), amp: H * (0.08 + R() * 0.08), ph: R() * TAU, sp: 0.9 + R() * 0.6, r: 15, gone: false });
+      }
+      if (z >= 3 && R() < 0.45) this.vents.push({ x: mid + 50, w: 46 });
     }
+    const mv = this.speed * dt;
     for (const c of this.cols) {
-      c.x -= this.speed * dt;
+      c.x -= mv;
       if (c.sway) c.gapY = c.base + Math.sin(this.t * c.sp + c.ph) * c.sway;
     }
+    for (const it of this.items) { it.x -= mv; if (it.col) it.y = it.col.gapY; }
+    for (const j of this.jellies) { j.x -= mv; j.y = j.base + Math.sin(this.t * j.sp + j.ph) * j.amp; }
+    for (const v of this.vents) v.x -= mv;
     this.cols = this.cols.filter(c => c.x > -110);
+    this.items = this.items.filter(i => i.x > -40 && !i.taken);
+    this.jellies = this.jellies.filter(j => j.x > -40 && !j.gone);
+    this.vents = this.vents.filter(v => v.x > -60);
 
-    const fx = this.fishX(), r = 15;
     if (this.y < r) { this.y = r; this.vy = 0; }
     if (this.y > H - 26 - r) {
       this.y = H - 26 - r;
@@ -948,41 +1180,87 @@ class DeepFin {
         if (this.school.length) { this.loseBuddy(); this.vy = -200; }
         else return this.die();
       }
-      if (c.buddy && !c.got && Math.hypot(fx - (c.x + c.w / 2), this.y - c.gapY) < 26) {
-        c.got = true;
-        this.school.push({ wig: rnd(TAU) });
-        this.S.snd('buddy');
-        this.S.burst(c.x + c.w / 2, c.gapY, '#FFD23D', 10, 160);
-        this.S.syncSchool(this.school.length);
+      if (c.buddy && !c.got) {
+        const bx = c.x + c.w / 2, d = Math.hypot(fx - bx, this.y - c.gapY);
+        if (d < 26 + DATA.up.magnet * 10) { c.got = true; this.addBuddy(bx, c.gapY); }
       }
       if (!c.passed && c.x + c.w < fx) {
         c.passed = true;
         this.gates++;
-        const pts = 1 + Math.floor(this.school.length / 3);
+        let pts = 1 + Math.floor(this.school.length / 2);
+        if (this.has(12)) pts *= 2;
         this.S.addScore(pts);
         if (pts > 1) this.S.floatText(fx, this.y - 34, '+' + pts);
-        this.S.snd('ok', 1 + Math.min(0.8, this.gates * 0.012));
+        this.S.snd('ok', 1 + Math.min(0.8, this.gates * 0.008));
         const z = this.zoneFor(this.gates);
         if (z > this.zone) {
           this.zone = z;
-          this.banner = { name: ZONES[z].name, sub: ZONES[z].sub, t: 2.6 };
+          this.banner = { name: ZONES[z].name, sub: ZONES[z].sub, t: 2.8 };
           this.S.snd('level');
         }
+      }
+    }
+    // pick-ups: pulled in by the magnet, grabbed by you or your school
+    const mR = this.magnetR();
+    for (const it of this.items) {
+      if (it.kind === 'chest') {
+        if (Math.hypot(fx - it.x, this.y - it.y) < 28 + DATA.up.magnet * 8) {
+          it.taken = true; this.S.addScore(25);
+          this.S.snd('chest'); this.S.burst(it.x, it.y, '#FFD23D', 22, 260);
+          this.S.floatText(it.x, it.y - 24, '+25 💰'); toast('Treasure! +25');
+        }
+        continue;
+      }
+      const d = Math.hypot(fx - it.x, this.y - it.y);
+      if (d < mR) { const k = Math.min(1, dt * 9); it.x += (fx - it.x) * k; it.y += (this.y - it.y) * k; }
+      let got = d < 20;
+      if (!got && this.has(4)) {
+        for (let i = 0; i < this.school.length && !got; i++) {
+          const p = this.buddyPos(i); if (Math.hypot(p.x - it.x, p.y - it.y) < 16) got = true;
+        }
+      }
+      if (got) {
+        it.taken = true;
+        const v = it.kind === 'glow' ? 3 : 1;
+        this.S.addScore(this.has(12) ? v * 2 : v);
+        this.S.snd('shell');
+        this.S.burst(it.x, it.y, it.kind === 'glow' ? '#3CF2D0' : '#FFE9C9', 5, 100);
+      }
+    }
+    // jellyfish
+    for (const j of this.jellies) {
+      if (j.gone) continue;
+      let hitMe = Math.hypot(fx - j.x, this.y - j.y) < r + j.r - 2;
+      if (this.has(9)) {
+        // your school bumps them away
+        let near = hitMe;
+        for (let i = 0; i < this.school.length && !near; i++) { const p = this.buddyPos(i); if (Math.hypot(p.x - j.x, p.y - j.y) < 22) near = true; }
+        if (near) { j.gone = true; this.S.addScore(2); this.S.snd('boing'); this.S.burst(j.x, j.y, '#FF8AD8', 10, 180); this.S.floatText(j.x, j.y - 20, '+2', '#FF8AD8'); }
+        continue;
+      }
+      if (hitMe && this.shield <= 0) {
+        j.gone = true;
+        this.S.burst(j.x, j.y, '#FF8AD8', 10, 180);
+        if (this.school.length) { this.loseBuddy(); this.vy = -160; }
+        else return this.die();
       }
     }
     for (const b of this.bub) { b.y += b.vy * dt; b.life -= dt; }
     this.bub = this.bub.filter(b => b.life > 0);
   }
   buddyPos(i) {
-    const k = Math.min(this.hist.length - 1, (i + 1) * 6);
+    const k = Math.min(this.hist.length - 1, (Math.floor(i / 2) + 1) * 6);
     const y = this.hist.length ? this.hist[Math.max(0, k)] : this.y;
-    return { x: this.fishX() - 26 - i * 20, y: y + Math.sin(this.t * 5 + this.school[i].wig) * 3 };
+    // two staggered rows, so a big school stays on screen and reads as a school
+    const row = i % 2 ? 1 : -1, col = Math.floor(i / 2);
+    return { x: this.fishX() - 22 - col * 13 - (i % 2) * 7, y: y + row * 10 + Math.sin(this.t * 5 + this.school[i].wig) * 3 };
   }
   loseBuddy() {
     const i = this.school.length - 1;
     const p = this.buddyPos(i);
     this.school.pop();
-    this.shield = 1.2;
+    this.powersOn = POWERS.filter(P => this.school.length >= P.n).length;
+    this.shield = 1.2 + DATA.up.tough * 0.4;
     this.S.snd('lose'); this.S.shake(5);
     this.S.burst(p.x, p.y, '#FFD23D', 12, 200);
     this.S.floatText(this.fishX(), this.y - 30, '-1 🐠', '#FFFFFF');
@@ -996,14 +1274,14 @@ class DeepFin {
     if (this.dead > 0) return;
     this.S.snd('fail'); this.S.shake(9);
     this.S.burst(this.fishX(), this.y, '#38B6FF', 14, 220);
-    this.S.burst(this.fishX(), this.y, '#FF9A3D', 8, 180);
+    this.S.burst(this.fishX(), this.y, skinOf(DATA.skin).body, 8, 180);
     this.dead = 0.5; this.vy = -180;
   }
   kelp(g, x, y0, y1, w, seed, d) {
     if (y1 <= y0) return;
-    g.fillStyle = mix3(KELP_A, d);
+    g.fillStyle = mixN(KELP_A, d);
     g.fillRect(x, y0, w, y1 - y0);
-    g.strokeStyle = mix3(KELP_B, d); g.lineWidth = 4; g.lineCap = 'round';
+    g.strokeStyle = mixN(KELP_B, d); g.lineWidth = 4; g.lineCap = 'round';
     const n = Math.max(2, Math.floor((y1 - y0) / 46));
     for (let i = 0; i <= n; i++) {
       const yy = y0 + (i / n) * (y1 - y0);
@@ -1016,34 +1294,47 @@ class DeepFin {
     g.fillStyle = 'rgba(0,0,0,.25)';
     g.fillRect(x, y0, 6, y1 - y0);
   }
-  drawFish(g, x, y, s, rot, body, belly, wagT) {
-    g.save();
-    g.translate(x, y); g.rotate(rot); g.scale(s, s);
-    const wag = Math.sin(wagT) * 0.35;
-    g.fillStyle = body;
-    g.save(); g.rotate(wag);
-    g.beginPath(); g.moveTo(-12, 0); g.lineTo(-24, -9); g.lineTo(-24, 9); g.closePath(); g.fill();
+  drawShell(g, x, y, glow) {
+    g.save(); g.translate(x, y);
+    if (glow) { g.shadowColor = '#3CF2D0'; g.shadowBlur = 12; }
+    g.fillStyle = glow ? '#9FFFF0' : '#FFE9C9';
+    g.beginPath(); g.moveTo(0, 7); g.lineTo(-8, -2); g.quadraticCurveTo(0, -11, 8, -2); g.closePath(); g.fill();
+    g.shadowBlur = 0;
+    g.strokeStyle = glow ? '#2BB8A6' : '#D9A56B'; g.lineWidth = 1.2;
+    for (let k = -1; k <= 1; k++) { g.beginPath(); g.moveTo(0, 6); g.lineTo(k * 5, -6); g.stroke(); }
     g.restore();
-    g.beginPath(); g.ellipse(0, 0, 15, 10, 0, 0, TAU); g.fill();
-    g.fillStyle = '#F2EFFF';
-    g.beginPath(); g.moveTo(-2, -3); g.lineTo(2, -3); g.lineTo(0, 4); g.closePath(); g.fill();
-    g.fillStyle = belly;
-    g.beginPath(); g.ellipse(-2, 6, 5, 3.5, 0.5, 0, TAU); g.fill();
-    g.fillStyle = '#fff';
-    g.beginPath(); g.arc(7, -3, 3.4, 0, TAU); g.fill();
-    g.fillStyle = '#1A1028';
-    g.beginPath(); g.arc(8, -3, 1.7, 0, TAU); g.fill();
+  }
+  drawChest(g, x, y) {
+    g.save(); g.translate(x, y + Math.sin(this.t * 3) * 3);
+    g.shadowColor = '#FFD23D'; g.shadowBlur = 18;
+    g.fillStyle = '#8A4B1E'; g.fillRect(-14, -8, 28, 18);
+    g.fillStyle = '#A65F2A'; g.beginPath(); g.ellipse(0, -8, 14, 7, 0, Math.PI, TAU); g.fill();
+    g.shadowBlur = 0;
+    g.fillStyle = '#FFD23D'; g.fillRect(-14, -3, 28, 3); g.fillRect(-3, -6, 6, 8);
+    g.restore();
+  }
+  drawJelly(g, j) {
+    g.save(); g.translate(j.x, j.y);
+    const p = Math.sin(this.t * 4 + j.ph) * 0.12;
+    g.shadowColor = '#FF8AD8'; g.shadowBlur = 14;
+    g.fillStyle = 'rgba(255,138,216,.85)';
+    g.beginPath(); g.ellipse(0, 0, j.r * (1 + p), j.r * (0.8 - p), 0, Math.PI, TAU); g.fill();
+    g.shadowBlur = 0;
+    g.strokeStyle = 'rgba(255,170,230,.8)'; g.lineWidth = 2; g.lineCap = 'round';
+    for (let k = -2; k <= 2; k++) {
+      g.beginPath(); g.moveTo(k * 5, 0);
+      g.quadraticCurveTo(k * 5 + Math.sin(this.t * 5 + k) * 4, 10, k * 5, 20); g.stroke();
+    }
     g.restore();
   }
   draw(g) {
-    const d = clamp(this.depth, 0, 2);
+    const d = clamp(this.depth, 0, 3);
     const dark = clamp(d - 1, 0, 1);
     const sun = clamp(1 - d, 0, 1);
     const gr = g.createLinearGradient(0, 0, 0, H);
-    gr.addColorStop(0, mix3(SKY_TOP, d)); gr.addColorStop(1, mix3(SKY_BOT, d));
+    gr.addColorStop(0, mixN(SKY_TOP, d)); gr.addColorStop(1, mixN(SKY_BOT, d));
     g.fillStyle = gr; g.fillRect(0, 0, W, H);
 
-    // sun rays on the reef
     if (sun > 0.01) {
       g.save();
       g.globalAlpha = 0.10 * sun;
@@ -1056,38 +1347,53 @@ class DeepFin {
       }
       g.restore();
     }
-    // drifting specks (glowing plankton in the deep)
     for (let i = 0; i < 18; i++) {
       const px = ((i * 173 + 40 - this.t * 24) % (W + 40) + W + 40) % (W + 40) - 20;
       const py = (i * 97 + Math.sin(this.t + i) * 8) % H;
       g.globalAlpha = 0.12 + 0.35 * dark * (0.5 + 0.5 * Math.sin(this.t * 3 + i));
-      g.fillStyle = dark > 0.3 && i % 3 === 0 ? '#3CF2D0' : '#F2EFFF';
+      g.fillStyle = dark > 0.3 && i % 3 === 0 ? (d > 2.5 ? '#FF7A4A' : '#3CF2D0') : '#F2EFFF';
       g.beginPath(); g.arc(px, py, 1.6, 0, TAU); g.fill();
     }
     g.globalAlpha = 1;
+
+    // vents (behind the kelp)
+    for (const v of this.vents) {
+      g.save();
+      const vg = g.createLinearGradient(0, H, 0, 0);
+      vg.addColorStop(0, 'rgba(255,120,60,.35)'); vg.addColorStop(1, 'rgba(255,120,60,0)');
+      g.fillStyle = vg; g.fillRect(v.x - v.w / 2, 0, v.w, H - 26);
+      g.strokeStyle = 'rgba(255,200,160,.7)'; g.lineWidth = 1.5;
+      for (let k = 0; k < 7; k++) {
+        const by = H - 26 - ((this.t * 160 + k * 70) % (H - 26));
+        const bx = v.x + Math.sin(this.t * 3 + k) * v.w * 0.3;
+        g.beginPath(); g.arc(bx, by, 2 + (k % 3), 0, TAU); g.stroke();
+      }
+      g.fillStyle = '#3A1A14'; g.beginPath(); g.moveTo(v.x - 22, H - 26); g.lineTo(v.x - 8, H - 44); g.lineTo(v.x + 8, H - 44); g.lineTo(v.x + 22, H - 26); g.fill();
+      g.restore();
+    }
 
     for (const c of this.cols) {
       this.kelp(g, c.x, 0, c.gapY - c.gapH / 2, c.w, c.seed, d);
       this.kelp(g, c.x, c.gapY + c.gapH / 2, H - 26, c.w, c.seed + 3, d);
     }
-    g.fillStyle = mix3(SAND, d);
+    g.fillStyle = mixN(SAND, d);
     g.fillRect(0, H - 26, W, 26);
     g.fillStyle = 'rgba(0,0,0,.18)';
     g.fillRect(0, H - 26, W, 5);
 
-    // the dark of the abyss, with a circle of light around you
+    // the dark, with a circle of light around you
     if (dark > 0.01) {
-      const fx = this.fishX() + 40;
-      const rg = g.createRadialGradient(fx, this.y, 50, fx, this.y, 230);
+      const fx = this.fishX() + 40, LR = this.lampR();
+      const rg = g.createRadialGradient(fx, this.y, 50, fx, this.y, LR);
       rg.addColorStop(0, 'rgba(1,2,8,0)');
       rg.addColorStop(0.5, 'rgba(1,2,8,' + (0.55 * dark) + ')');
       rg.addColorStop(1, 'rgba(1,2,8,' + (0.95 * dark) + ')');
       g.fillStyle = rg; g.fillRect(0, 0, W, H);
-      // glowing kelp tips, so a gap can always be read
       g.save();
       g.globalAlpha = 0.85 * dark;
-      g.strokeStyle = '#3CF2D0'; g.lineWidth = 3; g.lineCap = 'round';
-      g.shadowColor = '#3CF2D0'; g.shadowBlur = 10;
+      const edge = d > 2.5 ? '#FF7A4A' : '#3CF2D0';
+      g.strokeStyle = edge; g.lineWidth = 3; g.lineCap = 'round';
+      g.shadowColor = edge; g.shadowBlur = 10;
       for (const c of this.cols) {
         const topH = c.gapY - c.gapH / 2, botY = c.gapY + c.gapH / 2;
         g.beginPath();
@@ -1098,7 +1404,13 @@ class DeepFin {
       g.restore();
     }
 
-    // gold fish waiting in the gaps
+    // pick-ups and jellies glow, so they show in the dark
+    for (const it of this.items) {
+      if (it.kind === 'chest') this.drawChest(g, it.x, it.y);
+      else this.drawShell(g, it.x, it.y + Math.sin(this.t * 3 + it.x * 0.05) * 2, it.kind === 'glow');
+    }
+    for (const j of this.jellies) this.drawJelly(g, j);
+
     for (const c of this.cols) {
       if (!c.buddy || c.got) continue;
       const bx = c.x + c.w / 2, by = c.gapY + Math.sin(this.t * 4 + c.seed) * 4;
@@ -1107,7 +1419,7 @@ class DeepFin {
       g.fillStyle = '#FFD23D';
       g.beginPath(); g.arc(bx, by, 16, 0, TAU); g.fill();
       g.restore();
-      this.drawFish(g, bx, by, 0.62, 0, '#FFC21A', '#FFE680', this.t * 10 + c.seed);
+      drawFish(g, bx, by, 0.62, 0, BUDDY, this.t * 10 + c.seed);
     }
 
     g.strokeStyle = 'rgba(242,239,255,.5)'; g.lineWidth = 1.5;
@@ -1117,27 +1429,29 @@ class DeepFin {
     }
     g.globalAlpha = 1;
 
-    // your school, following in a line
+    const gold = this.has(12);
     for (let i = this.school.length - 1; i >= 0; i--) {
       const p = this.buddyPos(i);
-      if (dark > 0.01) {
-        g.save(); g.globalAlpha = 0.25 * dark; g.fillStyle = '#FFD23D';
-        g.beginPath(); g.arc(p.x, p.y, 12, 0, TAU); g.fill(); g.restore();
+      if (dark > 0.01 || gold) {
+        g.save(); g.globalAlpha = gold ? 0.35 : 0.25 * dark; g.fillStyle = '#FFD23D';
+        g.beginPath(); g.arc(p.x, p.y, this.has(6) ? 15 : 12, 0, TAU); g.fill(); g.restore();
       }
-      this.drawFish(g, p.x, p.y, 0.6, 0, '#FFC21A', '#FFE680', this.t * 14 + this.school[i].wig);
+      if (this.has(9)) {
+        g.save(); g.globalAlpha = 0.35; g.strokeStyle = '#9FD8FF'; g.lineWidth = 1.5;
+        g.beginPath(); g.arc(p.x, p.y, 13, 0, TAU); g.stroke(); g.restore();
+      }
+      drawFish(g, p.x, p.y, 0.6, 0, BUDDY, this.t * 14 + this.school[i].wig);
     }
 
-    // you
     const blink = this.shield > 0 && Math.floor(this.t * 12) % 2 === 0;
     g.globalAlpha = blink ? 0.4 : 1;
     const rot = clamp(this.vy * 0.0016, -0.5, 0.9);
-    this.drawFish(g, this.fishX(), this.y, 1, rot, '#FF9A3D', '#FFB870', this.t * 14);
-    // the lamp, once you are deep enough to need it
+    drawFish(g, this.fishX(), this.y, 1, rot, skinOf(DATA.skin), this.t * 14);
     if (dark > 0.01) {
       g.save();
       g.translate(this.fishX(), this.y); g.rotate(rot);
       g.globalAlpha = dark;
-      g.strokeStyle = '#FF9A3D'; g.lineWidth = 2;
+      g.strokeStyle = skinOf(DATA.skin).body; g.lineWidth = 2;
       g.beginPath(); g.moveTo(4, -9); g.quadraticCurveTo(10, -24, 20, -18); g.stroke();
       g.shadowColor = '#FFF3A8'; g.shadowBlur = 16;
       g.fillStyle = '#FFF3A8';
@@ -1146,28 +1460,29 @@ class DeepFin {
     }
     g.globalAlpha = 1;
 
-    // zone banner
     if (this.banner) {
-      const b = this.banner, a = clamp(Math.min(b.t, 2.6 - b.t) * 3, 0, 1);
+      const b = this.banner, a = clamp(Math.min(b.t, 2.8 - b.t) * 3, 0, 1);
       g.save();
       g.globalAlpha = a;
       g.textAlign = 'center'; g.textBaseline = 'middle';
       g.font = '900 ' + Math.round(Math.min(30, W * 0.08)) + 'px ' + FONT;
       g.lineWidth = 6; g.strokeStyle = 'rgba(0,0,0,.55)';
       g.strokeText(b.name, W / 2, H * 0.18); g.fillStyle = '#FFFFFF'; g.fillText(b.name, W / 2, H * 0.18);
-      g.font = '800 ' + Math.round(Math.min(16, W * 0.045)) + 'px ' + FONT;
+      g.font = '800 ' + Math.round(Math.min(15, W * 0.042)) + 'px ' + FONT;
       g.lineWidth = 4;
       g.strokeText(b.sub, W / 2, H * 0.18 + 30); g.fillStyle = '#FFD23D'; g.fillText(b.sub, W / 2, H * 0.18 + 30);
       g.restore();
     }
-    // depth meter on the right edge
+    // depth meter with a tick for each zone
     if (this.S.state !== 'ready') {
-      const top = 14, bot = H - 40, x = W - 12;
+      const top = 14, bot = H - 40, x = W - 12, endAt = ZONES[3].at + 30;
       g.save();
       g.globalAlpha = 0.5;
       g.strokeStyle = '#F2EFFF'; g.lineWidth = 3; g.lineCap = 'round';
       g.beginPath(); g.moveTo(x, top); g.lineTo(x, bot); g.stroke();
-      const prog = clamp(this.gates / (ZONES[2].at + 12), 0, 1);
+      g.lineWidth = 2;
+      for (const Z of ZONES) { const yy = lerp(top, bot, Z.at / endAt); g.beginPath(); g.moveTo(x - 5, yy); g.lineTo(x + 5, yy); g.stroke(); }
+      const prog = clamp(this.gates / endAt, 0, 1);
       g.globalAlpha = 0.9; g.fillStyle = '#FFD23D';
       g.beginPath(); g.arc(x, lerp(top, bot, prog), 5, 0, TAU); g.fill();
       g.restore();
@@ -1177,10 +1492,7 @@ class DeepFin {
 
 /* ══ ads ═══════════════════════════════════════════════
    Every ad is optional and rewarded: the player chooses to watch one
-   (a second chance, or 3 fish to start with). Nothing interrupts play.
-
-   In a normal browser the ad is a 3-second fake so the flow can be tested.
-   Inside the Android app the AdMob plugin shows a real rewarded video.
+   (a second chance, +3 fish at the start, or double shells).
 
    BEFORE RELEASE: put your real AdMob rewarded unit ID below and set
    TESTING to false. Until then Google's TEST ads are shown. */
@@ -1264,8 +1576,16 @@ $('#btnSnd').addEventListener('click', e => {
 });
 $('#btnPause').addEventListener('click', e => {
   unfocus(e);
+  if (S.shopFrom !== null) return;
   if (S.state === 'playing') S.pause();
   else if (S.state === 'paused') { S.state = 'playing'; ovl.hidden = true; }
+});
+$('#btnShop').addEventListener('click', e => {
+  unfocus(e);
+  AU.ensure(); AU.play('ui');
+  if (S.shopFrom !== null) closeShop();
+  else if (S.state === 'playing') { S.pause(); openShop(); }
+  else openShop();
 });
 
 /* ══ boot ══════════════════════════════════════════════ */
@@ -1277,8 +1597,7 @@ S.syncBest();
 showReady();
 requestAnimationFrame(loop);
 
-// Test hook (used by the automated tests only).
-window.__DF = { S, DATA, ZONES };
+window.__DF = { S, DATA, ZONES, POWERS };
 
 })();
 </script>
