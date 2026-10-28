@@ -1,5 +1,13 @@
 [
   {
+    "id": "pawdefense",
+    "name": "Paw Defense",
+    "description": "Cats on cushions stop the bugs before they eat the veggies!",
+    "url": "games/pawdefense/index.html",
+    "category": "Arcade",
+    "addedAt": 1792120454602.748
+  },
+  {
     "id": "pixelgarden",
     "name": "Pixel Garden",
     "description": "Grow, harvest and cook through the seasons on a cozy pixel farm.",

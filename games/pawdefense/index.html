@@ -1,0 +1,3136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#5a3b2a">
+<title>Paw Defense</title>
+<!--
+════════════════════════════════════════════════════════════════════════
+  PAW DEFENSE — a pixel cat tower defense by MOS Arcade
+  Cats sit on cushions in the garden and stop the bugs
+  before they eat the veggie patch.
+
+  Want to tune the feel? Everything important is in CONFIG
+  (the first block inside the <script>).
+════════════════════════════════════════════════════════════════════════
+-->
+<style>
+/* =====================================================================
+   STYLES — chunky pixel look. Colors live in :root.
+   Each world changes the bar color (body[data-w]).
+===================================================================== */
+:root{
+  --ink:#2a1f33; --ink2:#6d5a73; --paper:#fff4dc; --paper2:#f2dcae; --card:#fffaf0;
+  --leaf:#5fb548; --leaf2:#3f8a32; --org:#ff8f3a; --org2:#c9581a; --pink:#ff7aa2; --pink2:#d24f7a;
+  --sky:#5ab3ea; --sky2:#2f7fbf; --gold:#ffd23f; --gold2:#d99a10; --bad:#e2484f; --bad2:#9e2a31; --purple:#8a63d2;
+  --bar:#6b4430; --bar2:#3f281c;
+  --font:"Trebuchet MS","Segoe UI",Verdana,system-ui,sans-serif;
+}
+body[data-w="1"]{--bar:#3c6188;--bar2:#243d58}
+body[data-w="2"]{--bar:#5e4570;--bar2:#3a2a47}
+body[data-w="3"]{--bar:#24365c;--bar2:#121c33}
+body.easy{--font:Verdana,"Segoe UI",Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.12em}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#241a2b;font-family:var(--font);color:var(--ink);font-size:15px;touch-action:manipulation}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+img.ico{width:18px;height:18px;image-rendering:pixelated;vertical-align:-3px;display:inline-block}
+img.pxi{image-rendering:pixelated}
+#app{position:fixed;inset:0;overflow:hidden}
+
+/* ---------- in-level layout ---------- */
+#game{position:absolute;inset:0;display:flex;flex-direction:column;background:#1d1424}
+.bar{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--bar);color:#fff;position:relative;z-index:4}
+#hud{padding-top:calc(6px + env(safe-area-inset-top));border-bottom:4px solid var(--bar2)}
+#bot{border-top:4px solid var(--bar2);padding-bottom:calc(8px + env(safe-area-inset-bottom));padding-top:8px;min-height:66px}
+.pill{background:var(--paper);color:var(--ink);font-weight:900;padding:4px 8px;display:flex;align-items:center;gap:5px;
+  border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);white-space:nowrap;font-size:15px;transition:transform .1s}
+.pill.grow{flex:1;justify-content:center;min-width:0;overflow:hidden}
+.pill.bump{transform:scale(1.18)}
+.pill.hurt{background:#ffb3b6}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:900;padding:10px 14px;background:var(--card);
+  border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink),inset -3px -3px 0 rgba(0,0,0,.12),inset 3px 3px 0 rgba(255,255,255,.55);
+  color:var(--ink);transition:transform .06s,box-shadow .06s;position:relative;line-height:1.15}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink),inset -3px -3px 0 rgba(0,0,0,.12),inset 3px 3px 0 rgba(255,255,255,.55)}
+.btn.org{background:var(--org);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.btn.green{background:var(--leaf);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.btn.sky{background:var(--sky);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.btn.gold{background:var(--gold)}
+.btn.pink{background:var(--pink);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.btn.bad{background:var(--bad);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.btn.dis{filter:grayscale(1);opacity:.5}
+.btn.wide{width:100%;margin-top:8px}
+.btn.small{padding:6px 9px;font-size:13px}
+.ib{width:42px;height:38px;padding:0;font-size:18px}
+#stage{flex:1;position:relative;overflow:hidden;background:#1d1424}
+#cv{position:absolute;left:0;top:0;touch-action:none}
+.pw{width:50px;height:48px;padding:0}
+.pw img{width:30px;height:30px;image-rendering:pixelated}
+.pw .n{position:absolute;right:-7px;top:-9px;background:var(--bad);color:#fff;border:2px solid var(--ink);font-size:12px;min-width:21px;padding:1px 3px;text-shadow:none}
+.pw.on{background:var(--gold);animation:wob .5s infinite alternate}
+@keyframes wob{to{transform:translateY(-3px)}}
+#bWave{flex:1;height:48px;font-size:16px;min-width:0}
+#bWave.pulse{animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.04)}}
+
+/* bottom sheets (build menu + cat panel) */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--paper);border-top:4px solid var(--ink);
+  padding:10px 10px calc(10px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .18s;z-index:8;max-height:64%;overflow:auto}
+.sheet.on{transform:none}
+.sheet h3{margin:0 0 8px;font-size:17px;display:flex;align-items:center;gap:8px}
+.sheet .x{margin-left:auto}
+.catgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.cb{display:flex;flex-direction:column;align-items:center;padding:4px 2px 3px;background:#fff;border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);font-weight:900;font-size:13px;gap:1px}
+.cb img{width:42px;height:46px;image-rendering:pixelated}
+.cb img.ico{width:16px;height:16px}
+.cb.sel{background:var(--gold)}
+.cb.poor{opacity:.5}
+.cb.lock{filter:grayscale(1);opacity:.3}
+.info{background:#fff;border:3px solid var(--ink);padding:8px;margin-top:8px;font-size:14px;line-height:1.45}
+.stats{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.st{background:var(--paper2);padding:2px 7px;font-weight:800;font-size:13px;border:2px solid var(--ink)}
+.row{display:flex;gap:8px;align-items:center}
+.row > .btn{flex:1}
+.lvpips{display:inline-flex;gap:3px;margin-left:4px}
+.lvpips i{width:10px;height:10px;border:2px solid var(--ink);background:#fff;display:inline-block}
+.lvpips i.on{background:var(--gold)}
+
+/* ---------- menu screens ---------- */
+.screen{position:absolute;inset:0;z-index:10;display:none;flex-direction:column;background:#2b4a2a}
+.screen.on{display:flex}
+.top{display:flex;align-items:center;gap:6px;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;background:var(--bar);border-bottom:4px solid var(--bar2);color:#fff}
+.top h2{margin:0;font-size:19px;flex:1;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.scroll{flex:1;overflow:auto;padding:12px 12px 18px;-webkit-overflow-scrolling:touch}
+.nav{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;padding:7px 7px calc(7px + env(safe-area-inset-bottom));background:var(--bar);border-top:4px solid var(--bar2)}
+.nav .btn{padding:6px 2px;flex-direction:column;gap:1px;font-size:11px}
+.nav .btn b{font-size:20px;line-height:1}
+.nav .btn.cur{background:var(--gold)}
+.nav .dot{position:absolute;top:-6px;right:-4px;width:14px;height:14px;background:var(--bad);border:2px solid var(--ink)}
+.card{background:var(--card);border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);padding:10px;margin-bottom:12px}
+.card h3{margin:0 0 6px;font-size:17px}
+.muted{color:var(--ink2);font-size:13px}
+.center{text-align:center}
+.tabs{display:flex;gap:5px;margin-bottom:10px}
+.tabs .btn{flex:1;padding:8px 2px;font-size:13px}
+.tabs .btn.cur{background:var(--gold)}
+
+/* world map */
+.worlds{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.worlds .btn{flex-direction:column;padding:6px 2px;font-size:11px;gap:2px}
+.worlds .btn b{font-size:22px}
+.worlds .btn.cur{background:var(--gold)}
+.wbanner{display:flex;align-items:center;gap:10px}
+.wbanner .big{font-size:20px;font-weight:900}
+.lvls{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 18px;padding:12px 6px 6px;position:relative}
+.node{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:24px;font-weight:900;padding:0;gap:2px}
+.node .stars{display:flex;gap:1px}
+.node .stars img{width:15px;height:15px;image-rendering:pixelated}
+.node.lock{background:#b8aab9;color:#6e5f71}
+.node.cur{background:var(--gold);animation:pulse 1.1s infinite}
+.node.boss{background:#ffb3b6}
+.node.boss.cur{background:var(--gold)}
+.node .bi{width:30px;height:30px;image-rendering:pixelated}
+.endless{width:100%;margin-top:14px;font-size:16px}
+
+/* skills */
+.sk{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:2px dashed var(--paper2)}
+.sk:last-child{border-bottom:0}
+.sk img.ci{width:36px;height:40px;image-rendering:pixelated}
+.sk .nm{flex:1;font-weight:900;font-size:14px;line-height:1.25}
+.sk .nm small{display:block;font-weight:700;color:var(--ink2);font-size:12px}
+.chips{display:flex;gap:4px}
+.chip{width:30px;height:30px;border:3px solid var(--ink);background:#fff;font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-direction:column;line-height:1}
+.chip.on{background:var(--leaf);color:#fff}
+.chip.next{background:var(--gold);box-shadow:0 3px 0 var(--ink)}
+.chip.no{opacity:.45}
+
+/* collection + album */
+.cgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cgrid .cb{font-size:11px;text-align:center;line-height:1.1;min-height:84px;justify-content:flex-start}
+.cgrid .cb.unk img{filter:brightness(0) opacity(.45)}
+.breeds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.breeds .cb{font-size:11px}
+
+/* goals */
+.ach{display:flex;gap:9px;align-items:center;padding:8px;background:#fff;border:3px solid var(--ink);margin-bottom:7px}
+.ach.done{background:#dff3d2}
+.ach .ai{font-size:24px;width:32px;text-align:center}
+.ach .at{flex:1;font-size:14px;font-weight:900;line-height:1.25}
+.ach .at small{display:block;font-weight:700;color:var(--ink2);font-size:12px}
+.prog{height:9px;border:2px solid var(--ink);background:#eee;margin-top:4px}
+.prog i{display:block;height:100%;background:var(--leaf)}
+.rw{font-weight:900;white-space:nowrap}
+
+/* title */
+#title{background:linear-gradient(#7cc6f0 0 52%,#5fb548 52%);align-items:center;justify-content:center;gap:12px;padding:20px}
+#title h1{margin:0;font-size:46px;color:#fff;text-align:center;line-height:.95;letter-spacing:2px;
+  text-shadow:3px 0 0 var(--ink),-3px 0 0 var(--ink),0 3px 0 var(--ink),0 -3px 0 var(--ink),3px 3px 0 var(--ink),-3px 3px 0 var(--ink),3px -3px 0 var(--ink),-3px -3px 0 var(--ink),0 8px 0 var(--ink)}
+#title h1 span{color:var(--gold)}
+#title .sub{color:#fff;font-weight:900;text-shadow:0 2px 0 var(--ink);font-size:16px}
+#title .btn.org{font-size:24px;padding:14px 46px}
+#tcv{width:260px;height:150px;image-rendering:pixelated}
+
+/* modal */
+.modal{position:absolute;inset:0;z-index:30;background:rgba(20,10,25,.62);display:none;align-items:center;justify-content:center;padding:16px}
+.modal.on{display:flex}
+.mbox{background:var(--paper);border:4px solid var(--ink);box-shadow:0 6px 0 var(--ink);max-width:370px;width:100%;max-height:90%;overflow:auto;padding:16px;text-align:center;animation:pop .25s}
+.mbox h2{margin:0 0 8px;font-size:23px}
+.mbox p{margin:6px 0;line-height:1.45}
+@keyframes pop{0%{transform:scale(.7)}70%{transform:scale(1.05)}100%{transform:scale(1)}}
+.bigstars{display:flex;justify-content:center;gap:8px;margin:8px 0}
+.bigstars img{width:54px;height:54px;image-rendering:pixelated;transform:scale(0);transition:transform .3s cubic-bezier(.3,1.8,.5,1)}
+.bigstars img.in{transform:scale(1)}
+.bigstars img.off{filter:grayscale(1) brightness(.6)}
+.reward{display:inline-flex;align-items:center;gap:6px;font-size:22px;font-weight:900;background:#fff;border:3px solid var(--ink);padding:4px 12px;margin:4px}
+.reward img{width:24px;height:24px;image-rendering:pixelated}
+.comic{width:100%;image-rendering:pixelated;border:4px solid var(--ink);background:#000;display:block}
+.cap{font-weight:900;font-size:17px;margin:10px 0;min-height:48px;line-height:1.4}
+.tog{display:flex;align-items:center;justify-content:space-between;padding:9px 4px;border-bottom:2px dashed var(--paper2);font-weight:800}
+.tog:last-of-type{border-bottom:0}
+.sw{width:56px;height:30px;border:3px solid var(--ink);background:#ccc;position:relative}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border:2px solid var(--ink);transition:left .12s}
+.sw.on{background:var(--leaf)}
+.sw.on::after{left:28px}
+.ad-count{font-size:54px;font-weight:900;margin:8px 0}
+
+#toast{position:absolute;left:50%;top:calc(64px + env(safe-area-inset-top));transform:translate(-50%,-16px);opacity:0;z-index:45;pointer-events:none;
+  background:var(--ink);color:#fff;font-weight:900;padding:8px 14px;border:3px solid #fff;transition:opacity .2s,transform .2s;max-width:88%;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#tip{position:absolute;left:10px;right:10px;z-index:25;display:none;background:#fff;border:4px solid var(--ink);box-shadow:0 5px 0 var(--ink);padding:10px 12px;font-weight:900;font-size:16px;line-height:1.4;align-items:center;gap:10px}
+#tip.on{display:flex;animation:pop .25s}
+#tip img{width:44px;height:48px;image-rendering:pixelated;flex:none}
+#tip .tt{flex:1}
+#pointer{position:absolute;z-index:26;pointer-events:none;display:none;font-size:40px;line-height:1;animation:point .7s infinite alternate;filter:drop-shadow(0 3px 0 #2a1f33)}
+@keyframes point{from{transform:translate(-50%,0)}to{transform:translate(-50%,-10px)}}
+#banner{position:absolute;left:0;right:0;top:38%;text-align:center;font-size:36px;font-weight:900;color:#fff;pointer-events:none;opacity:0;z-index:3;
+  text-shadow:3px 0 0 var(--ink),-3px 0 0 var(--ink),0 3px 0 var(--ink),0 -3px 0 var(--ink),0 6px 0 var(--ink)}
+#banner.show{animation:ban 1.6s forwards}
+@keyframes ban{0%{opacity:0;transform:scale(2)}15%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-20px)}}
+#combo{position:absolute;right:8px;top:8px;z-index:3;font-weight:900;color:#fff;font-size:20px;pointer-events:none;opacity:0;transition:opacity .15s;
+  text-shadow:2px 0 0 var(--ink),-2px 0 0 var(--ink),0 2px 0 var(--ink),0 -2px 0 var(--ink),0 4px 0 var(--ink)}
+#combo.on{opacity:1}
+#hint{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:3;background:var(--ink);color:#fff;font-weight:900;padding:6px 12px;border:3px solid #fff;display:none;white-space:nowrap}
+#hint.on{display:block}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="game">
+    <div id="hud" class="bar">
+      <button id="bPause" class="btn ib" aria-label="Pause" style="font-weight:900;letter-spacing:-2px">❚❚</button>
+      <div class="pill" id="hLives"></div>
+      <div class="pill" id="hCoins"></div>
+      <div class="pill grow" id="hWave"></div>
+      <button id="bSpeed" class="btn ib">1x</button>
+    </div>
+    <div id="stage">
+      <canvas id="cv"></canvas>
+      <div id="combo"></div>
+      <div id="banner"></div>
+      <div id="hint"></div>
+    </div>
+    <div id="bot" class="bar">
+      <button class="btn pw" data-pw="bomb"><img alt=""><span class="n">0</span></button>
+      <button class="btn pw" data-pw="laser"><img alt=""><span class="n">0</span></button>
+      <button class="btn pw" data-pw="nap"><img alt=""><span class="n">0</span></button>
+      <button id="bWave" class="btn org"></button>
+    </div>
+    <div id="sheet" class="sheet"></div>
+  </div>
+  <div id="title" class="screen"></div>
+  <div id="scr" class="screen"></div>
+  <div id="tip"></div>
+  <div id="pointer">👆</div>
+  <div id="modal" class="modal"><div class="mbox" id="mbox"></div></div>
+  <div id="toast"></div>
+</div>
+<script>
+(function(){
+'use strict';
+/* =====================================================================
+   1. CONFIG — all the tuning numbers. Change these to change the feel.
+===================================================================== */
+const CONFIG = {
+  TILE: 24, COLS: 15, ROWS: 24,   // map grid (24px tiles, portrait)
+  START_LIVES: 20,                // veggies in the patch
+  START_COINS: 150,               // fish at the start of level 1
+  START_COINS_PER_LEVEL: 22,       // + this much per level number
+  KILL_REWARD_GROWTH: 0.08,       // bug rewards grow 8% per level
+  HP_GROWTH_LEVEL: 0.085,         // bug health +8.5% per level
+  HP_GROWTH_WAVE: 0.03,           // bug health +3% per wave inside a level
+  WAVE_GAP: 12,                   // seconds between waves (call early to skip)
+  EARLY_BONUS_PER_SEC: 1.5,       // fish per second skipped when calling early
+  SELL_REFUND: 0.7,               // sell gives back 70% (100% before wave 1)
+  UPGRADE_COST: [0, 0.7, 1.0, 1.4, 2.0], // upgrade to lvl 2..5 = base cost x this
+  UPGRADE_DMG: 1.32,              // damage x1.32 per level
+  UPGRADE_RANGE: 0.07,            // +7% range per level
+  UPGRADE_RATE: 0.08,             // +8% attack speed per level
+  ARMOR_MIN: 0.35,                // armor can never block more than 65% of a hit
+  COMBO_WINDOW: 1.3,              // seconds between squishes to keep a combo
+  COMBO_MIN: 5,                   // combo pays out from this many squishes
+  COMBO_FISH: 1,                  // fish per squish in a paid combo
+  MAX_SPOTS: 16,                  // cushions per map
+  BOMB_DMG: 80, BOMB_DMG_PER_LEVEL: 25, BOMB_RADIUS: 2.3, // catnip bomb
+  LASER_TIME: 4,                  // laser pointer: bugs walk back for 4s
+  NAP_TIME: 3.2,                  // nap time: every bug sleeps 3.2s
+  REVIVE_LIVES: 0.5,              // revive gives back half the veggies
+  ENDLESS_HP_GROWTH: 1.06,        // endless: bugs x1.06 health each wave
+  FREE_AD_COOLDOWN: 120,          // seconds between free power-up ads
+  STAR3: 0.9, STAR2: 0.5,         // lives kept for 3 stars / 2 stars
+};
+
+const T = CONFIG.TILE, COLS = CONFIG.COLS, ROWS = CONFIG.ROWS, W = COLS * T, H = ROWS * T;
+
+/* =====================================================================
+   2. SMALL HELPERS
+===================================================================== */
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const now = () => Date.now();
+function RNG(seed) { let s = seed >>> 0; return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+function fmt(n) { n = Math.floor(n); return n >= 10000 ? (n / 1000).toFixed(n >= 100000 ? 0 : 1) + 'k' : String(n); }
+function dayKey(d) { d = d || new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* =====================================================================
+   3. SAVE — everything the player keeps, in localStorage
+===================================================================== */
+const SAVE_KEY = 'pawDefense.v1';
+function defaults() {
+  return {
+    lang: (navigator.language || 'en').slice(0, 2) === 'fr' ? 'fr' : 'en',
+    sfx: true, mus: true, easy: false,
+    stars: 0,            // stars in the wallet (to spend)
+    earned: 0,           // every star ever earned
+    best: {},            // level number -> best stars (1..3)
+    unlocked: 1,         // highest level you can play
+    skills: {},          // cat id -> rank 0..4
+    garden: {lives: 0, coins: 0, refund: 0, bargain: 0, power: 0},
+    skillSpent: 0,
+    pw: {bomb: 1, laser: 1, nap: 1},
+    breedOwn: {tabby: 1, grey: 1},
+    breedPick: {},       // cat id -> breed id
+    seen: {},            // bug id -> 1 (album)
+    ach: {},             // achievement id -> 1
+    stats: {kills: 0, maxCombo: 0, early: 0, spent: 0, pwUsed: 0, boss: {}, noLossBoss: 0, max5: 0, full: 0},
+    endless: {},         // world -> best wave
+    endlessPaid: {},     // world -> milestone already paid
+    comics: {},          // world -> seen
+    tut: {},
+    daily: {last: '', streak: 0},
+    freeAdAt: 0,
+    pack: false, noAds: false, iapDone: {},
+    speed: 1,
+  };
+}
+let S = load();
+function load() {
+  const d = defaults();
+  try {
+    const raw = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+    if (raw && typeof raw === 'object') {
+      for (const k in raw) {
+        if (d[k] && typeof d[k] === 'object' && !Array.isArray(d[k]) && raw[k] && typeof raw[k] === 'object') d[k] = Object.assign(d[k], raw[k]);
+        else d[k] = raw[k];
+      }
+    }
+  } catch (e) {}
+  return d;
+}
+function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) {} }
+
+/* =====================================================================
+   4. LANGUAGE — tr('English text') gives French when S.lang is 'fr'.
+   The French words are in FR (next block).
+===================================================================== */
+function tr(s, o) {
+  let r = (S.lang === 'fr' && FR[s]) || s;
+  if (o) for (const k in o) r = r.split('{' + k + '}').join(o[k]);
+  return r;
+}
+/* French words. Left = English in the code, right = French. */
+const FR = {
+  '+1 star': '+1 étoile', '+2 jumps': '+2 sauts', '+2 veggies per step': '+2 légumes par niveau', '+25 start fish per step': '+25 poissons au départ par niveau',
+  '+5% back when selling': '+5 % remboursé à la vente', '+50% fish': '+50 % de poissons',
+  '3 stars on every World 1 level': '3 étoiles à chaque niveau du Monde 1', '3 stars on every World 2 level': '3 étoiles à chaque niveau du Monde 2',
+  '3 stars on every World 3 level': '3 étoiles à chaque niveau du Monde 3', '3 stars on every World 4 level': '3 étoiles à chaque niveau du Monde 4',
+  'A bit tougher than an ant.': 'Un peu plus solide qu\'une fourmi.', 'A giant spider is calling all the bugs!': 'Une araignée géante appelle tous les insectes!',
+  'A real video ad plays here in the app.': 'Une vraie pub vidéo joue ici dans l\'appli.', 'A shield bubble soaks up damage first.': 'Une bulle bouclier absorbe les dégâts d\'abord.',
+  'A very fast flyer.': 'Vole très vite.', 'Ad preview': 'Aperçu de pub', 'Ad rewards without ads': 'Récompenses sans pubs', 'Album': 'Album',
+  'All bugs chase the red dot backwards.': 'Tous les insectes reculent pour suivre le point rouge.', 'All done!': 'Tout est fait!',
+  'All levels, stars and cats will be lost. Purchases stay.': 'Niveaux, étoiles et chats seront perdus. Les achats restent.',
+  'Ant': 'Fourmi', 'Armor': 'Armure', 'Armored shell: weak hits do less.': 'Carapace : les petits coups font moins mal.', 'Attic': 'Grenier',
+  'Attic Avenger': 'Vengeur du grenier', 'Attic Spider': 'Araignée du grenier',
+  'BOSS CAT. Belly slam hits every ground bug around and stuns them.': 'CHAT BOSS. Son coup de bedaine frappe tous les insectes au sol autour et les étourdit.',
+  'BOSS CAT. Laser eyes get stronger the longer they hit.': 'CHAT BOSS. Ses yeux laser deviennent plus forts plus ils frappent longtemps.',
+  'BOSS DOWN!': 'BOSS VAINCU!', 'BOSS LEVEL': 'NIVEAU BOSS', 'BOSS!': 'BOSS!', 'BOSS. Dashes forward super fast.': 'BOSS. Fonce en avant super vite.',
+  'BOSS. Flies, has a shield and calls wasps.': 'BOSS. Vole, a un bouclier et appelle des guêpes.', 'BOSS. Lays new ants as she walks.': 'BOSS. Pond des fourmis en marchant.',
+  'BOSS. Shoots webs that stop your cats.': 'BOSS. Lance des toiles qui bloquent tes chats.', 'BOSS: {b}!': 'BOSS : {b}!', 'Bargain': 'Aubaine',
+  'Beat the Attic Spider': 'Battre l\'araignée du grenier', 'Beat the Hornet Queen': 'Battre la reine frelon', 'Beat the Mantis': 'Battre la mante',
+  'Beat the Queen Ant': 'Battre la reine fourmi', 'Beetle': 'Scarabée', 'Best: wave {n}': 'Record : vague {n}', 'Big Chonk': 'Gros Matou',
+  'Big Spender': 'Grand dépensier', 'Bigger Patch': 'Plus gros potager', 'Bigger boost (+10%)': 'Plus gros boost (+10 %)', 'Bigger splash + sticky goo': 'Plus grosse éclaboussure + gluant',
+  'Black Cat': 'Chat noir', 'Boom! Big damage where you tap.': 'Boum! Gros dégâts où tu touches.', 'Breeds': 'Races', 'Bug Apocalypse': 'Apocalypse d\'insectes',
+  'Bug Expert': 'Expert en insectes', 'Bugs': 'Insectes', 'Bugs coming...': 'Insectes en route...', 'Bugs in this level': 'Insectes dans ce niveau',
+  'Bugs want your veggies!': 'Les insectes veulent tes légumes!', 'But the bugs smelled the carrots...': 'Mais les insectes ont senti les carottes...',
+  'Buy': 'Acheter', 'Calico': 'Calico', 'Call 50 waves early': 'Lancer 50 vagues en avance', 'Came out of a pillbug!': 'Sorti d\'un cloporte!',
+  'Cat Collection': 'Collection de chats', 'Cat Collector': 'Collectionneur de chats', 'Catches fish: extra coins every wave.': 'Pêche des poissons : plus de sous à chaque vague.',
+  'Caterpillar': 'Chenille', 'Catnip Bomb': 'Bombe d\'herbe à chat', 'Catnip Chaos': 'Chaos d\'herbe à chat', 'Cats': 'Chats',
+  'Cats cost 4% less per step': 'Chats 4 % moins chers par niveau', 'Cats vs bugs in the garden!': 'Chats contre insectes dans le jardin!',
+  'Chase the dot!': 'Suivez le point!', 'Checking your purchases...': 'Vérification de tes achats...', 'Cheer Cat': 'Chat Meneur',
+  'Cheers up cats nearby: more damage and speed. Level 3+: they see invisible bugs.': 'Encourage les chats proches : plus de dégâts et de vitesse. Niveau 3+ : ils voient les insectes invisibles.',
+  'Claim': 'Prendre', 'Claw Cat': 'Chat Griffu', 'Close': 'Fermer', 'Close (no reward)': 'Fermer (sans récompense)', 'Combo': 'Combo', 'Combo Cat': 'Chat combo',
+  'Combo Master': 'Maître du combo', 'Complete 12 goals': 'Réussir 12 objectifs', 'Critical hits (25%: x2.5)': 'Coups critiques (25 % : x2,5)',
+  'Daily gift': 'Cadeau du jour', 'Damage': 'Dégâts', 'Day {n}': 'Jour {n}', 'Day {n} in a row!': 'Jour {n} de suite!',
+  'Demo mode: real payments work in the Android app through Google Play.': 'Mode démo : les vrais paiements marchent dans l\'appli Android avec Google Play.',
+  'Demo: get it free': 'Démo : gratuit', 'Early Bird': 'Lève-tôt', 'Earn 60 stars': 'Gagner 60 étoiles', 'Easy-read font': 'Police facile à lire',
+  'Endless': 'Sans fin', 'Endless 10': 'Sans fin 10', 'Endless 25': 'Sans fin 25', 'Endless 50': 'Sans fin 50', 'Erase everything?': 'Tout effacer?',
+  'Erase my progress': 'Effacer ma progression', 'Every 10 waves: +2 stars (first time).': 'Toutes les 10 vagues : +2 étoiles (la 1re fois).',
+  'Every bug falls asleep for a moment.': 'Tous les insectes s\'endorment un moment.', 'Exterminator': 'Exterminateur',
+  'Finish World 1': 'Finir le Monde 1', 'Finish World 2': 'Finir le Monde 2', 'Finish World 3': 'Finir le Monde 3', 'Finish World 4': 'Finir le Monde 4',
+  'Finish the world before to unlock it': 'Finis le monde d\'avant pour le débloquer', 'Finish this world to unlock': 'Finis ce monde pour débloquer',
+  'Firefly': 'Luciole', 'First': 'Premier', 'First Paw': 'Première patte', 'Fish Savings': 'Économies de poissons', 'Fisher Cat': 'Chat Pêcheur',
+  'Flies': 'Vole', 'Flies! Claw, Hairball and Chonk cats can\'t reach it.': 'Elle vole! Les chats Griffu, Boule de poils et Gros Matou ne l\'atteignent pas.',
+  'Fly': 'Mouche', 'Free': 'Gratuit', 'Freeze chance x2': 'Chance de geler x2', 'Frost Cat': 'Chat Givré', 'Full House': 'Maison pleine', 'Galaxy': 'Galaxie',
+  'Garden': 'Jardin', 'Garden Guardian': 'Gardien du jardin', 'Get every ad reward without watching ads': 'Toutes les récompenses sans regarder de pubs',
+  'Get stars by winning levels, goals and gifts.': 'Gagne des étoiles avec les niveaux, objectifs et cadeaux.', 'Gets faster when it gets hurt.': 'Va plus vite quand elle est blessée.',
+  'Goals': 'Objectifs', 'Golden': 'Doré', 'Golden Paw Pack': 'Pack Patte Dorée', 'Golden Paw Pack: reward given!': 'Pack Patte Dorée : récompense donnée!',
+  'Golden cat breed': 'Race de chat dorée', 'Grandma\'s veggie patch is ready for summer!': 'Le potager de grand-maman est prêt pour l\'été!',
+  'Great! Now start the first wave.': 'Super! Lance maintenant la première vague.', 'Grey Tabby': 'Tigré gris', 'Ground only': 'Au sol seulement',
+  'Hairball Cat': 'Chat Boule de poils', 'Have 12 cats on one map': 'Avoir 12 chats sur une carte', 'Heals bugs around it. Squish it first!': 'Soigne les insectes autour. Écrase-la en premier!',
+  'Hits flyers': 'Touche les volants', 'Hornet Hero': 'Héros des frelons', 'Hornet Queen': 'Reine frelon', 'Icy magic slows bugs and can freeze them.': 'Sa magie glacée ralentit et peut geler les insectes.',
+  'Invisible': 'Invisible', 'Invisible! Wizard, Ninja and Laser cats can see it.': 'Invisible! Les chats Sorcier, Ninja et Laser peuvent la voir.',
+  'It eats {n} veggies if it gets through!': 'Il mange {n} légumes s\'il passe!', 'Joins at level {n}': 'Arrive au niveau {n}',
+  'Keep them away from the veggie basket!': 'Garde-les loin du panier de légumes!', 'Kitchen': 'Cuisine', 'Kitchen Keeper': 'Gardien de la cuisine',
+  'Ladybug': 'Coccinelle', 'Language': 'Langue', 'Laser Cat': 'Chat Laser', 'Laser Pointer': 'Pointeur laser', 'Laser melts armor': 'Le laser fait fondre l\'armure',
+  'Last': 'Dernier', 'Last wave!': 'Dernière vague!', 'Let\'s go!': 'Allons-y!', 'Level {n}': 'Niveau {n}', 'Lightning jumps from bug to bug.': 'L\'éclair saute d\'insecte en insecte.',
+  'Lobs gooey hairballs that splash a group. Ground only.': 'Lance des boules de poils gluantes qui éclaboussent un groupe. Au sol seulement.',
+  'Longer stun': 'Étourdit plus longtemps', 'Magic cats came to help.': 'Des chats magiques viennent aider.', 'Magic ignores armor. Reveals invisible bugs.': 'La magie ignore l\'armure. Révèle les insectes invisibles.',
+  'Make a x15 combo': 'Faire un combo x15', 'Make a x40 combo': 'Faire un combo x40', 'Mantis': 'Mante', 'Mantis Mangler': 'Chasseur de mante', 'Map': 'Carte',
+  'Max Power': 'Puissance max', 'Mini Pillbug': 'Mini cloporte', 'Moth': 'Papillon de nuit', 'Music': 'Musique', 'Nap Time': 'Sieste', 'Nap time!': 'C\'est la sieste!',
+  'New breed: {b}!': 'Nouvelle race : {b}!', 'New bug: {b}!': 'Nouvel insecte : {b}!', 'New cat: {c}!': 'Nouveau chat : {c}!', 'Next': 'Suivant',
+  'Next free ad in {s}s': 'Prochaine pub gratuite dans {s} s', 'Next level': 'Niveau suivant', 'Next level: new cat!': 'Prochain niveau : nouveau chat!',
+  'Next wave': 'Vague suivante', 'Night Watch': 'Veille de nuit', 'Night Yard': 'Cour de nuit', 'Night falls on the yard.': 'La nuit tombe sur la cour.',
+  'Ninja Cat': 'Chat Ninja', 'No': 'Non', 'No reward this time': 'Pas de récompense cette fois', 'Not One Veggie': 'Pas un seul légume',
+  'Not enough fish': 'Pas assez de poissons', 'Not enough stars': 'Pas assez d\'étoiles', 'Not seen yet': 'Pas encore vu', 'Now tap Place!': 'Touche Placer!',
+  'Oh no!': 'Oh non!', 'Oh no! The bugs got into the kitchen!': 'Oh non! Les insectes sont entrés dans la cuisine!', 'One last stand, cats. Save the patch!': 'Un dernier combat, les chats. Sauvez le potager!',
+  'Optional: watch a short ad to keep playing': 'Optionnel : regarde une courte pub pour continuer', 'Orange Tabby': 'Tigré roux', 'Owned': 'Acheté', 'Paused': 'Pause',
+  'Payments are handled securely by Google Play.': 'Les paiements sont gérés en sécurité par Google Play.', 'Perfect Attic': 'Grenier parfait', 'Perfect Garden': 'Jardin parfait',
+  'Perfect Kitchen': 'Cuisine parfaite', 'Perfect Night': 'Nuit parfaite', 'Pick a cat': 'Choisis un chat', 'Pick the Yarn Cat.': 'Choisis le Chat Pelote.',
+  'Pillbug': 'Cloporte', 'Place': 'Placer', 'Play': 'Jouer', 'Power Paws': 'Pattes puissantes', 'Power-ups': 'Bonus', 'Power-ups +15% stronger': 'Bonus 15 % plus forts',
+  'Power-ups help when it gets hard. Tap one to use it!': 'Les bonus aident quand c\'est difficile. Touche-en un pour l\'utiliser!', 'Privacy': 'Confidentialité',
+  'Queen Ant': 'Reine fourmi', 'Queen Toppler': 'Tombeur de reine', 'Quit to map': 'Retour à la carte', 'Range': 'Portée', 'Reach wave 10 in Endless': 'Atteindre la vague 10 en Sans fin',
+  'Reach wave 25 in Endless': 'Atteindre la vague 25 en Sans fin', 'Reach wave 50 in Endless': 'Atteindre la vague 50 en Sans fin', 'Recycle': 'Recyclage', 'Replay': 'Rejouer',
+  'Reset skills (free, get all stars back)': 'Réinitialiser (gratuit, toutes les étoiles reviennent)', 'Restart': 'Recommencer', 'Restore purchases': 'Restaurer les achats',
+  'Restore works in the Android app.': 'La restauration marche dans l\'appli Android.', 'Resume': 'Continuer', 'Revive': 'Revivre', 'Revived!': 'De retour!',
+  'Scratches make bugs bleed': 'Les griffures font saigner', 'See every bug in the album': 'Voir tous les insectes dans l\'album', 'Sees invisible': 'Voit l\'invisible',
+  'Sell': 'Vendre', 'Settings': 'Réglages', 'Shield': 'Bouclier', 'Shop': 'Boutique', 'Siamese': 'Siamois', 'Skill': 'Talent', 'Skill Scholar': 'Savant des talents',
+  'Skill Tree': 'Arbre de talents', 'Skills': 'Talents', 'Sleepy Cat': 'Chat Dodo', 'Slow but very armored. Magic ignores armor.': 'Lent mais très blindé. La magie ignore l\'armure.',
+  'Small and fast.': 'Petite et rapide.', 'Snail': 'Escargot', 'Snores slow down every bug around it.': 'Ses ronflements ralentissent tous les insectes autour.',
+  'Snow White': 'Blanc neige', 'Sound': 'Sons', 'Speed': 'Vitesse', 'Spend 10,000 fish on cats': 'Dépenser 10 000 poissons en chats', 'Spend 50 stars on skills': 'Dépenser 50 étoiles en talents',
+  'Spider Squasher': 'Écrase-araignée', 'Splits into 2 mini pillbugs.': 'Se sépare en 2 mini cloportes.', 'Squish 20,000 bugs': 'Écraser 20 000 insectes',
+  'Squish 5,000 bugs': 'Écraser 5 000 insectes', 'Squish 500 bugs': 'Écraser 500 insectes', 'Squish bugs to get fish. Use fish to add more cats!': 'Écrase des insectes pour gagner des poissons. Utilise-les pour ajouter des chats!',
+  'Squisher': 'Écraseur', 'Start!': 'Go!', 'Starter breed': 'Race de départ', 'Stink Bug': 'Punaise', 'Store error. Please try again.': 'Erreur de boutique. Réessaie.',
+  'Store is still loading. Try again in a moment.': 'La boutique charge encore. Réessaie dans un moment.', 'Strange webs in the attic...': 'D\'étranges toiles dans le grenier...',
+  'Strong': 'Fort', 'Stronger cat!': 'Chat plus fort!', 'Stronger slow (+15%)': 'Ralentit plus (+15 %)', 'Super fast scratches up close. Ground bugs only.': 'Griffures super rapides de proche. Au sol seulement.',
+  'Tap 1x to go faster.': 'Touche 1x pour aller plus vite.', 'Tap a cat to change its fur. Just for looks!': 'Touche un chat pour changer son pelage. Juste pour le look!',
+  'Tap a cat to see it, then place it.': 'Touche un chat pour le voir, puis place-le.', 'Tap a pink cushion to place a cat.': 'Touche un coussin rose pour placer un chat.',
+  'Tap the map to drop the bomb': 'Touche la carte pour lancer la bombe', 'Thank you!': 'Merci!', 'The Hornet Queen wakes up!': 'La reine frelon se réveille!',
+  'The bugs ate the veggies!': 'Les insectes ont mangé les légumes!', 'The cats sit on their cushions. Defend the garden!': 'Les chats s\'assoient sur leurs coussins. Défendez le jardin!',
+  'Throws 3 stars at once. Sees invisible bugs.': 'Lance 3 étoiles à la fois. Voit les insectes invisibles.', 'Throws yarn balls. Hits flying bugs too.': 'Lance des pelotes de laine. Touche aussi les insectes volants.',
+  'Thunder Cat': 'Chat Tonnerre', 'Time for the BIG cats!': 'C\'est l\'heure des GROS chats!', 'Tip: upgrade cats and use power-ups. Skills make cats stronger!': 'Astuce : améliore tes chats et utilise les bonus. Les talents rendent les chats plus forts!',
+  'Totally optional! Everything else can be earned by playing.': 'Totalement optionnel! Tout le reste se gagne en jouant.', 'Try again': 'Réessayer', 'Tuxedo': 'Smoking',
+  'Unlock every breed': 'Débloquer toutes les races', 'Unlocks at level {n}': 'Débloqué au niveau {n}', 'Upgrade': 'Améliorer', 'Upgrade a cat to level 5': 'Améliorer un chat au niveau 5',
+  'Use 10 power-ups': 'Utiliser 10 bonus', 'Use this fur on all cats': 'Mettre ce pelage à tous les chats', 'Veggies saved!': 'Légumes sauvés!', 'Wasp': 'Guêpe',
+  'Watch a short ad for a free power-up. Always your choice!': 'Regarde une courte pub pour un bonus gratuit. Toujours ton choix!', 'Watch an ad: get 1 free': 'Regarde une pub : 1 gratuit',
+  'Wave {a}/{b}': 'Vague {a}/{b}', 'Wave {n}': 'Vague {n}', 'Waves never stop. How far can you go?': 'Les vagues n\'arrêtent jamais. Jusqu\'où iras-tu?',
+  'Win a boss level without losing a veggie': 'Gagner un niveau boss sans perdre un légume', 'Win level 1': 'Gagner le niveau 1', 'Wizard Cat': 'Chat Sorcier', 'World {n}': 'Monde {n}',
+  'Yarn Cat': 'Chat Pelote', 'Yarn bounces to a 2nd bug': 'La pelote rebondit sur un 2e insecte', 'Yes, erase': 'Oui, effacer', 'You have enough fish! Tap a cat to upgrade it.': 'Tu as assez de poissons! Touche un chat pour l\'améliorer.',
+  'You have none left.': 'Tu n\'en as plus.', 'You saved the whole garden! Try Endless mode!': 'Tu as sauvé tout le jardin! Essaie le mode Sans fin!', 'goals done': 'objectifs réussis',
+  'jumps': 'sauts', 'lose 2 veggies or less': 'perdre 2 légumes ou moins', 'of each power-up': 'de chaque bonus', 'one time': 'une fois', 'per wave': 'par vague', 'speed': 'vitesse',
+  'stars': 'étoiles', 'you have {n}': 'tu en as {n}', '{n} waves': '{n} vagues',
+  '{n} goals done!': '{n} objectifs réussis!', 'Sharp Claws: +15% damage': 'Griffes aiguisées : +15 % dégâts', 'Keen Eyes: +10% range': 'Yeux perçants : +10 % portée', 'Quick Paws: +12% speed': 'Pattes rapides : +12 % vitesse',
+};
+/* =====================================================================
+   5. PIXEL ART — every picture is a tiny text grid.
+   Each letter is a color from a palette. '.' is see-through.
+===================================================================== */
+const PX = 2; // one art pixel = 2 game pixels
+
+const SPR = {
+  cat: [
+    ".o........o.",
+    ".oo......oo.",
+    ".opoooooopo.",
+    "offfsffsfffo",
+    "offffffffffo",
+    "ofekffffekfo",
+    "ofeeffffeefo",
+    "ofwwwppwwwfo",
+    ".offwwwwffo.",
+    "..oooooooo..",
+    ".offwwwwffo.",
+    ".ofswwwwsfo.",
+    ".oowoooowoo.",
+  ],
+  catBlink: [
+    ".o........o.",
+    ".oo......oo.",
+    ".opoooooopo.",
+    "offfsffsfffo",
+    "offffffffffo",
+    "offffffffffo",
+    "ofooffffoofo",
+    "ofwwwppwwwfo",
+    ".offwwwwffo.",
+    "..oooooooo..",
+    ".offwwwwffo.",
+    ".ofswwwwsfo.",
+    ".oowoooowoo.",
+  ],
+  hatPoint: [
+    ".....oo...",
+    "....oHHo..",
+    "....oHHo..",
+    "...oHYHHo.",
+    "...oHHHHo.",
+    "..oHHHHHHo",
+    "oBBBBBBBBo",
+  ],
+  nightcap: [
+    "........ww",
+    ".....oooww",
+    "...ooHHHo.",
+    "..oHHHHHo.",
+    ".oHHHHHHHo",
+    "oBBBBBBBBo",
+  ],
+  straw: [
+    "...oooooo...",
+    "..oHHHHHHo..",
+    "..oBBBBBBo..",
+    "oHHHHHHHHHHo",
+    ".oooooooooo.",
+  ],
+  goggles: [
+    ".oooo..oooo.",
+    "oGGWGooGGWGo",
+    "oGGGGooGGGGo",
+    ".oooooooooo.",
+  ],
+  mask: [
+    "oMMMMMMMMMMoR.",
+    "oMekMMMMekMoRR",
+    "oMMMMMMMMMMo.R",
+  ],
+  visor: [
+    "oRRRRRRRRRRo",
+    "oRLLRRRRLLRo",
+  ],
+  bandana: [
+    ".oRRRRRRRRo.",
+    "..oRRRRRRo..",
+    "....oRRo....",
+  ],
+  bell: [
+    "oRRRRRRRRRRo",
+    "....oYYo....",
+    "....oYYo....",
+    ".....oo.....",
+  ],
+  yarnball: [
+    ".ooo.",
+    "oPpPo",
+    "oPPpo",
+    "opPPo",
+    ".ooo.",
+  ],
+  hairball: [
+    ".ooo.",
+    "oGgGo",
+    "oggGo",
+    ".ooo.",
+  ],
+  fishy: [
+    "..oooo.oo",
+    ".oaaaaoao",
+    "okaaaaaao",
+    ".oaaaaoao",
+    "..oooo.oo",
+  ],
+  pompom: [
+    ".o.o.",
+    "oPoPo",
+    ".PPP.",
+    "oPoPo",
+    ".o.o.",
+  ],
+  crown: [
+    "o..o..o",
+    "oyoyoyo",
+    "oyyyyyo",
+    "oyryyro",
+    "ooooooo",
+  ],
+  // ---- bugs ----
+  ant: [
+    ".o......o.",
+    "..o....o..",
+    "..oooooo..",
+    ".oaaaaaao.",
+    ".oekaaeko.",
+    ".oaaaaaao.",
+    "l.oaaaao.l",
+    ".loaaaaol.",
+    "l.oaaaao.l",
+    "...oooo...",
+  ],
+  ant2: [
+    ".o......o.",
+    "..o....o..",
+    "..oooooo..",
+    ".oaaaaaao.",
+    ".oekaaeko.",
+    ".oaaaaaao.",
+    ".loaaaaol.",
+    "l.oaaaao.l",
+    ".loaaaaol.",
+    "...oooo...",
+  ],
+  lady: [
+    "...oooo...",
+    "..obbbbo..",
+    ".obekbeko.",
+    ".oooooooo.",
+    "oaabaoaaao",
+    "oaaaaoabao",
+    "oabaaoaaao",
+    ".oaaaoaao.",
+    "l.oooooo.l",
+  ],
+  lady2: [
+    "...oooo...",
+    "..obbbbo..",
+    ".obekbeko.",
+    ".oooooooo.",
+    "oaabaoaaao",
+    "oaaaaoabao",
+    "oabaaoaaao",
+    ".oaaaoaao.",
+    ".loooooolo",
+  ],
+  beetle: [
+    "..o......o..",
+    "...oooooo...",
+    "..obekbekbo.",
+    "..oooooooo..",
+    ".oawaaaaaao.",
+    "loawaaaaaaol",
+    ".oaaaaaaaao.",
+    "loaaaaaaaaol",
+    ".oaaaaaaaao.",
+    "l.oaaaaaao.l",
+    "...oooooo...",
+  ],
+  beetle2: [
+    "..o......o..",
+    "...oooooo...",
+    "..obekbekbo.",
+    "..oooooooo..",
+    "loawaaaaaaol",
+    ".oawaaaaaao.",
+    "loaaaaaaaaol",
+    ".oaaaaaaaao.",
+    "loaaaaaaaaol",
+    "..oaaaaaao..",
+    "...oooooo...",
+  ],
+  fly: [
+    "www......www",
+    "wwwwoooowwww",
+    ".wwoekekoww.",
+    "...oaaaao...",
+    "..oabababo..",
+    "..oaaaaaao..",
+    "...oababo...",
+    "..l.oooo.l..",
+  ],
+  fly2: [
+    "............",
+    "....oooo....",
+    "wwwoekekowww",
+    "ww.oaaaao.ww",
+    "..oabababo..",
+    "..oaaaaaao..",
+    "...oababo...",
+    "..l.oooo.l..",
+  ],
+  snail: [
+    ".........k.k",
+    ".........o.o",
+    "..oooo...o.o",
+    ".oaaaao..oso",
+    "oabbbaao.oso",
+    "oaboabao.oso",
+    "oabbbaaoooso",
+    ".oaaaaosssso",
+    "oosssssssso.",
+    ".oooooooooo.",
+  ],
+  pill: [
+    "..oooooo..",
+    ".oaaaaaao.",
+    "obbbbbbbbo",
+    "oaaaaaaaao",
+    "obbbbbbbbo",
+    "oekaaaaeko",
+    ".oaaaaaao.",
+    "l.oooooo.l",
+  ],
+  pill2: [
+    "..oooooo..",
+    ".oaaaaaao.",
+    "obbbbbbbbo",
+    "oaaaaaaaao",
+    "obbbbbbbbo",
+    "oekaaaaeko",
+    ".oaaaaaao.",
+    ".looooool.",
+  ],
+  firefly: [
+    "w.o....o.w",
+    "ww.oooo.ww",
+    "wwoekekoww",
+    ".oaaaaaao.",
+    ".obbbbbbo.",
+    ".oggggggo.",
+    "..oggggo..",
+    "...oooo...",
+  ],
+  firefly2: [
+    "..o....o..",
+    "...oooo...",
+    "wwoekekoww",
+    "wwaaaaaaww",
+    ".obbbbbbo.",
+    ".oggggggo.",
+    "..oggggo..",
+    "...oooo...",
+  ],
+  moth: [
+    "ww..o..o..ww",
+    "wbw.oooo.wbw",
+    "wwwoekekowww",
+    "wbwoaaaaowbw",
+    "wwwoaaaaowww",
+    ".ww.oaao.ww.",
+    "....oaao....",
+    ".....oo.....",
+  ],
+  moth2: [
+    "....o..o....",
+    ".....oo.....",
+    "wwwoekekowww",
+    "wbwoaaaaowbw",
+    "wwwoaaaaowww",
+    "wbw.oaao.wbw",
+    "ww..oaao..ww",
+    ".....oo.....",
+  ],
+  stink: [
+    ".o......o.",
+    "..oooooo..",
+    ".oekaaeko.",
+    "oaaaaaaaao",
+    "oabaaaabao",
+    ".oaaaaaao.",
+    "..oabbao..",
+    "l..oaao..l",
+    "....oo....",
+  ],
+  wasp: [
+    "ww.o..o.ww",
+    "wwwoooowww",
+    ".woekekow.",
+    "..oaaaao..",
+    "..obbbbo..",
+    "..oaaaao..",
+    "..obbbbo..",
+    "...oaao...",
+    "....oo....",
+  ],
+  wasp2: [
+    "...o..o...",
+    "....oo....",
+    "wwoekekoww",
+    "wwoaaaaoww",
+    "..obbbbo..",
+    "..oaaaao..",
+    "..obbbbo..",
+    "...oaao...",
+    "....oo....",
+  ],
+  cater: [
+    "...........o..",
+    ".ooo.ooo.oooo.",
+    "oaaaoaaaoaaaao",
+    "oabaoabaoaaeko",
+    "oaaaoaaaoaaaao",
+    ".ooo.ooo.oooo.",
+    ".l.l..l.l..l..",
+  ],
+  cater2: [
+    "...........o..",
+    "..ooo.ooo.ooo.",
+    ".oaaaoaaaoaaao",
+    ".oabaoabaoaeko",
+    ".oaaaoaaaoaaao",
+    "..ooo.ooo.ooo.",
+    "..l.l..l.l..l.",
+  ],
+  mantis: [
+    "o..........o",
+    ".o........o.",
+    "..oooooooo..",
+    ".oekaaaaeko.",
+    "..oaaaaaao..",
+    "...oaaaao...",
+    "oo..oaao..oo",
+    "oao.oaao.oao",
+    ".oaooaaooao.",
+    "..oaaaaaao..",
+    "...oaaaao...",
+    "..l.oaao.l..",
+  ],
+  spider: [
+    "l....oooo....l",
+    ".l..oaaaao..l.",
+    "..loaaaaaaol..",
+    "llloabaabaolll",
+    "...oaaaaaao...",
+    "llloekaaekolll",
+    "..loeeaaeeol..",
+    ".l..oaaaao..l.",
+    "l....oooo....l",
+  ],
+  spider2: [
+    ".l...oooo...l.",
+    "l...oaaaao...l",
+    ".l.oaaaaaao.l.",
+    "llloabaabaolll",
+    "...oaaaaaao...",
+    "llloekaaekolll",
+    ".l.oeeaaeeo.l.",
+    "l...oaaaao...l",
+    ".l...oooo...l.",
+  ],
+  // ---- garden + icons ----
+  cushion: [
+    ".oooooooooo.",
+    "occcccccccco",
+    "occdccccdcco",
+    "occcccccccco",
+    "occccccccdco",
+    ".oooooooooo.",
+  ],
+  carrot: [
+    ".g.g.",
+    "..g..",
+    ".ooo.",
+    "oaaao",
+    "oawao",
+    ".oao.",
+    ".oao.",
+    "..o..",
+  ],
+  cabbage: [
+    ".ooooo.",
+    "oaabaao",
+    "oabbbao",
+    "oaabaao",
+    ".ooooo.",
+  ],
+  tomato: [
+    "..gg..",
+    ".oooo.",
+    "oaawao",
+    "oaaaao",
+    ".oooo.",
+  ],
+  flower: [
+    ".p.p.",
+    "ppypp",
+    ".p.p.",
+    "..g..",
+    ".gg..",
+  ],
+  rock: [
+    ".oooo.",
+    "oaawao",
+    "oaaaao",
+    "oooooo",
+  ],
+  mush: [
+    ".oooo.",
+    "oawaao",
+    "oaaawo",
+    "oooooo",
+    ".osso.",
+    ".oooo.",
+  ],
+  box: [
+    "oooooooo",
+    "oaaaaaao",
+    "obbbbbbo",
+    "oaaayaao",
+    "oaaaaaao",
+    "oooooooo",
+  ],
+  plate: [
+    ".oooooo.",
+    "owwwwwwo",
+    "owaaaawo",
+    "owwwwwwo",
+    ".oooooo.",
+  ],
+  star: [
+    "....o....",
+    "...oyo...",
+    "oooywyooo",
+    "oyyyyyyyo",
+    ".oyyyyyo.",
+    "..oyyyo..",
+    ".oyyoyyo.",
+    ".oyo.oyo.",
+    ".oo...oo.",
+  ],
+  bomb: [
+    "......s.",
+    ".....o..",
+    "..oooo..",
+    ".oggwgo.",
+    "oggggggo",
+    "oglgglgo",
+    ".oggggo.",
+    "..oooo..",
+  ],
+  laser: [
+    "......rr",
+    ".....rr.",
+    "....oo..",
+    "...oso..",
+    "..oso...",
+    ".oso....",
+    "oso.....",
+    "oo......",
+  ],
+  nap: [
+    "..ooo.zz",
+    ".oyyo..z",
+    "oyyo..z.",
+    "oyyo.zzz",
+    "oyyyo...",
+    ".oyyyoo.",
+    "..ooooo.",
+  ],
+  web: [
+    "o...o...o",
+    ".o..o..o.",
+    "..ooooo..",
+    "oooo.oooo",
+    "..ooooo..",
+    ".o..o..o.",
+    "o...o...o",
+  ],
+};
+
+/* ---- palettes ---- */
+const OUT = '#2a1f33';
+const PALS = {
+  // bugs
+  ant: {o: '#2a1416', a: '#c8402f', e: '#fff', k: '#2a1416', l: '#2a1416'},
+  queen: {o: '#2a1416', a: '#9b3fc4', e: '#fff', k: '#2a1416', l: '#2a1416'},
+  lady: {o: '#1f1a24', a: '#ec4a3f', b: '#1f1a24', e: '#fff', k: '#1f1a24', l: '#1f1a24'},
+  beetle: {o: '#14261c', a: '#3f9a5c', b: '#1d3a2a', w: '#a6ecb0', e: '#fff', k: '#14261c', l: '#14261c'},
+  fly: {o: '#1d1f26', a: '#4a4f5c', b: '#8a93a6', e: '#e0302a', k: '#fff', w: '#d6eeff', l: '#1d1f26'},
+  snail: {o: '#3a2418', a: '#d98a4a', b: '#a0552a', s: '#d9c08a', k: '#2a1f33'},
+  pill: {o: '#23252e', a: '#9aa1b5', b: '#666d82', e: '#fff', k: '#23252e', l: '#23252e'},
+  firefly: {o: '#1d2340', a: '#3b4a7a', b: '#e8c547', g: '#f6ff8a', e: '#fff', k: '#1d2340', w: '#e8f4ff'},
+  moth: {o: '#3d3226', a: '#b09c76', b: '#7c6a54', w: '#e6dcc6', e: '#fff', k: '#3d3226'},
+  stink: {o: '#1f2d14', a: '#7fae4c', b: '#4a6a2a', e: '#fff', k: '#1f2d14', l: '#1f2d14'},
+  wasp: {o: '#2a2230', a: '#ffcf33', b: '#2a2230', w: '#e6f6ff', e: '#fff', k: '#2a2230'},
+  hornet: {o: '#1d1520', a: '#ff9a1f', b: '#2a1730', w: '#ffe6f6', e: '#fff', k: '#2a1730'},
+  cater: {o: '#1f3a14', a: '#8bd14a', b: '#f2d43a', e: '#fff', k: '#1f3a14', l: '#1f3a14'},
+  mantis: {o: '#1f4a1c', a: '#6fd15a', e: '#fff', k: '#1f4a1c', l: '#1f4a1c'},
+  spider: {o: '#1a1226', a: '#4b3a6b', b: '#e05a8a', e: '#fff', k: '#1a1226', l: '#2a1f3a'},
+  // garden + icons
+  cushion: {o: OUT, c: '#e8678c', d: '#ffd0dc'},
+  cushion1: {o: OUT, c: '#5aa0e8', d: '#d4ecff'},
+  cushion2: {o: OUT, c: '#b07ad8', d: '#f0dcff'},
+  cushion3: {o: OUT, c: '#e8b84a', d: '#fff4c8'},
+  carrot: {o: OUT, a: '#ff8a2a', w: '#ffc48a', g: '#4fb53a'},
+  cabbage: {o: OUT, a: '#8ed46b', b: '#5aa63f'},
+  tomato: {o: OUT, a: '#e8483c', w: '#ffb0a8', g: '#4fb53a'},
+  flower: {p: '#ff8fc0', y: '#ffe04a', g: '#3f8a32'},
+  flower2: {p: '#9fd0ff', y: '#fff', g: '#3f8a32'},
+  flower3: {p: '#fff', y: '#ffd23f', g: '#3f8a32'},
+  rock: {o: '#3b3640', a: '#9a94a6', w: '#d6d2df'},
+  mush: {o: OUT, a: '#e8483c', w: '#fff', s: '#f6e6c8'},
+  mushN: {o: '#0d1424', a: '#5ae0ff', w: '#d8fbff', s: '#bfe6f0'},
+  box: {o: '#3a2418', a: '#c89a62', b: '#8a6238', y: '#e8d0a0'},
+  plate: {o: '#5a6070', w: '#ffffff', a: '#e6ecf5'},
+  star: {o: OUT, y: '#ffd23f', w: '#fff6c0'},
+  starOff: {o: '#4a3d50', y: '#8c7f92', w: '#a89caf'},
+  fishy: {o: OUT, a: '#6ec6ff', k: OUT},
+  bomb: {o: OUT, g: '#6fcf4a', w: '#d6ffc0', l: '#3f8a32', s: '#ffd23f'},
+  laser: {o: OUT, s: '#c0c6d8', r: '#ff3b3b'},
+  nap: {o: OUT, y: '#ffe680', z: '#bfe1ff'},
+  web: {o: '#e8e8f0'},
+  crown: {o: OUT, y: '#ffd23f', r: '#e8483c'},
+};
+
+/* ---- cat fur colors (breeds) ---- */
+const BREEDS = [
+  {id: 'tabby', name: 'Orange Tabby', how: 'Starter breed', f: '#f4a340', s: '#d06f22', w: '#fff3dd'},
+  {id: 'grey', name: 'Grey Tabby', how: 'Starter breed', f: '#a9abb8', s: '#6c6f80', w: '#f4f4f8'},
+  {id: 'black', name: 'Black Cat', how: 'Finish World 1', f: '#3a3646', s: '#2a2733', w: '#3a3646', e: '#ffd23f', o: '#120f18'},
+  {id: 'siamese', name: 'Siamese', how: 'Finish World 2', f: '#f6e7cc', s: '#6b4a36', w: '#fff8ea', e: '#3a86c4'},
+  {id: 'calico', name: 'Calico', how: 'Finish World 3', f: '#fffaf0', s: '#e8923c', w: '#fffaf0'},
+  {id: 'white', name: 'Snow White', how: 'Earn 60 stars', f: '#f7f4ff', s: '#dcd6ec', w: '#ffffff', e: '#3aa86a'},
+  {id: 'tux', name: 'Tuxedo', how: 'Complete 12 goals', f: '#2d2a38', s: '#2d2a38', w: '#fffaf0', e: '#7ad04a', o: '#120f18'},
+  {id: 'galaxy', name: 'Galaxy', how: 'Finish World 4', f: '#3b2f78', s: '#b383ff', w: '#8ad0ff', e: '#ff7ad0', o: '#120f2a'},
+  {id: 'golden', name: 'Golden', how: 'Golden Paw Pack', f: '#ffd54a', s: '#ef9f12', w: '#fff7d0'},
+];
+const BREED = {}; BREEDS.forEach(b => BREED[b.id] = b);
+function catPal(breedId) {
+  const b = BREED[breedId] || BREED.tabby;
+  return {o: b.o || OUT, f: b.f, s: b.s, w: b.w, e: b.e || OUT, k: '#fff', p: '#ff9fb8'};
+}
+const ACC_PAL = {
+  hatPoint_ice: {o: OUT, H: '#8fd6ff', B: '#ffffff', Y: '#ffffff'},
+  hatPoint_wiz: {o: OUT, H: '#7a52c8', B: '#ffd23f', Y: '#ffe680'},
+  nightcap: {o: OUT, H: '#5a7ad8', B: '#fff', w: '#fff'},
+  straw: {o: '#6a4a1a', H: '#f2cf6a', B: '#e8483c'},
+  goggles: {o: OUT, G: '#7ae8ff', W: '#fff'},
+  mask: {o: OUT, M: '#26222e', e: '#fff', k: OUT, R: '#e8483c'},
+  visor: {o: OUT, R: '#ff3b3b', L: '#ffd0d0'},
+  bandana: {o: OUT, R: '#e8483c'},
+  bell: {o: OUT, R: '#e8483c', Y: '#ffd23f'},
+  yarnball: {o: OUT, P: '#ff7aa2', p: '#ffc4d6'},
+  hairball: {o: '#2a4a1c', G: '#8fd65a', g: '#5aa63f'},
+  fishy: {o: OUT, a: '#6ec6ff', k: OUT},
+  pompom: {o: OUT, P: '#ff7aa2'},
+};
+
+/* ---- turn a text grid into a little canvas (cached) ---- */
+const sprCache = {};
+function sprite(name, palName, palObj) {
+  const key = name + '|' + palName;
+  if (sprCache[key]) return sprCache[key];
+  const rows = SPR[name], pal = palObj || PALS[palName] || {};
+  const w = Math.max(...rows.map(r => r.length)), h = rows.length;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d');
+  rows.forEach((r, yy) => { for (let xx = 0; xx < r.length; xx++) { const col = pal[r[xx]]; if (col) { x.fillStyle = col; x.fillRect(xx, yy, 1, 1); } } });
+  sprCache[key] = c;
+  return c;
+}
+/* draw a sprite with its bottom-center at (x,y) */
+function drawSpr(ctx, img, x, y, sc, flip, alpha) {
+  sc = (sc || 1) * PX;
+  const w = img.width * sc, h = img.height * sc;
+  if (alpha !== undefined && alpha < 1) ctx.globalAlpha = alpha;
+  if (flip) { ctx.save(); ctx.translate(x, 0); ctx.scale(-1, 1); ctx.drawImage(img, -w / 2, y - h, w, h); ctx.restore(); }
+  else ctx.drawImage(img, Math.round(x - w / 2), Math.round(y - h), w, h);
+  if (alpha !== undefined && alpha < 1) ctx.globalAlpha = 1;
+}
+/* make a PNG data URL (for <img> in menus) */
+const iconCache = {};
+function iconURL(key, drawFn, w, h) {
+  if (iconCache[key]) return iconCache[key];
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+  drawFn(x);
+  return (iconCache[key] = c.toDataURL());
+}
+function sprURL(name, pal, scale) {
+  scale = scale || 4;
+  return iconURL('s|' + name + '|' + pal + '|' + scale, x => {
+    const s = sprite(name, pal); x.drawImage(s, 0, 0, s.width * scale, s.height * scale);
+  }, sprite(name, pal).width * scale, sprite(name, pal).height * scale);
+}
+const ICO = n => '<img class="ico" src="' + sprURL(n, n === 'fishy' ? 'fishy' : n) + '" alt="">';
+
+/* ---- tiny 3x5 pixel font for numbers on the map ---- */
+const PF = {
+  '0': '111101101101111', '1': '010110010010111', '2': '111001111100111', '3': '111001111001111', '4': '101101111001001',
+  '5': '111100111001111', '6': '111100111101111', '7': '111001010010010', '8': '111101111101111', '9': '111101111001111',
+  '+': '000010111010000', '-': '000000111000000', 'x': '000101010101000', '!': '010010010000010', 'k': '100101110101101',
+};
+function pixText(ctx, str, x, y, sz, col) {
+  str = String(str); sz = sz || 2;
+  const w = str.length * 4 * sz - sz;
+  let cx = Math.round(x - w / 2); y = Math.round(y);
+  for (const pass of [0, 1]) {
+    ctx.fillStyle = pass ? col : OUT;
+    let px = cx;
+    for (const ch of str) {
+      const g = PF[ch];
+      if (g) for (let i = 0; i < 15; i++) if (g[i] === '1') {
+        const gx = px + (i % 3) * sz, gy = y + Math.floor(i / 3) * sz;
+        if (pass) ctx.fillRect(gx, gy, sz, sz);
+        else ctx.fillRect(gx - sz / 2 - .5, gy - sz / 2 - .5, sz * 2 + 1, sz * 2 + 1);
+      }
+      px += 4 * sz;
+    }
+  }
+}
+/* =====================================================================
+   6. GAME DATA — cats, bugs, worlds, maps, goals.
+   unlock = the level number where the cat first joins you.
+   range is in tiles. rate = attacks per second.
+===================================================================== */
+const CATS = [
+  {id: 'yarn', name: 'Yarn Cat', unlock: 1, cost: 50, dmg: 6, rate: 1.1, range: 2.6, air: 1, kind: 'proj', proj: 'yarn', pspd: 9, acc: 'yarnball',
+    desc: 'Throws yarn balls. Hits flying bugs too.', sp: 'Yarn bounces to a 2nd bug'},
+  {id: 'claw', name: 'Claw Cat', unlock: 2, cost: 70, dmg: 9, rate: 2.2, range: 1.45, air: 0, kind: 'melee', acc: 'bandana',
+    desc: 'Super fast scratches up close. Ground bugs only.', sp: 'Scratches make bugs bleed'},
+  {id: 'sleepy', name: 'Sleepy Cat', unlock: 4, cost: 80, dmg: 2, rate: 1, range: 1.8, air: 1, kind: 'aura', slow: 0.35, acc: 'nightcap',
+    desc: 'Snores slow down every bug around it.', sp: 'Stronger slow (+15%)'},
+  {id: 'hair', name: 'Hairball Cat', unlock: 6, cost: 110, dmg: 15, rate: 0.6, range: 2.8, air: 0, kind: 'lob', splash: 0.95, pspd: 6, acc: 'hairball',
+    desc: 'Lobs gooey hairballs that splash a group. Ground only.', sp: 'Bigger splash + sticky goo'},
+  {id: 'fish', name: 'Fisher Cat', unlock: 8, cost: 90, kind: 'farm', range: 0, income: [12, 18, 26, 36, 50], acc: 'straw',
+    desc: 'Catches fish: extra coins every wave.', sp: '+50% fish'},
+  {id: 'ice', name: 'Frost Cat', unlock: 11, cost: 120, dmg: 8, rate: 1, range: 2.6, air: 1, kind: 'proj', proj: 'ice', pspd: 10, slow: 0.4, freeze: 0.12, acc: 'hatPoint_ice',
+    desc: 'Icy magic slows bugs and can freeze them.', sp: 'Freeze chance x2'},
+  {id: 'wiz', name: 'Wizard Cat', unlock: 14, cost: 130, dmg: 18, rate: 0.8, range: 3, air: 1, kind: 'proj', proj: 'magic', pspd: 11, magic: 1, detect: 1, acc: 'hatPoint_wiz',
+    desc: 'Magic ignores armor. Reveals invisible bugs.', sp: 'Critical hits (25%: x2.5)'},
+  {id: 'zap', name: 'Thunder Cat', unlock: 16, cost: 160, dmg: 12, rate: 0.7, range: 2.6, air: 1, kind: 'chain', chain: 3, acc: 'goggles',
+    desc: 'Lightning jumps from bug to bug.', sp: '+2 jumps'},
+  {id: 'cheer', name: 'Cheer Cat', unlock: 19, cost: 140, kind: 'buff', range: 1.7, buff: 0.15, acc: 'pompom',
+    desc: 'Cheers up cats nearby: more damage and speed. Level 3+: they see invisible bugs.', sp: 'Bigger boost (+10%)'},
+  {id: 'ninja', name: 'Ninja Cat', unlock: 22, cost: 180, dmg: 10, rate: 1.4, range: 2.8, air: 1, kind: 'multi', shots: 3, pspd: 13, detect: 1, acc: 'mask',
+    desc: 'Throws 3 stars at once. Sees invisible bugs.', sp: '+1 star'},
+  {id: 'laser', name: 'Laser Cat', unlock: 25, cost: 320, dmg: 24, rate: 0, range: 3.6, air: 1, kind: 'beam', detect: 1, acc: 'visor', boss: 1,
+    desc: 'BOSS CAT. Laser eyes get stronger the longer they hit.', sp: 'Laser melts armor'},
+  {id: 'chonk', name: 'Big Chonk', unlock: 29, cost: 300, dmg: 44, rate: 0.55, range: 1.6, air: 0, kind: 'slam', stun: 0.6, acc: 'bell', boss: 1,
+    desc: 'BOSS CAT. Belly slam hits every ground bug around and stuns them.', sp: 'Longer stun'},
+];
+const CAT = {}; CATS.forEach(c => CAT[c.id] = c);
+
+/* hp = health, spd = tiles per second, arm = armor (blocks damage per hit),
+   rew = fish when squished, lv = veggies eaten if it gets through, from = first level */
+const BUGS = {
+  ant: {name: 'Ant', hp: 10, spd: 1.6, rew: 2, lv: 1, from: 1, pal: 'ant', desc: 'Small and fast.'},
+  lady: {name: 'Ladybug', hp: 18, spd: 1.1, rew: 3, lv: 1, from: 1, pal: 'lady', desc: 'A bit tougher than an ant.'},
+  beetle: {name: 'Beetle', hp: 45, spd: 0.8, arm: 2, rew: 6, lv: 2, from: 3, pal: 'beetle', desc: 'Armored shell: weak hits do less.'},
+  fly: {name: 'Fly', hp: 14, spd: 1.5, fly: 1, rew: 3, lv: 1, from: 5, pal: 'fly', desc: 'Flies! Claw, Hairball and Chonk cats can\'t reach it.'},
+  snail: {name: 'Snail', hp: 75, spd: 0.5, arm: 4, rew: 8, lv: 2, from: 7, pal: 'snail', desc: 'Slow but very armored. Magic ignores armor.'},
+  pill: {name: 'Pillbug', hp: 34, spd: 0.9, arm: 2, rew: 4, lv: 1, from: 11, split: 2, pal: 'pill', desc: 'Splits into 2 mini pillbugs.'},
+  mini: {name: 'Mini Pillbug', hp: 10, spd: 1.35, rew: 1, lv: 1, from: 0, pal: 'pill', sc: 0.65, desc: 'Came out of a pillbug!'},
+  firefly: {name: 'Firefly', hp: 30, spd: 1, fly: 1, heal: 1, rew: 6, lv: 1, from: 13, pal: 'firefly', desc: 'Heals bugs around it. Squish it first!'},
+  moth: {name: 'Moth', hp: 24, spd: 1.3, fly: 1, camo: 1, rew: 5, lv: 1, from: 15, pal: 'moth', desc: 'Invisible! Wizard, Ninja and Laser cats can see it.'},
+  stink: {name: 'Stink Bug', hp: 40, spd: 0.9, shield: 0.8, rew: 6, lv: 1, from: 17, pal: 'stink', desc: 'A shield bubble soaks up damage first.'},
+  wasp: {name: 'Wasp', hp: 28, spd: 2.1, fly: 1, rew: 5, lv: 1, from: 21, pal: 'wasp', desc: 'A very fast flyer.'},
+  cater: {name: 'Caterpillar', hp: 62, spd: 0.65, rage: 1, rew: 7, lv: 2, from: 23, pal: 'cater', desc: 'Gets faster when it gets hurt.'},
+  queen: {name: 'Queen Ant', boss: 1, hp: 750, spd: 0.42, arm: 2, rew: 120, lv: 10, from: 10, spawn: 'ant', spr: 'ant', pal: 'queen', sc: 2.4, desc: 'BOSS. Lays new ants as she walks.'},
+  mantis: {name: 'Mantis', boss: 1, hp: 2600, spd: 0.48, arm: 4, rew: 200, lv: 10, from: 20, dash: 1, pal: 'mantis', sc: 2.4, desc: 'BOSS. Dashes forward super fast.'},
+  spider: {name: 'Attic Spider', boss: 1, hp: 5200, spd: 0.42, arm: 5, rew: 300, lv: 10, from: 30, web: 1, pal: 'spider', sc: 2.4, desc: 'BOSS. Shoots webs that stop your cats.'},
+  hornet: {name: 'Hornet Queen', boss: 1, fly: 1, hp: 6800, spd: 0.45, shield: 0.25, rew: 500, lv: 15, from: 40, spawn: 'wasp', spr: 'wasp', pal: 'hornet', sc: 2.6, desc: 'BOSS. Flies, has a shield and calls wasps.'},
+};
+const BUG_ORDER = ['ant', 'lady', 'beetle', 'fly', 'snail', 'pill', 'mini', 'firefly', 'moth', 'stink', 'wasp', 'cater', 'queen', 'mantis', 'spider', 'hornet'];
+const BOSS_OF = {10: 'queen', 20: 'mantis', 30: 'spider', 40: 'hornet'};
+
+const WORLDS = [
+  {name: 'Garden', icon: '🌻', grass: ['#6cc04a', '#62b343'], path: ['#c99a5e', '#b8864d'], edge: '#8a5e32', deco: ['flower', 'flower:flower2', 'flower:flower3', 'rock', 'mush'], cush: 'cushion'},
+  {name: 'Kitchen', icon: '🍳', grass: ['#f2e6cf', '#e3d2b2'], path: ['#b3825a', '#a07250'], edge: '#6e4a2e', deco: ['plate', 'tomato', 'cabbage', 'plate'], cush: 'cushion1'},
+  {name: 'Attic', icon: '📦', grass: ['#8a6a4e', '#7d5f45'], path: ['#c9a77e', '#b8966c'], edge: '#4e3624', deco: ['box', 'box', 'web', 'rock'], cush: 'cushion2'},
+  {name: 'Night Yard', icon: '🌙', grass: ['#2d5a46', '#27503e'], path: ['#7a7f95', '#6c7186'], edge: '#3a3e52', deco: ['mush:mushN', 'rock', 'flower:flower2', 'mush:mushN'], cush: 'cushion3', night: 1},
+];
+
+/* ---- map shapes: lists of path corners in tiles (15 x 24 grid).
+   Start outside the grid, end on the veggie patch. Some have two paths. ---- */
+const SHAPES = {
+  s1: [[[7, -1], [7, 5], [2, 5], [2, 11], [12, 11], [12, 17], [7, 17], [7, 21]]],
+  s2: [[[2, -1], [2, 4], [12, 4], [12, 9], [2, 9], [2, 14], [12, 14], [12, 19], [7, 19], [7, 21]]],
+  s3: [[[-1, 3], [12, 3], [12, 19], [2, 19], [2, 8], [8, 8], [8, 13]]],
+  s4: [[[1, -1], [1, 20], [4, 20], [4, 3], [7, 3], [7, 20], [10, 20], [10, 3], [13, 3], [13, 21]]],
+  s5: [[[3, -1], [3, 8], [7, 8], [7, 15], [2, 15], [2, 20], [7, 20], [7, 22]],
+       [[11, -1], [11, 8], [7, 8], [7, 15], [2, 15], [2, 20], [7, 20], [7, 22]]],
+  s6: [[[-1, 2], [10, 2], [10, 7], [4, 7], [4, 12], [11, 12], [11, 17], [3, 17], [3, 21], [8, 21]]],
+  s7: [[[15, 4], [3, 4], [3, 10], [11, 10], [11, 16], [3, 16], [3, 21], [10, 21]]],
+  s8: [[[-1, 5], [7, 5], [7, 11], [2, 11], [2, 17], [12, 17], [12, 21], [7, 21]],
+       [[15, 5], [7, 5], [7, 11], [2, 11], [2, 17], [12, 17], [12, 21], [7, 21]]],
+  s9: [[[1, -1], [1, 3], [4, 3], [4, 6], [7, 6], [7, 9], [10, 9], [10, 12], [13, 12], [13, 16], [9, 16], [9, 19], [5, 19], [5, 21]]],
+  s10: [[[-1, 1], [13, 1], [13, 6], [1, 6], [1, 11], [13, 11], [13, 16], [1, 16], [1, 21], [7, 21]]],
+  end: [[[-1, 2], [6, 2], [6, 7], [1, 7], [1, 13], [7, 13], [7, 17], [11, 17], [11, 21], [7, 21]],
+        [[15, 2], [8, 2], [8, 7], [13, 7], [13, 13], [7, 13], [7, 17], [11, 17], [11, 21], [7, 21]]],
+};
+/* which shape each level uses, per world. 'm' = mirrored left-right */
+const LEVEL_SHAPES = [
+  ['s1', 's2', 's6', 's3', 's7', 's4', 's9', 's5', 's8', 's10'],
+  ['s2m', 's6m', 's1m', 's7m', 's3m', 's9m', 's4m', 's8m', 's5m', 's10m'],
+  ['s6', 's7', 's3', 's9', 's2', 's4', 's8', 's5', 's1', 's10'],
+  ['s9m', 's3m', 's7m', 's4m', 's8m', 's6m', 's5m', 's2m', 's1m', 's10m'],
+];
+
+const POWERS = [
+  {id: 'bomb', name: 'Catnip Bomb', cost: 3, desc: 'Boom! Big damage where you tap.'},
+  {id: 'laser', name: 'Laser Pointer', cost: 2, desc: 'All bugs chase the red dot backwards.'},
+  {id: 'nap', name: 'Nap Time', cost: 2, desc: 'Every bug falls asleep for a moment.'},
+];
+
+/* ---- skill tree. Cat branch: 4 steps in order, costs 1,2,3,4 stars ---- */
+const CAT_SKILL_COST = [1, 2, 3, 4];
+const CAT_SKILL_NAMES = ['Sharp Claws: +15% damage', 'Keen Eyes: +10% range', 'Quick Paws: +12% speed'];
+const GARDEN_SKILLS = [
+  {id: 'lives', icon: '🥕', name: 'Bigger Patch', desc: '+2 veggies per step', cost: [2, 3, 4]},
+  {id: 'coins', icon: '🐟', name: 'Fish Savings', desc: '+25 start fish per step', cost: [2, 3, 4]},
+  {id: 'refund', icon: '♻️', name: 'Recycle', desc: '+5% back when selling', cost: [1, 2, 3]},
+  {id: 'bargain', icon: '🏷️', name: 'Bargain', desc: 'Cats cost 4% less per step', cost: [3, 4, 5]},
+  {id: 'power', icon: '💥', name: 'Power Paws', desc: 'Power-ups +15% stronger', cost: [2, 3, 4]},
+];
+
+/* ---- daily gift, 7-day loop ---- */
+const DAILY = [{stars: 1}, {pw: 'nap'}, {stars: 2}, {pw: 'laser'}, {stars: 2}, {pw: 'bomb'}, {stars: 5}];
+
+/* ---- goals (achievements). r = stars reward ---- */
+const ACH = [
+  {id: 'first', i: '🐾', name: 'First Paw', desc: 'Win level 1', r: 1, p: () => [S.unlocked > 1 ? 1 : 0, 1]},
+  {id: 'w1', i: '🌻', name: 'Garden Guardian', desc: 'Finish World 1', r: 3, p: () => [Math.min(10, S.unlocked - 1), 10]},
+  {id: 'w2', i: '🍳', name: 'Kitchen Keeper', desc: 'Finish World 2', r: 3, p: () => [clamp(S.unlocked - 11, 0, 10), 10]},
+  {id: 'w3', i: '📦', name: 'Attic Avenger', desc: 'Finish World 3', r: 4, p: () => [clamp(S.unlocked - 21, 0, 10), 10]},
+  {id: 'w4', i: '🌙', name: 'Night Watch', desc: 'Finish World 4', r: 5, p: () => [clamp(S.unlocked - 31, 0, 10), 10]},
+  {id: 'p1', i: '⭐', name: 'Perfect Garden', desc: '3 stars on every World 1 level', r: 3, p: () => [worldStars(0), 30]},
+  {id: 'p2', i: '⭐', name: 'Perfect Kitchen', desc: '3 stars on every World 2 level', r: 3, p: () => [worldStars(1), 30]},
+  {id: 'p3', i: '⭐', name: 'Perfect Attic', desc: '3 stars on every World 3 level', r: 4, p: () => [worldStars(2), 30]},
+  {id: 'p4', i: '⭐', name: 'Perfect Night', desc: '3 stars on every World 4 level', r: 5, p: () => [worldStars(3), 30]},
+  {id: 'k1', i: '💥', name: 'Squisher', desc: 'Squish 500 bugs', r: 2, p: () => [S.stats.kills, 500]},
+  {id: 'k2', i: '💥', name: 'Exterminator', desc: 'Squish 5,000 bugs', r: 4, p: () => [S.stats.kills, 5000]},
+  {id: 'k3', i: '💥', name: 'Bug Apocalypse', desc: 'Squish 20,000 bugs', r: 6, p: () => [S.stats.kills, 20000]},
+  {id: 'c1', i: '🔥', name: 'Combo Cat', desc: 'Make a x15 combo', r: 2, p: () => [S.stats.maxCombo, 15]},
+  {id: 'c2', i: '🔥', name: 'Combo Master', desc: 'Make a x40 combo', r: 4, p: () => [S.stats.maxCombo, 40]},
+  {id: 'b1', i: '👑', name: 'Queen Toppler', desc: 'Beat the Queen Ant', r: 2, p: () => [S.stats.boss.queen ? 1 : 0, 1]},
+  {id: 'b2', i: '🦗', name: 'Mantis Mangler', desc: 'Beat the Mantis', r: 3, p: () => [S.stats.boss.mantis ? 1 : 0, 1]},
+  {id: 'b3', i: '🕷️', name: 'Spider Squasher', desc: 'Beat the Attic Spider', r: 3, p: () => [S.stats.boss.spider ? 1 : 0, 1]},
+  {id: 'b4', i: '🐝', name: 'Hornet Hero', desc: 'Beat the Hornet Queen', r: 5, p: () => [S.stats.boss.hornet ? 1 : 0, 1]},
+  {id: 'nb', i: '🥕', name: 'Not One Veggie', desc: 'Win a boss level without losing a veggie', r: 4, p: () => [S.stats.noLossBoss ? 1 : 0, 1]},
+  {id: 'max', i: '⬆️', name: 'Max Power', desc: 'Upgrade a cat to level 5', r: 2, p: () => [S.stats.max5 ? 1 : 0, 1]},
+  {id: 'full', i: '🏠', name: 'Full House', desc: 'Have 12 cats on one map', r: 2, p: () => [S.stats.full || 0, 12]},
+  {id: 'early', i: '⏩', name: 'Early Bird', desc: 'Call 50 waves early', r: 2, p: () => [S.stats.early, 50]},
+  {id: 'spend', i: '🐟', name: 'Big Spender', desc: 'Spend 10,000 fish on cats', r: 3, p: () => [S.stats.spent, 10000]},
+  {id: 'pw', i: '🧪', name: 'Catnip Chaos', desc: 'Use 10 power-ups', r: 2, p: () => [S.stats.pwUsed, 10]},
+  {id: 'e1', i: '♾️', name: 'Endless 10', desc: 'Reach wave 10 in Endless', r: 2, p: () => [bestEndless(), 10]},
+  {id: 'e2', i: '♾️', name: 'Endless 25', desc: 'Reach wave 25 in Endless', r: 4, p: () => [bestEndless(), 25]},
+  {id: 'e3', i: '♾️', name: 'Endless 50', desc: 'Reach wave 50 in Endless', r: 6, p: () => [bestEndless(), 50]},
+  {id: 'sk', i: '🌳', name: 'Skill Scholar', desc: 'Spend 50 stars on skills', r: 2, p: () => [S.skillSpent, 50]},
+  {id: 'alb', i: '📖', name: 'Bug Expert', desc: 'See every bug in the album', r: 2, p: () => [BUG_ORDER.filter(b => S.seen[b]).length, BUG_ORDER.length]},
+  {id: 'col', i: '🐱', name: 'Cat Collector', desc: 'Unlock every breed', r: 3, p: () => [BREEDS.filter(b => S.breedOwn[b.id]).length, BREEDS.length]},
+];
+
+/* ---- story comics: 3 panels per world ---- */
+const COMICS = [
+  [{t: 'Grandma\'s veggie patch is ready for summer!', d: 'patch'}, {t: 'But the bugs smelled the carrots...', d: 'bugs'}, {t: 'The cats sit on their cushions. Defend the garden!', d: 'cats'}],
+  [{t: 'Oh no! The bugs got into the kitchen!', d: 'bugs'}, {t: 'Magic cats came to help.', d: 'magic'}, {t: 'Keep them away from the veggie basket!', d: 'cats'}],
+  [{t: 'Strange webs in the attic...', d: 'web'}, {t: 'A giant spider is calling all the bugs!', d: 'spider'}, {t: 'Time for the BIG cats!', d: 'big'}],
+  [{t: 'Night falls on the yard.', d: 'night'}, {t: 'The Hornet Queen wakes up!', d: 'hornet'}, {t: 'One last stand, cats. Save the patch!', d: 'cats'}],
+];
+
+function worldOf(L) { return Math.floor((L - 1) / 10); }
+function worldStars(w) { let s = 0; for (let i = 1; i <= 10; i++) s += S.best[w * 10 + i] || 0; return s; }
+function totalStars() { let s = 0; for (const k in S.best) s += S.best[k]; return s; }
+function bestEndless() { let b = 0; for (const k in S.endless) b = Math.max(b, S.endless[k]); return b; }
+function catOpen(c) { return S.unlocked >= c.unlock; }
+/* =====================================================================
+   7. ENGINE — the map, the waves, and the update() that runs every frame.
+   update(): spawn bugs -> move bugs -> cats attack -> shots fly -> effects
+===================================================================== */
+let G = null; // the level being played
+
+/* ---------- maps ---------- */
+function shapePts(key) {
+  const m = key.endsWith('m'), base = SHAPES[m ? key.slice(0, -1) : key];
+  return base.map(p => p.map(([x, y]) => [m ? 14 - x : x, y]));
+}
+function buildPath(pts) {
+  const P = pts.map(([x, y]) => ({x: (x + .5) * T, y: (y + .5) * T}));
+  const segs = []; let L = 0;
+  for (let i = 0; i < P.length - 1; i++) {
+    const a = P[i], b = P[i + 1], l = Math.hypot(b.x - a.x, b.y - a.y);
+    segs.push({a, b, l, s: L, dx: (b.x - a.x) / l, dy: (b.y - a.y) / l}); L += l;
+  }
+  return {P, segs, len: L, pts};
+}
+function posAt(path, d) {
+  d = clamp(d, 0, path.len);
+  const sg = path.segs;
+  let i = 0; while (i < sg.length - 1 && sg[i].s + sg[i].l < d) i++;
+  const s = sg[i], k = d - s.s;
+  return {x: s.a.x + s.dx * k, y: s.a.y + s.dy * k, dx: s.dx, dy: s.dy};
+}
+function buildMap(shapeKey, world, seed) {
+  const rng = RNG(seed);
+  const raw = shapePts(shapeKey);
+  const paths = raw.map(buildPath);
+  const grid = []; for (let y = 0; y < ROWS; y++) grid.push(new Array(COLS).fill(0)); // 0 grass, 1 path, 2 patch, 3 spot
+  const inG = (x, y) => x >= 0 && y >= 0 && x < COLS && y < ROWS;
+  raw.forEach(pts => {
+    for (let i = 0; i < pts.length - 1; i++) {
+      let [x, y] = pts[i]; const [x2, y2] = pts[i + 1];
+      const sx = Math.sign(x2 - x), sy = Math.sign(y2 - y);
+      while (true) { if (inG(x, y)) grid[y][x] = 1; if (x === x2 && y === y2) break; x += sx; y += sy; }
+    }
+  });
+  const goalPt = raw[0][raw[0].length - 1];
+  const goal = {tx: goalPt[0], ty: goalPt[1], x: (goalPt[0] + .5) * T, y: (goalPt[1] + .5) * T};
+  for (let y = goal.ty; y <= goal.ty + 1; y++) for (let x = goal.tx - 1; x <= goal.tx + 1; x++) if (inG(x, y) && grid[y][x] === 0) grid[y][x] = 2;
+  // cushions: grass tiles touching the path, spread out
+  const cands = [];
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+    if (grid[y][x] !== 0) continue;
+    let near = false, score = 0;
+    for (let yy = y - 1; yy <= y + 1; yy++) for (let xx = x - 1; xx <= x + 1; xx++) if (inG(xx, yy) && grid[yy][xx] === 1) near = true;
+    if (!near) continue;
+    for (let yy = y - 3; yy <= y + 3; yy++) for (let xx = x - 3; xx <= x + 3; xx++)
+      if (inG(xx, yy) && grid[yy][xx] === 1 && Math.hypot(xx - x, yy - y) <= 2.6) score++;
+    cands.push({tx: x, ty: y, score: score + rng() * 1.5});
+  }
+  cands.sort((a, b) => b.score - a.score);
+  const spots = [];
+  for (const c of cands) {
+    if (spots.length >= CONFIG.MAX_SPOTS) break;
+    if (spots.some(s => Math.abs(s.tx - c.tx) <= 1 && Math.abs(s.ty - c.ty) <= 1)) continue;
+    spots.push({tx: c.tx, ty: c.ty, x: (c.tx + .5) * T, y: (c.ty + .5) * T, tw: null});
+    grid[c.ty][c.tx] = 3;
+  }
+  spots.sort((a, b) => a.ty - b.ty || a.tx - b.tx);
+  spots.forEach((s, i) => s.i = i);
+  const decor = [];
+  const W0 = WORLDS[world];
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+    if (grid[y][x] !== 0) continue;
+    if (rng() < 0.13) decor.push({x: (x + .3 + rng() * .4) * T, y: (y + .6 + rng() * .3) * T, k: W0.deco[Math.floor(rng() * W0.deco.length)]});
+  }
+  const map = {shape: shapeKey, world, paths, grid, goal, spots, decor, seed};
+  map.bg = drawMapBG(map);
+  return map;
+}
+
+/* ---------- waves ---------- */
+function threat(k) {
+  const b = BUGS[k];
+  let t = b.hp / 10 * Math.sqrt(b.spd / 1.1);
+  if (b.fly) t *= 1.1; if (b.arm) t *= 1 + b.arm * 0.12; if (b.camo) t *= 1.4;
+  if (b.heal) t *= 1.5; if (b.split) t *= 1.6; if (b.shield) t *= 1.6; if (b.rage) t *= 1.3;
+  return t;
+}
+function bugGap(k, L) { return Math.max(0.28, 0.85 / Math.sqrt(BUGS[k].spd)) * (1 - Math.min(0.35, L * 0.008)); }
+function makeWave(rng, pool, fresh, i, nW, L, budget, hm, nPaths, boss) {
+  let types;
+  if (i === 0 && fresh) types = [fresh];
+  else {
+    const n = i < 2 ? 1 : i < nW * 0.6 ? 2 : 3;
+    types = [];
+    const recent = pool.slice(-3);
+    while (types.length < Math.min(n, pool.length)) {
+      const k = rng() < 0.45 ? recent[Math.floor(rng() * recent.length)] : pool[Math.floor(rng() * pool.length)];
+      if (!types.includes(k)) types.push(k);
+    }
+  }
+  const out = []; let t0 = 0.5;
+  types.forEach((k, gi) => {
+    const n = clamp(Math.round(budget / types.length / threat(k)), 2, 45);
+    const gap = bugGap(k, L);
+    for (let j = 0; j < n; j++) out.push({t: t0 + j * gap, type: k, path: (j + gi) % nPaths, hm});
+    t0 += n * gap * 0.62 + 0.8;
+  });
+  if (boss) {
+    out.push({t: t0 + 1.5, type: boss, path: 0, hm: 1});
+  }
+  out.sort((a, b) => a.t - b.t);
+  return out;
+}
+function genWaves(L, nPaths) {
+  const rng = RNG(L * 9973 + 7);
+  const pool = BUG_ORDER.filter(k => !BUGS[k].boss && BUGS[k].from && BUGS[k].from <= L);
+  const freshK = pool.find(k => BUGS[k].from === L && L > 1);
+  const nW = Math.min(15, 5 + Math.floor((L - 1) / 3)) + (BOSS_OF[L] ? 1 : 0);
+  const waves = [];
+  for (let i = 0; i < nW; i++) {
+    const last = i === nW - 1;
+    const budget = (5 + Math.min(L, 30) * 0.6 + Math.max(0, L - 30) * 0.3) * (1 + i * 0.32) * (BOSS_OF[L] && last ? 0.5 : 1);
+    const hm = (1 + CONFIG.HP_GROWTH_LEVEL * (L - 1)) * (1 + CONFIG.HP_GROWTH_WAVE * i);
+    waves.push(makeWave(rng, pool, freshK, i, nW, L, budget, hm, nPaths, BOSS_OF[L] && last ? BOSS_OF[L] : null));
+  }
+  return waves;
+}
+function genEndlessWave(w, n, nPaths) {
+  const rng = RNG(w * 777 + n * 31 + 5);
+  const maxL = 10 * (w + 1);
+  const pool = BUG_ORDER.filter(k => !BUGS[k].boss && BUGS[k].from && BUGS[k].from <= maxL);
+  const Leq = 10 * w + 5;
+  const budget = (5 + Leq * 0.6) * (1 + (n - 1) * 0.25);
+  const hm = (1 + CONFIG.HP_GROWTH_LEVEL * (Leq - 1)) * Math.pow(CONFIG.ENDLESS_HP_GROWTH, n - 1);
+  let boss = null;
+  if (n % 10 === 0) { const bosses = ['queen', 'mantis', 'spider', 'hornet'].slice(0, w + 1); boss = bosses[(n / 10 - 1) % bosses.length]; }
+  const wave = makeWave(rng, pool, null, Math.min(n, 12), 14, Leq, budget * (boss ? 0.5 : 1), hm, nPaths, boss);
+  wave.forEach(e => { if (BUGS[e.type].boss) e.hm = (0.6 + 0.25 * n / 10) * Math.pow(1.04, n); });
+  return wave;
+}
+
+/* ---------- start a level ---------- */
+function levelEq() { return G.mode === 'endless' ? 10 * G.w + 5 + Math.floor(G.wi / 2) : G.L; }
+function newGame(mode, L, w) {
+  const shape = mode === 'endless' ? (w % 2 ? 'endm' : 'end') : LEVEL_SHAPES[w][(L - 1) % 10];
+  const map = buildMap(shape, w, mode === 'endless' ? 999 + w : L * 131);
+  const lives = CONFIG.START_LIVES + 2 * S.garden.lives;
+  const coins = (mode === 'endless' ? CONFIG.START_COINS + CONFIG.START_COINS_PER_LEVEL * (10 * w + 4) : CONFIG.START_COINS + CONFIG.START_COINS_PER_LEVEL * (L - 1)) + 25 * S.garden.coins;
+  G = {
+    mode, L, w, map,
+    waves: mode === 'endless' ? null : genWaves(L, map.paths.length),
+    wi: 0, queue: [], countdown: null, started: false,
+    lives, maxLives: lives, coins, shownCoins: coins,
+    towers: [], bugs: [], projs: [], parts: [], texts: [], rings: [], zaps: [], slashes: [],
+    combo: {n: 0, t: 0}, napT: 0, laserT: 0, time: 0, state: 'play', revived: false, shake: 0,
+    selSpot: null, selTower: null, pick: null, pmode: null, lostAny: false, kills: 0, earned: 0, hurtT: 0,
+  };
+  return G;
+}
+const waveCount = () => G.mode === 'endless' ? Infinity : G.waves.length;
+
+/* ---------- money helpers ---------- */
+const disc = () => 1 - 0.04 * S.garden.bargain;
+const catCost = c => Math.round(c.cost * disc());
+const upCost = tw => tw.lv >= 5 ? 0 : Math.round(CAT[tw.id].cost * CONFIG.UPGRADE_COST[tw.lv] * disc());
+const sellValue = tw => G.started ? Math.floor(tw.spent * (CONFIG.SELL_REFUND + 0.05 * S.garden.refund)) : tw.spent;
+function addCoins(n) { G.coins += n; G.earned += Math.max(0, n); }
+
+/* ---------- cats ---------- */
+function tstats(tw) {
+  const c = CAT[tw.id], lv = tw.lv, r = S.skills[c.id] || 0, buff = tw.buff || 0;
+  const sp = r >= 4;
+  return {
+    c, sp,
+    dmg: (c.dmg || 0) * Math.pow(CONFIG.UPGRADE_DMG, lv - 1) * (r >= 1 ? 1.15 : 1) * (1 + buff),
+    range: (c.range || 0) * (1 + CONFIG.UPGRADE_RANGE * (lv - 1)) * (r >= 2 ? 1.1 : 1) * T,
+    rate: (c.rate || 0) * (1 + CONFIG.UPGRADE_RATE * (lv - 1)) * (r >= 3 ? 1.12 : 1) * (1 + buff * 0.67),
+    detect: !!(c.detect || tw.cheerDetect),
+    slow: c.id === 'sleepy' ? Math.min(0.8, c.slow + 0.04 * (lv - 1) + (sp ? 0.15 : 0)) : c.slow || 0,
+    buff: c.id === 'cheer' ? c.buff + 0.05 * (lv - 1) + (sp ? 0.1 : 0) : 0,
+    chain: c.id === 'zap' ? c.chain + (lv >= 3 ? 1 : 0) + (lv >= 5 ? 1 : 0) + (sp ? 2 : 0) : 0,
+    shots: c.id === 'ninja' ? c.shots + (lv >= 4 ? 1 : 0) + (sp ? 1 : 0) : 0,
+    stun: c.id === 'chonk' ? c.stun + 0.1 * (lv - 1) + (sp ? 0.6 : 0) : 0,
+    income: c.id === 'fish' ? Math.round(c.income[lv - 1] * (sp ? 1.5 : 1)) : 0,
+    splash: c.id === 'hair' ? c.splash * (sp ? 1.3 : 1) * (1 + 0.05 * (lv - 1)) * T : 0,
+  };
+}
+function placeCat(spot, id) {
+  const c = CAT[id], cost = catCost(c);
+  if (spot.tw || G.coins < cost) return false;
+  G.coins -= cost; S.stats.spent += cost;
+  const tw = {id, lv: 1, spent: cost, x: spot.x, y: spot.y, spot, cd: 0.3, mode: 'first', anim: 0, face: false, blink: rand(1, 4), heat: 0, tg: null, webT: 0, hop: 0.35, t: rand(0, 5)};
+  spot.tw = tw; G.towers.push(tw);
+  S.stats.full = Math.max(S.stats.full || 0, G.towers.length);
+  for (let i = 0; i < 10; i++) addPart(spot.x + rand(-8, 8), spot.y + 6, rand(-40, 40), rand(-60, -10), '#e8dcc0', 0.4, 2);
+  sfx('meow'); return true;
+}
+function upgradeCat(tw) {
+  const cost = upCost(tw);
+  if (tw.lv >= 5 || G.coins < cost) return false;
+  G.coins -= cost; tw.spent += cost; tw.lv++; S.stats.spent += cost;
+  if (tw.lv === 5) S.stats.max5 = 1;
+  tw.hop = 0.4;
+  addRing(tw.x, tw.y, 4, 26, '#ffd23f', 0.4);
+  for (let i = 0; i < 12; i++) addPart(tw.x + rand(-10, 10), tw.y + rand(-10, 4), rand(-30, 30), rand(-90, -30), pick(['#ffd23f', '#fff6c0']), 0.6, 2);
+  sfx('up'); return true;
+}
+function sellCat(tw) {
+  addCoins(sellValue(tw));
+  tw.spot.tw = null; G.towers.splice(G.towers.indexOf(tw), 1);
+  for (let i = 0; i < 10; i++) addPart(tw.x + rand(-8, 8), tw.y, rand(-50, 50), rand(-70, -10), '#e8dcc0', 0.4, 2);
+  sfx('coin');
+}
+
+/* ---------- bugs ---------- */
+function spawnBug(type, pi, hm, d0) {
+  const B = BUGS[type], path = G.map.paths[pi] || G.map.paths[0];
+  const hp = B.hp * (hm || 1);
+  const b = {t: type, B, path: G.map.paths.indexOf(path), d: d0 || 0, x: 0, y: 0, hp, max: hp, arm: B.arm || 0,
+    sh: B.shield ? hp * B.shield : 0, shMax: B.shield ? hp * B.shield : 0, hm: hm || 1,
+    slow: 0, slowT: 0, aura: 0, frzT: 0, stunT: 0, bleedT: 0, bleedD: 0, abilT: 2, dashT: 0, hitT: 0,
+    off: B.boss ? 0 : rand(-4, 4), anim: rand(0, 1), flip: false, rev: false, dead: false};
+  const p = posAt(path, b.d); b.x = p.x; b.y = p.y;
+  G.bugs.push(b);
+  if (!S.seen[type]) { S.seen[type] = 1; save(); if (type !== 'ant' && type !== 'lady') newBugTip(type); }
+  return b;
+}
+function hurt(b, dmg, o) {
+  if (b.dead || dmg <= 0) return;
+  o = o || {};
+  let d = dmg;
+  if (!o.magic && !o.pierce && b.arm > 0) d = o.beam ? d * (1 - Math.min(0.6, b.arm * 0.06)) : Math.max(d * CONFIG.ARMOR_MIN, d - b.arm);
+  if (b.sh > 0) {
+    const t = Math.min(b.sh, d); b.sh -= t; d -= t;
+    if (b.sh <= 0) { addRing(b.x, b.y - 8, 6, 22, '#9fe8ff', 0.3); sfx('pop'); }
+  }
+  b.hp -= d; b.hitT = 0.08;
+  if (b.hp <= 0) killBug(b);
+}
+function killBug(b) {
+  if (b.dead) return;
+  b.dead = true;
+  const rew = Math.max(1, Math.round(b.B.rew * (1 + CONFIG.KILL_REWARD_GROWTH * (levelEq() - 1))));
+  addCoins(rew);
+  S.stats.kills++; G.kills++;
+  G.combo.n++; G.combo.t = CONFIG.COMBO_WINDOW;
+  if (G.combo.n > S.stats.maxCombo) S.stats.maxCombo = G.combo.n;
+  const pal = PALS[b.B.pal];
+  const n = b.B.boss ? 40 : 9;
+  for (let i = 0; i < n; i++) addPart(b.x, b.y - 6, rand(-80, 80), rand(-110, -20), pick([pal.a, pal.b || pal.a, '#fff']), rand(0.35, 0.7), b.B.boss ? 4 : 2);
+  addText(b.x, b.y - 18, '+' + rew, '#ffd23f');
+  if (b.B.split) for (let i = 0; i < b.B.split; i++) { const m = spawnBug('mini', b.path, b.hm, Math.max(0, b.d + (i ? -8 : 6))); m.off = b.off + (i ? 3 : -3); }
+  if (b.B.boss) {
+    S.stats.boss[b.t] = 1; G.shake = 12; addRing(b.x, b.y, 10, 90, '#ffd23f', 0.6); sfx('boom'); banner(tr('BOSS DOWN!'));
+  } else sfx('squish');
+}
+function bugReachedGoal(b) {
+  b.dead = true;
+  G.lives -= b.B.lv; G.lostAny = true; G.hurtT = 0.5;
+  if (window.__PDleak) window.__PDleak[b.t] = (window.__PDleak[b.t] || 0) + b.B.lv;
+  G.shake = Math.max(G.shake, b.B.boss ? 14 : 5);
+  const gx = G.map.goal.x, gy = G.map.goal.y + 10;
+  for (let i = 0; i < 12; i++) addPart(gx + rand(-20, 20), gy, rand(-80, 80), rand(-140, -40), pick(['#ff8a2a', '#8ed46b', '#e8483c']), 0.7, 3);
+  addText(gx, gy - 24, '-' + b.B.lv, '#ff6b6b');
+  sfx('hurt'); hudBump('hLives', true);
+  if (G.lives <= 0) { G.lives = 0; G.state = 'lost'; onLose(); }
+}
+
+/* ---------- targets ---------- */
+function canSee(b, st) { return !b.B.camo || b.rev || st.detect; }
+function prog(b) { return b.d / G.map.paths[b.path].len; }
+function findTarget(tw, st, exclude) {
+  let best = null, bv = -Infinity;
+  const r2 = st.range * st.range, air = st.c.air;
+  for (const b of G.bugs) {
+    if (b.dead || (b.B.fly && !air) || !canSee(b, st) || (exclude && exclude.includes(b))) continue;
+    const dx = b.x - tw.x, dy = b.y - tw.y, dd = dx * dx + dy * dy;
+    if (dd > r2) continue;
+    const v = tw.mode === 'first' ? prog(b) : tw.mode === 'last' ? -prog(b) : tw.mode === 'strong' ? b.hp : -dd;
+    if (v > bv) { bv = v; best = b; }
+  }
+  return best;
+}
+function bugsNear(x, y, r, groundOnly) {
+  const out = [];
+  for (const b of G.bugs) if (!b.dead && (!groundOnly || !b.B.fly) && (b.x - x) ** 2 + (b.y - y) ** 2 <= r * r) out.push(b);
+  return out;
+}
+
+/* ---------- launching waves ---------- */
+function launchWave(early) {
+  if (G.state !== 'play' || G.wi >= waveCount() || G.queue.length) return;
+  if (early && G.countdown > 0.5) {
+    const bonus = Math.ceil(G.countdown * CONFIG.EARLY_BONUS_PER_SEC);
+    addCoins(bonus); S.stats.early++;
+    addText(W / 2, 40, '+' + bonus, '#ffd23f');
+    hudBump('hCoins');
+  }
+  const wave = G.mode === 'endless' ? genEndlessWave(G.w, G.wi + 1, G.map.paths.length) : G.waves[G.wi];
+  G.wi++; G.started = true; G.countdown = null;
+  G.curHm = (wave.find(e => !BUGS[e.type].boss) || {hm: 1}).hm;
+  for (const e of wave) G.queue.push({t: G.time + e.t, type: e.type, path: e.path, hm: e.hm});
+  G.queue.sort((a, b) => a.t - b.t);
+  for (const tw of G.towers) if (tw.id === 'fish') {
+    const inc = tstats(tw).income; addCoins(inc); addText(tw.x, tw.y - 30, '+' + inc, '#6ec6ff'); tw.hop = 0.35;
+  }
+  const isBoss = wave.some(e => BUGS[e.type].boss);
+  banner(isBoss ? tr('BOSS!') : tr('Wave {n}', {n: G.wi}));
+  sfx(isBoss ? 'bossIn' : 'wave');
+  if (G.mode === 'endless') endlessProgress();
+  if (isBoss) bossTip();
+  tutEvent('wave');
+}
+
+/* ---------- power-ups ---------- */
+function powerMult() { return 1 + 0.15 * S.garden.power; }
+function usePower(id, x, y) {
+  if ((S.pw[id] || 0) <= 0 || G.state !== 'play') return false;
+  S.pw[id]--; S.stats.pwUsed++; save();
+  if (id === 'bomb') {
+    const r = CONFIG.BOMB_RADIUS * T, dmg = (CONFIG.BOMB_DMG + CONFIG.BOMB_DMG_PER_LEVEL * levelEq()) * powerMult();
+    for (const b of bugsNear(x, y, r, false)) hurt(b, b.B.boss ? dmg * 0.6 : dmg, {magic: 1});
+    addRing(x, y, 6, r, '#8fe85a', 0.5); addRing(x, y, 2, r * 0.7, '#fff6c0', 0.35);
+    for (let i = 0; i < 40; i++) addPart(x, y, rand(-160, 160), rand(-200, 40), pick(['#6fcf4a', '#d6ffc0', '#ffd23f']), rand(0.4, 0.9), 3);
+    G.shake = 10; sfx('boom');
+  } else if (id === 'laser') { G.laserT = CONFIG.LASER_TIME * powerMult(); sfx('zap'); banner(tr('Chase the dot!')); }
+  else if (id === 'nap') { G.napT = CONFIG.NAP_TIME * powerMult(); sfx('nap'); banner(tr('Nap time!')); }
+  return true;
+}
+
+/* ---------- effects ---------- */
+function addPart(x, y, vx, vy, col, life, sz) { if (G.parts.length < 500) G.parts.push({x, y, vx, vy, col, life, max: life, sz: sz || 2}); }
+function addText(x, y, s, col) { G.texts.push({x, y, s, col, life: 0.9}); }
+function addRing(x, y, r0, r1, col, life) { G.rings.push({x, y, r0, r1, col, life, max: life}); }
+
+/* =====================================================================
+   update(dt) — one step of the game. dt = seconds (already x speed).
+===================================================================== */
+function update(dt) {
+  if (G.state !== 'play') return;
+  G.time += dt;
+  // 1. spawn
+  while (G.queue.length && G.queue[0].t <= G.time) { const q = G.queue.shift(); spawnBug(q.type, q.path, q.hm); }
+  // 2. countdown to the next wave
+  if (G.started && !G.queue.length && G.wi < waveCount()) {
+    if (G.countdown === null) G.countdown = CONFIG.WAVE_GAP;
+    G.countdown -= dt;
+    if (G.countdown <= 0) launchWave(false);
+  }
+  G.napT = Math.max(0, G.napT - dt); G.laserT = Math.max(0, G.laserT - dt);
+  G.hurtT = Math.max(0, G.hurtT - dt);
+  // 3. cheer buffs + who can see invisible bugs
+  for (const tw of G.towers) { tw.buff = 0; tw.cheerDetect = false; }
+  for (const ch of G.towers) if (ch.id === 'cheer' && ch.webT <= 0) {
+    const st = tstats(ch);
+    for (const tw of G.towers) if (tw !== ch && dist(tw, ch) <= st.range + 2) {
+      tw.buff = Math.max(tw.buff, st.buff);
+      if (ch.lv >= 3) tw.cheerDetect = true;
+    }
+  }
+  const sts = new Map();
+  for (const tw of G.towers) sts.set(tw, tstats(tw));
+  for (const b of G.bugs) {
+    b.aura = 0;
+    if (b.B.camo) { b.rev = false; for (const tw of G.towers) { const st = sts.get(tw); if (st.detect && st.range && tw.webT <= 0 && (b.x - tw.x) ** 2 + (b.y - tw.y) ** 2 <= st.range * st.range) { b.rev = true; break; } } }
+  }
+  // sleepy auras
+  for (const tw of G.towers) if (tw.id === 'sleepy' && tw.webT <= 0) {
+    const st = sts.get(tw);
+    for (const b of bugsNear(tw.x, tw.y, st.range, false)) b.aura = Math.max(b.aura, b.B.boss ? st.slow * 0.5 : st.slow);
+  }
+  // 4. move bugs
+  for (const b of G.bugs) {
+    if (b.dead) continue;
+    const path = G.map.paths[b.path];
+    let sp = b.B.spd * T;
+    if (b.B.rage) sp *= 1 + (1 - b.hp / b.max) * 1.2;
+    if (b.dashT > 0) { b.dashT -= dt; sp *= 4; }
+    b.slowT -= dt; if (b.slowT <= 0) b.slow = 0;
+    sp *= 1 - Math.max(b.slow, b.aura);
+    b.frzT -= dt; b.stunT -= dt;
+    if (b.frzT > 0 || b.stunT > 0 || G.napT > 0) sp = 0;
+    else if (G.laserT > 0) sp *= b.B.boss ? -0.3 : -0.7;
+    b.d = Math.max(0, b.d + sp * dt);
+    b.anim += Math.abs(sp) * dt * 0.08;
+    b.hitT -= dt;
+    if (b.bleedT > 0) { b.bleedT -= dt; hurt(b, b.bleedD * dt, {pierce: 1}); if (b.dead) continue; }
+    if (b.d >= path.len) { bugReachedGoal(b); if (G.state !== 'play') return; continue; }
+    const p = posAt(path, b.d);
+    b.x = p.x - p.dy * b.off; b.y = p.y + p.dx * b.off;
+    if (Math.abs(p.dx) > 0.5) b.flip = p.dx < 0;
+    // special powers
+    if (G.napT <= 0) bugAbility(b, dt);
+  }
+  // 5. cats attack
+  for (const tw of G.towers) {
+    tw.t += dt; tw.anim = Math.max(0, tw.anim - dt); tw.hop = Math.max(0, tw.hop - dt);
+    tw.blink -= dt; if (tw.blink < -0.15) tw.blink = rand(2, 5);
+    if (tw.webT > 0) { tw.webT -= dt; tw.tg = null; continue; }
+    catAct(tw, sts.get(tw), dt);
+  }
+  // 6. shots
+  for (const p of G.projs) moveProj(p, dt);
+  G.projs = G.projs.filter(p => !p.done);
+  G.bugs = G.bugs.filter(b => !b.dead);
+  // 7. combo
+  if (G.combo.t > 0) {
+    G.combo.t -= dt;
+    if (G.combo.t <= 0) {
+      if (G.combo.n >= CONFIG.COMBO_MIN) {
+        const bonus = G.combo.n * CONFIG.COMBO_FISH; addCoins(bonus);
+        comboEnd(G.combo.n, bonus);
+      }
+      G.combo.n = 0;
+    }
+  }
+  // 8. effects
+  for (const p of G.parts) { p.life -= dt; p.vy += 260 * dt; p.x += p.vx * dt; p.y += p.vy * dt; }
+  G.parts = G.parts.filter(p => p.life > 0);
+  for (const t of G.texts) { t.life -= dt; t.y -= 26 * dt; }
+  G.texts = G.texts.filter(t => t.life > 0);
+  for (const r of G.rings) r.life -= dt; G.rings = G.rings.filter(r => r.life > 0);
+  for (const z of G.zaps) z.life -= dt; G.zaps = G.zaps.filter(z => z.life > 0);
+  for (const s of G.slashes) s.life -= dt; G.slashes = G.slashes.filter(s => s.life > 0);
+  G.shake = Math.max(0, G.shake - dt * 30);
+  // 9. win?
+  if (G.started && G.wi >= waveCount() && !G.queue.length && !G.bugs.length) { G.state = 'won'; onWin(); }
+}
+
+function bugAbility(b, dt) {
+  const B = b.B;
+  if (B.heal) {
+    b.abilT -= dt;
+    if (b.abilT <= 0) {
+      b.abilT = 2;
+      for (const o of bugsNear(b.x, b.y, 1.8 * T, false)) if (o !== b && !o.B.heal && o.hp < o.max) {
+        o.hp = Math.min(o.max, o.hp + o.max * (o.B.boss ? 0.02 : 0.07)); addText(o.x, o.y - 14, '+', '#8fe85a');
+      }
+      addRing(b.x, b.y - 6, 4, 1.8 * T, '#f6ff8a', 0.4);
+    }
+  }
+  if (!B.boss) return;
+  b.abilT -= dt;
+  if (b.abilT > 0) return;
+  if (B.spawn) {
+    b.abilT = B.spawn === 'wasp' ? 5 : 4.5;
+    for (let i = 0; i < (B.spawn === 'wasp' ? 3 : 2); i++) { const m = spawnBug(B.spawn, b.path, (G.curHm || 1) * 1.2, Math.max(0, b.d - 10 - i * 8)); m.off = rand(-6, 6); }
+    addRing(b.x, b.y, 6, 30, '#ffd23f', 0.3);
+    if (B.shield) { b.sh = b.shMax; addRing(b.x, b.y - 10, 10, 40, '#9fe8ff', 0.5); }
+  } else if (B.dash) { b.abilT = 5; b.dashT = 0.7; sfx('dash'); }
+  else if (B.web) {
+    b.abilT = 5.5;
+    let best = null, bd = 3.6 * T;
+    for (const tw of G.towers) { const d = dist(tw, b); if (d < bd && tw.webT <= 0) { bd = d; best = tw; } }
+    if (best) { best.webT = 3; G.zaps.push({pts: [{x: b.x, y: b.y - 20}, {x: best.x, y: best.y - 12}], life: 0.35, col: '#f0f0ff', web: 1}); sfx('web'); }
+  }
+}
+
+function catAct(tw, st, dt) {
+  const c = st.c;
+  if (c.kind === 'farm' || c.kind === 'buff') return;
+  if (c.kind === 'aura') {
+    tw.cd -= dt;
+    if (tw.cd <= 0) {
+      tw.cd = 1 / st.rate;
+      const hit = bugsNear(tw.x, tw.y, st.range, false).filter(b => canSee(b, st));
+      hit.forEach(b => hurt(b, st.dmg));
+      if (hit.length) addPart(tw.x + 8, tw.y - 24, rand(5, 15), -30, '#bfe1ff', 1, 3);
+    }
+    return;
+  }
+  if (c.kind === 'beam') {
+    let tg = tw.tg;
+    if (!tg || tg.dead || (tg.x - tw.x) ** 2 + (tg.y - tw.y) ** 2 > st.range * st.range || !canSee(tg, st)) tg = findTarget(tw, st);
+    if (tg !== tw.tg) tw.heat = 0;
+    tw.tg = tg;
+    if (tg) {
+      tw.heat = Math.min(2, tw.heat + dt);
+      tw.face = tg.x < tw.x;
+      hurt(tg, st.dmg * (1 + tw.heat) * dt, {beam: 1, pierce: st.sp});
+      if (Math.random() < dt * 20) addPart(tg.x + rand(-4, 4), tg.y - 8, rand(-30, 30), rand(-60, -10), pick(['#ff3b3b', '#ffd0d0']), 0.3, 2);
+      sfxLoop('laser');
+    } else tw.heat = Math.max(0, tw.heat - dt * 2);
+    return;
+  }
+  tw.cd -= dt;
+  if (tw.cd > 0) return;
+  if (c.kind === 'slam') {
+    const hit = bugsNear(tw.x, tw.y, st.range, true);
+    if (!hit.length) { tw.cd = 0; return; }
+    tw.cd = 1 / st.rate; tw.hop = 0.45; tw.anim = 0.3;
+    hit.forEach(b => { hurt(b, st.dmg); b.stunT = Math.max(b.stunT, b.B.boss ? st.stun * 0.3 : st.stun); });
+    addRing(tw.x, tw.y + 4, 8, st.range, '#ffe6a0', 0.35);
+    for (let i = 0; i < 14; i++) addPart(tw.x + rand(-st.range, st.range) * 0.7, tw.y + rand(-6, 10), rand(-20, 20), rand(-80, -20), '#c9a77e', 0.5, 3);
+    G.shake = Math.max(G.shake, 4); sfx('slam');
+    return;
+  }
+  const tg = findTarget(tw, st);
+  if (!tg) { tw.cd = 0; return; }
+  tw.cd = 1 / st.rate; tw.anim = 0.15; tw.face = tg.x < tw.x;
+  const sx = tw.x, sy = tw.y - 16;
+  if (c.kind === 'melee') {
+    hurt(tg, st.dmg);
+    if (st.sp && !tg.dead) { tg.bleedT = 2; tg.bleedD = st.dmg * 0.4; }
+    G.slashes.push({x: tg.x, y: tg.y - 8, life: 0.15, a: rand(0, 3)});
+    sfx('claw');
+  } else if (c.kind === 'proj') {
+    let dmg = st.dmg, crit = false;
+    if (c.id === 'wiz' && st.sp && Math.random() < 0.25) { dmg *= 2.5; crit = true; }
+    G.projs.push({k: c.proj, x: sx, y: sy, tg, tx: tg.x, ty: tg.y, spd: c.pspd * T, dmg, st, crit, bounce: c.id === 'yarn' && st.sp, rot: 0});
+    sfx(c.id === 'yarn' ? 'throw' : c.id === 'ice' ? 'ice' : 'magic');
+  } else if (c.kind === 'lob') {
+    const d = dist({x: sx, y: sy}, tg);
+    G.projs.push({k: 'lob', x: sx, y: sy, sx, sy, tx: tg.x, ty: tg.y, t: 0, dur: d / (c.pspd * T) + 0.25, dmg: st.dmg, st, rot: 0});
+    sfx('lob');
+  } else if (c.kind === 'chain') {
+    const pts = [{x: sx, y: sy}], hit = [];
+    let cur = tg, dmg = st.dmg;
+    for (let i = 0; i < st.chain && cur; i++) {
+      hit.push(cur); pts.push({x: cur.x, y: cur.y - 8});
+      hurt(cur, dmg); dmg *= 0.8;
+      let nx = null, nd = 1.9 * T;
+      for (const b of G.bugs) if (!b.dead && !hit.includes(b) && canSee(b, st)) { const d = dist(b, cur); if (d < nd) { nd = d; nx = b; } }
+      cur = nx;
+    }
+    G.zaps.push({pts, life: 0.18, col: '#fff36a'});
+    sfx('zap');
+  } else if (c.kind === 'multi') {
+    const tgs = [tg];
+    for (let i = 1; i < st.shots; i++) { const t2 = findTarget(tw, st, tgs); if (t2) tgs.push(t2); else break; }
+    for (let i = 0; i < st.shots; i++) {
+      const t = tgs[i % tgs.length];
+      G.projs.push({k: 'star', x: sx + (i - 1) * 4, y: sy, tg: t, tx: t.x, ty: t.y, spd: c.pspd * T, dmg: st.dmg, st, rot: 0});
+    }
+    sfx('throw');
+  }
+}
+
+function moveProj(p, dt) {
+  p.rot += dt * 14;
+  if (p.k === 'lob') {
+    p.t += dt;
+    const k = Math.min(1, p.t / p.dur);
+    p.x = p.sx + (p.tx - p.sx) * k; p.y = p.sy + (p.ty - p.sy) * k - Math.sin(k * Math.PI) * 40;
+    if (k >= 1) {
+      p.done = true;
+      const r = p.st.splash;
+      for (const b of bugsNear(p.tx, p.ty, r, true)) {
+        hurt(b, p.dmg);
+        if (p.st.sp && !b.dead) { b.slow = Math.max(b.slow, 0.25); b.slowT = 1.5; }
+      }
+      addRing(p.tx, p.ty, 3, r, '#8fd65a', 0.3);
+      for (let i = 0; i < 8; i++) addPart(p.tx, p.ty, rand(-60, 60), rand(-90, -20), pick(['#8fd65a', '#5aa63f']), 0.45, 2);
+      sfx('splat');
+    }
+    return;
+  }
+  const tg = p.tg && !p.tg.dead ? p.tg : null;
+  if (tg) { p.tx = tg.x; p.ty = tg.y - (tg.B.fly ? 14 : 6); }
+  const dx = p.tx - p.x, dy = p.ty - p.y, d = Math.hypot(dx, dy), step = p.spd * dt;
+  if (d <= step + 2) {
+    p.done = true;
+    if (!tg) return;
+    hurt(tg, p.dmg, {magic: p.k === 'magic'});
+    if (p.k === 'ice' && !tg.dead) {
+      tg.slow = Math.max(tg.slow, p.st.c.slow); tg.slowT = 1.5;
+      const fc = p.st.c.freeze * (p.st.sp ? 2 : 1);
+      if (!tg.B.boss && Math.random() < fc) { tg.frzT = 0.9; addRing(tg.x, tg.y - 6, 3, 14, '#bff0ff', 0.3); }
+    }
+    if (p.crit) { addText(tg.x, tg.y - 24, '!', '#d6a8ff'); addRing(tg.x, tg.y - 6, 3, 18, '#d6a8ff', 0.3); }
+    if (p.bounce) {
+      let nx = null, nd = 1.6 * T;
+      for (const b of G.bugs) if (!b.dead && b !== tg && canSee(b, p.st)) { const dd = dist(b, tg); if (dd < nd) { nd = dd; nx = b; } }
+      if (nx) G.projs.push({k: 'yarn', x: p.x, y: p.y, tg: nx, tx: nx.x, ty: nx.y, spd: p.spd, dmg: p.dmg * 0.6, st: p.st, rot: 0});
+    }
+    for (let i = 0; i < 3; i++) addPart(p.x, p.y, rand(-40, 40), rand(-50, 0), p.k === 'yarn' ? '#ff7aa2' : p.k === 'ice' ? '#bff0ff' : p.k === 'magic' ? '#d6a8ff' : '#dfe3ee', 0.3, 2);
+    return;
+  }
+  p.x += dx / d * step; p.y += dy / d * step;
+}
+/* =====================================================================
+   8. DRAWING — map background (drawn once), then every frame:
+   veggies -> cats & bugs (back to front) -> shots -> effects
+===================================================================== */
+const cv = $('cv'), ctx = cv.getContext('2d');
+let dpr = 1, scale = 1, offX = 0, offY = 0;
+
+function drawMapBG(map) {
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const Wd = WORLDS[map.world], rng = RNG(map.seed + 3), g = map.grid;
+  const isP = (tx, ty) => tx >= 0 && ty >= 0 && tx < COLS && ty < ROWS && g[ty][tx] === 1;
+  for (let ty = 0; ty < ROWS; ty++) for (let tx = 0; tx < COLS; tx++) {
+    const px = tx * T, py = ty * T;
+    if (g[ty][tx] === 1) {
+      x.fillStyle = Wd.path[0]; x.fillRect(px, py, T, T);
+      for (let i = 0; i < 5; i++) { x.fillStyle = Wd.path[1]; x.fillRect(px + Math.floor(rng() * 11) * 2, py + Math.floor(rng() * 11) * 2, 2, 2); }
+    } else {
+      x.fillStyle = Wd.grass[(tx + ty) % 2]; x.fillRect(px, py, T, T);
+      for (let i = 0; i < 4; i++) {
+        x.fillStyle = rng() < 0.5 ? 'rgba(0,0,0,.07)' : 'rgba(255,255,255,.09)';
+        x.fillRect(px + Math.floor(rng() * 11) * 2, py + Math.floor(rng() * 11) * 2, 2, 2);
+      }
+      if (map.world === 1) { x.fillStyle = 'rgba(120,90,60,.18)'; x.fillRect(px, py + T - 1, T, 1); x.fillRect(px + T - 1, py, 1, T); }
+      if (map.world === 2) { x.fillStyle = 'rgba(40,20,10,.22)'; x.fillRect(px, py + (tx % 2 ? 11 : 23), T, 1); }
+    }
+  }
+  // path edges
+  x.fillStyle = Wd.edge;
+  for (let ty = 0; ty < ROWS; ty++) for (let tx = 0; tx < COLS; tx++) {
+    if (!isP(tx, ty)) continue;
+    const px = tx * T, py = ty * T;
+    if (!isP(tx, ty - 1) && ty > 0) x.fillRect(px, py, T, 2);
+    if (!isP(tx, ty + 1) && ty < ROWS - 1) x.fillRect(px, py + T - 2, T, 2);
+    if (!isP(tx - 1, ty) && tx > 0) x.fillRect(px, py, 2, T);
+    if (!isP(tx + 1, ty) && tx < COLS - 1) x.fillRect(px + T - 2, py, 2, T);
+  }
+  // veggie patch soil
+  const gl = map.goal;
+  x.fillStyle = '#6b4226'; x.fillRect((gl.tx - 1) * T + 2, gl.ty * T + 2, 3 * T - 4, 2 * T - 4);
+  x.fillStyle = '#58351e'; for (let i = 0; i < 3; i++) x.fillRect((gl.tx - 1) * T + 6, gl.ty * T + 9 + i * 13, 3 * T - 12, 3);
+  x.strokeStyle = OUT; x.lineWidth = 2; x.strokeRect((gl.tx - 1) * T + 2, gl.ty * T + 2, 3 * T - 4, 2 * T - 4);
+  // decorations
+  for (const d of map.decor) {
+    const [nm, pal] = d.k.split(':');
+    drawSpr(x, sprite(nm, pal || nm), d.x, d.y, nm === 'box' ? 1 : 0.8);
+  }
+  // cushions
+  for (const s of map.spots) drawSpr(x, sprite('cushion', Wd.cush), s.x, s.y + 8, 1);
+  // entrance arrows
+  for (const p of map.paths) {
+    const a = p.P[0], b = p.P[1];
+    const ex = clamp(a.x, 10, W - 10), ey = clamp(a.y, 10, H - 10);
+    x.fillStyle = '#e8483c'; x.strokeStyle = OUT;
+    x.save(); x.translate(ex + Math.sign(b.x - a.x) * 8, ey + Math.sign(b.y - a.y) * 8); x.rotate(Math.atan2(b.y - a.y, b.x - a.x));
+    x.beginPath(); x.moveTo(8, 0); x.lineTo(-6, -7); x.lineTo(-6, 7); x.closePath(); x.fill(); x.stroke(); x.restore();
+  }
+  if (WORLDS[map.world].night) {
+    const gr = x.createRadialGradient(W / 2, H / 2, 100, W / 2, H / 2, 420);
+    gr.addColorStop(0, 'rgba(10,15,40,0)'); gr.addColorStop(1, 'rgba(10,15,40,.45)');
+    x.fillStyle = gr; x.fillRect(0, 0, W, H);
+  }
+  return c;
+}
+
+/* ---- a cat. Used on the map AND for menu icons ---- */
+function drawCat(x, id, breed, cx, by, o) {
+  o = o || {};
+  const c = CAT[id], sc = (o.sc || 1) * (id === 'chonk' ? 1.45 : 1);
+  const P = PX * sc;
+  const blink = id === 'sleepy' || o.blink;
+  const body = sprite(blink ? 'catBlink' : 'cat', 'cat_' + breed, catPal(breed));
+  const pal = catPal(breed);
+  const hop = o.hop > 0 ? -Math.sin(o.hop / 0.35 * Math.PI) * 4 * sc : 0;
+  const squash = o.anim > 0 ? 1 + o.anim * 0.6 : 1;
+  by += hop;
+  // tail (wags)
+  const wag = Math.round(Math.sin((o.t || 0) * 3) * 1);
+  x.fillStyle = pal.o;
+  const tx0 = cx + 5 * P, ty0 = by - 4 * P;
+  x.fillRect(tx0, ty0 - P, 2 * P, P * 2); x.fillRect(tx0 + P, ty0 - 3 * P + wag * P, P * 2, P * 3);
+  x.fillStyle = pal.f;
+  x.fillRect(tx0 + P, ty0 - 2 * P + wag * P, P, P * 2);
+  x.save();
+  x.translate(cx, by); x.scale(o.flip ? -squash : squash, 1 / squash);
+  x.drawImage(body, -6 * P, -13 * P, 12 * P, 13 * P);
+  x.restore();
+  const y0 = by - 13 * P / squash;
+  const acc = c.acc;
+  const A = (n, ax, ay, pal2) => drawSpr(x, sprite(n, pal2 || n, ACC_PAL[pal2 || n]), ax, ay, sc);
+  if (acc === 'hatPoint_ice' || acc === 'hatPoint_wiz') A('hatPoint', cx, y0 + 2 * P, acc);
+  else if (acc === 'nightcap') A('nightcap', cx, y0 + 2 * P);
+  else if (acc === 'straw') { A('straw', cx, y0 + 3 * P); A('fishy', cx - 6 * P, by + 1, 'fishy'); }
+  else if (acc === 'goggles') A('goggles', cx, y0 + 6 * P);
+  else if (acc === 'mask') A('mask', cx + P, y0 + 7 * P);
+  else if (acc === 'visor') A('visor', cx, y0 + 7 * P);
+  else if (acc === 'bandana') A('bandana', cx, y0 + 12 * P);
+  else if (acc === 'bell') A('bell', cx, y0 + 13 * P);
+  else if (acc === 'yarnball') A('yarnball', cx - 5 * P, by + 1);
+  else if (acc === 'hairball') A('hairball', cx - 5 * P, by + 1);
+  else if (acc === 'pompom') { A('pompom', cx - 6 * P, by - P); A('pompom', cx + 6 * P, by - P); }
+  if (o.web > 0) drawSpr(x, sprite('web', 'web'), cx, by, sc * 1.3, false, 0.85);
+}
+function catURL(id, breed, scale) {
+  scale = scale || 2;
+  const w = 20 * PX * scale, h = 22 * PX * scale;
+  return iconURL('cat|' + id + '|' + breed + '|' + scale, x => drawCat(x, id, breed, w / 2 - 2 * scale, h - 2 * scale, {sc: scale, t: 0}), w, h);
+}
+function bugURL(type, scale) {
+  const B = BUGS[type]; const name = B.spr || (type === 'mini' ? 'pill' : type);
+  const s = sprite(name, B.pal); scale = scale || 4;
+  return iconURL('bug|' + type + '|' + scale, x => {
+    x.drawImage(s, 2 * scale, 6 * scale, s.width * scale, s.height * scale);
+    if (B.boss && (type === 'queen' || type === 'hornet')) { const cr = sprite('crown', 'crown'); x.drawImage(cr, (s.width / 2 - 2.5) * scale, 0, cr.width * scale, cr.height * scale); }
+  }, (s.width + 4) * scale, (s.height + 8) * scale);
+}
+function breedName(id) { return BREED[id] ? tr(BREED[id].name) : ''; }
+function breedOf(catId) { const b = S.breedPick[catId]; return b && S.breedOwn[b] ? b : 'tabby'; }
+
+/* ---- a bug ---- */
+const whitePal = {o: '#fff', a: '#fff', b: '#fff', e: '#fff', k: '#fff', l: '#fff', w: '#fff', s: '#fff', g: '#fff'};
+function drawBug(x, b) {
+  const B = b.B;
+  let name = B.spr || (b.t === 'mini' ? 'pill' : b.t);
+  const moving = G.napT <= 0 && b.frzT <= 0 && b.stunT <= 0;
+  if (SPR[name + '2'] && moving && Math.floor(b.anim * (B.fly ? 3 : 1) + G.time * (B.fly ? 10 : 0)) % 2) name += '2';
+  const img = b.hitT > 0 ? sprite(name, 'white', whitePal) : sprite(name, B.pal);
+  const sc = B.sc || 1;
+  let y = b.y + 6;
+  const alpha = B.camo ? (b.rev ? 0.7 : 0.2) : 1;
+  if (B.fly) {
+    x.fillStyle = 'rgba(0,0,0,.22)';
+    x.beginPath(); x.ellipse(b.x, b.y + 6, 6 * sc, 2.5 * sc, 0, 0, 7); x.fill();
+    y -= 12 + Math.sin(G.time * 6 + b.off) * 2;
+  }
+  const side = name.startsWith('snail') || name.startsWith('cater');
+  drawSpr(x, img, b.x, y, sc, side ? b.flip : false, alpha);
+  const h = img.height * PX * sc;
+  if (B.boss && B.spr) drawSpr(x, sprite('crown', 'crown'), b.x, y - h + 4, sc * 0.7);
+  if (b.frzT > 0) { x.fillStyle = 'rgba(160,230,255,.55)'; x.fillRect(b.x - img.width * sc, y - h, img.width * PX * sc, h); }
+  else if (Math.max(b.slow, b.aura) > 0) { x.fillStyle = '#bff0ff'; x.fillRect(b.x - 9 * sc, y - h - 2, 2, 2); x.fillRect(b.x + 7 * sc, y - h + 2, 2, 2); }
+  if (b.stunT > 0 || G.napT > 0) {
+    for (let i = 0; i < 3; i++) { const a = G.time * 5 + i * 2.1; x.fillStyle = G.napT > 0 ? '#bfe1ff' : '#ffd23f'; x.fillRect(b.x + Math.cos(a) * 8 * sc - 1, y - h - 2 + Math.sin(a) * 2, 3, 3); }
+  }
+  if (b.sh > 0) {
+    x.strokeStyle = 'rgba(160,232,255,.85)'; x.lineWidth = 2;
+    x.beginPath(); x.arc(b.x, y - h / 2, h * 0.62, 0, 7); x.stroke();
+  }
+  if (b.hp < b.max && alpha > 0.3) {
+    const bw = Math.max(16, 14 * sc), bx = b.x - bw / 2, byy = y - h - 6;
+    x.fillStyle = OUT; x.fillRect(bx - 1, byy - 1, bw + 2, 5);
+    x.fillStyle = '#5a2030'; x.fillRect(bx, byy, bw, 3);
+    x.fillStyle = b.hp / b.max > 0.5 ? '#7ee05a' : b.hp / b.max > 0.25 ? '#ffd23f' : '#ff5a5a';
+    x.fillRect(bx, byy, bw * clamp(b.hp / b.max, 0, 1), 3);
+    if (b.shMax > 0 && b.sh > 0) { x.fillStyle = '#9fe8ff'; x.fillRect(bx, byy - 3, bw * b.sh / b.shMax, 2); }
+  }
+}
+
+/* ---- veggies on the patch (fewer as you lose lives) ---- */
+const VEG = ['carrot', 'cabbage', 'tomato', 'carrot', 'tomato', 'cabbage'];
+function drawPatch(x) {
+  const gl = G.map.goal, n = Math.ceil(G.lives / G.maxLives * 6);
+  for (let i = 0; i < 6; i++) {
+    if (i >= n) continue;
+    const vx = (gl.tx - 1) * T + 12 + (i % 3) * 24, vy = gl.ty * T + 20 + Math.floor(i / 3) * 22;
+    const wob = G.hurtT > 0 ? Math.sin(G.time * 40 + i) * 2 : Math.sin(G.time * 2 + i) * 0.6;
+    drawSpr(x, sprite(VEG[i], VEG[i]), vx + wob, vy, 1);
+  }
+}
+
+function draw() {
+  const sh = G.shake > 0 ? G.shake : 0;
+  const sx = sh ? rand(-sh, sh) * 0.5 : 0, sy = sh ? rand(-sh, sh) * 0.5 : 0;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = WORLDS[G.map.world].grass[1]; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, dpr * (offX + sx), dpr * (offY + sy));
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(G.map.bg, 0, 0, W, H);
+  drawPatch(ctx);
+  // range preview
+  const sel = G.selTower || (G.selSpot && G.pick ? {x: G.selSpot.x, y: G.selSpot.y, id: G.pick, lv: 1, preview: 1} : null);
+  if (sel) {
+    const st = tstats(sel), r = st.range || (sel.id === 'fish' ? 0 : 0);
+    if (r) {
+      ctx.fillStyle = 'rgba(255,255,255,.14)'; ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.arc(sel.x, sel.y, r, 0, 7); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+  if (G.selSpot && !G.selSpot.tw) {
+    const s = G.selSpot, p = 1 + Math.sin(G.time * 8) * 0.08;
+    ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 3; ctx.strokeRect(s.x - 12 * p, s.y - 12 * p, 24 * p, 24 * p);
+    if (G.pick) drawCat(ctx, G.pick, breedOf(G.pick), s.x, s.y + 9, {t: G.time});
+  }
+  // cats + bugs, sorted so lower things are in front
+  const list = [];
+  for (const tw of G.towers) list.push({y: tw.y + 9, tw});
+  for (const b of G.bugs) list.push({y: b.y + (b.B.fly ? 30 : 0), b});
+  list.sort((a, b) => a.y - b.y);
+  for (const it of list) {
+    if (it.tw) {
+      const tw = it.tw;
+      drawCat(ctx, tw.id, breedOf(tw.id), tw.x, tw.y + 9, {t: tw.t, hop: tw.hop, anim: tw.anim, flip: tw.face, blink: tw.blink < 0, web: tw.webT});
+      for (let i = 0; i < tw.lv; i++) { ctx.fillStyle = OUT; ctx.fillRect(tw.x - 10 + i * 4.5, tw.y + 10, 4, 4); ctx.fillStyle = '#ffd23f'; ctx.fillRect(tw.x - 9.5 + i * 4.5, tw.y + 10.5, 3, 3); }
+      if (tw.buff > 0) { ctx.fillStyle = '#ff7aa2'; ctx.fillRect(tw.x + 10, tw.y - 22 + Math.sin(tw.t * 4) * 2, 3, 3); }
+      if (tw === G.selTower) { ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 2; ctx.strokeRect(tw.x - 13, tw.y - 18, 26, 32); }
+    } else drawBug(ctx, it.b);
+  }
+  // laser beams
+  for (const tw of G.towers) if (tw.id === 'laser' && tw.tg && !tw.tg.dead && tw.webT <= 0) {
+    const tg = tw.tg, w = 2 + tw.heat * 1.5 + Math.sin(G.time * 40);
+    const ey = tw.y - 6 - 15;
+    ctx.strokeStyle = 'rgba(255,60,60,.5)'; ctx.lineWidth = w + 4; ctx.beginPath(); ctx.moveTo(tw.x, ey); ctx.lineTo(tg.x, tg.y - (tg.B.fly ? 18 : 8)); ctx.stroke();
+    ctx.strokeStyle = '#fff0f0'; ctx.lineWidth = Math.max(1, w * 0.5); ctx.beginPath(); ctx.moveTo(tw.x, ey); ctx.lineTo(tg.x, tg.y - (tg.B.fly ? 18 : 8)); ctx.stroke();
+  }
+  // shots
+  for (const p of G.projs) {
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    if (p.k === 'yarn') { ctx.fillStyle = OUT; ctx.fillRect(-4, -4, 8, 8); ctx.fillStyle = '#ff7aa2'; ctx.fillRect(-3, -3, 6, 6); ctx.fillStyle = '#ffc4d6'; ctx.fillRect(-3, -1, 6, 2); }
+    else if (p.k === 'ice') { ctx.fillStyle = '#e8fbff'; ctx.fillRect(-4, -1.5, 8, 3); ctx.fillRect(-1.5, -4, 3, 8); ctx.fillStyle = '#7ad8ff'; ctx.fillRect(-2, -2, 4, 4); }
+    else if (p.k === 'magic') { ctx.fillStyle = '#ffe680'; ctx.fillRect(-1.5, -5, 3, 10); ctx.fillRect(-5, -1.5, 10, 3); ctx.fillStyle = '#b383ff'; ctx.fillRect(-2.5, -2.5, 5, 5); }
+    else if (p.k === 'star') { ctx.fillStyle = OUT; ctx.fillRect(-5, -1.5, 10, 3); ctx.fillRect(-1.5, -5, 3, 10); ctx.fillStyle = '#dfe3ee'; ctx.fillRect(-4, -0.5, 8, 1); ctx.fillRect(-0.5, -4, 1, 8); }
+    else if (p.k === 'lob') { ctx.fillStyle = '#2a4a1c'; ctx.fillRect(-5, -5, 10, 10); ctx.fillStyle = '#8fd65a'; ctx.fillRect(-4, -4, 8, 8); ctx.fillStyle = '#5aa63f'; ctx.fillRect(-1, -4, 2, 8); }
+    ctx.restore();
+  }
+  // lightning + webs
+  for (const z of G.zaps) {
+    ctx.strokeStyle = z.col; ctx.lineWidth = z.web ? 2 : 3; ctx.beginPath();
+    z.pts.forEach((p, i) => {
+      if (!i) { ctx.moveTo(p.x, p.y); return; }
+      const q = z.pts[i - 1];
+      if (!z.web) for (let k = 1; k < 4; k++) ctx.lineTo(q.x + (p.x - q.x) * k / 4 + rand(-5, 5), q.y + (p.y - q.y) * k / 4 + rand(-5, 5));
+      ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+  }
+  for (const s of G.slashes) {
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+    for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(s.x - 8 + i * 4, s.y - 8); ctx.lineTo(s.x + 6 + i * 4, s.y + 8); ctx.stroke(); }
+  }
+  for (const r of G.rings) {
+    const k = 1 - r.life / r.max;
+    ctx.strokeStyle = r.col; ctx.globalAlpha = 1 - k; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r0 + (r.r1 - r.r0) * k, 0, 7); ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  for (const p of G.parts) { ctx.globalAlpha = clamp(p.life / p.max * 1.5, 0, 1); ctx.fillStyle = p.col; ctx.fillRect(p.x - p.sz / 2, p.y - p.sz / 2, p.sz, p.sz); }
+  ctx.globalAlpha = 1;
+  for (const t of G.texts) { ctx.globalAlpha = clamp(t.life * 2, 0, 1); pixText(ctx, t.s, t.x, t.y, 2, t.col); }
+  ctx.globalAlpha = 1;
+  // night fireflies
+  if (WORLDS[G.map.world].night) for (let i = 0; i < 10; i++) {
+    const fx = (i * 97 + Math.sin(G.time * 0.5 + i) * 30 + 600) % W, fy = (i * 151 + Math.cos(G.time * 0.4 + i * 2) * 40 + 600) % H;
+    ctx.globalAlpha = 0.4 + 0.4 * Math.sin(G.time * 3 + i); ctx.fillStyle = '#f6ff8a'; ctx.fillRect(fx, fy, 3, 3);
+  }
+  ctx.globalAlpha = 1;
+  // power-up overlays
+  if (G.napT > 0) { ctx.fillStyle = 'rgba(40,60,140,.18)'; ctx.fillRect(0, 0, W, H); }
+  if (G.laserT > 0) {
+    for (const p of G.map.paths) {
+      const q = posAt(p, p.len * 0.06 + Math.sin(G.time * 3) * 20);
+      const lx = q.x + Math.sin(G.time * 9) * 6, ly = q.y + Math.cos(G.time * 7) * 6;
+      ctx.fillStyle = 'rgba(255,40,40,.35)'; ctx.beginPath(); ctx.arc(lx, ly, 9, 0, 7); ctx.fill();
+      ctx.fillStyle = '#ff2a2a'; ctx.beginPath(); ctx.arc(lx, ly, 4, 0, 7); ctx.fill();
+    }
+  }
+  if (G.pmode === 'bomb' && G.aim) {
+    const r = CONFIG.BOMB_RADIUS * T;
+    ctx.strokeStyle = '#8fe85a'; ctx.lineWidth = 3; ctx.setLineDash([6, 4]);
+    ctx.beginPath(); ctx.arc(G.aim.x, G.aim.y, r, 0, 7); ctx.stroke(); ctx.setLineDash([]);
+  }
+}
+
+/* ---- comic panels ---- */
+function drawComic(c, w, d, t) {
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+  const CW = c.width, CH = c.height, Wd = WORLDS[w];
+  x.setTransform(CW / 200, 0, 0, CH / 120, 0, 0);
+  const sky = w === 3 || d === 'night' || d === 'hornet' ? '#1e2f4f' : w === 1 ? '#cfe6ff' : w === 2 ? '#3b2a44' : '#8fd3f5';
+  x.fillStyle = sky; x.fillRect(0, 0, 200, 120);
+  if (w === 3 || d === 'night') { x.fillStyle = '#fff6c0'; x.beginPath(); x.arc(160, 26, 12, 0, 7); x.fill(); x.fillStyle = sky; x.beginPath(); x.arc(154, 22, 11, 0, 7); x.fill();
+    for (let i = 0; i < 14; i++) { x.fillStyle = '#fff'; x.fillRect((i * 37) % 200, (i * 23) % 60, 2, 2); } }
+  x.fillStyle = Wd.grass[0]; x.fillRect(0, 84, 200, 36);
+  x.fillStyle = Wd.path[0]; x.fillRect(0, 96, 200, 10);
+  const bob = Math.sin(t * 4) * 1.5;
+  const cat = (id, cx, s, br) => drawCat(x, id, br || breedOf(id), cx, 100 + bob * (cx % 2 ? 1 : -1), {sc: s || 1, t});
+  const bug = (k, bx, s) => { const B = BUGS[k]; drawSpr(x, sprite(B.spr || k, B.pal), bx, 104 + Math.sin(t * 6 + bx) * 1.5, s || 1); };
+  if (d === 'patch') { for (let i = 0; i < 5; i++) drawSpr(x, sprite(VEG[i], VEG[i]), 70 + i * 16, 96, 1.4); cat('yarn', 40, 1.4); }
+  else if (d === 'bugs') { for (let i = 0; i < 5; i++) bug(i % 2 ? 'lady' : 'ant', 30 + i * 30 + ((t * 20) % 30), 1.2); drawSpr(x, sprite('carrot', 'carrot'), 185, 96, 1.4); }
+  else if (d === 'cats') { cat('yarn', 50, 1.4); cat('claw', 100, 1.4); cat('sleepy', 150, 1.4); }
+  else if (d === 'magic') { cat('ice', 60, 1.5); cat('wiz', 140, 1.5); for (let i = 0; i < 6; i++) { x.fillStyle = i % 2 ? '#ffe680' : '#b383ff'; x.fillRect(100 + Math.cos(t * 2 + i) * 40, 50 + Math.sin(t * 2 + i) * 20, 3, 3); } }
+  else if (d === 'web') { for (let i = 0; i < 3; i++) drawSpr(x, sprite('web', 'web'), 40 + i * 60, 60 + i * 8, 2.2, false, 0.8); bug('moth', 100, 1.3); }
+  else if (d === 'spider') { bug('spider', 100, 3); bug('ant', 30, 1.1); bug('beetle', 170, 1.1); }
+  else if (d === 'big') { cat('chonk', 60, 1.4); cat('laser', 140, 1.4); }
+  else if (d === 'night') { cat('ninja', 100, 1.5); bug('firefly', 50, 1.2); bug('moth', 160, 1.2); }
+  else if (d === 'hornet') { drawSpr(x, sprite('wasp', 'hornet'), 100, 70 + bob * 3, 3); drawSpr(x, sprite('crown', 'crown'), 100, 26 + bob * 3, 2); bug('wasp', 40, 1.2); bug('wasp', 165, 1.2); }
+  x.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+/* ---- title picture ---- */
+function drawTitle(c, t) {
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+  x.setTransform(c.width / 130, 0, 0, c.height / 75, 0, 0);
+  x.clearRect(0, 0, 130, 75);
+  x.fillStyle = '#c99a5e'; x.fillRect(0, 60, 130, 8);
+  for (let i = 0; i < 3; i++) drawSpr(x, sprite(VEG[i], VEG[i]), 110 + (i % 2) * 8, 62 + i, 0.8);
+  drawSpr(x, sprite('cushion', 'cushion'), 26, 58, 1); drawSpr(x, sprite('cushion', 'cushion1'), 60, 58, 1);
+  drawCat(x, 'yarn', 'tabby', 26, 57, {t, hop: (t % 1.4) < 0.35 ? (t % 1.4) : 0});
+  drawCat(x, 'wiz', 'black', 60, 57, {t: t + 1, blink: (t % 3) > 2.8});
+  const bx = 130 - ((t * 14) % 160);
+  drawSpr(x, sprite(Math.floor(t * 4) % 2 ? 'ant2' : 'ant', 'ant'), bx, 66, 0.8);
+  drawSpr(x, sprite(Math.floor(t * 4) % 2 ? 'lady2' : 'lady', 'lady'), bx + 22, 66, 0.8);
+  drawSpr(x, sprite(Math.floor(t * 10) % 2 ? 'fly2' : 'fly', 'fly'), bx + 46, 46 + Math.sin(t * 5) * 3, 0.8);
+  x.setTransform(1, 0, 0, 1, 0, 0);
+}
+/* =====================================================================
+   9. SCREENS + MENUS — title, world map, skills, cats, goals, shop,
+   the in-level sheets, tips and the tutorial.
+===================================================================== */
+let screen = 'title', mapWorld = 0, catsTab = 'breeds', paused = false, dailyChecked = false;
+
+function hideScreens() { $('title').classList.remove('on'); $('scr').classList.remove('on'); }
+function setBar(w) { document.body.dataset.w = w; }
+
+/* ---------- toast + modal ---------- */
+let toastT = 0;
+function toast(msg) {
+  const t = $('toast'); t.innerHTML = msg; t.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600);
+}
+let modalOnClose = null;
+function openModal(html, onClose) { $('mbox').innerHTML = html; $('modal').classList.add('on'); modalOnClose = onClose || null; }
+function closeModal() { $('modal').classList.remove('on'); const f = modalOnClose; modalOnClose = null; if (f) f(); }
+function modalOpen() { return $('modal').classList.contains('on'); }
+function bindBtn(id, fn) { const el = $(id); if (el) el.onclick = e => { e.stopPropagation(); sfx('ui'); fn(e); }; }
+const starImg = on => '<img class="pxi" src="' + sprURL('star', on ? 'star' : 'starOff', 6) + '" alt="">';
+const starIco = () => '<img class="ico" src="' + sprURL('star', 'star') + '" alt="">';
+
+/* ---------- title ---------- */
+let titleCv = null;
+function showTitle() {
+  screen = 'title'; hideScreens(); stopGame();
+  const el = $('title');
+  el.innerHTML = '<canvas id="tcv" width="390" height="225"></canvas>' +
+    '<h1>PAW<br><span>DEFENSE</span></h1>' +
+    '<div class="sub">' + tr('Cats vs bugs in the garden!') + '</div>' +
+    '<button class="btn org" id="tPlay">▶ ' + tr('Play') + '</button>' +
+    '<div class="row"><button class="btn" id="tSet">⚙️ ' + tr('Settings') + '</button><button class="btn" id="tLang">' + (S.lang === 'fr' ? '🇬🇧 English' : '🇫🇷 Français') + '</button></div>';
+  el.classList.add('on');
+  titleCv = $('tcv');
+  bindBtn('tPlay', () => { audioUnlock(); showMenu('map'); });
+  bindBtn('tSet', openSettings);
+  bindBtn('tLang', () => { S.lang = S.lang === 'fr' ? 'en' : 'fr'; save(); showTitle(); });
+  setBar(0); music('menu');
+}
+
+/* ---------- menu frame ---------- */
+const NAV = [['map', '🗺️', 'Map'], ['skills', '🌳', 'Skills'], ['cats', '🐱', 'Cats'], ['goals', '🏆', 'Goals'], ['shop', '🛒', 'Shop']];
+function showMenu(name) {
+  screen = name; stopGame(); hideScreens();
+  const el = $('scr');
+  const titles = {map: tr(WORLDS[mapWorld].name), skills: tr('Skill Tree'), cats: tr('Cat Collection'), goals: tr('Goals'), shop: tr('Shop')};
+  let body = '';
+  if (name === 'map') body = mapHtml(); else if (name === 'skills') body = skillsHtml(); else if (name === 'cats') body = catsHtml();
+  else if (name === 'goals') body = goalsHtml(); else if (name === 'shop') body = shopHtml();
+  el.innerHTML = '<div class="top"><h2>' + titles[name] + '</h2><div class="pill">' + starIco() + ' <span id="wallet">' + S.stars + '</span></div>' +
+    '<button class="btn ib" id="mSet" aria-label="Settings">⚙️</button></div>' +
+    '<div class="scroll" id="mScroll">' + body + '</div>' +
+    '<div class="nav">' + NAV.map(n => '<button class="btn' + (n[0] === name ? ' cur' : '') + '" data-nav="' + n[0] + '"><b>' + n[1] + '</b>' + tr(n[2]) + (n[0] === 'skills' && canBuySkill() ? '<i class="dot"></i>' : '') + '</button>').join('') + '</div>';
+  el.style.background = name === 'map' ? ['#2b4a2a', '#2c3e57', '#3a2a44', '#141d33'][mapWorld] : '#3b2c38';
+  el.classList.add('on');
+  setBar(name === 'map' ? mapWorld : 0);
+  el.querySelectorAll('[data-nav]').forEach(b => b.onclick = () => { sfx('ui'); showMenu(b.dataset.nav); });
+  bindBtn('mSet', openSettings);
+  if (name === 'map') bindMap(); else if (name === 'skills') bindSkills(); else if (name === 'cats') bindCats();
+  else if (name === 'shop') bindShop();
+  music('menu');
+  const got = checkAch();
+  if (got.length === 1) setTimeout(() => toast('🏆 ' + tr(got[0].name) + ' +' + got[0].r + ' ' + starIco()), 400);
+  else if (got.length > 1) setTimeout(() => toast('🏆 ' + tr('{n} goals done!', {n: got.length}) + ' +' + got.reduce((a, g) => a + g.r, 0) + ' ' + starIco()), 400);
+  checkBreeds().forEach(b => toast('🐱 ' + tr('New breed: {b}!', {b: tr(b.name)})));
+  if (got.length) $('wallet').textContent = S.stars;
+  if (name === 'map' && !dailyChecked) { dailyChecked = true; setTimeout(dailyGift, 300); }
+}
+function refreshWallet() { const w = $('wallet'); if (w) w.textContent = S.stars; }
+
+/* ---------- world map ---------- */
+function maxWorld() { return worldOf(Math.min(40, S.unlocked)); }
+function mapHtml() {
+  const mw = maxWorld();
+  let h = '<div class="worlds">' + WORLDS.map((w, i) => '<button class="btn' + (i === mapWorld ? ' cur' : '') + (i > mw ? ' dis' : '') + '" data-world="' + i + '"><b>' + (i > mw ? '🔒' : w.icon) + '</b>' + tr(w.name) + '</button>').join('') + '</div>';
+  h += '<div class="card wbanner"><div style="font-size:34px">' + WORLDS[mapWorld].icon + '</div><div style="flex:1"><div class="big">' + tr('World {n}', {n: mapWorld + 1}) + ': ' + tr(WORLDS[mapWorld].name) + '</div>' +
+    '<div class="muted">' + starIco() + ' ' + worldStars(mapWorld) + ' / 30</div></div><button class="btn small" id="mComic">📖</button></div>';
+  h += '<div class="lvls">';
+  for (let i = 0; i < 10; i++) {
+    const L = mapWorld * 10 + i + 1, r = Math.floor(i / 3), col = r % 2 ? 2 - i % 3 : i % 3;
+    const lock = L > S.unlocked, best = S.best[L] || 0, boss = BOSS_OF[L];
+    let inner = lock ? '🔒' : String(L);
+    if (boss && !lock) inner = '<img class="bi" src="' + bugURL(boss, 2) + '" alt="">';
+    h += '<button class="btn node' + (lock ? ' lock' : '') + (boss ? ' boss' : '') + (L === S.unlocked ? ' cur' : '') + '" data-l="' + L + '" style="grid-row:' + (r + 1) + ';grid-column:' + (col + 1) + '">' +
+      inner + (lock ? '' : '<div class="stars">' + [1, 2, 3].map(k => '<img src="' + sprURL('star', k <= best ? 'star' : 'starOff', 3) + '" alt="">').join('') + '</div>') + '</button>';
+  }
+  h += '</div>';
+  const done = S.unlocked > (mapWorld + 1) * 10;
+  h += '<button class="btn endless ' + (done ? 'sky' : 'dis') + '" id="mEnd">♾️ ' + tr('Endless') + ' — ' +
+    (done ? tr('Best: wave {n}', {n: S.endless[mapWorld] || 0}) : tr('Finish this world to unlock')) + '</button>';
+  return h;
+}
+function bindMap() {
+  document.querySelectorAll('[data-world]').forEach(b => b.onclick = () => {
+    const w = +b.dataset.world; if (w > maxWorld()) { sfx('no'); toast(tr('Finish the world before to unlock it')); return; }
+    sfx('ui'); mapWorld = w; showMenu('map');
+  });
+  document.querySelectorAll('[data-l]').forEach(b => b.onclick = () => {
+    const L = +b.dataset.l; if (L > S.unlocked) { sfx('no'); return; }
+    sfx('ui'); levelIntro(L);
+  });
+  bindBtn('mEnd', () => { if (S.unlocked > (mapWorld + 1) * 10) endlessIntro(mapWorld); else toast(tr('Finish this world to unlock')); });
+  bindBtn('mComic', () => showComic(mapWorld));
+}
+
+function levelBugs(L) { const set = new Set(); genWaves(L, 1).forEach(w => w.forEach(e => set.add(e.type))); return BUG_ORDER.filter(k => set.has(k)); }
+function levelIntro(L) {
+  const w = worldOf(L);
+  if (!S.comics[w]) { showComic(w, () => levelIntro(L)); return; }
+  const best = S.best[L] || 0, nc = CATS.find(c => c.unlock === L), boss = BOSS_OF[L];
+  const nW = genWaves(L, 1).length;
+  openModal('<h2>' + tr('Level {n}', {n: L}) + '</h2><div class="muted">' + WORLDS[w].icon + ' ' + tr(WORLDS[w].name) + (boss ? ' · <b style="color:#c92a31">' + tr('BOSS LEVEL') + '</b>' : '') + '</div>' +
+    '<div class="bigstars">' + [1, 2, 3].map(k => starImg(k <= best).replace('<img', '<img class="pxi in' + (k <= best ? '' : ' off') + '"')).join('') + '</div>' +
+    '<p><b>' + tr('{n} waves', {n: nW}) + '</b></p>' +
+    '<div class="card" style="margin:8px 0"><div class="muted">' + tr('Bugs in this level') + '</div><div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px">' +
+    levelBugs(L).map(k => '<img class="pxi" style="height:34px" src="' + bugURL(k, 3) + '" alt="">').join('') + '</div></div>' +
+    (nc ? '<div class="card" style="margin:8px 0;display:flex;gap:8px;align-items:center"><img class="pxi" style="width:56px" src="' + catURL(nc.id, breedOf(nc.id)) + '" alt=""><div style="text-align:left"><b>' + tr('New cat: {c}!', {c: tr(nc.name)}) + '</b><div class="muted">' + tr(nc.desc) + '</div></div></div>' : '') +
+    '<p class="muted">' + starIco() + '3 = ' + tr('lose 2 veggies or less') + '</p>' +
+    '<button class="btn org wide" id="iPlay" style="font-size:20px">▶ ' + tr('Play') + '</button><button class="btn wide" id="iNo">' + tr('Close') + '</button>');
+  bindBtn('iPlay', () => { closeModal(); startPlay(L); });
+  bindBtn('iNo', closeModal);
+}
+function endlessIntro(w) {
+  openModal('<h2>♾️ ' + tr('Endless') + '</h2><div class="muted">' + WORLDS[w].icon + ' ' + tr(WORLDS[w].name) + '</div>' +
+    '<p>' + tr('Waves never stop. How far can you go?') + '</p><p>' + tr('Every 10 waves: +2 stars (first time).') + '</p>' +
+    '<div class="reward">' + tr('Best: wave {n}', {n: S.endless[w] || 0}) + '</div>' +
+    '<button class="btn sky wide" id="ePlay" style="font-size:20px">▶ ' + tr('Play') + '</button><button class="btn wide" id="eNo">' + tr('Close') + '</button>');
+  bindBtn('ePlay', () => { closeModal(); startEndless(w); });
+  bindBtn('eNo', closeModal);
+}
+
+/* ---------- comics ---------- */
+function showComic(w, after) {
+  let i = 0, raf = 0;
+  const panels = COMICS[w];
+  const show = () => {
+    openModal('<h2>' + WORLDS[w].icon + ' ' + tr('World {n}', {n: w + 1}) + '</h2><canvas class="comic" id="cmc" width="400" height="240"></canvas>' +
+      '<div class="cap">' + tr(panels[i].t) + '</div><div class="muted">' + (i + 1) + ' / 3</div>' +
+      '<button class="btn org wide" id="cNext">' + (i < 2 ? tr('Next') + ' ▶' : tr('Let\'s go!') + ' 🐾') + '</button>');
+    const c = $('cmc'), t0 = performance.now();
+    cancelAnimationFrame(raf);
+    const anim = () => { if (!$('cmc')) return; drawComic(c, w, panels[i].d, (performance.now() - t0) / 1000); raf = requestAnimationFrame(anim); };
+    anim();
+    bindBtn('cNext', () => {
+      i++;
+      if (i < 3) show();
+      else { cancelAnimationFrame(raf); S.comics[w] = 1; save(); closeModal(); if (after) after(); }
+    });
+  };
+  show();
+}
+
+/* ---------- daily gift ---------- */
+function dailyGift() {
+  const today = dayKey();
+  if (S.daily.last === today || screen !== 'map' || modalOpen()) return;
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  const streak = S.daily.last === dayKey(y) ? S.daily.streak + 1 : 1;
+  const idx = (streak - 1) % 7, g = DAILY[idx];
+  const label = d => d.stars ? starIco() + ' +' + d.stars : '<img class="ico" src="' + sprURL(d.pw, d.pw) + '" alt=""> +1';
+  openModal('<h2>🎁 ' + tr('Daily gift') + '</h2><p>' + tr('Day {n} in a row!', {n: streak}) + '</p>' +
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0">' +
+    DAILY.map((d, i) => '<div class="cb' + (i === idx ? ' sel' : '') + '" style="padding:6px 2px;' + (i < idx ? 'opacity:.5' : '') + '"><small>' + tr('Day {n}', {n: i + 1}) + '</small>' + label(d) + '</div>').join('') + '</div>' +
+    '<button class="btn org wide" id="dOk">' + tr('Claim') + ' ' + label(g) + '</button>');
+  bindBtn('dOk', () => {
+    S.daily = {last: today, streak};
+    if (g.stars) { S.stars += g.stars; S.earned += g.stars; } else S.pw[g.pw] = (S.pw[g.pw] || 0) + 1;
+    save(); sfx('coin'); closeModal(); refreshWallet();
+  });
+}
+
+/* ---------- skills ---------- */
+function canBuySkill() {
+  for (const c of CATS) { const r = S.skills[c.id] || 0; if (catOpen(c) && r < 4 && S.stars >= CAT_SKILL_COST[r]) return true; }
+  for (const g of GARDEN_SKILLS) { const r = S.garden[g.id] || 0; if (r < 3 && S.stars >= g.cost[r]) return true; }
+  return false;
+}
+function skillsHtml() {
+  let h = '<div class="card"><h3>🏡 ' + tr('Garden') + '</h3>';
+  GARDEN_SKILLS.forEach(g => {
+    const r = S.garden[g.id] || 0;
+    h += '<div class="sk"><div style="font-size:26px;width:36px;text-align:center">' + g.icon + '</div><div class="nm">' + tr(g.name) + '<small>' + tr(g.desc) + '</small></div>' +
+      '<div class="chips">' + [0, 1, 2].map(i => '<div class="chip' + (i < r ? ' on' : '') + '">' + (i < r ? '✔' : '') + '</div>').join('') + '</div>' +
+      (r < 3 ? '<button class="btn small ' + (S.stars >= g.cost[r] ? 'gold' : 'dis') + '" data-gs="' + g.id + '">' + starIco() + g.cost[r] + '</button>' : '<b class="muted">MAX</b>') + '</div>';
+  });
+  h += '</div><div class="card"><h3>🐱 ' + tr('Cats') + '</h3>';
+  CATS.forEach(c => {
+    const r = S.skills[c.id] || 0, open = catOpen(c);
+    const next = r < 3 ? tr(CAT_SKILL_NAMES[r]) : r === 3 ? '★ ' + tr(c.sp) : tr('All done!');
+    h += '<div class="sk" style="' + (open ? '' : 'opacity:.4') + '"><img class="ci" src="' + catURL(c.id, breedOf(c.id)) + '" alt=""><div class="nm">' + tr(c.name) +
+      '<small>' + (open ? (r < 4 ? tr('Next') + ': ' : '') + next : tr('Unlocks at level {n}', {n: c.unlock})) + '</small></div>' +
+      '<div class="chips">' + ['🗡️', '👁️', '⚡', '★'].map((e, i) => '<div class="chip' + (i < r ? ' on' : '') + '" title="">' + (i < r ? '✔' : e) + '</div>').join('') + '</div>' +
+      (open && r < 4 ? '<button class="btn small ' + (S.stars >= CAT_SKILL_COST[r] ? 'gold' : 'dis') + '" data-cs="' + c.id + '">' + starIco() + CAT_SKILL_COST[r] + '</button>' : '') + '</div>';
+  });
+  h += '</div><p class="muted center">' + tr('Get stars by winning levels, goals and gifts.') + '</p>' +
+    '<button class="btn wide" id="skReset">↺ ' + tr('Reset skills (free, get all stars back)') + '</button>';
+  return h;
+}
+function bindSkills() {
+  document.querySelectorAll('[data-gs]').forEach(b => b.onclick = () => {
+    const g = GARDEN_SKILLS.find(x => x.id === b.dataset.gs), r = S.garden[g.id] || 0;
+    if (r >= 3 || S.stars < g.cost[r]) { sfx('no'); toast(tr('Not enough stars')); return; }
+    S.stars -= g.cost[r]; S.skillSpent += g.cost[r]; S.garden[g.id] = r + 1; save(); sfx('up'); keepScroll(() => showMenu('skills'));
+  });
+  document.querySelectorAll('[data-cs]').forEach(b => b.onclick = () => {
+    const id = b.dataset.cs, r = S.skills[id] || 0;
+    if (r >= 4 || S.stars < CAT_SKILL_COST[r]) { sfx('no'); toast(tr('Not enough stars')); return; }
+    S.stars -= CAT_SKILL_COST[r]; S.skillSpent += CAT_SKILL_COST[r]; S.skills[id] = r + 1; save(); sfx('up'); keepScroll(() => showMenu('skills'));
+  });
+  bindBtn('skReset', () => {
+    let back = 0;
+    GARDEN_SKILLS.forEach(g => { for (let i = 0; i < (S.garden[g.id] || 0); i++) back += g.cost[i]; S.garden[g.id] = 0; });
+    CATS.forEach(c => { for (let i = 0; i < (S.skills[c.id] || 0); i++) back += CAT_SKILL_COST[i]; S.skills[c.id] = 0; });
+    S.stars += back; save(); toast(starIco() + ' +' + back); showMenu('skills');
+  });
+}
+function keepScroll(fn) { const y = $('mScroll') ? $('mScroll').scrollTop : 0; fn(); if ($('mScroll')) $('mScroll').scrollTop = y; }
+
+/* ---------- cat collection + album ---------- */
+function catsHtml() {
+  let h = '<div class="tabs"><button class="btn' + (catsTab === 'breeds' ? ' cur' : '') + '" data-tab="breeds">🎨 ' + tr('Breeds') + '</button>' +
+    '<button class="btn' + (catsTab === 'album' ? ' cur' : '') + '" data-tab="album">📖 ' + tr('Album') + '</button></div>';
+  if (catsTab === 'breeds') {
+    h += '<p class="muted center">' + tr('Tap a cat to change its fur. Just for looks!') + ' (' + BREEDS.filter(b => S.breedOwn[b.id]).length + '/' + BREEDS.length + ')</p><div class="cgrid">';
+    CATS.forEach(c => {
+      const open = catOpen(c);
+      h += '<button class="cb' + (open ? '' : ' lock') + '" data-cat="' + c.id + '"><img src="' + catURL(c.id, breedOf(c.id)) + '" alt="">' + (open ? tr(c.name) : '🔒 ' + c.unlock) + '</button>';
+    });
+    h += '</div>';
+  } else {
+    h += '<div class="card"><h3>🐱 ' + tr('Cats') + '</h3><div class="cgrid">' + CATS.map(c => {
+      const open = catOpen(c);
+      return '<button class="cb' + (open ? '' : ' unk') + '" data-ac="' + c.id + '"><img src="' + catURL(c.id, breedOf(c.id)) + '" alt="">' + (open ? tr(c.name) : '???') + '</button>';
+    }).join('') + '</div></div>';
+    h += '<div class="card"><h3>🐛 ' + tr('Bugs') + ' (' + BUG_ORDER.filter(b => S.seen[b]).length + '/' + BUG_ORDER.length + ')</h3><div class="cgrid">' + BUG_ORDER.map(k => {
+      const seen = S.seen[k];
+      return '<button class="cb' + (seen ? '' : ' unk') + '" data-ab="' + k + '"><img src="' + bugURL(k, 3) + '" style="width:auto;height:40px" alt="">' + (seen ? tr(BUGS[k].name) : '???') + '</button>';
+    }).join('') + '</div></div>';
+  }
+  return h;
+}
+function bindCats() {
+  document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { sfx('ui'); catsTab = b.dataset.tab; showMenu('cats'); });
+  document.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => {
+    const c = CAT[b.dataset.cat]; if (!catOpen(c)) { sfx('no'); toast(tr('Unlocks at level {n}', {n: c.unlock})); return; }
+    sfx('ui'); breedPicker(c);
+  });
+  document.querySelectorAll('[data-ac]').forEach(b => b.onclick = () => { const c = CAT[b.dataset.ac]; if (!catOpen(c)) { sfx('no'); toast(tr('Unlocks at level {n}', {n: c.unlock})); return; } sfx('ui'); catCard(c); });
+  document.querySelectorAll('[data-ab]').forEach(b => b.onclick = () => { const k = b.dataset.ab; if (!S.seen[k]) { sfx('no'); toast(tr('Not seen yet')); return; } sfx('ui'); bugCard(k); });
+}
+function breedPicker(c) {
+  openModal('<h2>' + tr(c.name) + '</h2><img class="pxi" style="width:110px" src="' + catURL(c.id, breedOf(c.id), 3) + '" alt="">' +
+    '<div class="breeds">' + BREEDS.map(b => {
+      const own = S.breedOwn[b.id];
+      return '<button class="cb' + (own ? '' : ' lock') + (breedOf(c.id) === b.id ? ' sel' : '') + '" data-br="' + b.id + '"><img src="' + catURL(c.id, own ? b.id : 'tabby') + '" alt="">' + (own ? tr(b.name) : '🔒 ' + tr(b.how)) + '</button>';
+    }).join('') + '</div>' +
+    '<button class="btn sky wide" id="brAll">' + tr('Use this fur on all cats') + '</button><button class="btn wide" id="brOk">' + tr('Close') + '</button>');
+  document.querySelectorAll('[data-br]').forEach(b => b.onclick = () => {
+    const id = b.dataset.br; if (!S.breedOwn[id]) { sfx('no'); toast('🔒 ' + tr(BREED[id].how)); return; }
+    S.breedPick[c.id] = id; save(); sfx('meow'); breedPicker(c);
+  });
+  bindBtn('brAll', () => { const id = breedOf(c.id); CATS.forEach(k => S.breedPick[k.id] = id); save(); toast('✔'); });
+  bindBtn('brOk', () => { closeModal(); showMenu('cats'); });
+}
+function catStatsHtml(c, lv) {
+  const st = tstats({id: c.id, lv: lv || 1, buff: 0});
+  const ch = [];
+  if (c.dmg) ch.push('🗡️ ' + tr('Damage') + ' ' + (c.kind === 'beam' ? Math.round(st.dmg) + '/s' : Math.round(st.dmg * 10) / 10));
+  if (c.rate) ch.push('⚡ ' + tr('Speed') + ' ' + Math.round(st.rate * 10) / 10 + '/s');
+  if (st.range) ch.push('👁️ ' + tr('Range') + ' ' + Math.round(st.range / T * 10) / 10);
+  if (c.kind === 'farm') ch.push('🐟 +' + st.income + ' ' + tr('per wave'));
+  if (c.kind === 'buff') ch.push('💗 +' + Math.round(st.buff * 100) + '%');
+  if (c.kind === 'aura') ch.push('💤 -' + Math.round(st.slow * 100) + '% ' + tr('speed'));
+  if (st.chain) ch.push('⛓️ ' + st.chain + ' ' + tr('jumps'));
+  if (st.shots) ch.push('✴️ ' + st.shots + ' ' + tr('stars'));
+  if (c.kind !== 'farm' && c.kind !== 'buff') ch.push(c.air ? '🪽 ' + tr('Hits flyers') : '🚫🪽 ' + tr('Ground only'));
+  if (c.detect) ch.push('👀 ' + tr('Sees invisible'));
+  return '<div class="stats">' + ch.map(x => '<span class="st">' + x + '</span>').join('') + '</div>';
+}
+function catCard(c) {
+  openModal('<h2>' + tr(c.name) + '</h2><img class="pxi" style="width:110px" src="' + catURL(c.id, breedOf(c.id), 3) + '" alt="">' +
+    '<p>' + tr(c.desc) + '</p>' + catStatsHtml(c, 1) +
+    '<p class="muted">🐟 ' + catCost(c) + ' · ' + tr('Joins at level {n}', {n: c.unlock}) + '</p><p class="muted">★ ' + tr('Skill') + ': ' + tr(c.sp) + '</p>' +
+    '<button class="btn wide" id="ccOk">' + tr('Close') + '</button>');
+  bindBtn('ccOk', closeModal);
+}
+function bugCard(k) {
+  const B = BUGS[k], tags = [];
+  tags.push('❤️ ' + B.hp); tags.push('👟 ' + B.spd);
+  if (B.arm) tags.push('🛡️ ' + tr('Armor') + ' ' + B.arm);
+  if (B.fly) tags.push('🪽 ' + tr('Flies'));
+  if (B.camo) tags.push('👻 ' + tr('Invisible'));
+  if (B.shield) tags.push('🫧 ' + tr('Shield'));
+  tags.push('🥕 -' + B.lv);
+  openModal('<h2>' + tr(B.name) + '</h2><img class="pxi" style="height:90px" src="' + bugURL(k, 6) + '" alt="">' +
+    '<p>' + tr(B.desc) + '</p><div class="stats" style="justify-content:center">' + tags.map(x => '<span class="st">' + x + '</span>').join('') + '</div>' +
+    '<button class="btn wide" id="bcOk">' + tr('Close') + '</button>');
+  bindBtn('bcOk', closeModal);
+}
+
+/* ---------- goals ---------- */
+function goalsHtml() {
+  const done = ACH.filter(a => S.ach[a.id]).length;
+  return '<p class="center"><b>' + done + ' / ' + ACH.length + '</b> ' + tr('goals done') + '</p>' + ACH.map(a => {
+    const [v, m] = a.p(), ok = S.ach[a.id];
+    return '<div class="ach' + (ok ? ' done' : '') + '"><div class="ai">' + a.i + '</div><div class="at">' + tr(a.name) + '<small>' + tr(a.desc) + '</small>' +
+      (ok ? '' : '<div class="prog"><i style="width:' + Math.min(100, v / m * 100) + '%"></i></div>') + '</div><div class="rw">' + (ok ? '✔' : starIco() + a.r) + '</div></div>';
+  }).join('');
+}
+function checkAch() {
+  const got = [];
+  for (const a of ACH) {
+    if (S.ach[a.id]) continue;
+    const [v, m] = a.p();
+    if (v >= m) { S.ach[a.id] = 1; S.stars += a.r; S.earned += a.r; got.push(a); }
+  }
+  if (got.length) save();
+  return got;
+}
+function checkBreeds() {
+  const rules = {black: S.unlocked > 10, siamese: S.unlocked > 20, calico: S.unlocked > 30, galaxy: S.unlocked > 40,
+    white: S.earned >= 60, tux: Object.keys(S.ach).length >= 12, golden: S.pack};
+  const got = [];
+  for (const k in rules) if (rules[k] && !S.breedOwn[k]) { S.breedOwn[k] = 1; got.push(BREED[k]); }
+  if (got.length) save();
+  return got;
+}
+
+/* ---------- shop ---------- */
+function freeAdLeft() { return Math.max(0, Math.ceil((S.freeAdAt + CONFIG.FREE_AD_COOLDOWN * 1000 - now()) / 1000)); }
+function shopHtml() {
+  let h = '<div class="card"><h3>🧪 ' + tr('Power-ups') + '</h3>';
+  POWERS.forEach(p => {
+    h += '<div class="sk"><img class="ci" style="width:36px;height:36px" src="' + sprURL(p.id, p.id, 4) + '" alt=""><div class="nm">' + tr(p.name) + ' <span class="st">x' + (S.pw[p.id] || 0) + '</span><small>' + tr(p.desc) + '</small></div>' +
+      '<div style="display:flex;flex-direction:column;gap:5px"><button class="btn small ' + (S.stars >= p.cost ? 'gold' : 'dis') + '" data-buy="' + p.id + '">' + starIco() + p.cost + '</button>' +
+      '<button class="btn small sky" data-ad="' + p.id + '">📺 ' + tr('Free') + '</button></div></div>';
+  });
+  h += '<p class="muted center" id="adWait">' + (freeAdLeft() ? tr('Next free ad in {s}s', {s: freeAdLeft()}) : tr('Watch a short ad for a free power-up. Always your choice!')) + '</p></div>';
+  h += paidShopHtml();
+  return h;
+}
+function bindShop() {
+  document.querySelectorAll('[data-buy]').forEach(b => b.onclick = () => {
+    const p = POWERS.find(x => x.id === b.dataset.buy);
+    if (S.stars < p.cost) { sfx('no'); toast(tr('Not enough stars')); return; }
+    S.stars -= p.cost; S.pw[p.id] = (S.pw[p.id] || 0) + 1; save(); sfx('coin'); keepScroll(() => showMenu('shop'));
+  });
+  document.querySelectorAll('[data-ad]').forEach(b => b.onclick = () => {
+    if (freeAdLeft()) { sfx('no'); toast(tr('Next free ad in {s}s', {s: freeAdLeft()})); return; }
+    rewardAd().then(ok => { if (!ok) return; S.freeAdAt = now(); S.pw[b.dataset.ad] = (S.pw[b.dataset.ad] || 0) + 1; save(); sfx('coin'); toast('+1 ' + tr(POWERS.find(x => x.id === b.dataset.ad).name)); if (screen === 'shop') keepScroll(() => showMenu('shop')); });
+  });
+  bindPaidShop();
+}
+
+/* ---------- settings ---------- */
+function openSettings() {
+  const wasPaused = paused;
+  const tg = (id, on, label) => '<div class="tog">' + label + '<button class="sw' + (on ? ' on' : '') + '" id="' + id + '" aria-label="' + label + '"></button></div>';
+  openModal('<h2>⚙️ ' + tr('Settings') + '</h2>' +
+    tg('sSfx', S.sfx, '🔊 ' + tr('Sound')) + tg('sMus', S.mus, '🎵 ' + tr('Music')) + tg('sEasy', S.easy, '🔤 ' + tr('Easy-read font')) +
+    '<div class="tog">🌐 ' + tr('Language') + '<div class="row"><button class="btn small' + (S.lang === 'en' ? ' gold' : '') + '" id="sEn">EN</button><button class="btn small' + (S.lang === 'fr' ? ' gold' : '') + '" id="sFr">FR</button></div></div>' +
+    '<button class="btn wide" id="sRestore">💳 ' + tr('Restore purchases') + '</button>' +
+    '<button class="btn wide" id="sPriv">🔒 ' + tr('Privacy') + '</button>' +
+    '<button class="btn wide" id="sReset" style="color:#a82a31">🗑️ ' + tr('Erase my progress') + '</button>' +
+    '<button class="btn org wide" id="sOk">✔ ' + tr('Close') + '</button><p class="muted">Paw Defense v1.0 · MOS Arcade</p>', () => { paused = wasPaused; });
+  bindBtn('sSfx', () => { S.sfx = !S.sfx; save(); openSettings(); });
+  bindBtn('sMus', () => { S.mus = !S.mus; save(); if (S.mus) music(screen === 'game' ? 'w' + G.w : 'menu', true); else musicStop(); openSettings(); });
+  bindBtn('sEasy', () => { S.easy = !S.easy; applyEasy(); save(); openSettings(); });
+  bindBtn('sEn', () => { S.lang = 'en'; save(); relabel(); openSettings(); });
+  bindBtn('sFr', () => { S.lang = 'fr'; save(); relabel(); openSettings(); });
+  bindBtn('sRestore', restorePurchases);
+  bindBtn('sPriv', () => { window.open('https://sussy0603.github.io/Arcade/Privacy%20PawDefense/privacy.html', '_blank'); });
+  bindBtn('sReset', () => {
+    openModal('<h2>🗑️ ' + tr('Erase everything?') + '</h2><p>' + tr('All levels, stars and cats will be lost. Purchases stay.') + '</p>' +
+      '<button class="btn bad wide" id="rYes">' + tr('Yes, erase') + '</button><button class="btn wide" id="rNo">' + tr('No') + '</button>');
+    bindBtn('rYes', () => { const keep = {pack: S.pack, noAds: S.noAds, iapDone: S.iapDone, lang: S.lang}; S = Object.assign(defaults(), keep); checkBreeds(); save(); closeModal(); showTitle(); });
+    bindBtn('rNo', openSettings);
+  });
+  bindBtn('sOk', closeModal);
+}
+function applyEasy() { document.body.classList.toggle('easy', S.easy); }
+function relabel() { if (screen === 'title') showTitle(); else if (screen !== 'game') showMenu(screen); else { refreshPw(); hudCache = {}; if ($('sheet').classList.contains('on')) { if (G.selTower) openTower(G.selTower); else if (G.selSpot) openBuild(G.selSpot); } } }
+
+/* =====================================================================
+   PLAYING A LEVEL
+===================================================================== */
+function startPlay(L) { newGame('level', L, worldOf(L)); enterGame(); }
+function startEndless(w) { newGame('endless', 0, w); enterGame(); }
+function enterGame() {
+  screen = 'game'; paused = false; hideScreens(); closeModal(); closeSheet();
+  setBar(G.w); hudCache = {}; resize(); refreshPw();
+  $('bSpeed').textContent = S.speed + 'x';
+  music('w' + G.w);
+  G.tut = null;
+  setTimeout(levelStartTips, 350);
+}
+function stopGame() { closeSheet(); hideTip(); hidePointer(); if (G) G.state = G.state === 'play' ? 'quit' : G.state; }
+
+/* ---------- HUD ---------- */
+let hudCache = {};
+function setHtml(id, h) { if (hudCache[id] !== h) { hudCache[id] = h; $(id).innerHTML = h; } }
+function hud() {
+  G.shownCoins += (G.coins - G.shownCoins) * 0.25; if (Math.abs(G.coins - G.shownCoins) < 1) G.shownCoins = G.coins;
+  setHtml('hLives', ICO('carrot') + ' ' + G.lives);
+  setHtml('hCoins', ICO('fishy') + ' ' + fmt(G.shownCoins));
+  setHtml('hWave', G.mode === 'endless' ? '♾️ ' + tr('Wave {n}', {n: Math.max(1, G.wi)}) : tr('Wave {a}/{b}', {a: Math.max(1, G.wi), b: G.waves.length}));
+  $('hLives').classList.toggle('hurt', G.hurtT > 0);
+  let wb, cls = 'org';
+  if (!G.started) wb = '▶ ' + tr('Start!');
+  else if (G.queue.length) { wb = '🐛 ' + tr('Bugs coming...'); cls = 'dis'; }
+  else if (G.wi >= waveCount()) { wb = '🏁 ' + tr('Last wave!'); cls = 'dis'; }
+  else wb = '⏩ ' + tr('Next wave') + ' <small>+' + Math.ceil(Math.max(0, G.countdown || 0) * CONFIG.EARLY_BONUS_PER_SEC) + '</small> ' + Math.ceil(G.countdown || 0) + 's';
+  setHtml('bWave', wb);
+  const b = $('bWave'); b.className = 'btn ' + cls + (!G.started ? ' pulse' : '');
+  const cmb = $('combo');
+  if (G.combo.n >= 3) { setHtml('combo', tr('Combo') + ' x' + G.combo.n); cmb.classList.add('on'); } else cmb.classList.remove('on');
+}
+function hudBump(id, bad) { const el = $(id); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); setTimeout(() => el.classList.remove('bump'), 150); }
+function banner(text) { const b = $('banner'); b.textContent = text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
+function comboEnd(n, bonus) { addText(W / 2, 70, 'x' + n + ' +' + bonus, '#ff9a3d'); toast('🔥 ' + tr('Combo') + ' x' + n + '! ' + ICO('fishy') + ' +' + bonus); sfx('combo'); }
+function refreshPw() {
+  document.querySelectorAll('.pw').forEach(b => {
+    const id = b.dataset.pw;
+    b.querySelector('img').src = sprURL(id, id, 4);
+    b.querySelector('.n').textContent = S.pw[id] || 0;
+    b.classList.toggle('on', G && G.pmode === id);
+    b.setAttribute('aria-label', tr(POWERS.find(p => p.id === id).name));
+  });
+}
+
+/* ---------- build sheet (empty cushion) ---------- */
+function openBuild(spot) {
+  G.selSpot = spot; G.selTower = null;
+  if (G.pick && !catOpen(CAT[G.pick])) G.pick = null;
+  const c = G.pick ? CAT[G.pick] : null;
+  let h = '<h3>🐾 ' + tr('Pick a cat') + '<button class="btn small x" id="shX">✕</button></h3><div class="catgrid">';
+  CATS.forEach(k => {
+    const open = catOpen(k), cost = catCost(k);
+    h += '<button class="cb' + (open ? '' : ' lock') + (G.pick === k.id ? ' sel' : '') + (open && G.coins < cost ? ' poor' : '') + '" data-pick="' + k.id + '" data-cost="' + cost + '">' +
+      '<img src="' + catURL(k.id, breedOf(k.id)) + '" alt="">' + (open ? ICO('fishy') + cost : '🔒' + k.unlock) + '</button>';
+  });
+  h += '</div>';
+  if (c) {
+    h += '<div class="info"><b>' + tr(c.name) + '</b> — ' + tr(c.desc) + catStatsHtml(c, 1) +
+      '<button class="btn green wide' + (G.coins < catCost(c) ? ' dis' : '') + '" id="shPlace" data-cost="' + catCost(c) + '">✔ ' + tr('Place') + ' ' + ICO('fishy') + catCost(c) + '</button></div>';
+  } else h += '<p class="muted center">' + tr('Tap a cat to see it, then place it.') + '</p>';
+  $('sheet').innerHTML = h; $('sheet').classList.add('on');
+  bindBtn('shX', closeSheet);
+  document.querySelectorAll('[data-pick]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const k = CAT[b.dataset.pick];
+    if (!catOpen(k)) { sfx('no'); toast(tr('Unlocks at level {n}', {n: k.unlock})); return; }
+    sfx('ui'); G.pick = k.id; openBuild(spot); tutEvent('pick');
+  });
+  bindBtn('shPlace', () => {
+    if (!placeCat(spot, G.pick)) { sfx('no'); toast(tr('Not enough fish')); return; }
+    closeSheet(); tutEvent('placed');
+  });
+  tutEvent('build');
+}
+/* ---------- cat panel (cat on a cushion) ---------- */
+const MODES = [['first', 'First'], ['last', 'Last'], ['strong', 'Strong'], ['close', 'Close']];
+function openTower(tw) {
+  G.selTower = tw; G.selSpot = null; G.pick = null;
+  const c = CAT[tw.id], up = upCost(tw);
+  let h = '<h3><img class="pxi" style="width:40px" src="' + catURL(c.id, breedOf(c.id)) + '" alt="">' + tr(c.name) +
+    '<span class="lvpips">' + [1, 2, 3, 4, 5].map(i => '<i class="' + (i <= tw.lv ? 'on' : '') + '"></i>').join('') + '</span><button class="btn small x" id="shX">✕</button></h3>';
+  h += catStatsHtml(c, tw.lv);
+  if (tw.lv < 5) h += '<div class="muted">' + tr('Next level') + ':</div>' + catStatsHtml(c, tw.lv + 1);
+  if (['proj', 'melee', 'lob', 'chain', 'multi', 'beam'].includes(c.kind))
+    h += '<div class="row" style="margin:6px 0;gap:4px">🎯 ' + MODES.map(m => '<button class="btn small' + (tw.mode === m[0] ? ' gold' : '') + '" data-mode="' + m[0] + '">' + tr(m[1]) + '</button>').join('') + '</div>';
+  h += '<div class="row">' + (tw.lv < 5 ? '<button class="btn green' + (G.coins < up ? ' dis' : '') + '" id="shUp" data-cost="' + up + '">⬆️ ' + tr('Upgrade') + ' ' + ICO('fishy') + up + '</button>' : '<button class="btn gold dis">⭐ MAX</button>') +
+    '<button class="btn bad" id="shSell">' + tr('Sell') + ' +' + sellValue(tw) + '</button></div>';
+  $('sheet').innerHTML = h; $('sheet').classList.add('on');
+  bindBtn('shX', closeSheet);
+  document.querySelectorAll('[data-mode]').forEach(b => b.onclick = e => { e.stopPropagation(); sfx('ui'); tw.mode = b.dataset.mode; openTower(tw); });
+  bindBtn('shUp', () => { if (!upgradeCat(tw)) { sfx('no'); toast(tr('Not enough fish')); return; } openTower(tw); tutEvent('upgraded'); });
+  bindBtn('shSell', () => { sellCat(tw); closeSheet(); });
+  tutEvent('tower');
+}
+function closeSheet() { $('sheet').classList.remove('on'); if (G) { G.selSpot = null; G.selTower = null; G.pick = null; } }
+function sheetTick() {
+  if (!$('sheet').classList.contains('on')) return;
+  document.querySelectorAll('#sheet [data-cost]').forEach(b => {
+    const poor = G.coins < +b.dataset.cost;
+    if (b.classList.contains('cb')) { if (!b.classList.contains('lock')) b.classList.toggle('poor', poor); }
+    else b.classList.toggle('dis', poor);
+  });
+}
+
+/* ---------- canvas taps ---------- */
+function toWorld(e) {
+  const r = cv.getBoundingClientRect();
+  return {x: (e.clientX - r.left - offX) / scale, y: (e.clientY - r.top - offY) / scale};
+}
+function spotAt(p) {
+  let best = null, bd = T * 0.85;
+  for (const s of G.map.spots) { const d = Math.hypot(s.x - p.x, s.y - 4 - p.y); if (d < bd) { bd = d; best = s; } }
+  return best;
+}
+cv.addEventListener('pointerdown', e => {
+  if (!G || screen !== 'game' || G.state !== 'play' || paused || modalOpen()) return;
+  audioUnlock();
+  const p = toWorld(e);
+  if (G.pmode === 'bomb') {
+    G.pmode = null; $('hint').classList.remove('on');
+    usePower('bomb', p.x, p.y); refreshPw(); return;
+  }
+  const s = spotAt(p);
+  if (s) { sfx('ui'); if (s.tw) openTower(s.tw); else openBuild(s); return; }
+  closeSheet();
+});
+cv.addEventListener('pointermove', e => { if (G && G.pmode === 'bomb') G.aim = toWorld(e); });
+
+/* ---------- bottom bar ---------- */
+$('bWave').onclick = () => { if (!G || G.state !== 'play' || paused) return; audioUnlock(); if (!G.queue.length) { sfx('ui'); launchWave(G.started); } };
+$('bSpeed').onclick = () => { S.speed = S.speed >= 3 ? 1 : S.speed + 1; $('bSpeed').textContent = S.speed + 'x'; save(); sfx('ui'); };
+$('bPause').onclick = () => { if (G && G.state === 'play') pauseMenu(); };
+document.querySelectorAll('.pw').forEach(b => b.onclick = () => {
+  if (!G || G.state !== 'play' || paused) return;
+  const id = b.dataset.pw; audioUnlock();
+  if ((S.pw[id] || 0) <= 0) { quickBuy(id); return; }
+  if (id === 'bomb') {
+    G.pmode = G.pmode === 'bomb' ? null : 'bomb'; G.aim = null;
+    $('hint').textContent = tr('Tap the map to drop the bomb'); $('hint').classList.toggle('on', G.pmode === 'bomb');
+    closeSheet(); sfx('ui'); refreshPw(); return;
+  }
+  usePower(id); refreshPw();
+});
+function quickBuy(id) {
+  const p = POWERS.find(x => x.id === id);
+  paused = true;
+  openModal('<h2>' + tr(p.name) + '</h2><img class="pxi" style="width:64px" src="' + sprURL(id, id, 6) + '" alt=""><p>' + tr(p.desc) + '</p><p class="muted">' + tr('You have none left.') + '</p>' +
+    '<button class="btn gold wide' + (S.stars >= p.cost ? '' : ' dis') + '" id="qbS">' + tr('Buy') + ' ' + starIco() + p.cost + ' <small>(' + tr('you have {n}', {n: S.stars}) + ')</small></button>' +
+    '<button class="btn sky wide' + (freeAdLeft() ? ' dis' : '') + '" id="qbA">📺 ' + (freeAdLeft() ? tr('Next free ad in {s}s', {s: freeAdLeft()}) : tr('Watch an ad: get 1 free')) + '</button>' +
+    '<button class="btn wide" id="qbN">' + tr('Close') + '</button>', () => { paused = false; });
+  bindBtn('qbS', () => { if (S.stars < p.cost) { toast(tr('Not enough stars')); return; } S.stars -= p.cost; S.pw[id]++; save(); closeModal(); refreshPw(); });
+  bindBtn('qbA', () => { if (freeAdLeft()) return; rewardAd().then(ok => { if (ok) { S.freeAdAt = now(); S.pw[id]++; save(); refreshPw(); } closeModal(); }); });
+  bindBtn('qbN', closeModal);
+}
+
+/* ---------- pause / win / lose ---------- */
+function pauseMenu() {
+  paused = true; closeSheet();
+  openModal('<h2>❚❚ ' + tr('Paused') + '</h2>' +
+    '<button class="btn org wide" id="pRes">▶ ' + tr('Resume') + '</button>' +
+    '<button class="btn wide" id="pRe">↺ ' + tr('Restart') + '</button>' +
+    '<button class="btn wide" id="pSet">⚙️ ' + tr('Settings') + '</button>' +
+    '<button class="btn wide" id="pQuit">🗺️ ' + tr('Quit to map') + '</button>', () => { paused = false; });
+  bindBtn('pRes', closeModal);
+  bindBtn('pRe', () => { modalOnClose = null; closeModal(); restart(); });
+  bindBtn('pSet', () => { modalOnClose = null; openSettings(); modalOnClose = () => { paused = false; }; });
+  bindBtn('pQuit', () => { modalOnClose = null; closeModal(); toMap(); });
+}
+function restart() { if (G.mode === 'endless') startEndless(G.w); else startPlay(G.L); }
+function toMap() { if (G) mapWorld = G.w; showMenu('map'); }
+
+function onWin() {
+  const L = G.L, frac = G.lives / G.maxLives;
+  const stars = frac >= CONFIG.STAR3 ? 3 : frac >= CONFIG.STAR2 ? 2 : 1;
+  const prev = S.best[L] || 0, gain = Math.max(0, stars - prev);
+  S.best[L] = Math.max(prev, stars); S.stars += gain; S.earned += gain;
+  if (L >= S.unlocked) S.unlocked = L + 1;
+  if (BOSS_OF[L] && !G.lostAny) S.stats.noLossBoss = 1;
+  if (L === 1) S.tut.l1 = 1;
+  save();
+  const got = checkAch(), br = checkBreeds();
+  closeSheet(); hidePointer(); hideTip();
+  sfx('win');
+  setTimeout(() => {
+    const nextCat = CATS.find(c => c.unlock === L + 1);
+    openModal('<h2>🎉 ' + tr('Veggies saved!') + '</h2><div class="muted">' + tr('Level {n}', {n: L}) + '</div>' +
+      '<div class="bigstars" id="wStars">' + [1, 2, 3].map(k => starImg(k <= stars).replace('<img', '<img class="pxi' + (k <= stars ? '' : ' off') + '"')).join('') + '</div>' +
+      (gain ? '<div class="reward">' + starIco().replace('ico', 'ico') + ' +' + gain + '</div>' : '') +
+      '<p>' + ICO('carrot') + ' ' + G.lives + '/' + G.maxLives + ' · 💥 ' + G.kills + '</p>' +
+      got.map(a => '<div class="reward" style="font-size:15px">🏆 ' + tr(a.name) + ' +' + a.r + ' ' + starIco() + '</div>').join('') +
+      br.map(b => '<div class="reward" style="font-size:15px">🐱 ' + tr('New breed: {b}!', {b: tr(b.name)}) + '</div>').join('') +
+      (nextCat && L < 40 ? '<p><b>' + tr('Next level: new cat!') + '</b> <img class="pxi" style="width:40px;vertical-align:middle" src="' + catURL(nextCat.id, breedOf(nextCat.id)) + '" alt=""></p>' : '') +
+      (L === 40 ? '<p><b>' + tr('You saved the whole garden! Try Endless mode!') + '</b></p>' : '') +
+      (L < 40 ? '<button class="btn org wide" id="wNext" style="font-size:19px">▶ ' + tr('Next level') + '</button>' : '') +
+      '<div class="row"><button class="btn wide" id="wRe">↺ ' + tr('Replay') + '</button><button class="btn wide" id="wMap">🗺️ ' + tr('Map') + '</button></div>');
+    const imgs = document.querySelectorAll('#wStars img');
+    imgs.forEach((im, i) => setTimeout(() => { im.classList.add('in'); if (i < stars) sfx('star', i); }, 250 + i * 330));
+    bindBtn('wNext', () => { closeModal(); const n = L + 1; if (worldOf(n) !== worldOf(L) && !S.comics[worldOf(n)]) { mapWorld = worldOf(n); showMenu('map'); levelIntro(n); } else startPlay(n); });
+    bindBtn('wRe', () => { closeModal(); startPlay(L); });
+    bindBtn('wMap', () => { closeModal(); mapWorld = worldOf(Math.min(40, S.unlocked)); showMenu('map'); });
+  }, 800);
+}
+function onLose() {
+  closeSheet(); hidePointer(); hideTip(); sfx('lose');
+  G.pmode = null; $('hint').classList.remove('on');
+  if (G.mode === 'endless') { S.endless[G.w] = Math.max(S.endless[G.w] || 0, G.wi); save(); }
+  setTimeout(() => {
+    const canRevive = !G.revived;
+    const got = checkAch();
+    openModal('<h2>😿 ' + tr('Oh no!') + '</h2><p>' + tr('The bugs ate the veggies!') + '</p>' +
+      (G.mode === 'endless' ? '<div class="reward">' + tr('Wave {n}', {n: G.wi}) + '</div><p class="muted">' + tr('Best: wave {n}', {n: S.endless[G.w] || 0}) + '</p>' : '<p class="muted">' + tr('Tip: upgrade cats and use power-ups. Skills make cats stronger!') + '</p>') +
+      got.map(a => '<div class="reward" style="font-size:15px">🏆 ' + tr(a.name) + ' +' + a.r + ' ' + starIco() + '</div>').join('') +
+      (canRevive ? '<button class="btn sky wide" id="lRev" style="font-size:18px">📺 ' + tr('Revive') + ' (+' + Math.ceil(G.maxLives * CONFIG.REVIVE_LIVES) + ' ' + ICO('carrot') + ')</button><div class="muted">' + tr('Optional: watch a short ad to keep playing') + '</div>' : '') +
+      '<div class="row"><button class="btn org wide" id="lRe">↺ ' + tr('Try again') + '</button><button class="btn wide" id="lMap">🗺️ ' + tr('Map') + '</button></div>');
+    bindBtn('lRev', () => rewardAd().then(ok => { if (ok) revive(); }));
+    bindBtn('lRe', () => { closeModal(); restart(); });
+    bindBtn('lMap', () => { closeModal(); toMap(); });
+  }, 700);
+}
+function revive() {
+  closeModal();
+  G.revived = true; G.lives = Math.ceil(G.maxLives * CONFIG.REVIVE_LIVES); G.state = 'play';
+  for (const b of G.bugs) if (prog(b) > 0.8 && !b.B.boss) { b.dead = true; addPart(b.x, b.y, 0, -60, '#fff', 0.4, 3); }
+  for (const b of G.bugs) if (b.B.boss && prog(b) > 0.8) b.d = G.map.paths[b.path].len * 0.6;
+  G.bugs = G.bugs.filter(b => !b.dead);
+  G.napT = 2; banner(tr('Revived!')); sfx('up');
+}
+function endlessProgress() {
+  const w = G.w; S.endless[w] = Math.max(S.endless[w] || 0, G.wi);
+  let paid = S.endlessPaid[w] || 0; const survived = G.wi - 1;
+  while (paid + 10 <= survived) { paid += 10; S.stars += 2; S.earned += 2; toast('♾️ ' + tr('Wave {n}', {n: paid}) + '! +2 ' + starIco()); }
+  S.endlessPaid[w] = paid; save();
+}
+
+/* ---------- tips + tutorial ---------- */
+let tipT = 0, tipOnOk = null;
+function showTip(html, o) {
+  o = o || {};
+  const t = $('tip');
+  t.innerHTML = (o.img ? '<img src="' + o.img + '" alt="">' : '') + '<div class="tt">' + html + '</div>' + (o.ok ? '<button class="btn org small" id="tipOk">OK</button>' : '');
+  const stR = $('stage').getBoundingClientRect();
+  t.style.top = (o.bottom ? stR.bottom - 130 : stR.top + 10) + 'px';
+  t.classList.add('on');
+  clearTimeout(tipT);
+  if (o.ok) { paused = true; tipOnOk = o.onOk || null; bindBtn('tipOk', () => { hideTip(); paused = false; const f = tipOnOk; tipOnOk = null; if (f) f(); }); }
+  else if (o.auto) tipT = setTimeout(hideTip, o.auto);
+}
+function hideTip() { $('tip').classList.remove('on'); clearTimeout(tipT); }
+let pointTo = null;
+function pointAt(target) { pointTo = target; $('pointer').style.display = 'block'; }
+function hidePointer() { pointTo = null; $('pointer').style.display = 'none'; }
+function pointerTick() {
+  if (!pointTo) return;
+  let x, y;
+  if (pointTo.el) {
+    const el = typeof pointTo.el === 'string' ? document.querySelector(pointTo.el) : pointTo.el;
+    if (!el || !el.offsetParent) { $('pointer').style.display = 'none'; return; }
+    const r = el.getBoundingClientRect(); x = r.left + r.width / 2; y = r.top + r.height * 0.55;
+  } else {
+    const r = cv.getBoundingClientRect(); x = r.left + offX + pointTo.x * scale; y = r.top + offY + (pointTo.y + 4) * scale;
+  }
+  const p = $('pointer'); p.style.display = 'block'; p.style.left = x + 'px'; p.style.top = y + 'px';
+}
+function catIcon(id) { return catURL(id, breedOf(id)); }
+function levelStartTips() {
+  if (!G || screen !== 'game') return;
+  if (G.mode === 'level' && G.L === 1 && !S.tut.l1) {
+    const path = G.map.paths[0], q = posAt(path, path.len * 0.3);
+    let best = G.map.spots[0], bd = 1e9;
+    for (const s of G.map.spots) { const d = dist(s, q); if (d < bd) { bd = d; best = s; } }
+    G.tut = {step: 'spot', spot: best};
+    showTip(tr('Bugs want your veggies!') + '<br>' + tr('Tap a pink cushion to place a cat.'), {img: catIcon('yarn')});
+    pointAt({x: best.x, y: best.y});
+    return;
+  }
+  const nc = G.mode === 'level' ? CATS.find(c => c.unlock === G.L) : null;
+  if (nc && !S.tut['cat_' + nc.id]) {
+    S.tut['cat_' + nc.id] = 1; save();
+    showTip('<b>' + tr('New cat: {c}!', {c: tr(nc.name)}) + '</b><br>' + tr(nc.desc), {img: catIcon(nc.id), ok: true, onOk: moreTips});
+    return;
+  }
+  moreTips();
+}
+function moreTips() {
+  if (!G || screen !== 'game') return;
+  if (G.mode === 'level' && G.L === 3 && !S.tut.l3) {
+    S.tut.l3 = 1; save();
+    showTip(tr('Power-ups help when it gets hard. Tap one to use it!'), {auto: 5000, bottom: true});
+    pointAt({el: '.pw[data-pw="nap"]'}); setTimeout(() => { if (G && !G.tut) hidePointer(); }, 5000);
+  }
+}
+function tutEvent(ev) {
+  if (!G) return;
+  const t = G.tut;
+  if (t && t.step === 'spot' && ev === 'build') { t.step = 'cat'; showTip(tr('Pick the Yarn Cat.'), {img: catIcon('yarn'), bottom: false}); pointAt({el: '[data-pick="yarn"]'}); }
+  else if (t && t.step === 'cat' && ev === 'pick') { t.step = 'place'; showTip(tr('Now tap Place!'), {img: catIcon('yarn')}); pointAt({el: '#shPlace'}); }
+  else if (t && (t.step === 'place' || t.step === 'cat' || t.step === 'spot') && ev === 'placed') { t.step = 'start'; showTip(tr('Great! Now start the first wave.'), {img: catIcon('yarn')}); pointAt({el: '#bWave'}); }
+  else if (t && t.step === 'start' && ev === 'wave') {
+    G.tut = null; hidePointer(); S.tut.l1 = 1; save();
+    showTip(tr('Squish bugs to get fish. Use fish to add more cats!') + '<br>' + tr('Tap 1x to go faster.'), {auto: 5500, img: catIcon('yarn')});
+  }
+  else if (t && t.step === 'up' && ev === 'tower') { t.step = 'up2'; pointAt({el: '#shUp'}); }
+  else if (t && (t.step === 'up' || t.step === 'up2') && ev === 'upgraded') { G.tut = null; hidePointer(); hideTip(); S.tut.l2 = 1; save(); toast('⬆️ ' + tr('Stronger cat!')); }
+}
+function tutTick() {
+  if (!G || G.tut || G.mode !== 'level' || G.L !== 2 || S.tut.l2 || !G.started) return;
+  const tw = G.towers.find(t => G.coins >= upCost(t) && t.lv < 5);
+  if (tw) { G.tut = {step: 'up'}; showTip(tr('You have enough fish! Tap a cat to upgrade it.'), {img: catIcon(tw.id)}); pointAt({x: tw.x, y: tw.y - 8}); }
+}
+function newBugTip(k) {
+  if (G && G.tut) return;
+  showTip('<b>' + tr('New bug: {b}!', {b: tr(BUGS[k].name)}) + '</b><br>' + tr(BUGS[k].desc), {img: bugURL(k, 3), auto: 5000});
+}
+function bossTip() {
+  const k = G.queue.map(q => q.type).find(t => BUGS[t].boss);
+  if (!k || S.tut['boss_' + k]) return;
+  S.tut['boss_' + k] = 1; save();
+  setTimeout(() => showTip('<b>' + tr('BOSS: {b}!', {b: tr(BUGS[k].name)}) + '</b><br>' + tr(BUGS[k].desc) + '<br>' + tr('It eats {n} veggies if it gets through!', {n: BUGS[k].lv}), {img: bugURL(k, 2), auto: 6000}), 500);
+}
+/* =====================================================================
+   10. SOUND — tiny chiptune synth (no sound files).
+   sfx('name') plays an effect. music('w0') plays a world song.
+===================================================================== */
+const AU = {ctx: null, sfxG: null, musG: null, want: null, cur: null, step: 0, next: 0, iv: 0};
+function audioUnlock() {
+  if (!AU.ctx) {
+    try {
+      AU.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      AU.sfxG = AU.ctx.createGain(); AU.sfxG.gain.value = 0.55; AU.sfxG.connect(AU.ctx.destination);
+      AU.musG = AU.ctx.createGain(); AU.musG.gain.value = 0.32; AU.musG.connect(AU.ctx.destination);
+    } catch (e) { AU.ctx = null; return; }
+  }
+  if (AU.ctx.state === 'suspended') AU.ctx.resume();
+  if (AU.want && AU.cur !== AU.want) music(AU.want, true);
+}
+function tone(f, dur, type, vol, f2, delay, out) {
+  const c = AU.ctx, t = c.currentTime + (delay || 0);
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = type || 'square'; o.frequency.setValueAtTime(f, t);
+  if (f2) o.frequency.exponentialRampToValueAtTime(Math.max(20, f2), t + dur);
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(out || AU.sfxG); o.start(t); o.stop(t + dur + 0.02);
+}
+let noiseBuf = null;
+function noise(dur, vol, freq, delay, out) {
+  const c = AU.ctx, t = c.currentTime + (delay || 0);
+  if (!noiseBuf) { noiseBuf = c.createBuffer(1, c.sampleRate * 0.6, c.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  s.buffer = noiseBuf; f.type = 'lowpass'; f.frequency.value = freq || 2000;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f); f.connect(g); g.connect(out || AU.sfxG); s.start(t); s.stop(t + dur + 0.02);
+}
+const THR = {squish: 0.05, throw: 0.07, magic: 0.08, ice: 0.08, claw: 0.07, zap: 0.08, splat: 0.08, pop: 0.06, coin: 0.05, laser: 0.14, slam: 0.1, lob: 0.1};
+const lastS = {};
+function sfx(n, arg) {
+  if (!S.sfx || !AU.ctx || AU.ctx.state !== 'running') return;
+  const t = AU.ctx.currentTime;
+  if (lastS[n] && t - lastS[n] < (THR[n] || 0.03)) return;
+  lastS[n] = t;
+  switch (n) {
+    case 'ui': tone(880, 0.05, 'square', 0.05); break;
+    case 'no': tone(220, 0.12, 'square', 0.06, 160); break;
+    case 'meow': tone(620, 0.12, 'sawtooth', 0.06, 980); tone(980, 0.2, 'sawtooth', 0.05, 520, 0.11); break;
+    case 'throw': tone(700, 0.05, 'square', 0.03, 420); break;
+    case 'magic': tone(1200, 0.08, 'triangle', 0.05, 1800); break;
+    case 'ice': tone(1500, 0.07, 'triangle', 0.04, 900); break;
+    case 'claw': noise(0.05, 0.08, 5000); break;
+    case 'lob': tone(300, 0.12, 'triangle', 0.06, 500); break;
+    case 'splat': noise(0.12, 0.12, 900); break;
+    case 'zap': noise(0.1, 0.08, 6000); tone(1800, 0.08, 'square', 0.03, 600); break;
+    case 'laser': tone(1300 + Math.random() * 200, 0.12, 'sawtooth', 0.015); break;
+    case 'slam': tone(120, 0.2, 'square', 0.1, 50); noise(0.2, 0.12, 400); break;
+    case 'squish': noise(0.07, 0.1, 1400); tone(240, 0.06, 'square', 0.04, 120); break;
+    case 'pop': tone(900, 0.06, 'square', 0.05, 1400); break;
+    case 'coin': tone(988, 0.06, 'square', 0.05); tone(1319, 0.1, 'square', 0.05, 0, 0.06); break;
+    case 'up': [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.09, 'square', 0.05, 0, i * 0.06)); break;
+    case 'hurt': tone(220, 0.2, 'square', 0.09, 90); break;
+    case 'boom': noise(0.5, 0.25, 700); tone(90, 0.4, 'square', 0.1, 40); break;
+    case 'wave': tone(523, 0.08, 'square', 0.05); tone(784, 0.12, 'square', 0.05, 0, 0.08); break;
+    case 'bossIn': [196, 185, 175, 165].forEach((f, i) => tone(f, 0.22, 'sawtooth', 0.07, 0, i * 0.2)); break;
+    case 'dash': noise(0.25, 0.08, 3000); break;
+    case 'web': tone(400, 0.25, 'triangle', 0.06, 1200); break;
+    case 'nap': [659, 523, 392].forEach((f, i) => tone(f, 0.25, 'triangle', 0.07, 0, i * 0.18)); break;
+    case 'combo': [784, 988, 1175, 1568].forEach((f, i) => tone(f, 0.07, 'square', 0.05, 0, i * 0.05)); break;
+    case 'star': tone([784, 988, 1175][arg || 0], 0.25, 'square', 0.06); tone([1568, 1976, 2349][arg || 0], 0.2, 'triangle', 0.04, 0, 0.05); break;
+    case 'win': [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, 0.14, 'square', 0.06, 0, i * 0.11)); break;
+    case 'lose': [392, 349, 311, 262].forEach((f, i) => tone(f, 0.25, 'square', 0.06, 0, i * 0.2)); break;
+  }
+}
+const sfxLoop = n => sfx(n);
+
+/* ---- music: 32 steps per loop. Numbers are notes (60 = middle C), 0 = rest ---- */
+const SONGS = {
+  menu: {bpm: 100, lead: [72, 0, 76, 0, 79, 0, 76, 0, 74, 0, 77, 0, 81, 0, 77, 0, 76, 0, 79, 0, 84, 0, 79, 0, 77, 76, 74, 0, 72, 0, 0, 0], bass: [48, 53, 52, 55, 48, 53, 55, 48], hat: 0},
+  w0: {bpm: 132, lead: [72, 74, 76, 79, 76, 74, 72, 0, 74, 76, 77, 81, 79, 77, 76, 0, 76, 77, 79, 84, 83, 81, 79, 77, 76, 74, 72, 74, 76, 0, 72, 0], bass: [48, 55, 53, 55, 48, 55, 50, 55], hat: 1},
+  w1: {bpm: 120, lead: [77, 0, 81, 79, 77, 0, 74, 76, 77, 0, 72, 0, 74, 76, 77, 0, 79, 0, 82, 81, 79, 0, 77, 74, 72, 74, 76, 77, 79, 0, 0, 0], bass: [53, 57, 50, 55, 48, 52, 53, 48], hat: 1},
+  w2: {bpm: 112, lead: [69, 0, 72, 0, 76, 0, 75, 76, 74, 0, 71, 0, 68, 0, 0, 0, 69, 0, 72, 0, 77, 0, 76, 74, 72, 71, 69, 0, 64, 0, 0, 0], bass: [45, 45, 41, 41, 43, 43, 40, 40], hat: 0},
+  w3: {bpm: 96, lead: [76, 0, 79, 0, 83, 0, 81, 79, 76, 0, 74, 0, 71, 0, 0, 0, 72, 0, 76, 0, 79, 0, 78, 76, 74, 0, 71, 0, 67, 0, 0, 0], bass: [52, 52, 48, 48, 50, 50, 47, 47], hat: 0},
+};
+const mf = n => 440 * Math.pow(2, (n - 69) / 12);
+function music(name, force) {
+  AU.want = name;
+  if (!S.mus || !AU.ctx || AU.ctx.state !== 'running') return;
+  if (AU.cur === name && !force) return;
+  AU.cur = name; AU.step = 0; AU.next = AU.ctx.currentTime + 0.1;
+  clearInterval(AU.iv);
+  AU.iv = setInterval(musicTick, 60);
+}
+function musicStop() { clearInterval(AU.iv); AU.cur = null; }
+function musicTick() {
+  if (!S.mus || !AU.ctx) return;
+  const song = SONGS[AU.cur]; if (!song) return;
+  const sd = 60 / song.bpm / 2;
+  while (AU.next < AU.ctx.currentTime + 0.25) {
+    const i = AU.step % 32, dl = AU.next - AU.ctx.currentTime;
+    const n = song.lead[i];
+    if (n) tone(mf(n), sd * 0.9, 'square', 0.045, 0, dl, AU.musG);
+    if (i % 4 === 0) tone(mf(song.bass[(i / 4) % 8]), sd * 3.6, 'triangle', 0.11, 0, dl, AU.musG);
+    if (song.hat && i % 2 === 1) noise(0.03, 0.025, 8000, dl, AU.musG);
+    AU.step++; AU.next += sd;
+  }
+}
+/* =====================================================================
+   11. MONEY — rewarded ads (AdMob) + purchase (Google Play Billing)
+   ---------------------------------------------------------------------
+   FAKE FOR NOW: in a browser, ads are a 3-second pretend ad, and
+   the purchase is pretend (a "Demo" button gives you the pack).
+   Inside the Android app (Capacitor) with the plugins installed, the
+   real ones take over automatically:
+     • @capacitor-community/admob   → rewarded video ads
+     • cordova-plugin-purchase      → Google Play purchases
+   BEFORE RELEASE: put your real AdMob rewarded unit ID below,
+   set MONEY.TESTING to false, and set MONEY.DEMO_BUY to false.
+   Ads are ALWAYS the player's choice. Nothing plays on its own.
+===================================================================== */
+const MONEY = {
+  TESTING: true,
+  DEMO_BUY: true,   // browser only: pretend purchases give the item (for testing)
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917', // Google's TEST rewarded ID — replace with yours
+};
+const PACK = {sku: 'golden_paw_pack', price: '$2.99', stars: 20};
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null;
+let adBusy = false;
+
+/* the one function the game calls. Resolves true if the player earned the reward. */
+async function rewardAd() {
+  if (S.noAds) { toast('✨ ' + tr('Golden Paw Pack: reward given!')); return true; }
+  if (adBusy) return false;
+  adBusy = true; musicStop();
+  let ok = false;
+  try { ok = AdMobP() ? await nativeAd() : await demoAd(); } catch (e) { ok = false; }
+  adBusy = false;
+  if (AU.want) music(AU.want, true);
+  if (!ok) toast(tr('No reward this time'));
+  return ok;
+}
+function nativeAd() {
+  const A = AdMobP();
+  return new Promise(async res => {
+    let earned = false, finished = false; const hs = [];
+    const finish = () => { if (finished) return; finished = true; hs.forEach(h => { try { h.remove(); } catch (e) {} }); res(earned); };
+    try {
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      await A.prepareRewardVideoAd({adId: MONEY.REWARDED_ID, isTesting: MONEY.TESTING});
+      const item = await A.showRewardVideoAd();
+      if (item && item.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    } catch (e) { finish(); }
+  });
+}
+function demoAd() {
+  return new Promise(res => {
+    const prevHtml = $('mbox').innerHTML, wasOpen = modalOpen(), prevClose = modalOnClose;
+    let n = 3;
+    modalOnClose = null;
+    openModal('<h2>📺 ' + tr('Ad preview') + '</h2><p>' + tr('A real video ad plays here in the app.') + '</p><div class="ad-count" id="adCd">' + n + '</div>' +
+      '<button class="btn wide" id="adSkip">' + tr('Close (no reward)') + '</button>');
+    const back = r => {
+      clearInterval(iv);
+      if (wasOpen) { $('mbox').innerHTML = prevHtml; modalOnClose = prevClose; } else { $('modal').classList.remove('on'); modalOnClose = prevClose; }
+      res(r);
+    };
+    const iv = setInterval(() => { n--; const el = $('adCd'); if (el) el.textContent = n; if (n <= 0) back(true); }, 1000);
+    $('adSkip').onclick = () => back(false);
+  });
+}
+async function adsInit() { const A = AdMobP(); if (!A) return; try { await A.initialize({initializeForTesting: MONEY.TESTING}); } catch (e) {} }
+
+function grantSku(sku) {
+  if (sku !== PACK.sku || S.pack) return '';
+  S.pack = true; S.noAds = true; S.stars += PACK.stars; S.earned += PACK.stars;
+  POWERS.forEach(p => S.pw[p.id] = (S.pw[p.id] || 0) + 2);
+  checkBreeds(); S.breedOwn.golden = 1;
+  return '✨ ' + tr('Golden cat breed') + '<br>' + starIco() + ' +' + PACK.stars + ' ' + tr('stars') + '<br>🧪 +2 ' + tr('of each power-up') + '<br>📺 ' + tr('Ad rewards without ads');
+}
+const PRICES = {};
+const priceOf = (sku, fb) => PRICES[sku] || fb;
+let iapReady = false;
+function iapStore() { return window.CdvPurchase && CdvPurchase.store; }
+function iapInit() {
+  const C = window.CdvPurchase; if (!C || iapReady) return;
+  const {store, ProductType, Platform} = C; iapReady = true;
+  store.register([{id: PACK.sku, type: ProductType.NON_CONSUMABLE, platform: Platform.GOOGLE_PLAY}]);
+  store.when()
+    .productUpdated(p => { if (p.pricing && p.pricing.price) PRICES[p.id] = p.pricing.price; })
+    .approved(tx => {
+      const tid = tx.transactionId || ('t' + now());
+      if (!S.iapDone[tid]) {
+        S.iapDone[tid] = now();
+        (tx.products || []).forEach(it => { const msg = grantSku(it.id); if (msg) showThanks(msg); });
+        save(); if (screen === 'shop') showMenu('shop');
+      }
+      tx.finish();
+    });
+  store.error(e => { if (e && e.code !== C.ErrorCode.PAYMENT_CANCELLED) toast(tr('Store error. Please try again.')); });
+  store.initialize([Platform.GOOGLE_PLAY]);
+}
+document.addEventListener('deviceready', iapInit, false);
+function showThanks(msg) { openModal('<h2>💝 ' + tr('Thank you!') + '</h2><p style="font-weight:800;line-height:1.8">' + msg + '</p><button class="btn org wide" id="tyOk">✔ ' + tr('Close') + '</button>'); bindBtn('tyOk', closeModal); sfx('win'); }
+function buy(sku) {
+  sfx('ui');
+  const st = iapStore();
+  if (st) {
+    const p = st.get(sku), offer = p && p.getOffer();
+    if (!offer) { toast(tr('Store is still loading. Try again in a moment.')); return; }
+    offer.order(); return;
+  }
+  openModal('<h2>💳 ' + tr('Golden Paw Pack') + '</h2><p><b>' + PACK.price + '</b></p><p class="muted">' + tr('Demo mode: real payments work in the Android app through Google Play.') + '</p>' +
+    (MONEY.DEMO_BUY ? '<button class="btn gold wide" id="dmBuy">' + tr('Demo: get it free') + '</button>' : '') + '<button class="btn wide" id="dmNo">' + tr('Close') + '</button>');
+  bindBtn('dmBuy', () => { closeModal(); const msg = grantSku(sku); save(); if (screen === 'shop') showMenu('shop'); if (msg) showThanks(msg); });
+  bindBtn('dmNo', closeModal);
+}
+function restorePurchases() {
+  const st = iapStore();
+  if (st && st.restorePurchases) { st.restorePurchases(); toast(tr('Checking your purchases...')); }
+  else toast(tr('Restore works in the Android app.'));
+}
+function paidShopHtml() {
+  return '<div class="card center" style="border-color:#d99a10;background:linear-gradient(#fffaf0,#fde9b0)">' +
+    '<h3 style="color:#a8322a">👑 ' + tr('Golden Paw Pack') + '</h3><img class="pxi" style="width:90px" src="' + catURL('wiz', 'golden', 2) + '" alt="">' +
+    '<div style="text-align:left;line-height:1.9;font-weight:800">✨ ' + tr('Golden cat breed') + '<br>' + starIco() + ' +' + PACK.stars + ' ' + tr('stars') + '<br>🧪 +2 ' + tr('of each power-up') + '<br>📺 ' + tr('Get every ad reward without watching ads') + '</div>' +
+    (S.pack ? '<span class="st">✔ ' + tr('Owned') + '</span>' : '<button class="btn org wide" id="buyPack">' + priceOf(PACK.sku, PACK.price) + ' · ' + tr('one time') + '</button>') + '</div>' +
+    '<p class="muted center">' + tr('Totally optional! Everything else can be earned by playing.') + '<br>' + tr('Payments are handled securely by Google Play.') + '</p>' +
+    '<button class="btn wide" id="shRestore">💳 ' + tr('Restore purchases') + '</button>';
+}
+function bindPaidShop() { bindBtn('buyPack', () => buy(PACK.sku)); bindBtn('shRestore', restorePurchases); }
+/* =====================================================================
+   12. START — the main loop. Every frame: update() moves things,
+   draw() paints them, hud() refreshes the numbers.
+===================================================================== */
+function resize() {
+  const st = $('stage'), w = st.clientWidth, h = st.clientHeight;
+  dpr = Math.min(3, window.devicePixelRatio || 1);
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  scale = Math.min(w / W, h / H); offX = (w - W * scale) / 2; offY = (h - H * scale) / 2;
+}
+let last = performance.now(), slowT = 0;
+function loop(t) {
+  const dt = Math.min(0.05, (t - last) / 1000); last = t;
+  if (screen === 'game' && G) {
+    if (!paused && !modalOpen() && G.state === 'play' && !window.__PDfreeze) {
+      const total = dt * S.speed, n = Math.ceil(total / 0.02);
+      for (let i = 0; i < n && G.state === 'play'; i++) update(total / n);
+    }
+    draw(); hud();
+    slowT += dt;
+    if (slowT > 0.25) { slowT = 0; sheetTick(); tutTick(); }
+    pointerTick();
+  } else if (screen === 'title' && titleCv) drawTitle(titleCv, t / 1000);
+  requestAnimationFrame(loop);
+}
+window.addEventListener('resize', () => { resize(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    if (screen === 'game' && G && G.state === 'play' && !paused && !modalOpen()) pauseMenu();
+    if (AU.ctx) AU.ctx.suspend();
+    save();
+  } else if (AU.ctx) AU.ctx.resume();
+});
+document.addEventListener('pointerdown', () => audioUnlock(), {once: true});
+// Android back button
+try {
+  const App = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.App;
+  if (App) App.addListener('backButton', () => {
+    if (modalOpen()) { const tipOk = $('tipOk'); if (!$('wNext') && !$('lRe') && !$('dOk') && !$('cNext')) closeModal(); return; }
+    if ($('sheet').classList.contains('on')) { closeSheet(); return; }
+    if (screen === 'game') { if (G && G.state === 'play') pauseMenu(); return; }
+    if (screen !== 'map' && screen !== 'title') { showMenu('map'); return; }
+    if (screen === 'map') { showTitle(); return; }
+    App.exitApp();
+  });
+} catch (e) {}
+
+applyEasy();
+checkBreeds();
+resize();
+refreshPw();
+if ('ontouchstart' in window) document.body.classList.add('touch');
+if (isNative()) document.documentElement.classList.add('native');
+adsInit();
+showTitle();
+requestAnimationFrame(loop);
+
+/* for testing in the browser console */
+window.__PD = {get S() { return S; }, get G() { return G; }, CATS, BUGS, CONFIG, startPlay, startEndless, placeCat, upgradeCat, launchWave, update, genWaves, tstats, upCost, catCost, showMenu, levelIntro, save, usePower};
+
+})();
+</script>
+</body>
+</html>
