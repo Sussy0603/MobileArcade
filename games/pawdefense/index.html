@@ -30,6 +30,10 @@
 body[data-w="1"]{--bar:#3c6188;--bar2:#243d58}
 body[data-w="2"]{--bar:#5e4570;--bar2:#3a2a47}
 body[data-w="3"]{--bar:#24365c;--bar2:#121c33}
+body[data-w="4"]{--bar:#2a8a9a;--bar2:#1a5a66}
+body[data-w="5"]{--bar:#4a7ab0;--bar2:#2a4a78}
+body[data-w="6"]{--bar:#c8508a;--bar2:#8a2a5a}
+body[data-w="7"]{--bar:#3a2a78;--bar2:#1a1240}
 body.easy{--font:Verdana,"Segoe UI",Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.12em}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 html,body{margin:0;height:100%;overflow:hidden;background:#241a2b;font-family:var(--font);color:var(--ink);font-size:15px;touch-action:manipulation}
@@ -130,6 +134,8 @@ img.pxi{image-rendering:pixelated}
 .node.cur{background:var(--gold);animation:pulse 1.1s infinite}
 .node.boss{background:#ffb3b6}
 .node.boss.cur{background:var(--gold)}
+.node{position:relative}
+.node .crown{position:absolute;top:-12px;right:-10px;font-size:20px;filter:drop-shadow(0 2px 0 #2a1f33)}
 .node .bi{width:30px;height:30px;image-rendering:pixelated}
 .endless{width:100%;margin-top:14px;font-size:16px}
 
@@ -307,6 +313,7 @@ function defaults() {
     stars: 0,            // stars in the wallet (to spend)
     earned: 0,           // every star ever earned
     best: {},            // level number -> best stars (1..3)
+    bestH: {},           // level number -> best stars on Hard (a crown)
     unlocked: 1,         // highest level you can play
     skills: {},          // cat id -> rank 0..4
     garden: {lives: 0, coins: 0, refund: 0, bargain: 0, power: 0},
@@ -453,6 +460,110 @@ const FR = {
   'jumps': 'sauts', 'lose 2 veggies or less': 'perdre 2 légumes ou moins', 'of each power-up': 'de chaque bonus', 'one time': 'une fois', 'per wave': 'par vague', 'speed': 'vitesse',
   'stars': 'étoiles', 'you have {n}': 'tu en as {n}', '{n} waves': '{n} vagues',
   '{n} goals done!': '{n} objectifs réussis!', 'Sharp Claws: +15% damage': 'Griffes aiguisées : +15 % dégâts', 'Keen Eyes: +10% range': 'Yeux perçants : +10 % portée', 'Quick Paws: +12% speed': 'Pattes rapides : +12 % vitesse',
+  '3 stars on a Hard boss level': '3 étoiles sur un niveau boss en Difficile',
+  'A flying bug with a sugar shield.': 'Un insecte volant avec un bouclier de sucre.',
+  'A magic portal opened to Candy Land!': 'Un portail magique s\'est ouvert vers le Pays des bonbons!',
+  'Alien Bug': 'Insecte extraterrestre',
+  'Alien Hunter': 'Chasseur d\'extraterrestres',
+  'Alien Queen': 'Reine extraterrestre',
+  'All bugs walk faster.': 'Tous les insectes marchent plus vite.',
+  'All the Crowns': 'Toutes les couronnes',
+  'Armored waves': 'Vagues blindées',
+  'Astro Cat': 'Chat Astro',
+  'Astro Cat, to the stars! Final mission!': 'Chat Astro, vers les étoiles! Mission finale!',
+  'BOSS. Freezes the cats near it.': 'BOSS. Gèle les chats proches.',
+  'BOSS. Heals itself and drops gumdrops.': 'BOSS. Se soigne et laisse tomber des jujubes.',
+  'BOSS. Hides in his shell: no damage for a moment.': 'BOSS. Se cache dans sa coquille : aucun dégât pendant un moment.',
+  'BOSS. Teleports, calls UFO bugs and has a shield.': 'BOSS. Se téléporte, appelle des OVNI et a un bouclier.',
+  'Beach': 'Plage',
+  'Beach Boss': 'Boss de la plage',
+  'Beat a boss level on Hard': 'Battre un niveau boss en Difficile',
+  'Beat the Alien Queen': 'Battre la reine extraterrestre',
+  'Beat the Crab King': 'Battre le roi crabe',
+  'Beat the Gummy Worm': 'Battre le ver en jujube',
+  'Beat the Ice Beetle': 'Battre le scarabée de glace',
+  'Big cannonballs push bugs back. Ground only.': 'Gros boulets de canon qui repoussent les insectes. Au sol seulement.',
+  'Bigger, longer traps': 'Pièges plus gros et plus longs',
+  'Brrr! Snow covers the garden.': 'Brrr! La neige couvre le jardin.',
+  'Bugs are tougher and you start with less fish.': 'Les insectes sont plus forts et tu commences avec moins de poissons.',
+  'Calls meteors from space on big groups. Sees invisible bugs.': 'Appelle des météores de l\'espace sur les gros groupes. Voit les insectes invisibles.',
+  'Can\'t be slowed, frozen or stunned.': 'Ne peut pas être ralenti, gelé ni étourdi.',
+  'Candy Cat': 'Chat Bonbon',
+  'Candy Cat makes sticky traps!': 'Chat Bonbon fait des pièges collants!',
+  'Candy Fly': 'Mouche bonbon',
+  'Candy Land': 'Pays des bonbons',
+  'Cannonballs splash': 'Les boulets éclaboussent',
+  'Cats can\'t be sold.': 'Les chats ne peuvent pas être vendus.',
+  'Crab Cracker': 'Casse-crabe',
+  'Crab King': 'Roi crabe',
+  'Crown Collector': 'Collectionneur de couronnes',
+  'Crown earned!': 'Couronne gagnée!',
+  'Drops sticky candy on the path. Bugs get slow and hurt.': 'Laisse du bonbon collant sur le chemin. Les insectes ralentissent et ont mal.',
+  'Every bug gets +2 armor.': 'Chaque insecte a +2 d\'armure.',
+  'Fast bugs': 'Insectes rapides',
+  'Finish World 5': 'Finir le Monde 5',
+  'Finish World 6': 'Finir le Monde 6',
+  'Finish World 7': 'Finir le Monde 7',
+  'Finish World 8': 'Finir le Monde 8',
+  'Flawless Hard': 'Difficile parfait',
+  'Flies, hides and has a shield.': 'Vole, se cache et a un bouclier.',
+  'Frost Bug': 'Insecte givré',
+  'Get 40 crowns': 'Gagner 40 couronnes',
+  'Get all 80 crowns': 'Gagner les 80 couronnes',
+  'Ghost': 'Fantôme',
+  'Gumdrop': 'Jujube',
+  'Gummy Worm': 'Ver en jujube',
+  'HARD': 'DIFFICILE',
+  'Hard': 'Difficile',
+  'Hard Boss': 'Boss difficile',
+  'Hard Worker': 'Travaillant',
+  'Heals itself a little all the time.': 'Se soigne un peu tout le temps.',
+  'Hermit Crab': 'Bernard-l\'ermite',
+  'Ice Beetle': 'Scarabée de glace',
+  'Ice Breaker': 'Brise-glace',
+  'Its shell breaks at half health. Then it runs!': 'Sa coquille casse à mi-vie. Ensuite, il court!',
+  'Lava': 'Lave',
+  'Meteors leave fire': 'Les météores laissent du feu',
+  'New crown!': 'Nouvelle couronne!',
+  'Next level on Hard': 'Niveau suivant en Difficile',
+  'No power-ups': 'Pas de bonus',
+  'No power-ups on this Hard level': 'Pas de bonus dans ce niveau Difficile',
+  'No selling': 'Pas de vente',
+  'Normal': 'Normal',
+  'Pirate Cat': 'Chat Pirate',
+  'Pirate Cat sails in to help!': 'Chat Pirate arrive en bateau pour aider!',
+  'Play on Hard': 'Jouer en Difficile',
+  'Power-ups can\'t be used.': 'Les bonus ne peuvent pas être utilisés.',
+  'Royal': 'Royal',
+  'Sand Flea': 'Puce de sable',
+  'Snow Cat': 'Chat Neige',
+  'Snow Cat is ready for a snowball fight!': 'Chat Neige est prêt pour une bataille de boules de neige!',
+  'Snow Hero': 'Héros de la neige',
+  'Snowballs can freeze': 'Les boules de neige peuvent geler',
+  'Snowballs hit a group and slow it down.': 'Les boules de neige frappent un groupe et le ralentissent.',
+  'Space': 'Espace',
+  'Space Savior': 'Sauveur de l\'espace',
+  'Sugar Rush': 'Rush de sucre',
+  'Sweet Victory': 'Douce victoire',
+  'Teleports forward now and then!': 'Se téléporte en avant de temps en temps!',
+  'The Alien Queen leads a whole army!': 'La reine extraterrestre mène toute une armée!',
+  'The Crab King wants the picnic veggies!': 'Le roi crabe veut les légumes du pique-nique!',
+  'The Gummy Worm eats everything sweet... and veggies too!': 'Le ver en jujube mange tout ce qui est sucré... et les légumes aussi!',
+  'The Ice Beetle freezes everything!': 'Le scarabée de glace gèle tout!',
+  'The bugs built a rocket to space!': 'Les insectes ont construit une fusée pour l\'espace!',
+  'The bugs went on vacation... to the beach!': 'Les insectes sont partis en vacances... à la plage!',
+  'Tiny and super fast.': 'Minuscule et super rapide.',
+  'Tip: Hard mode is open for this level!': 'Astuce : le mode Difficile est ouvert pour ce niveau!',
+  'Tough Cat': 'Chat coriace',
+  'Twist': 'Défi',
+  'UFO Bug': 'Insecte OVNI',
+  'Win 20 levels on Hard': 'Gagner 20 niveaux en Difficile',
+  'Win 25 Hard levels': 'Gagner 25 niveaux Difficile',
+  'Win 5 Hard levels': 'Gagner 5 niveaux Difficile',
+  'Win a level on Hard': 'Gagner un niveau en Difficile',
+  'Win this level on Normal first': 'Gagne ce niveau en Normal d\'abord',
+  'Winter': 'Hiver',
+  'You saved the whole garden! Try Endless mode and Hard mode!': 'Tu as sauvé tout le jardin! Essaie le mode Sans fin et le mode Difficile!',
 };
 /* =====================================================================
    5. PIXEL ART — every picture is a tiny text grid.
@@ -936,6 +1047,54 @@ const SPR = {
     ".oyyyoo.",
     "..ooooo.",
   ],
+  // ---- new worlds ----
+  shell: ["..ooo..", ".owawo.", "oawawao", "oawawao", ".ooooo."],
+  starfish: ["...o...", "..oao..", "ooaaaoo", ".oaaao.", ".oaoao.", "oao.oao", "oo...oo"],
+  snowman: ["..ooo..", ".owwwo.", ".okwko.", ".owrwo.", "..ooo..", ".owwwo.", "owwkwwo", "owwwwwo", "owwkwwo", ".ooooo."],
+  pine: ["...o...", "..ogo..", ".ogggo.", "..ogo..", ".oggwo.", "ogggggo", ".ogwgo.", "ogggggo", "oooaooo", "...a..."],
+  lollipop: [".ooo.", "oprpo", "orpro", "oprpo", ".ooo.", "..s..", "..s..", "..s.."],
+  candy: ["o.ooooo.o", "oooprpooo", "o.ooooo.o"],
+  cupcake: ["...r...", "..owo..", ".owwwo.", "owwpwwo", "ooooooo", ".obcbo.", "..ooo.."],
+  planet: ["..ooooo..", ".oaaaaao.", "rrrrrrrrr", "oaabaaaao", ".oaaaaao.", "..ooooo.."],
+  crater: [".oooooo.", "obbaabbo", "obaaaabo", ".oooooo."],
+  hermit: [
+    "o..........o",
+    "oo........oo",
+    ".oo.oooo.oo.",
+    "..ooaaaaoo..",
+    "..oekaaeko..",
+    ".oaaaaaaaao.",
+    ".oabbbbbbao.",
+    "l.obbbbbbo.l",
+    ".l.oooooo.l.",
+  ],
+  flea: [".o..o.", "oaaaao", "oekeko", ".oaao.", "l.ll.l"],
+  flea2: [".o..o.", "oaaaao", "oekeko", ".oaao.", ".l..l."],
+  gumdrop: ["..oooo..", ".oaaaao.", "oawaaaao", "oekaaeko", "oaaaaaao", "oaaaaaao", ".oooooo."],
+  alien: [
+    ".o......o.",
+    "..o....o..",
+    "..oooooo..",
+    ".oaaaaaao.",
+    "oakeaakeao",
+    "oaeeaaeeao",
+    ".oaaaaaao.",
+    "..oaaaao..",
+    ".l.oaao.l.",
+    "l...oo...l",
+  ],
+  ufo: [
+    "....oooo....",
+    "...oggggo...",
+    "..oaekekao..",
+    ".oaaaaaaaao.",
+    "oaybaybaybao",
+    ".oooooooooo.",
+    "...l....l...",
+  ],
+  tricorn: ["..oooooooo..", ".oHHHHHHHHo.", "oHHHWHHWHHHo", "oHHHHWWHHHHo", ".oooooooooo."],
+  beanie: ["....oo....", "...oWWo...", ".ooHHHHoo.", "oHHHHHHHHo", "oBBBBBBBBo"],
+  bow: ["oo..oo", "oPooPo", "oPPPPo", "oPooPo", "oo..oo"],
   web: [
     "o...o...o",
     ".o..o..o.",
@@ -990,6 +1149,32 @@ const PALS = {
   nap: {o: OUT, y: '#ffe680', z: '#bfe1ff'},
   web: {o: '#e8e8f0'},
   crown: {o: OUT, y: '#ffd23f', r: '#e8483c'},
+  cushion4: {o: OUT, c: '#3fbfb0', d: '#c8fff6'},
+  cushion5: {o: OUT, c: '#7aa8e8', d: '#ffffff'},
+  cushion6: {o: OUT, c: '#7fdcb0', d: '#ffd0e8'},
+  cushion7: {o: OUT, c: '#8a7ad8', d: '#ffe680'},
+  shell: {o: '#8a5a3c', a: '#ffd9c0', w: '#ffffff'},
+  starfish: {o: '#8a3a20', a: '#ff8a5a'},
+  snowman: {o: '#5a7090', w: '#ffffff', k: '#2a1f33', r: '#ff8a2a'},
+  pine: {o: '#1f3a2a', g: '#3f8a5a', w: '#ffffff', a: '#6e4a2e'},
+  lollipop: {o: OUT, p: '#ff7aa2', r: '#fff4f8', s: '#ffffff'},
+  candy: {o: OUT, p: '#7fdcb0', r: '#ffffff'},
+  cupcake: {o: OUT, r: '#e8483c', w: '#fff4f8', p: '#ff7aa2', b: '#c98a5a', c: '#e8b07a'},
+  planet: {o: '#120f2a', a: '#e8935a', b: '#c96a3a', r: '#ffe680'},
+  crater: {o: '#120f2a', a: '#5a5278', b: '#3a3458'},
+  rockSnow: {o: '#5a7090', a: '#b8c6d8', w: '#ffffff'},
+  hermit: {o: '#3a1a14', a: '#ff6a4a', b: '#f2d0a0', e: '#fff', k: '#3a1a14', l: '#3a1a14'},
+  crabking: {o: '#2a0f0a', a: '#d8342a', b: '#ffd23f', e: '#fff', k: '#2a0f0a', l: '#2a0f0a'},
+  flea: {o: '#3a2a14', a: '#d9b877', e: '#fff', k: '#3a2a14', l: '#3a2a14'},
+  frost: {o: '#1a3a5a', a: '#8fd6ff', b: '#2a5a8a', w: '#ffffff', e: '#fff', k: '#1a3a5a', l: '#1a3a5a'},
+  icebeetle: {o: '#0f2440', a: '#5ab8f0', b: '#1a3a6a', w: '#e8fbff', e: '#fff', k: '#0f2440', l: '#0f2440'},
+  gumdrop: {o: '#5a1a3a', a: '#ff5aa8', w: '#ffd0e8', e: '#fff', k: '#5a1a3a'},
+  candyfly: {o: '#4a1a4a', a: '#c87ae8', b: '#ffe680', e: '#ff4a8a', k: '#fff', w: '#ffe0f4', l: '#4a1a4a'},
+  gummy: {o: '#3a1a10', a: '#ff9a3a', b: '#7fdc5a', e: '#fff', k: '#3a1a10', l: '#3a1a10'},
+  alien: {o: '#14301a', a: '#7ae85a', e: '#14301a', k: '#ffffff', l: '#14301a'},
+  alienking: {o: '#1a0f30', a: '#b383ff', e: '#1a0f30', k: '#ffffff', l: '#1a0f30'},
+  ufo: {o: '#1a1a2a', a: '#a8b0c8', b: '#6a7088', g: '#9ff0ff', y: '#ffe680', e: '#fff', k: '#1a1a2a', l: '#1a1a2a'},
+
 };
 
 /* ---- cat fur colors (breeds) ---- */
@@ -1003,6 +1188,9 @@ const BREEDS = [
   {id: 'tux', name: 'Tuxedo', how: 'Complete 12 goals', f: '#2d2a38', s: '#2d2a38', w: '#fffaf0', e: '#7ad04a', o: '#120f18'},
   {id: 'galaxy', name: 'Galaxy', how: 'Finish World 4', f: '#3b2f78', s: '#b383ff', w: '#8ad0ff', e: '#ff7ad0', o: '#120f2a'},
   {id: 'golden', name: 'Golden', how: 'Golden Paw Pack', f: '#ffd54a', s: '#ef9f12', w: '#fff7d0'},
+  {id: 'ghost', name: 'Ghost', how: 'Win 5 Hard levels', f: '#d8e8ff', s: '#a8c0e8', w: '#ffffff', e: '#5a8ad8', o: '#3a4a6a'},
+  {id: 'lava', name: 'Lava', how: 'Win 25 Hard levels', f: '#3a2020', s: '#ff5a1a', w: '#ff9a3a', e: '#ffd23f', o: '#120808'},
+  {id: 'royal', name: 'Royal', how: 'Get all 80 crowns', f: '#7a3fc4', s: '#ffd23f', w: '#f0e0ff', e: '#ffd23f', o: '#1a0f30'},
 ];
 const BREED = {}; BREEDS.forEach(b => BREED[b.id] = b);
 function catPal(breedId) {
@@ -1023,6 +1211,10 @@ const ACC_PAL = {
   hairball: {o: '#2a4a1c', G: '#8fd65a', g: '#5aa63f'},
   fishy: {o: OUT, a: '#6ec6ff', k: OUT},
   pompom: {o: OUT, P: '#ff7aa2'},
+  tricorn: {o: OUT, H: '#2a2230', W: '#ffffff'},
+  beanie: {o: OUT, H: '#5aa0e8', W: '#ffffff', B: '#ffffff'},
+  bow: {o: OUT, P: '#ff5aa8'},
+  lollipop: {o: OUT, p: '#ff7aa2', r: '#fff4f8', s: '#ffffff'},
 };
 
 /* ---- turn a text grid into a little canvas (cached) ---- */
@@ -1118,6 +1310,14 @@ const CATS = [
     desc: 'BOSS CAT. Laser eyes get stronger the longer they hit.', sp: 'Laser melts armor'},
   {id: 'chonk', name: 'Big Chonk', unlock: 29, cost: 300, dmg: 44, rate: 0.55, range: 1.6, air: 0, kind: 'slam', stun: 0.6, acc: 'bell', boss: 1,
     desc: 'BOSS CAT. Belly slam hits every ground bug around and stuns them.', sp: 'Longer stun'},
+  {id: 'pirate', name: 'Pirate Cat', unlock: 41, cost: 260, dmg: 70, rate: 0.45, range: 3.3, air: 0, kind: 'proj', proj: 'cannon', pspd: 8, knock: 0.6, acc: 'tricorn',
+    desc: 'Big cannonballs push bugs back. Ground only.', sp: 'Cannonballs splash'},
+  {id: 'snow', name: 'Snow Cat', unlock: 51, cost: 210, dmg: 20, rate: 0.9, range: 2.8, air: 1, kind: 'proj', proj: 'snow', pspd: 9, splash: 0.8, slow: 0.35, acc: 'beanie',
+    desc: 'Snowballs hit a group and slow it down.', sp: 'Snowballs can freeze'},
+  {id: 'candy', name: 'Candy Cat', unlock: 61, cost: 230, dmg: 16, rate: 0.33, range: 2.6, air: 0, kind: 'trap', slow: 0.55, acc: 'bow',
+    desc: 'Drops sticky candy on the path. Bugs get slow and hurt.', sp: 'Bigger, longer traps'},
+  {id: 'astro', name: 'Astro Cat', unlock: 71, cost: 400, dmg: 110, rate: 0.4, range: 4.4, air: 1, kind: 'meteor', splash: 1.2, detect: 1, acc: 'helmet',
+    desc: 'Calls meteors from space on big groups. Sees invisible bugs.', sp: 'Meteors leave fire'},
 ];
 const CAT = {}; CATS.forEach(c => CAT[c.id] = c);
 
@@ -1141,14 +1341,43 @@ const BUGS = {
   spider: {name: 'Attic Spider', boss: 1, hp: 5200, spd: 0.42, arm: 5, rew: 300, lv: 10, from: 30, web: 1, pal: 'spider', sc: 2.4, desc: 'BOSS. Shoots webs that stop your cats.'},
   hornet: {name: 'Hornet Queen', boss: 1, fly: 1, hp: 6800, spd: 0.45, shield: 0.25, rew: 500, lv: 15, from: 40, spawn: 'wasp', spr: 'wasp', pal: 'hornet', sc: 2.6, desc: 'BOSS. Flies, has a shield and calls wasps.'},
 };
-const BUG_ORDER = ['ant', 'lady', 'beetle', 'fly', 'snail', 'pill', 'mini', 'firefly', 'moth', 'stink', 'wasp', 'cater', 'queen', 'mantis', 'spider', 'hornet'];
-const BOSS_OF = {10: 'queen', 20: 'mantis', 30: 'spider', 40: 'hornet'};
+Object.assign(BUGS, {
+  hermit: {name: 'Hermit Crab', hp: 70, spd: 0.8, arm: 3, shell: 1, rew: 8, lv: 2, from: 41, pal: 'hermit', desc: 'Its shell breaks at half health. Then it runs!'},
+  flea: {name: 'Sand Flea', hp: 14, spd: 2.1, rew: 3, lv: 1, from: 43, pal: 'flea', sc: 0.9, desc: 'Tiny and super fast.'},
+  frost: {name: 'Frost Bug', hp: 55, spd: 0.9, arm: 2, noslow: 1, rew: 7, lv: 1, from: 51, spr: 'beetle', pal: 'frost', desc: 'Can\'t be slowed, frozen or stunned.'},
+  gumdrop: {name: 'Gumdrop', hp: 50, spd: 0.85, regen: 0.015, rew: 7, lv: 1, from: 61, pal: 'gumdrop', desc: 'Heals itself a little all the time.'},
+  candyfly: {name: 'Candy Fly', hp: 34, spd: 1.4, fly: 1, shield: 0.5, rew: 6, lv: 1, from: 63, spr: 'fly', pal: 'candyfly', desc: 'A flying bug with a sugar shield.'},
+  alien: {name: 'Alien Bug', hp: 50, spd: 1, blink: 1, rew: 7, lv: 1, from: 71, pal: 'alien', desc: 'Teleports forward now and then!'},
+  ufo: {name: 'UFO Bug', hp: 30, spd: 1.2, fly: 1, camo: 1, shield: 0.25, rew: 8, lv: 1, from: 73, pal: 'ufo', desc: 'Flies, hides and has a shield.'},
+  crab: {name: 'Crab King', boss: 1, hp: 9000, spd: 0.4, arm: 8, shellUp: 1, rew: 600, lv: 15, from: 50, spr: 'hermit', pal: 'crabking', sc: 2.6, desc: 'BOSS. Hides in his shell: no damage for a moment.'},
+  icebeetle: {name: 'Ice Beetle', boss: 1, hp: 11000, spd: 0.42, arm: 6, noslow: 1, freezeCats: 1, rew: 700, lv: 15, from: 60, spr: 'beetle', pal: 'icebeetle', sc: 2.6, desc: 'BOSS. Freezes the cats near it.'},
+  gummy: {name: 'Gummy Worm', boss: 1, hp: 13500, spd: 0.4, regen: 0.008, spawn: 'gumdrop', rew: 800, lv: 15, from: 70, spr: 'cater', pal: 'gummy', sc: 2.4, desc: 'BOSS. Heals itself and drops gumdrops.'},
+  alienking: {name: 'Alien Queen', boss: 1, hp: 17000, spd: 0.45, arm: 4, shield: 0.2, blink: 1, spawn: 'ufo', rew: 1000, lv: 20, from: 80, spr: 'alien', pal: 'alienking', sc: 2.6, desc: 'BOSS. Teleports, calls UFO bugs and has a shield.'},
+});
+const BUG_ORDER = ['ant', 'lady', 'beetle', 'fly', 'snail', 'pill', 'mini', 'firefly', 'moth', 'stink', 'wasp', 'cater', 'hermit', 'flea', 'frost', 'gumdrop', 'candyfly', 'alien', 'ufo',
+  'queen', 'mantis', 'spider', 'hornet', 'crab', 'icebeetle', 'gummy', 'alienking'];
+const BOSS_OF = {10: 'queen', 20: 'mantis', 30: 'spider', 40: 'hornet', 50: 'crab', 60: 'icebeetle', 70: 'gummy', 80: 'alienking'};
+const BOSS_LIST = ['queen', 'mantis', 'spider', 'hornet', 'crab', 'icebeetle', 'gummy', 'alienking'];
+const MAXL = 80, NWORLDS = 8;
+/* Hard mode: unlocks after you win a level on Normal. Each level has one twist. */
+const HARD = {HP: 1.4, COINS: 0.85, FAST: 1.25, ARMOR: 2};
+const TWISTS = [
+  {id: 'fast', icon: '💨', name: 'Fast bugs', desc: 'All bugs walk faster.'},
+  {id: 'armor', icon: '🛡️', name: 'Armored waves', desc: 'Every bug gets +2 armor.'},
+  {id: 'nopw', icon: '🚫', name: 'No power-ups', desc: 'Power-ups can\'t be used.'},
+  {id: 'nosell', icon: '🔒', name: 'No selling', desc: 'Cats can\'t be sold.'},
+];
+function twistOf(L) { return TWISTS[(L * 7 + Math.floor(L / 4)) % 4]; }
 
 const WORLDS = [
   {name: 'Garden', icon: '🌻', grass: ['#6cc04a', '#62b343'], path: ['#c99a5e', '#b8864d'], edge: '#8a5e32', deco: ['flower', 'flower:flower2', 'flower:flower3', 'rock', 'mush'], cush: 'cushion'},
   {name: 'Kitchen', icon: '🍳', grass: ['#f2e6cf', '#e3d2b2'], path: ['#b3825a', '#a07250'], edge: '#6e4a2e', deco: ['plate', 'tomato', 'cabbage', 'plate'], cush: 'cushion1'},
   {name: 'Attic', icon: '📦', grass: ['#8a6a4e', '#7d5f45'], path: ['#c9a77e', '#b8966c'], edge: '#4e3624', deco: ['box', 'box', 'web', 'rock'], cush: 'cushion2'},
   {name: 'Night Yard', icon: '🌙', grass: ['#2d5a46', '#27503e'], path: ['#7a7f95', '#6c7186'], edge: '#3a3e52', deco: ['mush:mushN', 'rock', 'flower:flower2', 'mush:mushN'], cush: 'cushion3', night: 1},
+  {name: 'Beach', icon: '🏖️', grass: ['#f2d89a', '#eacf8c'], path: ['#b9875a', '#a8784e'], edge: '#6e4a2e', deco: ['shell', 'starfish', 'shell', 'rock'], cush: 'cushion4'},
+  {name: 'Winter', icon: '❄️', grass: ['#eef6ff', '#e0ecfa'], path: ['#9fd0ee', '#8fc4e6'], edge: '#5a8ab0', deco: ['snowman', 'pine', 'pine', 'rock:rockSnow'], cush: 'cushion5'},
+  {name: 'Candy Land', icon: '🍭', grass: ['#ffd0e6', '#ffc2de'], path: ['#8a5a3c', '#7d5034'], edge: '#4e3020', deco: ['lollipop', 'candy', 'cupcake', 'lollipop'], cush: 'cushion6'},
+  {name: 'Space', icon: '🚀', grass: ['#221c44', '#1d1838'], path: ['#6a7088', '#5e6479'], edge: '#3a3e52', deco: ['crater', 'planet', 'crater', 'rock'], cush: 'cushion7', space: 1},
 ];
 
 /* ---- map shapes: lists of path corners in tiles (15 x 24 grid).
@@ -1166,6 +1395,9 @@ const SHAPES = {
        [[15, 5], [7, 5], [7, 11], [2, 11], [2, 17], [12, 17], [12, 21], [7, 21]]],
   s9: [[[1, -1], [1, 3], [4, 3], [4, 6], [7, 6], [7, 9], [10, 9], [10, 12], [13, 12], [13, 16], [9, 16], [9, 19], [5, 19], [5, 21]]],
   s10: [[[-1, 1], [13, 1], [13, 6], [1, 6], [1, 11], [13, 11], [13, 16], [1, 16], [1, 21], [7, 21]]],
+  s11: [[[-1, 4], [11, 4], [11, 9], [3, 9], [3, 14], [11, 14], [11, 19], [3, 19], [3, 21]]],
+  s12: [[[-1, 8], [6, 8], [6, 13], [2, 13], [2, 19], [7, 19], [7, 21]],
+        [[15, 8], [8, 8], [8, 13], [12, 13], [12, 19], [7, 19], [7, 21]]],
   end: [[[-1, 2], [6, 2], [6, 7], [1, 7], [1, 13], [7, 13], [7, 17], [11, 17], [11, 21], [7, 21]],
         [[15, 2], [8, 2], [8, 7], [13, 7], [13, 13], [7, 13], [7, 17], [11, 17], [11, 21], [7, 21]]],
 };
@@ -1175,6 +1407,10 @@ const LEVEL_SHAPES = [
   ['s2m', 's6m', 's1m', 's7m', 's3m', 's9m', 's4m', 's8m', 's5m', 's10m'],
   ['s6', 's7', 's3', 's9', 's2', 's4', 's8', 's5', 's1', 's10'],
   ['s9m', 's3m', 's7m', 's4m', 's8m', 's6m', 's5m', 's2m', 's1m', 's10m'],
+  ['s11', 's2', 's12', 's7m', 's9', 's5', 's3m', 's8', 's4m', 's10'],
+  ['s6m', 's11m', 's1', 's12m', 's4', 's9m', 's2m', 's5m', 's8m', 's10'],
+  ['s3', 's12', 's6', 's11', 's7', 's8m', 's9', 's4', 's5', 's10m'],
+  ['s12m', 's9', 's11m', 's5', 's4', 's8', 's6m', 's3', 's7m', 's10'],
 ];
 
 const POWERS = [
@@ -1228,6 +1464,20 @@ const ACH = [
   {id: 'e3', i: '♾️', name: 'Endless 50', desc: 'Reach wave 50 in Endless', r: 6, p: () => [bestEndless(), 50]},
   {id: 'sk', i: '🌳', name: 'Skill Scholar', desc: 'Spend 50 stars on skills', r: 2, p: () => [S.skillSpent, 50]},
   {id: 'alb', i: '📖', name: 'Bug Expert', desc: 'See every bug in the album', r: 2, p: () => [BUG_ORDER.filter(b => S.seen[b]).length, BUG_ORDER.length]},
+  {id: 'w5', i: '🏖️', name: 'Beach Boss', desc: 'Finish World 5', r: 5, p: () => [clamp(S.unlocked - 41, 0, 10), 10]},
+  {id: 'w6', i: '❄️', name: 'Snow Hero', desc: 'Finish World 6', r: 5, p: () => [clamp(S.unlocked - 51, 0, 10), 10]},
+  {id: 'w7', i: '🍭', name: 'Sweet Victory', desc: 'Finish World 7', r: 6, p: () => [clamp(S.unlocked - 61, 0, 10), 10]},
+  {id: 'w8', i: '🚀', name: 'Space Savior', desc: 'Finish World 8', r: 8, p: () => [clamp(S.unlocked - 71, 0, 10), 10]},
+  {id: 'b5', i: '🦀', name: 'Crab Cracker', desc: 'Beat the Crab King', r: 3, p: () => [S.stats.boss.crab ? 1 : 0, 1]},
+  {id: 'b6', i: '🧊', name: 'Ice Breaker', desc: 'Beat the Ice Beetle', r: 3, p: () => [S.stats.boss.icebeetle ? 1 : 0, 1]},
+  {id: 'b7', i: '🍬', name: 'Sugar Rush', desc: 'Beat the Gummy Worm', r: 4, p: () => [S.stats.boss.gummy ? 1 : 0, 1]},
+  {id: 'b8', i: '👽', name: 'Alien Hunter', desc: 'Beat the Alien Queen', r: 6, p: () => [S.stats.boss.alienking ? 1 : 0, 1]},
+  {id: 'h1', i: '👑', name: 'Tough Cat', desc: 'Win a level on Hard', r: 2, p: () => [crowns(), 1]},
+  {id: 'h2', i: '👑', name: 'Hard Worker', desc: 'Win 20 levels on Hard', r: 4, p: () => [crowns(), 20]},
+  {id: 'h3', i: '👑', name: 'Crown Collector', desc: 'Get 40 crowns', r: 6, p: () => [crowns(), 40]},
+  {id: 'h4', i: '👑', name: 'All the Crowns', desc: 'Get all 80 crowns', r: 10, p: () => [crowns(), 80]},
+  {id: 'h5', i: '💀', name: 'Hard Boss', desc: 'Beat a boss level on Hard', r: 4, p: () => [Object.keys(BOSS_OF).some(L => S.bestH[L]) ? 1 : 0, 1]},
+  {id: 'h6', i: '🌟', name: 'Flawless Hard', desc: '3 stars on a Hard boss level', r: 5, p: () => [Object.keys(BOSS_OF).some(L => S.bestH[L] === 3) ? 1 : 0, 1]},
   {id: 'col', i: '🐱', name: 'Cat Collector', desc: 'Unlock every breed', r: 3, p: () => [BREEDS.filter(b => S.breedOwn[b.id]).length, BREEDS.length]},
 ];
 
@@ -1237,9 +1487,14 @@ const COMICS = [
   [{t: 'Oh no! The bugs got into the kitchen!', d: 'bugs'}, {t: 'Magic cats came to help.', d: 'magic'}, {t: 'Keep them away from the veggie basket!', d: 'cats'}],
   [{t: 'Strange webs in the attic...', d: 'web'}, {t: 'A giant spider is calling all the bugs!', d: 'spider'}, {t: 'Time for the BIG cats!', d: 'big'}],
   [{t: 'Night falls on the yard.', d: 'night'}, {t: 'The Hornet Queen wakes up!', d: 'hornet'}, {t: 'One last stand, cats. Save the patch!', d: 'cats'}],
+  [{t: 'The bugs went on vacation... to the beach!', d: 'beach'}, {t: 'The Crab King wants the picnic veggies!', d: 'crab'}, {t: 'Pirate Cat sails in to help!', d: 'pirate'}],
+  [{t: 'Brrr! Snow covers the garden.', d: 'winter'}, {t: 'The Ice Beetle freezes everything!', d: 'icebeetle'}, {t: 'Snow Cat is ready for a snowball fight!', d: 'snowcat'}],
+  [{t: 'A magic portal opened to Candy Land!', d: 'candy'}, {t: 'The Gummy Worm eats everything sweet... and veggies too!', d: 'gummy'}, {t: 'Candy Cat makes sticky traps!', d: 'candycat'}],
+  [{t: 'The bugs built a rocket to space!', d: 'space'}, {t: 'The Alien Queen leads a whole army!', d: 'alien'}, {t: 'Astro Cat, to the stars! Final mission!', d: 'astro'}],
 ];
 
 function worldOf(L) { return Math.floor((L - 1) / 10); }
+function crowns() { let n = 0; for (const k in S.bestH) if (S.bestH[k]) n++; return n; }
 function worldStars(w) { let s = 0; for (let i = 1; i <= 10; i++) s += S.best[w * 10 + i] || 0; return s; }
 function totalStars() { let s = 0; for (const k in S.best) s += S.best[k]; return s; }
 function bestEndless() { let b = 0; for (const k in S.endless) b = Math.max(b, S.endless[k]); return b; }
@@ -1320,6 +1575,9 @@ function buildMap(shapeKey, world, seed) {
 }
 
 /* ---------- waves ---------- */
+/* bug health per level: grows 8.5% per level, a bit slower after level 40 */
+function hpLevel(L) { return 1 + CONFIG.HP_GROWTH_LEVEL * Math.min(L - 1, 39) + 0.045 * Math.max(0, L - 40); }
+function rewLevel(L) { return 1 + CONFIG.KILL_REWARD_GROWTH * Math.min(L - 1, 39) + 0.055 * Math.max(0, L - 40); }
 function threat(k) {
   const b = BUGS[k];
   let t = b.hp / 10 * Math.sqrt(b.spd / 1.1);
@@ -1362,7 +1620,7 @@ function genWaves(L, nPaths) {
   for (let i = 0; i < nW; i++) {
     const last = i === nW - 1;
     const budget = (5 + Math.min(L, 30) * 0.6 + Math.max(0, L - 30) * 0.3) * (1 + i * 0.32) * (BOSS_OF[L] && last ? 0.5 : 1);
-    const hm = (1 + CONFIG.HP_GROWTH_LEVEL * (L - 1)) * (1 + CONFIG.HP_GROWTH_WAVE * i);
+    const hm = hpLevel(L) * (1 + CONFIG.HP_GROWTH_WAVE * i);
     waves.push(makeWave(rng, pool, freshK, i, nW, L, budget, hm, nPaths, BOSS_OF[L] && last ? BOSS_OF[L] : null));
   }
   return waves;
@@ -1373,9 +1631,9 @@ function genEndlessWave(w, n, nPaths) {
   const pool = BUG_ORDER.filter(k => !BUGS[k].boss && BUGS[k].from && BUGS[k].from <= maxL);
   const Leq = 10 * w + 5;
   const budget = (5 + Leq * 0.6) * (1 + (n - 1) * 0.25);
-  const hm = (1 + CONFIG.HP_GROWTH_LEVEL * (Leq - 1)) * Math.pow(CONFIG.ENDLESS_HP_GROWTH, n - 1);
+  const hm = hpLevel(Leq) * Math.pow(CONFIG.ENDLESS_HP_GROWTH, n - 1);
   let boss = null;
-  if (n % 10 === 0) { const bosses = ['queen', 'mantis', 'spider', 'hornet'].slice(0, w + 1); boss = bosses[(n / 10 - 1) % bosses.length]; }
+  if (n % 10 === 0) { const bosses = BOSS_LIST.slice(0, w + 1); boss = bosses[(n / 10 - 1) % bosses.length]; }
   const wave = makeWave(rng, pool, null, Math.min(n, 12), 14, Leq, budget * (boss ? 0.5 : 1), hm, nPaths, boss);
   wave.forEach(e => { if (BUGS[e.type].boss) e.hm = (0.6 + 0.25 * n / 10) * Math.pow(1.04, n); });
   return wave;
@@ -1383,13 +1641,15 @@ function genEndlessWave(w, n, nPaths) {
 
 /* ---------- start a level ---------- */
 function levelEq() { return G.mode === 'endless' ? 10 * G.w + 5 + Math.floor(G.wi / 2) : G.L; }
-function newGame(mode, L, w) {
+function newGame(mode, L, w, hard) {
+  hard = !!hard && mode === 'level';
   const shape = mode === 'endless' ? (w % 2 ? 'endm' : 'end') : LEVEL_SHAPES[w][(L - 1) % 10];
   const map = buildMap(shape, w, mode === 'endless' ? 999 + w : L * 131);
   const lives = CONFIG.START_LIVES + 2 * S.garden.lives;
-  const coins = (mode === 'endless' ? CONFIG.START_COINS + CONFIG.START_COINS_PER_LEVEL * (10 * w + 4) : CONFIG.START_COINS + CONFIG.START_COINS_PER_LEVEL * (L - 1)) + 25 * S.garden.coins;
+  let coins = (mode === 'endless' ? CONFIG.START_COINS + CONFIG.START_COINS_PER_LEVEL * (10 * w + 4) : CONFIG.START_COINS + CONFIG.START_COINS_PER_LEVEL * (L - 1)) + 25 * S.garden.coins;
+  if (hard) coins = Math.round(coins * HARD.COINS);
   G = {
-    mode, L, w, map,
+    mode, L, w, map, hard, twist: hard ? twistOf(L).id : null, traps: [], meteors: [],
     waves: mode === 'endless' ? null : genWaves(L, map.paths.length),
     wi: 0, queue: [], countdown: null, started: false,
     lives, maxLives: lives, coins, shownCoins: coins,
@@ -1405,6 +1665,7 @@ const waveCount = () => G.mode === 'endless' ? Infinity : G.waves.length;
 const disc = () => 1 - 0.04 * S.garden.bargain;
 const catCost = c => Math.round(c.cost * disc());
 const upCost = tw => tw.lv >= 5 ? 0 : Math.round(CAT[tw.id].cost * CONFIG.UPGRADE_COST[tw.lv] * disc());
+const canSell = () => !(G.hard && G.twist === 'nosell');
 const sellValue = tw => G.started ? Math.floor(tw.spent * (CONFIG.SELL_REFUND + 0.05 * S.garden.refund)) : tw.spent;
 function addCoins(n) { G.coins += n; G.earned += Math.max(0, n); }
 
@@ -1462,6 +1723,8 @@ function spawnBug(type, pi, hm, d0) {
     sh: B.shield ? hp * B.shield : 0, shMax: B.shield ? hp * B.shield : 0, hm: hm || 1,
     slow: 0, slowT: 0, aura: 0, frzT: 0, stunT: 0, bleedT: 0, bleedD: 0, abilT: 2, dashT: 0, hitT: 0,
     off: B.boss ? 0 : rand(-4, 4), anim: rand(0, 1), flip: false, rev: false, dead: false};
+  if (G.hard && G.twist === 'armor') b.arm += HARD.ARMOR;
+  b.invT = 0; b.cracked = false;
   const p = posAt(path, b.d); b.x = p.x; b.y = p.y;
   G.bugs.push(b);
   if (!S.seen[type]) { S.seen[type] = 1; save(); if (type !== 'ant' && type !== 'lady') newBugTip(type); }
@@ -1469,6 +1732,7 @@ function spawnBug(type, pi, hm, d0) {
 }
 function hurt(b, dmg, o) {
   if (b.dead || dmg <= 0) return;
+  if (b.invT > 0) return;
   o = o || {};
   let d = dmg;
   if (!o.magic && !o.pierce && b.arm > 0) d = o.beam ? d * (1 - Math.min(0.6, b.arm * 0.06)) : Math.max(d * CONFIG.ARMOR_MIN, d - b.arm);
@@ -1477,12 +1741,17 @@ function hurt(b, dmg, o) {
     if (b.sh <= 0) { addRing(b.x, b.y - 8, 6, 22, '#9fe8ff', 0.3); sfx('pop'); }
   }
   b.hp -= d; b.hitT = 0.08;
+  if (b.B.shell && !b.cracked && b.hp < b.max * 0.5 && b.hp > 0) {
+    b.cracked = true; b.arm = Math.max(0, b.arm - 3);
+    for (let i = 0; i < 8; i++) addPart(b.x, b.y - 6, rand(-60, 60), rand(-90, -20), '#f2d0a0', 0.5, 3);
+    sfx('pop');
+  }
   if (b.hp <= 0) killBug(b);
 }
 function killBug(b) {
   if (b.dead) return;
   b.dead = true;
-  const rew = Math.max(1, Math.round(b.B.rew * (1 + CONFIG.KILL_REWARD_GROWTH * (levelEq() - 1))));
+  const rew = Math.max(1, Math.round(b.B.rew * rewLevel(levelEq())));
   addCoins(rew);
   S.stats.kills++; G.kills++;
   G.combo.n++; G.combo.t = CONFIG.COMBO_WINDOW;
@@ -1540,8 +1809,8 @@ function launchWave(early) {
   }
   const wave = G.mode === 'endless' ? genEndlessWave(G.w, G.wi + 1, G.map.paths.length) : G.waves[G.wi];
   G.wi++; G.started = true; G.countdown = null;
-  G.curHm = (wave.find(e => !BUGS[e.type].boss) || {hm: 1}).hm;
-  for (const e of wave) G.queue.push({t: G.time + e.t, type: e.type, path: e.path, hm: e.hm});
+  G.curHm = (wave.find(e => !BUGS[e.type].boss) || {hm: 1}).hm * (G.hard ? HARD.HP : 1);
+  for (const e of wave) G.queue.push({t: G.time + e.t, type: e.type, path: e.path, hm: e.hm * (G.hard ? HARD.HP : 1)});
   G.queue.sort((a, b) => a.t - b.t);
   for (const tw of G.towers) if (tw.id === 'fish') {
     const inc = tstats(tw).income; addCoins(inc); addText(tw.x, tw.y - 30, '+' + inc, '#6ec6ff'); tw.hop = 0.35;
@@ -1558,6 +1827,7 @@ function launchWave(early) {
 function powerMult() { return 1 + 0.15 * S.garden.power; }
 function usePower(id, x, y) {
   if ((S.pw[id] || 0) <= 0 || G.state !== 'play') return false;
+  if (G.hard && G.twist === 'nopw') { toast('🚫 ' + tr('No power-ups on this Hard level')); return false; }
   S.pw[id]--; S.stats.pwUsed++; save();
   if (id === 'bomb') {
     const r = CONFIG.BOMB_RADIUS * T, dmg = (CONFIG.BOMB_DMG + CONFIG.BOMB_DMG_PER_LEVEL * levelEq()) * powerMult();
@@ -1616,11 +1886,15 @@ function update(dt) {
     if (b.dead) continue;
     const path = G.map.paths[b.path];
     let sp = b.B.spd * T;
+    if (G.hard && G.twist === 'fast') sp *= HARD.FAST;
     if (b.B.rage) sp *= 1 + (1 - b.hp / b.max) * 1.2;
+    if (b.cracked) sp *= 1.6;
     if (b.dashT > 0) { b.dashT -= dt; sp *= 4; }
     b.slowT -= dt; if (b.slowT <= 0) b.slow = 0;
+    b.frzT -= dt; b.stunT -= dt; b.invT -= dt;
+    if (b.B.noslow) { b.slow = 0; b.aura = 0; b.frzT = 0; b.stunT = 0; }
     sp *= 1 - Math.max(b.slow, b.aura);
-    b.frzT -= dt; b.stunT -= dt;
+    if (b.B.regen && b.hp < b.max) b.hp = Math.min(b.max, b.hp + b.max * b.B.regen * dt);
     if (b.frzT > 0 || b.stunT > 0 || G.napT > 0) sp = 0;
     else if (G.laserT > 0) sp *= b.B.boss ? -0.3 : -0.7;
     b.d = Math.max(0, b.d + sp * dt);
@@ -1638,7 +1912,7 @@ function update(dt) {
   for (const tw of G.towers) {
     tw.t += dt; tw.anim = Math.max(0, tw.anim - dt); tw.hop = Math.max(0, tw.hop - dt);
     tw.blink -= dt; if (tw.blink < -0.15) tw.blink = rand(2, 5);
-    if (tw.webT > 0) { tw.webT -= dt; tw.tg = null; continue; }
+    if (tw.webT > 0) { tw.webT -= dt; if (tw.webT <= 0) tw.iced = false; tw.tg = null; continue; }
     catAct(tw, sts.get(tw), dt);
   }
   // 6. shots
@@ -1664,6 +1938,23 @@ function update(dt) {
   for (const r of G.rings) r.life -= dt; G.rings = G.rings.filter(r => r.life > 0);
   for (const z of G.zaps) z.life -= dt; G.zaps = G.zaps.filter(z => z.life > 0);
   for (const s of G.slashes) s.life -= dt; G.slashes = G.slashes.filter(s => s.life > 0);
+  for (const tp of G.traps) {
+    tp.t -= dt;
+    for (const b of bugsNear(tp.x, tp.y, tp.r, true)) { if (tp.slow) b.aura = Math.max(b.aura, b.B.boss ? tp.slow * 0.5 : tp.slow); hurt(b, tp.dps * dt, {beam: 1}); }
+  }
+  G.traps = G.traps.filter(tp => tp.t > 0);
+  for (const m of G.meteors) {
+    m.t -= dt;
+    if (m.t <= 0 && !m.done) {
+      m.done = true;
+      for (const b of bugsNear(m.x, m.y, m.r, false)) hurt(b, m.dmg);
+      addRing(m.x, m.y, 6, m.r, '#ffb03a', 0.45); addRing(m.x, m.y, 3, m.r * 0.6, '#fff6c0', 0.3);
+      for (let i = 0; i < 18; i++) addPart(m.x, m.y, rand(-120, 120), rand(-160, 0), pick(['#ffb03a', '#ff5a1a', '#ffe680', '#8a7ad8']), rand(0.4, 0.8), 3);
+      if (m.fire) G.traps.push({x: m.x, y: m.y, r: m.r * 0.7, t: 2.5, dps: m.dmg * 0.25, slow: 0, fire: 1});
+      G.shake = Math.max(G.shake, 4); sfx('boom');
+    }
+  }
+  G.meteors = G.meteors.filter(m => !m.done);
   G.shake = Math.max(0, G.shake - dt * 30);
   // 9. win?
   if (G.started && G.wi >= waveCount() && !G.queue.length && !G.bugs.length) { G.state = 'won'; onWin(); }
@@ -1681,12 +1972,23 @@ function bugAbility(b, dt) {
       addRing(b.x, b.y - 6, 4, 1.8 * T, '#f6ff8a', 0.4);
     }
   }
+  if (B.blink && !B.boss) {
+    b.abilT -= dt;
+    if (b.abilT <= 0) { b.abilT = 4; blinkBug(b, 1.5 * T); }
+  }
   if (!B.boss) return;
   b.abilT -= dt;
   if (b.abilT > 0) return;
-  if (B.spawn) {
-    b.abilT = B.spawn === 'wasp' ? 5 : 4.5;
-    for (let i = 0; i < (B.spawn === 'wasp' ? 3 : 2); i++) { const m = spawnBug(B.spawn, b.path, (G.curHm || 1) * 1.2, Math.max(0, b.d - 10 - i * 8)); m.off = rand(-6, 6); }
+  if (B.shellUp) { b.abilT = 6; b.invT = 1.5; addRing(b.x, b.y - 10, 10, 34, '#d6d2df', 0.5); sfx('pop'); }
+  else if (B.freezeCats) {
+    b.abilT = 6.5;
+    for (const tw of G.towers) if (dist(tw, b) < 3.2 * T) { tw.webT = 2.2; tw.iced = true; }
+    addRing(b.x, b.y, 10, 3.2 * T, '#bff0ff', 0.6); sfx('ice');
+  }
+  else if (B.spawn) {
+    b.abilT = B.spawn === 'wasp' ? 5 : B.spawn === 'ant' ? 4.5 : 6;
+    if (B.blink) blinkBug(b, 3 * T);
+    for (let i = 0; i < (B.spawn === 'wasp' ? 3 : B.spawn === 'ant' ? 2 : 1); i++) { const m = spawnBug(B.spawn, b.path, (G.curHm || 1) * 1.2, Math.max(0, b.d - 10 - i * 8)); m.off = rand(-6, 6); }
     addRing(b.x, b.y, 6, 30, '#ffd23f', 0.3);
     if (B.shield) { b.sh = b.shMax; addRing(b.x, b.y - 10, 10, 40, '#9fe8ff', 0.5); }
   } else if (B.dash) { b.abilT = 5; b.dashT = 0.7; sfx('dash'); }
@@ -1698,6 +2000,12 @@ function bugAbility(b, dt) {
   }
 }
 
+function blinkBug(b, d) {
+  addRing(b.x, b.y - 6, 4, 16, '#7ae85a', 0.3);
+  b.d = Math.min(G.map.paths[b.path].len - 2, b.d + d);
+  const p = posAt(G.map.paths[b.path], b.d); b.x = p.x; b.y = p.y;
+  addRing(b.x, b.y - 6, 16, 4, '#7ae85a', 0.3); sfx('magic');
+}
 function catAct(tw, st, dt) {
   const c = st.c;
   if (c.kind === 'farm' || c.kind === 'buff') return;
@@ -1727,6 +2035,22 @@ function catAct(tw, st, dt) {
   }
   tw.cd -= dt;
   if (tw.cd > 0) return;
+  if (c.kind === 'trap') {
+    const tg = findTarget(tw, st);
+    if (!tg) { tw.cd = 0; return; }
+    tw.cd = 1 / st.rate; tw.anim = 0.2; tw.face = tg.x < tw.x;
+    const q = posAt(G.map.paths[tg.path], tg.d + 18);
+    G.traps.push({x: q.x, y: q.y, r: (st.sp ? 0.95 : 0.75) * T, t: st.sp ? 6 : 4, dps: st.dmg, slow: c.slow, candy: 1});
+    G.projs.push({k: 'lob', x: tw.x, y: tw.y - 16, sx: tw.x, sy: tw.y - 16, tx: q.x, ty: q.y, t: 0, dur: 0.35, dmg: 0, st, rot: 0, candy: 1});
+    sfx('lob'); return;
+  }
+  if (c.kind === 'meteor') {
+    const tg = findTarget(tw, st);
+    if (!tg) { tw.cd = 0; return; }
+    tw.cd = 1 / st.rate; tw.anim = 0.25; tw.face = tg.x < tw.x;
+    G.meteors.push({x: tg.x, y: tg.y, t: 0.6, max: 0.6, dmg: st.dmg, r: c.splash * T, fire: st.sp});
+    sfx('zap'); return;
+  }
   if (c.kind === 'slam') {
     const hit = bugsNear(tw.x, tw.y, st.range, true);
     if (!hit.length) { tw.cd = 0; return; }
@@ -1750,7 +2074,7 @@ function catAct(tw, st, dt) {
     let dmg = st.dmg, crit = false;
     if (c.id === 'wiz' && st.sp && Math.random() < 0.25) { dmg *= 2.5; crit = true; }
     G.projs.push({k: c.proj, x: sx, y: sy, tg, tx: tg.x, ty: tg.y, spd: c.pspd * T, dmg, st, crit, bounce: c.id === 'yarn' && st.sp, rot: 0});
-    sfx(c.id === 'yarn' ? 'throw' : c.id === 'ice' ? 'ice' : 'magic');
+    sfx(c.id === 'yarn' || c.id === 'snow' ? 'throw' : c.id === 'ice' ? 'ice' : c.id === 'pirate' ? 'slam' : 'magic');
   } else if (c.kind === 'lob') {
     const d = dist({x: sx, y: sy}, tg);
     G.projs.push({k: 'lob', x: sx, y: sy, sx, sy, tx: tg.x, ty: tg.y, t: 0, dur: d / (c.pspd * T) + 0.25, dmg: st.dmg, st, rot: 0});
@@ -1784,6 +2108,7 @@ function moveProj(p, dt) {
     p.t += dt;
     const k = Math.min(1, p.t / p.dur);
     p.x = p.sx + (p.tx - p.sx) * k; p.y = p.sy + (p.ty - p.sy) * k - Math.sin(k * Math.PI) * 40;
+    if (k >= 1 && p.candy) { p.done = true; return; }
     if (k >= 1) {
       p.done = true;
       const r = p.st.splash;
@@ -1803,6 +2128,24 @@ function moveProj(p, dt) {
   if (d <= step + 2) {
     p.done = true;
     if (!tg) return;
+    if (p.k === 'snow') {
+      const r = p.st.c.splash * T;
+      for (const b of bugsNear(tg.x, tg.y, r, false)) {
+        hurt(b, p.dmg);
+        if (!b.dead) { b.slow = Math.max(b.slow, p.st.c.slow); b.slowT = 1.6; if (p.st.sp && !b.B.boss && Math.random() < 0.15) b.frzT = 0.8; }
+      }
+      addRing(tg.x, tg.y - 6, 3, r, '#ffffff', 0.3);
+      for (let i = 0; i < 8; i++) addPart(tg.x, tg.y - 6, rand(-60, 60), rand(-80, -10), '#ffffff', 0.4, 2);
+      sfx('splat'); return;
+    }
+    if (p.k === 'cannon') {
+      hurt(tg, p.dmg);
+      if (!tg.dead && !tg.B.boss) tg.d = Math.max(0, tg.d - p.st.c.knock * T);
+      if (p.st.sp) for (const b of bugsNear(tg.x, tg.y, 0.75 * T, true)) if (b !== tg) hurt(b, p.dmg * 0.5);
+      addRing(tg.x, tg.y - 4, 4, 20, '#e8e0d0', 0.3);
+      for (let i = 0; i < 6; i++) addPart(tg.x, tg.y - 4, rand(-50, 50), rand(-70, -10), '#8a8a9a', 0.4, 3);
+      G.shake = Math.max(G.shake, 2); return;
+    }
     hurt(tg, p.dmg, {magic: p.k === 'magic'});
     if (p.k === 'ice' && !tg.dead) {
       tg.slow = Math.max(tg.slow, p.st.c.slow); tg.slowT = 1.5;
@@ -1845,6 +2188,9 @@ function drawMapBG(map) {
       }
       if (map.world === 1) { x.fillStyle = 'rgba(120,90,60,.18)'; x.fillRect(px, py + T - 1, T, 1); x.fillRect(px + T - 1, py, 1, T); }
       if (map.world === 2) { x.fillStyle = 'rgba(40,20,10,.22)'; x.fillRect(px, py + (tx % 2 ? 11 : 23), T, 1); }
+      if (map.world === 6 && rng() < 0.5) { x.fillStyle = pick(['#ff5aa8', '#7fdcb0', '#ffe680', '#8fd6ff']); x.fillRect(px + Math.floor(rng() * 10) * 2, py + Math.floor(rng() * 10) * 2, 4, 2); }
+      if (map.world === 7 && rng() < 0.35) { x.fillStyle = rng() < 0.5 ? '#ffffff' : '#ffe680'; x.fillRect(px + Math.floor(rng() * 11) * 2, py + Math.floor(rng() * 11) * 2, 2, 2); }
+      if (map.world === 4 && rng() < 0.3) { x.fillStyle = '#fff4d0'; x.fillRect(px + Math.floor(rng() * 11) * 2, py + Math.floor(rng() * 11) * 2, 2, 2); }
     }
   }
   // path edges
@@ -1865,7 +2211,7 @@ function drawMapBG(map) {
   // decorations
   for (const d of map.decor) {
     const [nm, pal] = d.k.split(':');
-    drawSpr(x, sprite(nm, pal || nm), d.x, d.y, nm === 'box' ? 1 : 0.8);
+    drawSpr(x, sprite(nm, pal || nm), d.x, d.y, nm === 'box' || nm === 'pine' || nm === 'snowman' ? 1 : 0.8);
   }
   // cushions
   for (const s of map.spots) drawSpr(x, sprite('cushion', Wd.cush), s.x, s.y + 8, 1);
@@ -1877,7 +2223,7 @@ function drawMapBG(map) {
     x.save(); x.translate(ex + Math.sign(b.x - a.x) * 8, ey + Math.sign(b.y - a.y) * 8); x.rotate(Math.atan2(b.y - a.y, b.x - a.x));
     x.beginPath(); x.moveTo(8, 0); x.lineTo(-6, -7); x.lineTo(-6, 7); x.closePath(); x.fill(); x.stroke(); x.restore();
   }
-  if (WORLDS[map.world].night) {
+  if (WORLDS[map.world].night || WORLDS[map.world].space) {
     const gr = x.createRadialGradient(W / 2, H / 2, 100, W / 2, H / 2, 420);
     gr.addColorStop(0, 'rgba(10,15,40,0)'); gr.addColorStop(1, 'rgba(10,15,40,.45)');
     x.fillStyle = gr; x.fillRect(0, 0, W, H);
@@ -1921,7 +2267,17 @@ function drawCat(x, id, breed, cx, by, o) {
   else if (acc === 'yarnball') A('yarnball', cx - 5 * P, by + 1);
   else if (acc === 'hairball') A('hairball', cx - 5 * P, by + 1);
   else if (acc === 'pompom') { A('pompom', cx - 6 * P, by - P); A('pompom', cx + 6 * P, by - P); }
-  if (o.web > 0) drawSpr(x, sprite('web', 'web'), cx, by, sc * 1.3, false, 0.85);
+  else if (acc === 'tricorn') A('tricorn', cx, y0 + 3 * P);
+  else if (acc === 'beanie') A('beanie', cx, y0 + 3 * P);
+  else if (acc === 'bow') { A('bow', cx + 4 * P, y0 + 4 * P); drawSpr(x, sprite('lollipop', 'lollipop', ACC_PAL.lollipop), cx - 5 * P, by + 1, sc * 0.7); }
+  else if (acc === 'helmet') {
+    x.strokeStyle = 'rgba(200,240,255,.9)'; x.lineWidth = Math.max(1, P * 0.8); x.fillStyle = 'rgba(160,220,255,.22)';
+    x.beginPath(); x.arc(cx, y0 + 5 * P, 7.2 * P, 0, 7); x.fill(); x.stroke();
+    x.fillStyle = '#ffffff'; x.fillRect(cx - 4 * P, y0 + 0.5 * P, P, P * 1.5);
+    x.fillStyle = '#ff5a5a'; x.fillRect(cx + 4.5 * P, y0 - 2.5 * P, P, P); x.fillStyle = OUT; x.fillRect(cx + 4.8 * P, y0 - 1.5 * P, P * 0.4, P * 1.8);
+  }
+  if (o.web > 0 && o.iced) { x.fillStyle = 'rgba(170,230,255,.6)'; x.fillRect(cx - 7 * P, by - 14 * P, 14 * P, 14 * P); x.strokeStyle = '#e8fbff'; x.lineWidth = 2; x.strokeRect(cx - 7 * P, by - 14 * P, 14 * P, 14 * P); }
+  else if (o.web > 0) drawSpr(x, sprite('web', 'web'), cx, by, sc * 1.3, false, 0.85);
 }
 function catURL(id, breed, scale) {
   scale = scale || 2;
@@ -1933,7 +2289,7 @@ function bugURL(type, scale) {
   const s = sprite(name, B.pal); scale = scale || 4;
   return iconURL('bug|' + type + '|' + scale, x => {
     x.drawImage(s, 2 * scale, 6 * scale, s.width * scale, s.height * scale);
-    if (B.boss && (type === 'queen' || type === 'hornet')) { const cr = sprite('crown', 'crown'); x.drawImage(cr, (s.width / 2 - 2.5) * scale, 0, cr.width * scale, cr.height * scale); }
+    if (B.boss && B.spr) { const cr = sprite('crown', 'crown'); x.drawImage(cr, (s.width / 2 - 2.5) * scale, 0, cr.width * scale, cr.height * scale); }
   }, (s.width + 4) * scale, (s.height + 8) * scale);
 }
 function breedName(id) { return BREED[id] ? tr(BREED[id].name) : ''; }
@@ -1959,6 +2315,7 @@ function drawBug(x, b) {
   drawSpr(x, img, b.x, y, sc, side ? b.flip : false, alpha);
   const h = img.height * PX * sc;
   if (B.boss && B.spr) drawSpr(x, sprite('crown', 'crown'), b.x, y - h + 4, sc * 0.7);
+  if (b.invT > 0) { x.strokeStyle = '#d6d2df'; x.lineWidth = 4; x.beginPath(); x.arc(b.x, y - h / 2, h * 0.6, 0, 7); x.stroke(); }
   if (b.frzT > 0) { x.fillStyle = 'rgba(160,230,255,.55)'; x.fillRect(b.x - img.width * sc, y - h, img.width * PX * sc, h); }
   else if (Math.max(b.slow, b.aura) > 0) { x.fillStyle = '#bff0ff'; x.fillRect(b.x - 9 * sc, y - h - 2, 2, 2); x.fillRect(b.x + 7 * sc, y - h + 2, 2, 2); }
   if (b.stunT > 0 || G.napT > 0) {
@@ -2000,6 +2357,16 @@ function draw() {
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(G.map.bg, 0, 0, W, H);
   drawPatch(ctx);
+  for (const tp of G.traps) {
+    ctx.globalAlpha = clamp(tp.t, 0, 1) * 0.85;
+    if (tp.fire) { ctx.fillStyle = '#ff7a2a'; ctx.beginPath(); ctx.arc(tp.x, tp.y, tp.r * (0.85 + Math.sin(G.time * 12) * 0.08), 0, 7); ctx.fill(); ctx.fillStyle = '#ffe680'; ctx.beginPath(); ctx.arc(tp.x, tp.y, tp.r * 0.45, 0, 7); ctx.fill(); }
+    else {
+      ctx.fillStyle = '#ff7ab8'; ctx.beginPath(); ctx.arc(tp.x, tp.y, tp.r, 0, 7); ctx.fill();
+      ctx.fillStyle = '#ffd0e8'; for (let i = 0; i < 5; i++) { const a = i * 1.3; ctx.fillRect(tp.x + Math.cos(a) * tp.r * 0.5 - 2, tp.y + Math.sin(a) * tp.r * 0.5 - 2, 4, 4); }
+      ctx.strokeStyle = '#c84a8a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(tp.x, tp.y, tp.r, 0, 7); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
   // range preview
   const sel = G.selTower || (G.selSpot && G.pick ? {x: G.selSpot.x, y: G.selSpot.y, id: G.pick, lv: 1, preview: 1} : null);
   if (sel) {
@@ -2022,7 +2389,7 @@ function draw() {
   for (const it of list) {
     if (it.tw) {
       const tw = it.tw;
-      drawCat(ctx, tw.id, breedOf(tw.id), tw.x, tw.y + 9, {t: tw.t, hop: tw.hop, anim: tw.anim, flip: tw.face, blink: tw.blink < 0, web: tw.webT});
+      drawCat(ctx, tw.id, breedOf(tw.id), tw.x, tw.y + 9, {t: tw.t, hop: tw.hop, anim: tw.anim, flip: tw.face, blink: tw.blink < 0, web: tw.webT, iced: tw.iced});
       for (let i = 0; i < tw.lv; i++) { ctx.fillStyle = OUT; ctx.fillRect(tw.x - 10 + i * 4.5, tw.y + 10, 4, 4); ctx.fillStyle = '#ffd23f'; ctx.fillRect(tw.x - 9.5 + i * 4.5, tw.y + 10.5, 3, 3); }
       if (tw.buff > 0) { ctx.fillStyle = '#ff7aa2'; ctx.fillRect(tw.x + 10, tw.y - 22 + Math.sin(tw.t * 4) * 2, 3, 3); }
       if (tw === G.selTower) { ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 2; ctx.strokeRect(tw.x - 13, tw.y - 18, 26, 32); }
@@ -2042,8 +2409,18 @@ function draw() {
     else if (p.k === 'ice') { ctx.fillStyle = '#e8fbff'; ctx.fillRect(-4, -1.5, 8, 3); ctx.fillRect(-1.5, -4, 3, 8); ctx.fillStyle = '#7ad8ff'; ctx.fillRect(-2, -2, 4, 4); }
     else if (p.k === 'magic') { ctx.fillStyle = '#ffe680'; ctx.fillRect(-1.5, -5, 3, 10); ctx.fillRect(-5, -1.5, 10, 3); ctx.fillStyle = '#b383ff'; ctx.fillRect(-2.5, -2.5, 5, 5); }
     else if (p.k === 'star') { ctx.fillStyle = OUT; ctx.fillRect(-5, -1.5, 10, 3); ctx.fillRect(-1.5, -5, 3, 10); ctx.fillStyle = '#dfe3ee'; ctx.fillRect(-4, -0.5, 8, 1); ctx.fillRect(-0.5, -4, 1, 8); }
+    else if (p.k === 'cannon') { ctx.fillStyle = OUT; ctx.fillRect(-5, -5, 10, 10); ctx.fillStyle = '#5a5a6a'; ctx.fillRect(-4, -4, 8, 8); ctx.fillStyle = '#9a9aaa'; ctx.fillRect(-3, -3, 3, 3); }
+    else if (p.k === 'snow') { ctx.fillStyle = '#a8c8e8'; ctx.fillRect(-5, -5, 10, 10); ctx.fillStyle = '#ffffff'; ctx.fillRect(-4, -4, 8, 8); }
+    else if (p.k === 'lob' && p.candy) { ctx.fillStyle = OUT; ctx.fillRect(-5, -5, 10, 10); ctx.fillStyle = '#ff7ab8'; ctx.fillRect(-4, -4, 8, 8); ctx.fillStyle = '#fff'; ctx.fillRect(-1, -4, 2, 8); }
     else if (p.k === 'lob') { ctx.fillStyle = '#2a4a1c'; ctx.fillRect(-5, -5, 10, 10); ctx.fillStyle = '#8fd65a'; ctx.fillRect(-4, -4, 8, 8); ctx.fillStyle = '#5aa63f'; ctx.fillRect(-1, -4, 2, 8); }
     ctx.restore();
+  }
+  for (const m of G.meteors) {
+    const k = 1 - m.t / m.max, sx0 = m.x + 70, sy0 = m.y - 160;
+    const mx = sx0 + (m.x - sx0) * k, my = sy0 + (m.y - sy0) * k;
+    ctx.strokeStyle = 'rgba(255,176,58,.6)'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(mx + 24, my - 50); ctx.lineTo(mx, my); ctx.stroke();
+    ctx.fillStyle = OUT; ctx.fillRect(mx - 7, my - 7, 14, 14); ctx.fillStyle = '#8a7ad8'; ctx.fillRect(mx - 6, my - 6, 12, 12); ctx.fillStyle = '#ffb03a'; ctx.fillRect(mx - 2, my - 6, 8, 4);
+    ctx.strokeStyle = 'rgba(255,90,26,.7)'; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.arc(m.x, m.y, m.r * (0.4 + 0.6 * k), 0, 7); ctx.stroke(); ctx.setLineDash([]);
   }
   // lightning + webs
   for (const z of G.zaps) {
@@ -2097,15 +2474,18 @@ function drawComic(c, w, d, t) {
   const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
   const CW = c.width, CH = c.height, Wd = WORLDS[w];
   x.setTransform(CW / 200, 0, 0, CH / 120, 0, 0);
-  const sky = w === 3 || d === 'night' || d === 'hornet' ? '#1e2f4f' : w === 1 ? '#cfe6ff' : w === 2 ? '#3b2a44' : '#8fd3f5';
+  const sky = w === 7 ? '#0d0a24' : w === 3 || d === 'night' || d === 'hornet' ? '#1e2f4f' : w === 1 ? '#cfe6ff' : w === 2 ? '#3b2a44' : w === 4 ? '#7fd0f5' : w === 5 ? '#d8e8f8' : w === 6 ? '#ffb8d8' : '#8fd3f5';
   x.fillStyle = sky; x.fillRect(0, 0, 200, 120);
   if (w === 3 || d === 'night') { x.fillStyle = '#fff6c0'; x.beginPath(); x.arc(160, 26, 12, 0, 7); x.fill(); x.fillStyle = sky; x.beginPath(); x.arc(154, 22, 11, 0, 7); x.fill();
     for (let i = 0; i < 14; i++) { x.fillStyle = '#fff'; x.fillRect((i * 37) % 200, (i * 23) % 60, 2, 2); } }
+  if (w === 7) for (let i = 0; i < 30; i++) { x.fillStyle = i % 3 ? '#fff' : '#ffe680'; x.fillRect((i * 53) % 200, (i * 29) % 80, 2, 2); }
+  if (w === 4) { x.fillStyle = '#3a9ad8'; x.fillRect(0, 62, 200, 22); x.fillStyle = '#ffffff'; for (let i = 0; i < 6; i++) x.fillRect(((i * 37 + t * 20) % 200), 64 + (i % 3) * 6, 10, 2); x.fillStyle = '#ffe680'; x.beginPath(); x.arc(170, 24, 12, 0, 7); x.fill(); }
+  if (w === 5) for (let i = 0; i < 25; i++) { x.fillStyle = '#fff'; x.fillRect((i * 41 + Math.sin(t + i) * 6) % 200, ((i * 23) + t * 15) % 84, 2, 2); }
   x.fillStyle = Wd.grass[0]; x.fillRect(0, 84, 200, 36);
   x.fillStyle = Wd.path[0]; x.fillRect(0, 96, 200, 10);
   const bob = Math.sin(t * 4) * 1.5;
   const cat = (id, cx, s, br) => drawCat(x, id, br || breedOf(id), cx, 100 + bob * (cx % 2 ? 1 : -1), {sc: s || 1, t});
-  const bug = (k, bx, s) => { const B = BUGS[k]; drawSpr(x, sprite(B.spr || k, B.pal), bx, 104 + Math.sin(t * 6 + bx) * 1.5, s || 1); };
+  const bug = (k, bx, s) => { const B = BUGS[k]; drawSpr(x, sprite(B.spr || k, B.pal), bx, 104 + Math.sin(t * 6 + bx) * 1.5, s || 1); if (B.boss && B.spr) drawSpr(x, sprite('crown', 'crown'), bx, 104 - sprite(B.spr, B.pal).height * PX * (s || 1) + 4, (s || 1) * 0.7); };
   if (d === 'patch') { for (let i = 0; i < 5; i++) drawSpr(x, sprite(VEG[i], VEG[i]), 70 + i * 16, 96, 1.4); cat('yarn', 40, 1.4); }
   else if (d === 'bugs') { for (let i = 0; i < 5; i++) bug(i % 2 ? 'lady' : 'ant', 30 + i * 30 + ((t * 20) % 30), 1.2); drawSpr(x, sprite('carrot', 'carrot'), 185, 96, 1.4); }
   else if (d === 'cats') { cat('yarn', 50, 1.4); cat('claw', 100, 1.4); cat('sleepy', 150, 1.4); }
@@ -2114,6 +2494,18 @@ function drawComic(c, w, d, t) {
   else if (d === 'spider') { bug('spider', 100, 3); bug('ant', 30, 1.1); bug('beetle', 170, 1.1); }
   else if (d === 'big') { cat('chonk', 60, 1.4); cat('laser', 140, 1.4); }
   else if (d === 'night') { cat('ninja', 100, 1.5); bug('firefly', 50, 1.2); bug('moth', 160, 1.2); }
+  else if (d === 'beach') { drawSpr(x, sprite('shell', 'shell'), 40, 96, 1.6); drawSpr(x, sprite('starfish', 'starfish'), 160, 96, 1.6); bug('ant', 80 + ((t * 15) % 40), 1.2); bug('hermit', 120, 1.2); }
+  else if (d === 'crab') { bug('crab', 100, 2.6); for (let i = 0; i < 3; i++) drawSpr(x, sprite(VEG[i], VEG[i]), 160 + i * 12, 100, 1.2); }
+  else if (d === 'pirate') { cat('pirate', 100, 1.8); x.fillStyle = '#6e4a2e'; x.fillRect(60, 100, 80, 6); }
+  else if (d === 'winter') { drawSpr(x, sprite('snowman', 'snowman'), 60, 98, 2); drawSpr(x, sprite('pine', 'pine'), 150, 98, 2); bug('frost', 105, 1.2); }
+  else if (d === 'icebeetle') { bug('icebeetle', 100, 2.6); cat('yarn', 30, 1.1); x.fillStyle = 'rgba(170,230,255,.6)'; x.fillRect(16, 72, 28, 30); }
+  else if (d === 'snowcat') { cat('snow', 70, 1.6); cat('ice', 140, 1.3); }
+  else if (d === 'candy') { drawSpr(x, sprite('lollipop', 'lollipop'), 40, 98, 2); drawSpr(x, sprite('cupcake', 'cupcake'), 160, 98, 2); bug('gumdrop', 100, 1.4); }
+  else if (d === 'gummy') { drawSpr(x, sprite(Math.floor(t * 3) % 2 ? 'cater2' : 'cater', 'gummy'), 100, 104, 2.4); }
+  else if (d === 'candycat') { cat('candy', 100, 1.8); }
+  else if (d === 'space') { drawSpr(x, sprite('planet', 'planet'), 50, 60, 2.2); x.fillStyle = '#d8d8e8'; x.fillRect(130, 30 + bob * 4, 14, 40); x.fillStyle = '#e8483c'; x.fillRect(128, 26 + bob * 4, 18, 8); x.fillStyle = '#ffb03a'; x.fillRect(132, 70 + bob * 4, 10, 10); bug('alien', 90, 1.2); }
+  else if (d === 'alien') { bug('alienking', 100, 2.6); bug('ufo', 40, 1.2); bug('ufo', 165, 1.2); }
+  else if (d === 'astro') { cat('astro', 100, 1.8); drawSpr(x, sprite('planet', 'planet'), 170, 50, 1.5); }
   else if (d === 'hornet') { drawSpr(x, sprite('wasp', 'hornet'), 100, 70 + bob * 3, 3); drawSpr(x, sprite('crown', 'crown'), 100, 26 + bob * 3, 2); bug('wasp', 40, 1.2); bug('wasp', 165, 1.2); }
   x.setTransform(1, 0, 0, 1, 0, 0);
 }
@@ -2188,7 +2580,7 @@ function showMenu(name) {
     '<button class="btn ib" id="mSet" aria-label="Settings">⚙️</button></div>' +
     '<div class="scroll" id="mScroll">' + body + '</div>' +
     '<div class="nav">' + NAV.map(n => '<button class="btn' + (n[0] === name ? ' cur' : '') + '" data-nav="' + n[0] + '"><b>' + n[1] + '</b>' + tr(n[2]) + (n[0] === 'skills' && canBuySkill() ? '<i class="dot"></i>' : '') + '</button>').join('') + '</div>';
-  el.style.background = name === 'map' ? ['#2b4a2a', '#2c3e57', '#3a2a44', '#141d33'][mapWorld] : '#3b2c38';
+  el.style.background = name === 'map' ? ['#2b4a2a', '#2c3e57', '#3a2a44', '#141d33', '#2a6a7a', '#4a6a8a', '#7a3a5a', '#120f2a'][mapWorld] : '#3b2c38';
   el.classList.add('on');
   setBar(name === 'map' ? mapWorld : 0);
   el.querySelectorAll('[data-nav]').forEach(b => b.onclick = () => { sfx('ui'); showMenu(b.dataset.nav); });
@@ -2206,12 +2598,13 @@ function showMenu(name) {
 function refreshWallet() { const w = $('wallet'); if (w) w.textContent = S.stars; }
 
 /* ---------- world map ---------- */
-function maxWorld() { return worldOf(Math.min(40, S.unlocked)); }
+function maxWorld() { return worldOf(Math.min(MAXL, S.unlocked)); }
+function worldCrowns(w) { let n = 0; for (let i = 1; i <= 10; i++) if (S.bestH[w * 10 + i]) n++; return n; }
 function mapHtml() {
   const mw = maxWorld();
   let h = '<div class="worlds">' + WORLDS.map((w, i) => '<button class="btn' + (i === mapWorld ? ' cur' : '') + (i > mw ? ' dis' : '') + '" data-world="' + i + '"><b>' + (i > mw ? '🔒' : w.icon) + '</b>' + tr(w.name) + '</button>').join('') + '</div>';
   h += '<div class="card wbanner"><div style="font-size:34px">' + WORLDS[mapWorld].icon + '</div><div style="flex:1"><div class="big">' + tr('World {n}', {n: mapWorld + 1}) + ': ' + tr(WORLDS[mapWorld].name) + '</div>' +
-    '<div class="muted">' + starIco() + ' ' + worldStars(mapWorld) + ' / 30</div></div><button class="btn small" id="mComic">📖</button></div>';
+    '<div class="muted">' + starIco() + ' ' + worldStars(mapWorld) + ' / 30 · 👑 ' + worldCrowns(mapWorld) + ' / 10</div></div><button class="btn small" id="mComic">📖</button></div>';
   h += '<div class="lvls">';
   for (let i = 0; i < 10; i++) {
     const L = mapWorld * 10 + i + 1, r = Math.floor(i / 3), col = r % 2 ? 2 - i % 3 : i % 3;
@@ -2219,7 +2612,7 @@ function mapHtml() {
     let inner = lock ? '🔒' : String(L);
     if (boss && !lock) inner = '<img class="bi" src="' + bugURL(boss, 2) + '" alt="">';
     h += '<button class="btn node' + (lock ? ' lock' : '') + (boss ? ' boss' : '') + (L === S.unlocked ? ' cur' : '') + '" data-l="' + L + '" style="grid-row:' + (r + 1) + ';grid-column:' + (col + 1) + '">' +
-      inner + (lock ? '' : '<div class="stars">' + [1, 2, 3].map(k => '<img src="' + sprURL('star', k <= best ? 'star' : 'starOff', 3) + '" alt="">').join('') + '</div>') + '</button>';
+      inner + (S.bestH[L] ? '<span class="crown">👑</span>' : '') + (lock ? '' : '<div class="stars">' + [1, 2, 3].map(k => '<img src="' + sprURL('star', k <= best ? 'star' : 'starOff', 3) + '" alt="">').join('') + '</div>') + '</button>';
   }
   h += '</div>';
   const done = S.unlocked > (mapWorld + 1) * 10;
@@ -2241,20 +2634,28 @@ function bindMap() {
 }
 
 function levelBugs(L) { const set = new Set(); genWaves(L, 1).forEach(w => w.forEach(e => set.add(e.type))); return BUG_ORDER.filter(k => set.has(k)); }
-function levelIntro(L) {
+function levelIntro(L, hard) {
   const w = worldOf(L);
+  const hardOpen = (S.best[L] || 0) > 0; if (!hardOpen) hard = false;
+  const tw = twistOf(L);
   if (!S.comics[w]) { showComic(w, () => levelIntro(L)); return; }
-  const best = S.best[L] || 0, nc = CATS.find(c => c.unlock === L), boss = BOSS_OF[L];
+  const best = (hard ? S.bestH[L] : S.best[L]) || 0, nc = CATS.find(c => c.unlock === L), boss = BOSS_OF[L];
   const nW = genWaves(L, 1).length;
   openModal('<h2>' + tr('Level {n}', {n: L}) + '</h2><div class="muted">' + WORLDS[w].icon + ' ' + tr(WORLDS[w].name) + (boss ? ' · <b style="color:#c92a31">' + tr('BOSS LEVEL') + '</b>' : '') + '</div>' +
+    '<div class="tabs" style="margin-top:8px"><button class="btn' + (!hard ? ' cur' : '') + '" id="iNorm">🐾 ' + tr('Normal') + '</button>' +
+    '<button class="btn' + (hard ? ' cur' : '') + (hardOpen ? '' : ' dis') + '" id="iHard">' + (hardOpen ? '👑 ' : '🔒 ') + tr('Hard') + '</button></div>' +
+    (hard ? '<div class="card" style="margin:6px 0;background:#ffe0e0"><b>' + tw.icon + ' ' + tr('Twist') + ': ' + tr(tw.name) + '</b><div class="muted">' + tr(tw.desc) + ' ' + tr('Bugs are tougher and you start with less fish.') + '</div></div>' : '') +
     '<div class="bigstars">' + [1, 2, 3].map(k => starImg(k <= best).replace('<img', '<img class="pxi in' + (k <= best ? '' : ' off') + '"')).join('') + '</div>' +
+    (hard && S.bestH[L] ? '<p>👑 ' + tr('Crown earned!') + '</p>' : '') +
     '<p><b>' + tr('{n} waves', {n: nW}) + '</b></p>' +
     '<div class="card" style="margin:8px 0"><div class="muted">' + tr('Bugs in this level') + '</div><div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:4px">' +
     levelBugs(L).map(k => '<img class="pxi" style="height:34px" src="' + bugURL(k, 3) + '" alt="">').join('') + '</div></div>' +
     (nc ? '<div class="card" style="margin:8px 0;display:flex;gap:8px;align-items:center"><img class="pxi" style="width:56px" src="' + catURL(nc.id, breedOf(nc.id)) + '" alt=""><div style="text-align:left"><b>' + tr('New cat: {c}!', {c: tr(nc.name)}) + '</b><div class="muted">' + tr(nc.desc) + '</div></div></div>' : '') +
     '<p class="muted">' + starIco() + '3 = ' + tr('lose 2 veggies or less') + '</p>' +
-    '<button class="btn org wide" id="iPlay" style="font-size:20px">▶ ' + tr('Play') + '</button><button class="btn wide" id="iNo">' + tr('Close') + '</button>');
-  bindBtn('iPlay', () => { closeModal(); startPlay(L); });
+    '<button class="btn ' + (hard ? 'bad' : 'org') + ' wide" id="iPlay" style="font-size:20px">▶ ' + (hard ? tr('Play on Hard') : tr('Play')) + '</button><button class="btn wide" id="iNo">' + tr('Close') + '</button>');
+  bindBtn('iPlay', () => { closeModal(); startPlay(L, hard); });
+  bindBtn('iNorm', () => levelIntro(L, false));
+  bindBtn('iHard', () => { if (!hardOpen) { sfx('no'); toast(tr('Win this level on Normal first')); return; } levelIntro(L, true); });
   bindBtn('iNo', closeModal);
 }
 function endlessIntro(w) {
@@ -2402,7 +2803,7 @@ function breedPicker(c) {
 function catStatsHtml(c, lv) {
   const st = tstats({id: c.id, lv: lv || 1, buff: 0});
   const ch = [];
-  if (c.dmg) ch.push('🗡️ ' + tr('Damage') + ' ' + (c.kind === 'beam' ? Math.round(st.dmg) + '/s' : Math.round(st.dmg * 10) / 10));
+  if (c.dmg) ch.push('🗡️ ' + tr('Damage') + ' ' + (c.kind === 'beam' || c.kind === 'trap' ? Math.round(st.dmg) + '/s' : Math.round(st.dmg * 10) / 10));
   if (c.rate) ch.push('⚡ ' + tr('Speed') + ' ' + Math.round(st.rate * 10) / 10 + '/s');
   if (st.range) ch.push('👁️ ' + tr('Range') + ' ' + Math.round(st.range / T * 10) / 10);
   if (c.kind === 'farm') ch.push('🐟 +' + st.income + ' ' + tr('per wave'));
@@ -2456,6 +2857,7 @@ function checkAch() {
 }
 function checkBreeds() {
   const rules = {black: S.unlocked > 10, siamese: S.unlocked > 20, calico: S.unlocked > 30, galaxy: S.unlocked > 40,
+    ghost: crowns() >= 5, lava: crowns() >= 25, royal: crowns() >= 80,
     white: S.earned >= 60, tux: Object.keys(S.ach).length >= 12, golden: S.pack};
   const got = [];
   for (const k in rules) if (rules[k] && !S.breedOwn[k]) { S.breedOwn[k] = 1; got.push(BREED[k]); }
@@ -2521,7 +2923,7 @@ function relabel() { if (screen === 'title') showTitle(); else if (screen !== 'g
 /* =====================================================================
    PLAYING A LEVEL
 ===================================================================== */
-function startPlay(L) { newGame('level', L, worldOf(L)); enterGame(); }
+function startPlay(L, hard) { newGame('level', L, worldOf(L), hard); enterGame(); }
 function startEndless(w) { newGame('endless', 0, w); enterGame(); }
 function enterGame() {
   screen = 'game'; paused = false; hideScreens(); closeModal(); closeSheet();
@@ -2529,6 +2931,7 @@ function enterGame() {
   $('bSpeed').textContent = S.speed + 'x';
   music('w' + G.w);
   G.tut = null;
+  if (G.hard) { const tw = twistOf(G.L); setTimeout(() => banner('👑 ' + tr('HARD')), 200); setTimeout(() => showTip('<b>' + tw.icon + ' ' + tr(tw.name) + '</b><br>' + tr(tw.desc), {auto: 4000}), 300); return; }
   setTimeout(levelStartTips, 350);
 }
 function stopGame() { closeSheet(); hideTip(); hidePointer(); if (G) G.state = G.state === 'play' ? 'quit' : G.state; }
@@ -2540,7 +2943,7 @@ function hud() {
   G.shownCoins += (G.coins - G.shownCoins) * 0.25; if (Math.abs(G.coins - G.shownCoins) < 1) G.shownCoins = G.coins;
   setHtml('hLives', ICO('carrot') + ' ' + G.lives);
   setHtml('hCoins', ICO('fishy') + ' ' + fmt(G.shownCoins));
-  setHtml('hWave', G.mode === 'endless' ? '♾️ ' + tr('Wave {n}', {n: Math.max(1, G.wi)}) : tr('Wave {a}/{b}', {a: Math.max(1, G.wi), b: G.waves.length}));
+  setHtml('hWave', G.mode === 'endless' ? '♾️ ' + tr('Wave {n}', {n: Math.max(1, G.wi)}) : (G.hard ? '👑 ' : '') + tr('Wave {a}/{b}', {a: Math.max(1, G.wi), b: G.waves.length}));
   $('hLives').classList.toggle('hurt', G.hurtT > 0);
   let wb, cls = 'org';
   if (!G.started) wb = '▶ ' + tr('Start!');
@@ -2561,6 +2964,7 @@ function refreshPw() {
     b.querySelector('img').src = sprURL(id, id, 4);
     b.querySelector('.n').textContent = S.pw[id] || 0;
     b.classList.toggle('on', G && G.pmode === id);
+    b.classList.toggle('dis', !!(G && G.hard && G.twist === 'nopw'));
     b.setAttribute('aria-label', tr(POWERS.find(p => p.id === id).name));
   });
 }
@@ -2604,10 +3008,10 @@ function openTower(tw) {
     '<span class="lvpips">' + [1, 2, 3, 4, 5].map(i => '<i class="' + (i <= tw.lv ? 'on' : '') + '"></i>').join('') + '</span><button class="btn small x" id="shX">✕</button></h3>';
   h += catStatsHtml(c, tw.lv);
   if (tw.lv < 5) h += '<div class="muted">' + tr('Next level') + ':</div>' + catStatsHtml(c, tw.lv + 1);
-  if (['proj', 'melee', 'lob', 'chain', 'multi', 'beam'].includes(c.kind))
+  if (['proj', 'melee', 'lob', 'chain', 'multi', 'beam', 'trap', 'meteor'].includes(c.kind))
     h += '<div class="row" style="margin:6px 0;gap:4px">🎯 ' + MODES.map(m => '<button class="btn small' + (tw.mode === m[0] ? ' gold' : '') + '" data-mode="' + m[0] + '">' + tr(m[1]) + '</button>').join('') + '</div>';
   h += '<div class="row">' + (tw.lv < 5 ? '<button class="btn green' + (G.coins < up ? ' dis' : '') + '" id="shUp" data-cost="' + up + '">⬆️ ' + tr('Upgrade') + ' ' + ICO('fishy') + up + '</button>' : '<button class="btn gold dis">⭐ MAX</button>') +
-    '<button class="btn bad" id="shSell">' + tr('Sell') + ' +' + sellValue(tw) + '</button></div>';
+    (canSell() ? '<button class="btn bad" id="shSell">' + tr('Sell') + ' +' + sellValue(tw) + '</button>' : '<button class="btn dis">🔒 ' + tr('No selling') + '</button>') + '</div>';
   $('sheet').innerHTML = h; $('sheet').classList.add('on');
   bindBtn('shX', closeSheet);
   document.querySelectorAll('[data-mode]').forEach(b => b.onclick = e => { e.stopPropagation(); sfx('ui'); tw.mode = b.dataset.mode; openTower(tw); });
@@ -2689,14 +3093,15 @@ function pauseMenu() {
   bindBtn('pSet', () => { modalOnClose = null; openSettings(); modalOnClose = () => { paused = false; }; });
   bindBtn('pQuit', () => { modalOnClose = null; closeModal(); toMap(); });
 }
-function restart() { if (G.mode === 'endless') startEndless(G.w); else startPlay(G.L); }
+function restart() { if (G.mode === 'endless') startEndless(G.w); else startPlay(G.L, G.hard); }
 function toMap() { if (G) mapWorld = G.w; showMenu('map'); }
 
 function onWin() {
-  const L = G.L, frac = G.lives / G.maxLives;
+  const L = G.L, frac = G.lives / G.maxLives, hard = G.hard;
   const stars = frac >= CONFIG.STAR3 ? 3 : frac >= CONFIG.STAR2 ? 2 : 1;
-  const prev = S.best[L] || 0, gain = Math.max(0, stars - prev);
-  S.best[L] = Math.max(prev, stars); S.stars += gain; S.earned += gain;
+  const tbl = hard ? S.bestH : S.best;
+  const prev = tbl[L] || 0, gain = Math.max(0, stars - prev), newCrown = hard && !prev;
+  tbl[L] = Math.max(prev, stars); S.stars += gain; S.earned += gain;
   if (L >= S.unlocked) S.unlocked = L + 1;
   if (BOSS_OF[L] && !G.lostAny) S.stats.noLossBoss = 1;
   if (L === 1) S.tut.l1 = 1;
@@ -2706,21 +3111,25 @@ function onWin() {
   sfx('win');
   setTimeout(() => {
     const nextCat = CATS.find(c => c.unlock === L + 1);
-    openModal('<h2>🎉 ' + tr('Veggies saved!') + '</h2><div class="muted">' + tr('Level {n}', {n: L}) + '</div>' +
+    openModal('<h2>🎉 ' + tr('Veggies saved!') + '</h2><div class="muted">' + tr('Level {n}', {n: L}) + (hard ? ' · 👑 ' + tr('Hard') : '') + '</div>' +
+      (newCrown ? '<div class="reward">👑 ' + tr('New crown!') + '</div>' : '') +
       '<div class="bigstars" id="wStars">' + [1, 2, 3].map(k => starImg(k <= stars).replace('<img', '<img class="pxi' + (k <= stars ? '' : ' off') + '"')).join('') + '</div>' +
       (gain ? '<div class="reward">' + starIco().replace('ico', 'ico') + ' +' + gain + '</div>' : '') +
       '<p>' + ICO('carrot') + ' ' + G.lives + '/' + G.maxLives + ' · 💥 ' + G.kills + '</p>' +
       got.map(a => '<div class="reward" style="font-size:15px">🏆 ' + tr(a.name) + ' +' + a.r + ' ' + starIco() + '</div>').join('') +
       br.map(b => '<div class="reward" style="font-size:15px">🐱 ' + tr('New breed: {b}!', {b: tr(b.name)}) + '</div>').join('') +
-      (nextCat && L < 40 ? '<p><b>' + tr('Next level: new cat!') + '</b> <img class="pxi" style="width:40px;vertical-align:middle" src="' + catURL(nextCat.id, breedOf(nextCat.id)) + '" alt=""></p>' : '') +
-      (L === 40 ? '<p><b>' + tr('You saved the whole garden! Try Endless mode!') + '</b></p>' : '') +
-      (L < 40 ? '<button class="btn org wide" id="wNext" style="font-size:19px">▶ ' + tr('Next level') + '</button>' : '') +
+      (nextCat && L < MAXL ? '<p><b>' + tr('Next level: new cat!') + '</b> <img class="pxi" style="width:40px;vertical-align:middle" src="' + catURL(nextCat.id, breedOf(nextCat.id)) + '" alt=""></p>' : '') +
+      (L === MAXL && !hard ? '<p><b>' + tr('You saved the whole garden! Try Endless mode and Hard mode!') + '</b></p>' : '') +
+      (!hard && L < MAXL ? '<button class="btn org wide" id="wNext" style="font-size:19px">▶ ' + tr('Next level') + '</button>' : '') +
+      (hard && L < MAXL && S.best[L + 1] ? '<button class="btn bad wide" id="wNextH" style="font-size:19px">👑 ' + tr('Next level on Hard') + '</button>' : '') +
+      (!hard && S.unlocked > 10 && !Object.keys(S.bestH).length ? '<p class="muted">👑 ' + tr('Tip: Hard mode is open for this level!') + '</p>' : '') +
       '<div class="row"><button class="btn wide" id="wRe">↺ ' + tr('Replay') + '</button><button class="btn wide" id="wMap">🗺️ ' + tr('Map') + '</button></div>');
     const imgs = document.querySelectorAll('#wStars img');
     imgs.forEach((im, i) => setTimeout(() => { im.classList.add('in'); if (i < stars) sfx('star', i); }, 250 + i * 330));
     bindBtn('wNext', () => { closeModal(); const n = L + 1; if (worldOf(n) !== worldOf(L) && !S.comics[worldOf(n)]) { mapWorld = worldOf(n); showMenu('map'); levelIntro(n); } else startPlay(n); });
-    bindBtn('wRe', () => { closeModal(); startPlay(L); });
-    bindBtn('wMap', () => { closeModal(); mapWorld = worldOf(Math.min(40, S.unlocked)); showMenu('map'); });
+    bindBtn('wRe', () => { closeModal(); startPlay(L, hard); });
+    bindBtn('wNextH', () => { closeModal(); startPlay(L + 1, true); });
+    bindBtn('wMap', () => { closeModal(); mapWorld = hard ? worldOf(L) : worldOf(Math.min(MAXL, S.unlocked)); showMenu('map'); });
   }, 800);
 }
 function onLose() {
@@ -2918,6 +3327,10 @@ const SONGS = {
   w0: {bpm: 132, lead: [72, 74, 76, 79, 76, 74, 72, 0, 74, 76, 77, 81, 79, 77, 76, 0, 76, 77, 79, 84, 83, 81, 79, 77, 76, 74, 72, 74, 76, 0, 72, 0], bass: [48, 55, 53, 55, 48, 55, 50, 55], hat: 1},
   w1: {bpm: 120, lead: [77, 0, 81, 79, 77, 0, 74, 76, 77, 0, 72, 0, 74, 76, 77, 0, 79, 0, 82, 81, 79, 0, 77, 74, 72, 74, 76, 77, 79, 0, 0, 0], bass: [53, 57, 50, 55, 48, 52, 53, 48], hat: 1},
   w2: {bpm: 112, lead: [69, 0, 72, 0, 76, 0, 75, 76, 74, 0, 71, 0, 68, 0, 0, 0, 69, 0, 72, 0, 77, 0, 76, 74, 72, 71, 69, 0, 64, 0, 0, 0], bass: [45, 45, 41, 41, 43, 43, 40, 40], hat: 0},
+  w4: {bpm: 126, lead: [74, 0, 78, 81, 0, 78, 76, 0, 74, 0, 71, 0, 74, 76, 78, 0, 79, 0, 78, 76, 0, 74, 76, 0, 78, 76, 74, 71, 74, 0, 0, 0], bass: [50, 55, 52, 57, 50, 55, 57, 50], hat: 1},
+  w5: {bpm: 104, lead: [76, 0, 79, 0, 84, 0, 83, 0, 81, 0, 79, 0, 76, 0, 0, 0, 77, 0, 81, 0, 86, 0, 84, 0, 83, 81, 79, 0, 76, 0, 0, 0], bass: [48, 48, 53, 53, 55, 55, 52, 52], hat: 0},
+  w6: {bpm: 140, lead: [79, 81, 83, 84, 83, 81, 79, 0, 76, 79, 84, 0, 83, 0, 81, 0, 79, 81, 83, 86, 84, 83, 81, 79, 77, 79, 81, 0, 79, 0, 0, 0], bass: [55, 52, 48, 50, 55, 52, 53, 55], hat: 1},
+  w7: {bpm: 100, lead: [69, 0, 76, 0, 74, 72, 74, 0, 69, 0, 76, 0, 79, 77, 76, 0, 72, 0, 77, 0, 76, 74, 72, 0, 71, 0, 74, 0, 76, 0, 0, 0], bass: [45, 45, 41, 41, 48, 48, 43, 43], hat: 1},
   w3: {bpm: 96, lead: [76, 0, 79, 0, 83, 0, 81, 79, 76, 0, 74, 0, 71, 0, 0, 0, 72, 0, 76, 0, 79, 0, 78, 76, 74, 0, 71, 0, 67, 0, 0, 0], bass: [52, 52, 48, 48, 50, 50, 47, 47], hat: 0},
 };
 const mf = n => 440 * Math.pow(2, (n - 69) / 12);
@@ -3129,6 +3542,16 @@ requestAnimationFrame(loop);
 
 /* for testing in the browser console */
 window.__PD = {get S() { return S; }, get G() { return G; }, CATS, BUGS, CONFIG, startPlay, startEndless, placeCat, upgradeCat, launchWave, update, genWaves, tstats, upCost, catCost, showMenu, levelIntro, save, usePower};
+
+/* app icon drawing (used to make the Play Store icon) */
+window.__iconDraw = (x, fg) => {
+  const k = fg ? 0.62 : 0.85, cx = 250, by = fg ? 256 + 120 * k : 256 + 125;
+  if (!fg) { x.fillStyle = '#c99a5e'; x.fillRect(0, 400, 512, 70); x.fillStyle = '#b8864d'; for (let i = 0; i < 12; i++) x.fillRect(i * 46 + 10, 420 + (i % 3) * 12, 10, 10); }
+  drawSpr(x, sprite('cushion', 'cushion'), cx, by + 30 * k, 13 * k);
+  drawCat(x, 'yarn', 'tabby', cx, by, {sc: 13 * k, t: 0});
+  if (!fg) { drawSpr(x, sprite('ant', 'ant'), 430, 470, 4.5); drawSpr(x, sprite('carrot', 'carrot'), 70, 470, 5); }
+};
+window.__art = {drawCat, drawSpr, sprite, pixText};
 
 })();
 </script>
