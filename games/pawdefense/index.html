@@ -309,7 +309,7 @@ const SAVE_KEY = 'pawDefense.v1';
 function defaults() {
   return {
     lang: (navigator.language || 'en').slice(0, 2) === 'fr' ? 'fr' : 'en',
-    sfx: true, mus: true, easy: false,
+    sfx: true, mus: true, easy: false, smooth: false,
     stars: 0,            // stars in the wallet (to spend)
     earned: 0,           // every star ever earned
     best: {},            // level number -> best stars (1..3)
@@ -564,6 +564,7 @@ const FR = {
   'Win this level on Normal first': 'Gagne ce niveau en Normal d\'abord',
   'Winter': 'Hiver',
   'You saved the whole garden! Try Endless mode and Hard mode!': 'Tu as sauvé tout le jardin! Essaie le mode Sans fin et le mode Difficile!',
+  'Smooth mode (uses more battery)': 'Mode fluide (utilise plus de batterie)',
 };
 /* =====================================================================
    5. PIXEL ART — every picture is a tiny text grid.
@@ -1841,7 +1842,7 @@ function usePower(id, x, y) {
 }
 
 /* ---------- effects ---------- */
-function addPart(x, y, vx, vy, col, life, sz) { if (G.parts.length < 500) G.parts.push({x, y, vx, vy, col, life, max: life, sz: sz || 2}); }
+function addPart(x, y, vx, vy, col, life, sz) { if (G.parts.length < 220) G.parts.push({x, y, vx, vy, col, life, max: life, sz: sz || 2}); }
 function addText(x, y, s, col) { G.texts.push({x, y, s, col, life: 0.9}); }
 function addRing(x, y, r0, r1, col, life) { G.rings.push({x, y, r0, r1, col, life, max: life}); }
 
@@ -2896,7 +2897,7 @@ function openSettings() {
   const wasPaused = paused;
   const tg = (id, on, label) => '<div class="tog">' + label + '<button class="sw' + (on ? ' on' : '') + '" id="' + id + '" aria-label="' + label + '"></button></div>';
   openModal('<h2>⚙️ ' + tr('Settings') + '</h2>' +
-    tg('sSfx', S.sfx, '🔊 ' + tr('Sound')) + tg('sMus', S.mus, '🎵 ' + tr('Music')) + tg('sEasy', S.easy, '🔤 ' + tr('Easy-read font')) +
+    tg('sSfx', S.sfx, '🔊 ' + tr('Sound')) + tg('sMus', S.mus, '🎵 ' + tr('Music')) + tg('sEasy', S.easy, '🔤 ' + tr('Easy-read font')) + tg('sSmooth', S.smooth, '✨ ' + tr('Smooth mode (uses more battery)')) +
     '<div class="tog">🌐 ' + tr('Language') + '<div class="row"><button class="btn small' + (S.lang === 'en' ? ' gold' : '') + '" id="sEn">EN</button><button class="btn small' + (S.lang === 'fr' ? ' gold' : '') + '" id="sFr">FR</button></div></div>' +
     '<button class="btn wide" id="sRestore">💳 ' + tr('Restore purchases') + '</button>' +
     '<button class="btn wide" id="sPriv">🔒 ' + tr('Privacy') + '</button>' +
@@ -2904,6 +2905,7 @@ function openSettings() {
     '<button class="btn org wide" id="sOk">✔ ' + tr('Close') + '</button><p class="muted">Paw Defense v1.0 · MOS Arcade</p>', () => { paused = wasPaused; });
   bindBtn('sSfx', () => { S.sfx = !S.sfx; save(); openSettings(); });
   bindBtn('sMus', () => { S.mus = !S.mus; save(); if (S.mus) music(screen === 'game' ? 'w' + G.w : 'menu', true); else musicStop(); openSettings(); });
+  bindBtn('sSmooth', () => { S.smooth = !S.smooth; save(); resize(); openSettings(); });
   bindBtn('sEasy', () => { S.easy = !S.easy; applyEasy(); save(); openSettings(); });
   bindBtn('sEn', () => { S.lang = 'en'; save(); relabel(); openSettings(); });
   bindBtn('sFr', () => { S.lang = 'fr'; save(); relabel(); openSettings(); });
@@ -2944,14 +2946,16 @@ function hud() {
   setHtml('hLives', ICO('carrot') + ' ' + G.lives);
   setHtml('hCoins', ICO('fishy') + ' ' + fmt(G.shownCoins));
   setHtml('hWave', G.mode === 'endless' ? '♾️ ' + tr('Wave {n}', {n: Math.max(1, G.wi)}) : (G.hard ? '👑 ' : '') + tr('Wave {a}/{b}', {a: Math.max(1, G.wi), b: G.waves.length}));
-  $('hLives').classList.toggle('hurt', G.hurtT > 0);
+  const hurtNow = G.hurtT > 0;
+  if (hudCache.hurt !== hurtNow) { hudCache.hurt = hurtNow; $('hLives').classList.toggle('hurt', hurtNow); }
   let wb, cls = 'org';
   if (!G.started) wb = '▶ ' + tr('Start!');
   else if (G.queue.length) { wb = '🐛 ' + tr('Bugs coming...'); cls = 'dis'; }
   else if (G.wi >= waveCount()) { wb = '🏁 ' + tr('Last wave!'); cls = 'dis'; }
   else wb = '⏩ ' + tr('Next wave') + ' <small>+' + Math.ceil(Math.max(0, G.countdown || 0) * CONFIG.EARLY_BONUS_PER_SEC) + '</small> ' + Math.ceil(G.countdown || 0) + 's';
   setHtml('bWave', wb);
-  const b = $('bWave'); b.className = 'btn ' + cls + (!G.started ? ' pulse' : '');
+  const bc = 'btn ' + cls + (!G.started ? ' pulse' : '');
+  if (hudCache.bwc !== bc) { hudCache.bwc = bc; $('bWave').className = bc; }
   const cmb = $('combo');
   if (G.combo.n >= 3) { setHtml('combo', tr('Combo') + ' x' + G.combo.n); cmb.classList.add('on'); } else cmb.classList.remove('on');
 }
@@ -3489,24 +3493,32 @@ function bindPaidShop() { bindBtn('buyPack', () => buy(PACK.sku)); bindBtn('shRe
 ===================================================================== */
 function resize() {
   const st = $('stage'), w = st.clientWidth, h = st.clientHeight;
-  dpr = Math.min(3, window.devicePixelRatio || 1);
+  dpr = Math.min(S.smooth ? 2 : 1.5, window.devicePixelRatio || 1); // fewer pixels = cooler phone
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px';
   scale = Math.min(w / W, h / H); offX = (w - W * scale) / 2; offY = (h - H * scale) / 2;
+  if (typeof drewStill !== 'undefined') drewStill = false;
 }
-let last = performance.now(), slowT = 0;
+let last = performance.now(), slowT = 0, drewStill = false;
+/* Battery saver: the game draws 30 times a second (60 with "Smooth" on),
+   and stops drawing when nothing moves (pause, menus). Keeps the phone cool. */
 function loop(t) {
-  const dt = Math.min(0.05, (t - last) / 1000); last = t;
+  requestAnimationFrame(loop);
+  const fps = S.smooth ? 60 : 30;
+  if (t - last < 1000 / fps - 3) return;
+  const dt = Math.min(0.07, (t - last) / 1000); last = t;
   if (screen === 'game' && G) {
-    if (!paused && !modalOpen() && G.state === 'play' && !window.__PDfreeze) {
-      const total = dt * S.speed, n = Math.ceil(total / 0.02);
+    const running = !paused && !modalOpen() && G.state === 'play' && !window.__PDfreeze;
+    if (running) {
+      const total = dt * S.speed, n = Math.ceil(total / 0.034);
       for (let i = 0; i < n && G.state === 'play'; i++) update(total / n);
+      drewStill = false;
     }
-    draw(); hud();
+    if (running || !drewStill) { draw(); drewStill = !running; }
+    hud();
     slowT += dt;
     if (slowT > 0.25) { slowT = 0; sheetTick(); tutTick(); }
     pointerTick();
-  } else if (screen === 'title' && titleCv) drawTitle(titleCv, t / 1000);
-  requestAnimationFrame(loop);
+  } else if (screen === 'title' && titleCv && !modalOpen()) drawTitle(titleCv, t / 1000);
 }
 window.addEventListener('resize', () => { resize(); });
 document.addEventListener('visibilitychange', () => {
