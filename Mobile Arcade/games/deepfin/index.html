@@ -634,7 +634,7 @@ function resize() {
   const r = stageEl.getBoundingClientRect();
   W = Math.max(1, Math.round(r.width));
   H = Math.max(1, Math.round(r.height));
-  DPR = Math.min(2.5, window.devicePixelRatio || 1);
+  DPR = Math.min(1.5, window.devicePixelRatio || 1);
   cv.width = W * DPR; cv.height = H * DPR;
   cv.style.width = W + 'px'; cv.style.height = H + 'px';
   g.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -1003,6 +1003,9 @@ document.addEventListener('visibilitychange', () => {
 let last = performance.now();
 function loop(now) {
   requestAnimationFrame(loop);
+  // Battery: never more than 60 fps, and only ~20 fps behind menus.
+  const quiet = S.state !== 'playing' && !S.fx.parts.length && !S.fx.texts.length;
+  if (now - last < (quiet ? 48 : 15)) return;
   let dt = (now - last) / 1000; last = now;
   dt = Math.min(dt, 0.033);
   if (!S.game) return;
@@ -1296,31 +1299,28 @@ class DeepFin {
   }
   drawShell(g, x, y, glow) {
     g.save(); g.translate(x, y);
-    if (glow) { g.shadowColor = '#3CF2D0'; g.shadowBlur = 12; }
+    if (glow) { g.globalAlpha = 0.3; g.fillStyle = '#3CF2D0'; g.beginPath(); g.arc(0, 0, 12, 0, TAU); g.fill(); g.globalAlpha = 1; }
     g.fillStyle = glow ? '#9FFFF0' : '#FFE9C9';
     g.beginPath(); g.moveTo(0, 7); g.lineTo(-8, -2); g.quadraticCurveTo(0, -11, 8, -2); g.closePath(); g.fill();
-    g.shadowBlur = 0;
-    g.strokeStyle = glow ? '#2BB8A6' : '#D9A56B'; g.lineWidth = 1.2;
+        g.strokeStyle = glow ? '#2BB8A6' : '#D9A56B'; g.lineWidth = 1.2;
     for (let k = -1; k <= 1; k++) { g.beginPath(); g.moveTo(0, 6); g.lineTo(k * 5, -6); g.stroke(); }
     g.restore();
   }
   drawChest(g, x, y) {
     g.save(); g.translate(x, y + Math.sin(this.t * 3) * 3);
-    g.shadowColor = '#FFD23D'; g.shadowBlur = 18;
+    g.globalAlpha = 0.3; g.fillStyle = '#FFD23D'; g.beginPath(); g.arc(0, 0, 24, 0, TAU); g.fill(); g.globalAlpha = 1;
     g.fillStyle = '#8A4B1E'; g.fillRect(-14, -8, 28, 18);
     g.fillStyle = '#A65F2A'; g.beginPath(); g.ellipse(0, -8, 14, 7, 0, Math.PI, TAU); g.fill();
-    g.shadowBlur = 0;
-    g.fillStyle = '#FFD23D'; g.fillRect(-14, -3, 28, 3); g.fillRect(-3, -6, 6, 8);
+        g.fillStyle = '#FFD23D'; g.fillRect(-14, -3, 28, 3); g.fillRect(-3, -6, 6, 8);
     g.restore();
   }
   drawJelly(g, j) {
     g.save(); g.translate(j.x, j.y);
     const p = Math.sin(this.t * 4 + j.ph) * 0.12;
-    g.shadowColor = '#FF8AD8'; g.shadowBlur = 14;
+    g.globalAlpha = 0.22; g.fillStyle = '#FF8AD8'; g.beginPath(); g.arc(0, -3, j.r + 7, 0, TAU); g.fill(); g.globalAlpha = 1;
     g.fillStyle = 'rgba(255,138,216,.85)';
     g.beginPath(); g.ellipse(0, 0, j.r * (1 + p), j.r * (0.8 - p), 0, Math.PI, TAU); g.fill();
-    g.shadowBlur = 0;
-    g.strokeStyle = 'rgba(255,170,230,.8)'; g.lineWidth = 2; g.lineCap = 'round';
+        g.strokeStyle = 'rgba(255,170,230,.8)'; g.lineWidth = 2; g.lineCap = 'round';
     for (let k = -2; k <= 2; k++) {
       g.beginPath(); g.moveTo(k * 5, 0);
       g.quadraticCurveTo(k * 5 + Math.sin(this.t * 5 + k) * 4, 10, k * 5, 20); g.stroke();
@@ -1331,9 +1331,13 @@ class DeepFin {
     const d = clamp(this.depth, 0, 3);
     const dark = clamp(d - 1, 0, 1);
     const sun = clamp(1 - d, 0, 1);
-    const gr = g.createLinearGradient(0, 0, 0, H);
-    gr.addColorStop(0, mixN(SKY_TOP, d)); gr.addColorStop(1, mixN(SKY_BOT, d));
-    g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    const bgKey = Math.round(d * 25) + ':' + H;
+    if (this.bgKey !== bgKey) {
+      this.bgKey = bgKey;
+      this.bg = g.createLinearGradient(0, 0, 0, H);
+      this.bg.addColorStop(0, mixN(SKY_TOP, d)); this.bg.addColorStop(1, mixN(SKY_BOT, d));
+    }
+    g.fillStyle = this.bg; g.fillRect(0, 0, W, H);
 
     if (sun > 0.01) {
       g.save();
@@ -1359,9 +1363,12 @@ class DeepFin {
     // vents (behind the kelp)
     for (const v of this.vents) {
       g.save();
-      const vg = g.createLinearGradient(0, H, 0, 0);
-      vg.addColorStop(0, 'rgba(255,120,60,.35)'); vg.addColorStop(1, 'rgba(255,120,60,0)');
-      g.fillStyle = vg; g.fillRect(v.x - v.w / 2, 0, v.w, H - 26);
+      if (this.ventH !== H) {
+        this.ventH = H;
+        this.ventG = g.createLinearGradient(0, H, 0, 0);
+        this.ventG.addColorStop(0, 'rgba(255,120,60,.35)'); this.ventG.addColorStop(1, 'rgba(255,120,60,0)');
+      }
+      g.fillStyle = this.ventG; g.fillRect(v.x - v.w / 2, 0, v.w, H - 26);
       g.strokeStyle = 'rgba(255,200,160,.7)'; g.lineWidth = 1.5;
       for (let k = 0; k < 7; k++) {
         const by = H - 26 - ((this.t * 160 + k * 70) % (H - 26));
@@ -1383,17 +1390,31 @@ class DeepFin {
 
     // the dark, with a circle of light around you
     if (dark > 0.01) {
-      const fx = this.fishX() + 40, LR = this.lampR();
-      const rg = g.createRadialGradient(fx, this.y, 50, fx, this.y, LR);
-      rg.addColorStop(0, 'rgba(1,2,8,0)');
-      rg.addColorStop(0.5, 'rgba(1,2,8,' + (0.55 * dark) + ')');
-      rg.addColorStop(1, 'rgba(1,2,8,' + (0.95 * dark) + ')');
-      g.fillStyle = rg; g.fillRect(0, 0, W, H);
+      const fx = this.fishX() + 40, LR = Math.round(this.lampR());
+      if (this.lampFor !== LR) {
+        this.lampFor = LR;
+        const c = this.lampC || (this.lampC = document.createElement('canvas'));
+        c.width = c.height = 128;
+        const x = c.getContext('2d'), rg = x.createRadialGradient(64, 64, 64 * 50 / LR, 64, 64, 64);
+        rg.addColorStop(0, 'rgba(1,2,8,0)'); rg.addColorStop(0.5, 'rgba(1,2,8,.55)'); rg.addColorStop(1, 'rgba(1,2,8,.95)');
+        x.clearRect(0, 0, 128, 128); x.fillStyle = rg; x.fillRect(0, 0, 128, 128);
+      }
+      const L = fx - LR, T = this.y - LR, D = LR * 2;
+      g.save();
+      g.globalAlpha = dark;
+      g.drawImage(this.lampC, L, T, D, D);
+      g.fillStyle = 'rgba(1,2,8,.95)';
+      if (T > 0) g.fillRect(0, 0, W, T);
+      if (T + D < H) g.fillRect(0, T + D, W, H - T - D);
+      const y0 = Math.max(0, T), h0 = Math.min(H, T + D) - y0;
+      if (L > 0) g.fillRect(0, y0, L, h0);
+      if (L + D < W) g.fillRect(L + D, y0, W - L - D, h0);
+      g.restore();
       g.save();
       g.globalAlpha = 0.85 * dark;
       const edge = d > 2.5 ? '#FF7A4A' : '#3CF2D0';
       g.strokeStyle = edge; g.lineWidth = 3; g.lineCap = 'round';
-      g.shadowColor = edge; g.shadowBlur = 10;
+      g.lineWidth = 4;
       for (const c of this.cols) {
         const topH = c.gapY - c.gapH / 2, botY = c.gapY + c.gapH / 2;
         g.beginPath();
@@ -1453,7 +1474,7 @@ class DeepFin {
       g.globalAlpha = dark;
       g.strokeStyle = skinOf(DATA.skin).body; g.lineWidth = 2;
       g.beginPath(); g.moveTo(4, -9); g.quadraticCurveTo(10, -24, 20, -18); g.stroke();
-      g.shadowColor = '#FFF3A8'; g.shadowBlur = 16;
+      g.globalAlpha = 0.35 * dark; g.fillStyle = '#FFF3A8'; g.beginPath(); g.arc(20, -17, 10, 0, TAU); g.fill(); g.globalAlpha = dark;
       g.fillStyle = '#FFF3A8';
       g.beginPath(); g.arc(20, -17, 4, 0, TAU); g.fill();
       g.restore();
