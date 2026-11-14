@@ -8,9 +8,9 @@
 const SAVE_KEY = 'pixelgarden.app.v1';
 const PRIVACY_URL = 'https://sussy0603.github.io/Arcade/Privacy%20PixelGarden/privacy.html';
 const $ = id => document.getElementById(id);
-const cv = $('scene'), ctx = cv.getContext('2d');
+const cv = $('scene'); let ctx = cv.getContext('2d');
 const app = $('app');
-let W = 0, H = 0;
+let W = 0, H = 0, DPR = 1;
 
 const clamp = (v,a,b) => v<a?a:v>b?b:v;
 const lerp = (a,b,t) => a+(b-a)*t;
@@ -461,7 +461,7 @@ function cottagePos(){ const R = gridRect(); return {x:R.x+R.w-38, y:R.y-46}; }
 function fit(){
   const r = app.getBoundingClientRect();
   W = r.width; H = r.height;
-  const d = Math.min(window.devicePixelRatio||1, 2.5);
+  const d = Math.min(window.devicePixelRatio||1, 2); DPR = d; bgKey = '';
   cv.width = Math.round(W*d); cv.height = Math.round(H*d);
   cv.style.width = W+'px'; cv.style.height = H+'px';
   ctx.setTransform(d,0,0,d,0,0);
@@ -558,9 +558,36 @@ const GRASS = [['#5a9a3a','#4c8a30'],['#4f8a34','#43772c'],['#7a8638','#6a7430']
 const GRASS_N = [['#264a20','#1e3c1a'],['#264a20','#1e3c1a'],['#3a4220','#30381a'],['#5a6878','#4a5868']];
 function initAmbient(){ bees = []; for (let i=0;i<7;i++) bees.push({x:Math.random(),y:Math.random(),p:Math.random()*7,s:rnd(.5,1.1)}); }
 
-function draw(time, wx, night, season){
-  const F = FIELDS[S.fi], fo = field(), R = gridRect();
+
+/* Static background (sky, sun, ground, decor, locked beds) is painted once
+   into an offscreen canvas and only repainted when something in it changes. */
+let bgCv = null, bgKey = '';
+function drawBg(time, wx, night, season, R, F, fo){
   const skyH = R.y - 40;
+  const mins = Math.floor(Date.now()/60000);
+  const lockMask = fo.plots.map(p => (fo.open && p.un) ? 1 : 0).join('');
+  const key = [W,H,DPR,G.t,G.x,G.y,S.fi,season,night?1:0,wx,S.skin.fence,S.skin.path,S.skin.cottage,fo.open?1:0,lockMask,fo.open?plotPrice(S.fi):0,mins,LANG].join('|');
+  if (key !== bgKey){
+    bgKey = key;
+    if (!bgCv) bgCv = document.createElement('canvas');
+    bgCv.width = cv.width; bgCv.height = cv.height;
+    const real = ctx;
+    ctx = bgCv.getContext('2d');
+    ctx.setTransform(DPR,0,0,DPR,0,0); ctx.imageSmoothingEnabled = false;
+    paintStatic(wx, night, season, R, F, fo, skyH);
+    ctx = real;
+  }
+  ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(bgCv, 0, 0); ctx.restore();
+  // moving clouds on top (cheap)
+  if (wx!=='sun'){
+    ctx.fillStyle = night ? 'rgba(50,60,86,.6)' : 'rgba(255,255,255,.55)';
+    for (let i=0;i<4;i++){
+      const x=((i*0.29+time*0.008)%1.3-0.15)*W, y=skyH*(0.35+i*0.15);
+      ctx.beginPath(); ctx.arc(x,y,13,0,TAU); ctx.arc(x+13,y-5,10,0,TAU); ctx.arc(x+24,y+1,12,0,TAU); ctx.fill();
+    }
+  }
+}
+function paintStatic(wx, night, season, R, F, fo, skyH){
   // sky
   const sky = night ? ['#12203a','#1d3050'] : wx==='rain' ? ['#5f7080','#8a99a4'] : wx==='cloud' ? ['#7aa0c0','#a8c4d8']
     : season===3 ? ['#9ab8d8','#d0e0f0'] : season===2 ? ['#e0a070','#f0d0a0'] : ['#5fa8e0','#a8d8f0'];
@@ -577,14 +604,7 @@ function draw(time, wx, night, season){
   ctx.beginPath(); ctx.arc(bx, by, night?9:13, 0, TAU); ctx.fill(); ctx.restore();
   if (night) for (let i=0;i<26;i++){
     const x=((i*151)%100)/100*W, y=((i*67)%100)/100*skyH*0.9;
-    ctx.fillStyle='rgba(255,255,255,'+(0.3+0.3*Math.sin(time*1.6+i)).toFixed(2)+')'; ctx.fillRect(x,y,1.6,1.6);
-  }
-  if (wx!=='sun'){
-    ctx.fillStyle = night ? 'rgba(50,60,86,.6)' : 'rgba(255,255,255,.55)';
-    for (let i=0;i<4;i++){
-      const x=((i*0.29+time*0.008)%1.3-0.15)*W, y=skyH*(0.35+i*0.15);
-      ctx.beginPath(); ctx.arc(x,y,13,0,TAU); ctx.arc(x+13,y-5,10,0,TAU); ctx.arc(x+24,y+1,12,0,TAU); ctx.fill();
-    }
+    ctx.fillStyle='rgba(255,255,255,'+(0.35+0.25*((i*7)%3)/2).toFixed(2)+')'; ctx.fillRect(x,y,1.6,1.6);
   }
   // ground
   const gc = night ? GRASS_N[season] : GRASS[season];
@@ -602,20 +622,30 @@ function draw(time, wx, night, season){
     if (S.fi===0) drawCottage(cottagePos().x, cottagePos().y, night);
   }
 
+  // locked beds (weeds + price) live in the cached layer too
+  for (let i=0;i<fo.plots.length;i++){
+    const p = fo.plots[i];
+    if (fo.open && p.un) continue;
+    const Rp = plotRect(i);
+    ctx.drawImage(weedSprite(season),0,0,PX,PX,Rp.x,Rp.y,Rp.s,Rp.s);
+    ctx.fillStyle = 'rgba(0,0,0,.34)'; ctx.fillRect(Rp.x,Rp.y,Rp.s,Rp.s);
+    if (fo.open){
+      ctx.fillStyle = '#e8c88a'; ctx.font = '800 '+Math.round(Rp.s*0.19)+'px Nunito,sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('🪙'+plotPrice(S.fi), Rp.x+Rp.s/2, Rp.y+Rp.s/2);
+    }
+  }
+}
+
+function draw(time, wx, night, season){
+  const F = FIELDS[S.fi], fo = field(), R = gridRect();
+  const skyH = R.y - 40;
+  drawBg(time, wx, night, season, R, F, fo);
   // plots
   ctx.imageSmoothingEnabled = false;
   for (let i=0;i<fo.plots.length;i++){
     const p = fo.plots[i], Rp = plotRect(i);
-    if (!fo.open || !p.un){
-      ctx.drawImage(weedSprite(season),0,0,PX,PX,Rp.x,Rp.y,Rp.s,Rp.s);
-      ctx.fillStyle = 'rgba(0,0,0,.34)'; ctx.fillRect(Rp.x,Rp.y,Rp.s,Rp.s);
-      if (fo.open){
-        ctx.fillStyle = '#e8c88a'; ctx.font = '800 '+Math.round(Rp.s*0.19)+'px Nunito,sans-serif';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('🪙'+plotPrice(S.fi), Rp.x+Rp.s/2, Rp.y+Rp.s/2);
-      }
-      continue;
-    }
+    if (!fo.open || !p.un) continue;
     ctx.drawImage(soilSprite(p.water>0.12 || F.gh, F.gh),0,0,PX,PX,Rp.x,Rp.y,Rp.s,Rp.s);
     if (p.spr){ ctx.drawImage(sprinklerSprite(Math.floor(time*4)%3),0,0,PX,PX,Rp.x,Rp.y,Rp.s,Rp.s); continue; }
     if (p.c){
@@ -810,8 +840,14 @@ function drawBees(time){
 
 /* ---------- Loop -------------------------------------------------------- */
 let last = performance.now(), time = 0, tickAcc = 1;
+let lastDraw = 0;
 function frame(now){
-  const dt = clamp((now-last)/1000, 0, 0.05); last = now; time += dt;
+  requestAnimationFrame(frame);
+  // 30 fps is plenty for a cozy garden; behind a menu or popup, 5 fps.
+  const covered = anySheet() || !!popCur;
+  if (now - lastDraw < (covered ? 200 : 32)) return;
+  lastDraw = now;
+  const dt = clamp((now-last)/1000, 0, 0.25); last = now; time += dt;
   const nowMs = Date.now();
   const season = seasonAt(nowMs);
   let wx = weatherAt(nowMs); const night = nightAt(nowMs);
@@ -822,7 +858,6 @@ function frame(now){
   for (let i=floats.length-1;i>=0;i--){ const f=floats[i]; f.t+=dt; f.y-=26*dt; if (f.t>1.4) floats.splice(i,1); }
   ctx.clearRect(0,0,W,H);
   draw(time, wx, night, season);
-  requestAnimationFrame(frame);
 }
 
 /* ---------- Input ------------------------------------------------------- */
