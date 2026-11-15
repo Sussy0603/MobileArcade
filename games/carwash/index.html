@@ -3,191 +3,190 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#12062a">
+<meta name="theme-color" content="#ffffff">
 <title>Car Wash Tycoon</title>
 <style>
 /* =====================================================================
    CAR WASH TYCOON — styles
-   Retro 80s neon. Change the colors here to restyle the whole game.
+   Bright cartoon tycoon look. Change the colors here to restyle the game.
 ===================================================================== */
 :root{
-  --bg:#12062a; --top:#0c0320; --card:#22104a; --card2:#2c1460; --line:#40207e;
-  --pink:#ff3fa4; --cyan:#3ff0ff; --yellow:#ffe93f; --green:#4fff9a; --orange:#ff8a3d; --red:#ff4f6b;
-  --txt:#f6efff; --mut:#bba9e0;
-  --neon:#ff3fa4; --neon2:#3ff0ff;
-  --font:"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+  --bg:#e9f2ff; --top:#ffffff; --card:#ffffff; --card2:#eef3fa; --line:#d5e0ef;
+  --txt:#1f2a44; --mut:#6b7a94; --ink:#1f2a44;
+  --green:#2ec05a; --green2:#1d9444; --blue:#2f8cff; --blue2:#1b64c8; --orange:#ff9a1f; --orange2:#d96f00;
+  --red:#ff4d5e; --yellow:#ffd23f; --pink:#ff5fa2; --cyan:#22c3e6;
+  --awn1:#ff4d5e; --awn2:#ffffff; --lot:#dfe5ec; --grass:#7fd75a;
+  --font:"Arial Rounded MT Bold","Nunito","Trebuchet MS","Segoe UI",system-ui,sans-serif;
 }
-body.gold{ --pink:#ffb627; --neon:#ffd23f; --neon2:#ff9f1c; --line:#6a4a1e; --card:#2a1a0a; --card2:#3a2410; --bg:#140b02; --top:#0d0700; }
+body.gold{ --awn1:#e8a400; --awn2:#fff4c4; --lot:#f4e7c0; --grass:#9ad65a; --blue:#e09a00; --blue2:#a86f00; }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
 html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:var(--font);font-size:15px}
 body.easy{--font:Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.12em;line-height:1.45}
 button{font-family:inherit;font-size:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
 #app{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.out{-webkit-text-stroke:0}
+.ol{text-shadow:-1.5px -1.5px 0 var(--ink),1.5px -1.5px 0 var(--ink),-1.5px 1.5px 0 var(--ink),1.5px 1.5px 0 var(--ink),0 3px 0 var(--ink)}
 
 /* ---------- top bar ---------- */
-#top{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--top);border-bottom:2px solid var(--pink);box-shadow:0 2px 10px #ff3fa444;z-index:5}
+#top{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--top);box-shadow:0 2px 0 var(--line),0 4px 10px #1f2a4415;z-index:5}
 #coinBox{flex:1;min-width:0}
-#coins{font-size:22px;font-weight:900;color:var(--yellow);text-shadow:0 0 6px #ff9f1c88;white-space:nowrap}
-#rate{font-size:12px;color:var(--cyan);white-space:nowrap}
+#coins{font-size:24px;font-weight:900;color:var(--green);white-space:nowrap;letter-spacing:.5px}
+#rate{font-size:12px;font-weight:800;color:var(--mut);white-space:nowrap}
 #chips{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
-.chip{font-size:11px;font-weight:800;padding:3px 7px;border-radius:999px;background:var(--card2);border:1px solid var(--line);white-space:nowrap}
-.chip.rush{background:#5a1030;border-color:var(--yellow);color:var(--yellow)}
-.chip.x2{border-color:var(--green);color:var(--green)}
-.chip.turbo{border-color:var(--cyan);color:var(--cyan)}
-.pill{font-weight:800;padding:6px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--line);white-space:nowrap}
-#boostBtn{background:linear-gradient(var(--pink),#b5126a);color:#fff;box-shadow:0 0 8px #ff3fa488;border:0}
+.chip{font-size:11px;font-weight:900;padding:4px 8px;border-radius:999px;background:var(--card2);white-space:nowrap}
+.chip.rush{background:var(--yellow);color:var(--ink)}
+.chip.x2{background:#d9f7e2;color:var(--green2)}
+.chip.turbo{background:#d8f3fb;color:#0d7d98}
+.pill{font-weight:900;padding:7px 11px;border-radius:999px;background:var(--card2);white-space:nowrap}
+#boostBtn{background:var(--orange);color:#fff;box-shadow:0 3px 0 var(--orange2)}
 
-/* ---------- the scene ---------- */
-#scene{position:relative;flex:0 0 47%;overflow:hidden;touch-action:manipulation}
-.sky{position:absolute;inset:0;background:linear-gradient(#14042e 0%,#3a0a5e 38%,#a0206e 58%,#ff5f7e 70%,#ffb347 78%)}
-body.gold .sky{background:linear-gradient(#120700 0%,#3a1a02 38%,#a05a10 58%,#ffb627 70%,#ffe08a 78%)}
-.sun{position:absolute;left:50%;top:22%;width:44vmin;height:44vmin;max-width:240px;max-height:240px;transform:translateX(-50%);border-radius:50%;background:linear-gradient(#ffe93f,#ff7a3d 55%,#ff3fa4)}
-.sun::after{content:"";position:absolute;inset:50% 0 0 0;background:repeating-linear-gradient(transparent 0 7px,#a0206e 7px 11px)}
-.mtn{position:absolute;left:0;right:0;bottom:30%;height:22%;background:#2a0846;clip-path:polygon(0 100%,0 55%,10% 25%,22% 60%,34% 10%,48% 65%,60% 30%,74% 70%,86% 20%,100% 50%,100% 100%)}
-.ground{position:absolute;left:0;right:0;bottom:0;height:31%;background:#13042a;overflow:hidden}
-.grid{position:absolute;left:-50%;right:-50%;top:0;height:220%;transform-origin:top;transform:perspective(160px) rotateX(58deg);
-  background-image:linear-gradient(var(--neon) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--neon) 1.5px,transparent 1.5px);background-size:40px 40px;opacity:.45}
-.road{position:absolute;left:0;right:0;bottom:0;height:15%;background:#0a0218;border-top:2px solid var(--neon2)}
-.lane{position:absolute;left:0;right:0;top:48%;height:2px;background:repeating-linear-gradient(90deg,var(--yellow) 0 18px,transparent 18px 34px);opacity:.6}
+/* ---------- the scene (top-down lot) ---------- */
+#scene{position:relative;flex:0 0 47%;overflow:hidden;touch-action:manipulation;background:var(--grass);
+  background-image:radial-gradient(#ffffff22 2px,transparent 2.5px);background-size:22px 22px}
+.deco{position:absolute;font-size:22px;pointer-events:none}
+.road{position:absolute;left:0;right:0;bottom:0;height:15%;background:#5c6475;border-top:4px solid #c9d1dc}
+.lane{position:absolute;left:0;right:0;top:48%;height:3px;background:repeating-linear-gradient(90deg,var(--yellow) 0 18px,transparent 18px 34px)}
 
-#bldg{position:absolute;left:3%;right:3%;top:13%;bottom:16%;display:flex;flex-direction:column;background:#1a0838ee;border:2px solid var(--neon);border-radius:14px 14px 4px 4px;box-shadow:0 0 12px var(--neon),inset 0 0 14px #ff3fa422}
-#sign{display:flex;align-items:center;justify-content:space-between;height:26px;padding:0 4px;border-bottom:2px solid var(--neon)}
-#sign .nm{flex:1;text-align:center;font-weight:900;letter-spacing:2px;font-size:15px;color:#fff;text-shadow:0 0 4px var(--neon2),0 0 10px var(--neon2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#sign button{width:32px;height:24px;font-size:14px;color:var(--neon2)}
-#sign button.off{opacity:.2}
-#bays{flex:1;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,1fr);gap:5px;padding:6px}
-.bay{position:relative;border:2px solid var(--neon2);border-radius:8px;background:linear-gradient(#2a0f55,#14052e);overflow:hidden;box-shadow:inset 0 0 8px #3ff0ff33}
-.bay.vip{border-color:var(--yellow);box-shadow:0 0 8px var(--yellow),inset 0 0 10px #ffe93f44}
-.bay.vip::before{content:"👑";position:absolute;top:1px;left:3px;font-size:11px;z-index:3}
-.bay .brush{position:absolute;left:10%;right:10%;top:0;height:30%;background:repeating-linear-gradient(90deg,var(--pink) 0 5px,var(--cyan) 5px 10px,var(--yellow) 10px 15px);opacity:.75;border-radius:0 0 8px 8px}
-body:not(.saver) .bay .brush{animation:brush .45s ease-in-out infinite alternate}
-@keyframes brush{from{transform:translateX(-6%) scaleY(.9)}to{transform:translateX(6%) scaleY(1.05)}}
-.bay .car{position:absolute;left:4%;right:4%;bottom:12%;transition:transform .32s ease}
-.bay .car.pre{transform:translateX(-140%);transition:none}
-.bay .car.out{transform:translateX(140%)}
+#bldg{position:absolute;left:3%;right:3%;top:13%;bottom:17%;display:flex;flex-direction:column;background:var(--lot);border:3px solid #fff;border-radius:14px;box-shadow:0 5px 0 #00000022}
+#sign{display:flex;align-items:center;justify-content:space-between;height:30px;padding:0 4px;border-radius:10px 10px 0 0;
+  background:repeating-linear-gradient(90deg,var(--awn1) 0 18px,var(--awn2) 18px 36px);border-bottom:3px solid var(--ink)}
+#sign .nm{flex:1;text-align:center;font-weight:900;font-size:15px;color:#fff;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  text-shadow:-1.5px -1.5px 0 var(--ink),1.5px -1.5px 0 var(--ink),-1.5px 1.5px 0 var(--ink),1.5px 1.5px 0 var(--ink),0 2px 0 var(--ink)}
+#sign button{width:30px;height:24px;border-radius:8px;background:#fff;color:var(--ink);font-size:12px;font-weight:900;box-shadow:0 2px 0 var(--ink)}
+#sign button.off{opacity:.3}
+#bays{flex:1;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(4,1fr);gap:5px 6px;padding:6px}
+/* one lane = asphalt strip with 4 stations; the car drives through */
+.bay{position:relative;border-radius:8px;background:#646d7e;overflow:hidden;box-shadow:inset 0 0 0 2px #ffffff55}
+.bay .st{position:absolute;top:0;bottom:0;width:22%;display:flex;align-items:flex-start;justify-content:center;font-size:10px;padding-top:1px}
+.bay .s1{left:5%;background:#ff7fc033}.bay .s2{left:28%;background:#4fa3ff33}.bay .s3{left:51%;background:#4fe0ff33}.bay .s4{left:74%;background:#ffe14f33}
+.bay .st::after{content:"";position:absolute;left:0;top:0;bottom:0;border-left:2px dashed #ffffff55}
+.bay .car{position:absolute;left:2%;top:18%;width:25%;transition:transform .25s linear;z-index:2}
+.bay .car.gone{transition:transform .35s ease-in}
 .car svg{display:block;width:100%;height:auto}
-.prog{position:absolute;left:4px;right:4px;bottom:3px;height:5px;background:#0008;border-radius:3px;overflow:hidden}
-.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink));transform-origin:left;transform:scaleX(0);transition:transform .25s linear}
 .dirt{transition:opacity .25s linear}
-.bay.buy{display:flex;flex-direction:column;align-items:center;justify-content:center;border-style:dashed;border-color:var(--green);color:var(--green);font-weight:800;font-size:11px;text-align:center;gap:2px}
-.bay.buy b{font-size:20px;line-height:1}
-.bay.buy.no{border-color:var(--line);color:var(--mut);opacity:.7}
-.bay.lock{border-style:dashed;border-color:#40207e;opacity:.35;display:flex;align-items:center;justify-content:center;font-size:16px}
+.bay.vip{box-shadow:inset 0 0 0 3px var(--yellow)}
+.bay.vip::before{content:"⭐VIP";position:absolute;right:3px;bottom:1px;font-size:8px;font-weight:900;color:var(--yellow);z-index:3}
+.bay.buy{display:flex;align-items:center;justify-content:center;gap:6px;background:#ffffff99;border:2px dashed var(--green);color:var(--green2);font-weight:900;font-size:12px;box-shadow:none}
+.bay.buy b{font-size:18px;width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 0 var(--green2)}
+.bay.buy.no{border-color:#aab4c3;color:var(--mut)}
+.bay.buy.no b{background:#aab4c3;box-shadow:0 2px 0 #8792a3}
+.bay.lock{background:#00000010;box-shadow:none;border:2px dashed #b9c3d0;display:flex;align-items:center;justify-content:center;font-size:12px;opacity:.6}
 .bay.hit{animation:hit .12s}
-@keyframes hit{50%{transform:scale(.94)}}
+@keyframes hit{50%{transform:scale(.96);filter:brightness(1.2)}}
 
-#reg{position:absolute;top:2.5%;right:3%;z-index:4;padding:4px 9px 6px;border-radius:12px;background:#0c0320dd;border:2px solid var(--green);font-weight:900;font-size:13px;color:var(--green);min-width:86px;text-align:center}
-#reg .bar{height:4px;margin-top:3px;background:#0008;border-radius:2px;overflow:hidden}
+#reg{position:absolute;top:2%;right:3%;z-index:4;padding:4px 10px 6px;border-radius:12px;background:#fff;font-weight:900;font-size:14px;color:var(--green2);min-width:92px;text-align:center;box-shadow:0 3px 0 #00000030}
+#reg .bar{height:5px;margin-top:3px;background:#e3e9f1;border-radius:3px;overflow:hidden}
 #reg .bar i{display:block;height:100%;background:var(--green);transform-origin:left}
-#reg.full{border-color:var(--red);color:var(--red)}
+#reg.full{color:var(--red)}
 #reg.full .bar i{background:var(--red)}
 body:not(.saver) #reg.full{animation:pulse 1s infinite}
-#reg.mgr{border-color:var(--cyan);color:var(--cyan);font-size:11px}
-#locRate{position:absolute;top:2.5%;left:3%;z-index:4;padding:5px 9px;border-radius:12px;background:#0c0320bb;font-size:11px;font-weight:800;color:var(--cyan)}
+#reg.mgr{color:var(--blue2);font-size:11px}
+#locRate{position:absolute;top:2%;left:3%;z-index:4;padding:6px 10px;border-radius:12px;background:#fff;font-size:12px;font-weight:900;color:var(--green2);box-shadow:0 3px 0 #00000030}
 
-.spark{position:absolute;bottom:4%;left:0;width:21%;z-index:4;transform:translateX(-110%);transition:transform 7s linear;filter:drop-shadow(0 0 6px var(--yellow))}
-.spark::after{content:"✨";position:absolute;top:-30%;right:10%;font-size:16px}
+.spark{position:absolute;top:12%;left:0;width:16%;z-index:4;transform:translateX(-110%);transition:transform 7s linear;filter:drop-shadow(0 0 5px #fff) drop-shadow(0 0 6px var(--yellow))}
+.spark::after{content:"✨";position:absolute;top:-45%;right:0;font-size:16px}
 #fx{position:absolute;inset:0;pointer-events:none;z-index:6;overflow:hidden}
-.fl{position:absolute;font-weight:900;font-size:14px;color:var(--yellow);text-shadow:0 0 5px #ff3fa4,0 1px 0 #000;white-space:nowrap;transform:translateX(-50%);animation:fl .95s ease-out forwards}
-.fl.big{font-size:20px}
-@keyframes fl{to{transform:translate(-50%,-46px);opacity:0}}
-.bub{position:absolute;width:11px;height:11px;border-radius:50%;border:1.5px solid #c9fbff;background:#ffffff33;animation:bub .7s ease-out forwards}
-@keyframes bub{to{transform:translate(var(--dx),-34px) scale(1.5);opacity:0}}
+.fl{position:absolute;font-weight:900;font-size:15px;color:#fff;white-space:nowrap;transform:translateX(-50%);animation:fl .95s ease-out forwards;
+  text-shadow:-1.5px -1.5px 0 var(--green2),1.5px -1.5px 0 var(--green2),-1.5px 1.5px 0 var(--green2),1.5px 1.5px 0 var(--green2),0 2px 0 var(--green2)}
+.fl.big{font-size:21px;text-shadow:-2px -2px 0 var(--orange2),2px -2px 0 var(--orange2),-2px 2px 0 var(--orange2),2px 2px 0 var(--orange2),0 3px 0 var(--orange2)}
+@keyframes fl{to{transform:translate(-50%,-44px);opacity:0}}
+.bub{position:absolute;width:12px;height:12px;border-radius:50%;border:2px solid #fff;background:#bfeaff88;animation:bub .7s ease-out forwards}
+@keyframes bub{to{transform:translate(var(--dx),-30px) scale(1.5);opacity:0}}
 #scene.shake{animation:shake .35s}
 @keyframes shake{20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,1px)}80%{transform:translate(2px,-1px)}}
-#rushBan{position:absolute;left:0;right:0;top:40%;z-index:7;text-align:center;font-size:30px;font-weight:900;color:var(--yellow);text-shadow:0 0 6px var(--pink),0 0 16px var(--pink);pointer-events:none;opacity:0}
+#rushBan{position:absolute;left:0;right:0;top:40%;z-index:7;text-align:center;font-size:32px;font-weight:900;color:var(--yellow);pointer-events:none;opacity:0;
+  text-shadow:-2.5px -2.5px 0 var(--ink),2.5px -2.5px 0 var(--ink),-2.5px 2.5px 0 var(--ink),2.5px 2.5px 0 var(--ink),0 4px 0 var(--ink)}
 #rushBan.on{animation:ban 2.2s ease-out}
 @keyframes ban{0%{opacity:0;transform:scale(.4)}15%{opacity:1;transform:scale(1.15)}25%{transform:scale(1)}80%{opacity:1}100%{opacity:0}}
-#coach{position:absolute;left:5%;right:5%;bottom:1%;z-index:8;background:#0c0320ee;border:2px solid var(--yellow);border-radius:14px;padding:8px 10px;font-weight:800;font-size:14px;text-align:center;color:#fff;display:none;pointer-events:none}
+#coach{position:absolute;left:5%;right:5%;bottom:1%;z-index:8;background:#fff;border:3px solid var(--orange);border-radius:14px;padding:8px 10px;font-weight:900;font-size:14px;text-align:center;color:var(--ink);display:none;pointer-events:none;box-shadow:0 4px 0 #00000030}
 #coach.on{display:block}
-.hl{outline:3px solid var(--yellow);outline-offset:2px}
+.hl{outline:3px solid var(--orange);outline-offset:2px}
 body:not(.saver) .hl{animation:pulse 1s infinite}
-@keyframes pulse{50%{opacity:.6}}
-body:not(.saver) #sign .nm{animation:flick 7s infinite}
-@keyframes flick{0%,92%,96%,100%{opacity:1}94%{opacity:.4}}
+@keyframes pulse{50%{opacity:.65}}
 
 /* ---------- panel ---------- */
 #panel{flex:1;overflow-y:auto;padding:8px 10px 18px;-webkit-overflow-scrolling:touch}
 #app.full #scene{display:none}
-h2{margin:6px 0 4px;font-size:18px;color:var(--cyan);text-shadow:0 0 6px #3ff0ff66}
-h3{margin:14px 0 4px;font-size:15px;color:var(--pink)}
+h2{margin:6px 0 4px;font-size:19px;color:var(--ink)}
+h3{margin:14px 0 4px;font-size:15px;color:var(--blue2)}
 .row{display:flex;align-items:center;gap:8px}
 .muted{color:var(--mut);font-size:13px}
 .center{text-align:center}
-.card{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;margin:7px 0}
-.card .ic{font-size:28px;width:38px;text-align:center;flex:0 0 38px}
+.card{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:16px;padding:10px;margin:8px 0;box-shadow:0 3px 0 var(--line)}
+.card .ic{font-size:26px;width:46px;height:46px;flex:0 0 46px;border-radius:14px;background:var(--card2);display:flex;align-items:center;justify-content:center}
 .card .info{flex:1;min-width:0}
 .nm{font-weight:900}
 .sub{font-size:12.5px;color:var(--mut);margin-top:2px}
 .sub b{color:var(--txt)}
-.btn{background:linear-gradient(var(--pink),#b5126a);color:#fff;font-weight:900;border-radius:12px;padding:10px 12px;min-width:86px;box-shadow:0 3px 0 #6a0a40;text-align:center;line-height:1.15}
-.btn small{display:block;font-size:10px;opacity:.85;font-weight:700}
-.btn.cy{background:linear-gradient(var(--cyan),#14a6be);color:#0c0320;box-shadow:0 3px 0 #0b5a6a}
-.btn.gold{background:linear-gradient(#ffe93f,#ff9f1c);color:#2a1300;box-shadow:0 3px 0 #8a4a00}
-.btn.green{background:linear-gradient(var(--green),#1fb86a);color:#062a14;box-shadow:0 3px 0 #0b5a30}
-.btn.ghost{background:var(--card2);border:1px solid var(--line);box-shadow:none;color:var(--txt)}
+.btn{background:var(--green);color:#fff;font-weight:900;border-radius:14px;padding:9px 12px;min-width:88px;box-shadow:0 4px 0 var(--green2);text-align:center;line-height:1.15;font-size:15px}
+.btn small{display:block;font-size:10.5px;opacity:.95;font-weight:900}
+.btn.cy{background:var(--blue);box-shadow:0 4px 0 var(--blue2)}
+.btn.gold{background:var(--yellow);color:var(--ink);box-shadow:0 4px 0 #c99a00}
+.btn.green{background:var(--green);box-shadow:0 4px 0 var(--green2)}
+.btn.ghost{background:var(--card2);color:var(--txt);box-shadow:0 3px 0 var(--line)}
 .btn.wide{display:block;width:100%;margin-top:8px}
-.btn.no{filter:grayscale(.8);opacity:.5}
-.btn.max{background:var(--card2);box-shadow:none;color:var(--green);border:1px solid var(--green)}
-.btn:active{transform:translateY(2px) scale(.97)}
+.btn.no{background:#c3ccd8;box-shadow:0 4px 0 #9ea9b8;color:#fff}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #0003}
 .pop{animation:pop .28s}
 @keyframes pop{40%{transform:scale(1.12)}}
-.seg{display:flex;background:var(--card2);border-radius:10px;padding:2px;gap:2px}
-.seg button{padding:6px 10px;border-radius:8px;font-weight:800;font-size:12px;color:var(--mut)}
-.seg button.on{background:var(--pink);color:#fff}
-.bar2{height:8px;background:#0008;border-radius:4px;overflow:hidden;margin-top:5px}
-.bar2 i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink))}
-.tag{display:inline-block;font-size:10.5px;font-weight:900;padding:2px 6px;border-radius:6px;background:var(--card2);vertical-align:middle}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-.dex{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px;text-align:center;font-size:11px}
+.seg{display:flex;background:var(--card2);border-radius:12px;padding:3px;gap:2px}
+.seg button{padding:6px 10px;border-radius:9px;font-weight:900;font-size:12px;color:var(--mut)}
+.seg button.on{background:var(--blue);color:#fff}
+.bar2{height:9px;background:var(--card2);border-radius:5px;overflow:hidden;margin-top:5px}
+.bar2 i{display:block;height:100%;background:var(--green)}
+.tag{display:inline-block;font-size:11px;font-weight:900;padding:2px 7px;border-radius:7px;background:var(--card2);vertical-align:middle;color:var(--txt)}
+.lvl{background:var(--blue);color:#fff}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dex{background:var(--card);border-radius:14px;padding:6px;text-align:center;font-size:11px;box-shadow:0 3px 0 var(--line)}
 .dex .car{margin:2px 0}
-.dex.no .car{filter:brightness(0) opacity(.45)}
+.dex.no .car{filter:brightness(0) opacity(.18)}
 .dex .cnt{color:var(--mut)}
-.dex.shined{border-color:var(--yellow);box-shadow:0 0 6px #ffe93f55}
-.tog{width:52px;height:30px;border-radius:15px;background:var(--card2);border:1px solid var(--line);position:relative;flex:0 0 52px}
-.tog::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--mut);transition:transform .2s}
-.tog.on{background:var(--pink)}
-.tog.on::after{transform:translateX(22px);background:#fff}
+.dex.shined{box-shadow:0 0 0 2px var(--yellow),0 3px 0 #c99a00}
+.tog{width:52px;height:30px;border-radius:15px;background:#c3ccd8;position:relative;flex:0 0 52px}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 2px 0 #0002}
+.tog.on{background:var(--green)}
+.tog.on::after{transform:translateX(22px)}
 
 /* ---------- nav ---------- */
-#nav{display:flex;background:var(--top);border-top:2px solid var(--neon2)}
-#nav button{flex:1;padding:5px 0 7px;font-size:11px;font-weight:800;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:1px;position:relative}
-#nav button b{font-size:22px;line-height:1.2}
-#nav button.on{color:var(--cyan);text-shadow:0 0 6px var(--cyan)}
-#nav .dot{position:absolute;top:4px;right:22%;width:10px;height:10px;border-radius:50%;background:var(--red);display:none;box-shadow:0 0 6px var(--red)}
+#nav{display:flex;background:var(--top);box-shadow:0 -2px 0 var(--line)}
+#nav button{flex:1;padding:5px 0 7px;font-size:11px;font-weight:900;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:1px;position:relative}
+#nav button b{font-size:22px;line-height:1.25}
+#nav button.on{color:var(--blue2)}
+#nav button.on b{transform:scale(1.15)}
+#nav .dot{position:absolute;top:4px;right:22%;width:11px;height:11px;border-radius:50%;background:var(--red);border:2px solid #fff;display:none}
 #nav .dot.on{display:block}
 
 /* ---------- modal + toast ---------- */
-#modalBg{position:fixed;inset:0;background:#05010fcc;display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+#modalBg{position:fixed;inset:0;background:#1f2a4499;display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
 #modalBg.on{display:flex}
-#modal{position:relative;width:100%;max-width:400px;max-height:88vh;overflow-y:auto;background:var(--bg);border:2px solid var(--neon);border-radius:18px;padding:16px;box-shadow:0 0 22px var(--neon)}
+#modal{position:relative;width:100%;max-width:400px;max-height:88vh;overflow-y:auto;background:#fff;border-radius:22px;padding:16px;box-shadow:0 6px 0 #00000033}
 #modal h2{margin-top:0;text-align:center;padding:0 26px}
-#mClose{position:absolute;top:8px;right:10px;width:34px;height:34px;font-size:18px;color:var(--mut)}
+#mClose{position:absolute;top:8px;right:10px;width:34px;height:34px;border-radius:50%;background:var(--card2);font-size:16px;color:var(--mut)}
 .big{font-size:54px;text-align:center}
-.amt{font-size:26px;font-weight:900;text-align:center;color:var(--yellow);margin:6px 0}
-#toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));pointer-events:none;transform:translateX(-50%);z-index:60;background:#0c0320f2;border:2px solid var(--cyan);border-radius:12px;padding:8px 14px;font-weight:800;font-size:14px;max-width:90vw;text-align:center;display:none}
+.amt{font-size:26px;font-weight:900;text-align:center;color:var(--green2);margin:6px 0}
+#toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));pointer-events:none;transform:translateX(-50%);z-index:60;background:#fff;border-radius:14px;padding:9px 14px;font-weight:900;font-size:14px;max-width:90vw;text-align:center;display:none;box-shadow:0 4px 0 #00000030;border:2px solid var(--blue)}
 #toast.on{display:block;animation:pop .25s}
-#toast.gold{border-color:var(--yellow);color:var(--yellow)}
-#toast.err{border-color:var(--red)}
-#load{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s}
-#load .t{font-size:34px;font-weight:900;color:#fff;letter-spacing:3px;text-shadow:0 0 6px var(--pink),0 0 16px var(--pink);text-align:center;line-height:1.1}
-#load .t span{display:block;font-size:20px;color:var(--cyan);text-shadow:0 0 6px var(--cyan),0 0 14px var(--cyan)}
-#load .lb{width:60%;max-width:260px;height:8px;border-radius:4px;background:var(--card2);overflow:hidden}
-#load .lb i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--pink));transition:width .15s}
+#toast.gold{border-color:var(--orange);color:var(--orange2)}
+#toast.err{border-color:var(--red);color:var(--red)}
+#load{position:fixed;inset:0;z-index:100;background:linear-gradient(#8fd3ff,#e9f2ff);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s}
+#load .t{font-size:38px;font-weight:900;color:var(--yellow);letter-spacing:1px;text-align:center;line-height:1.05;
+  text-shadow:-3px -3px 0 var(--ink),3px -3px 0 var(--ink),-3px 3px 0 var(--ink),3px 3px 0 var(--ink),0 5px 0 var(--ink)}
+#load .t span{display:block;font-size:24px;color:#fff}
+#load .lb{width:60%;max-width:260px;height:12px;border-radius:6px;background:#fff;overflow:hidden;box-shadow:0 3px 0 #0002}
+#load .lb i{display:block;height:100%;width:0;background:var(--green);transition:width .15s}
 </style>
 </head>
 <body class="saver">
 <div id="load"><div class="t">CAR WASH<span>TYCOON</span></div><div id="loadCar" style="width:150px"></div><div class="lb"><i id="loadBar"></i></div></div>
 <div id="app">
   <div id="top">
-    <div id="coinBox"><div id="coins">🪙 0</div><div id="rate">+0/s</div></div>
+    <div id="coinBox"><div id="coins">$0</div><div id="rate">+0/s</div></div>
     <div id="chips"></div>
     <button class="pill" id="gemPill">💎 0</button>
     <button class="pill" id="boostBtn">📺 x2</button>
   </div>
   <div id="scene">
-    <div class="sky"></div><div class="sun"></div><div class="mtn"></div>
-    <div class="ground"><div class="grid"></div></div>
+    <div class="deco" style="left:38%;top:1%">🌳</div><div class="deco" style="left:50%;top:2%">🌷</div><div class="deco" style="left:58%;top:0%">🌳</div>
     <div class="road"><div class="lane"></div></div>
     <div id="bldg"><div id="sign"><button id="locPrev">◀</button><div class="nm" id="signNm"></div><button id="locNext">▶</button></div><div id="bays"></div></div>
     <div id="locRate"></div>
@@ -352,22 +351,22 @@ const QUESTS = [
 ];
 const ACH = [
   {id:'c1',   e:'🚗', en:'First Shine',     fr:'Premier lavage',     d:['Wash 1 car','Lave 1 auto'],               ok:()=>S.cars>=1, g:2},
-  {id:'c100', e:'🧽', en:'Busy Bay',        fr:'Baie occupée',       d:['Wash 100 cars','Lave 100 autos'],         ok:()=>S.cars>=100, g:5},
+  {id:'c100', e:'🧽', en:'Busy Lane',       fr:'Voie occupée',       d:['Wash 100 cars','Lave 100 autos'],         ok:()=>S.cars>=100, g:5},
   {id:'c1k',  e:'🚙', en:'Car Magnet',      fr:'Aimant à autos',     d:['Wash 1,000 cars','Lave 1 000 autos'],     ok:()=>S.cars>=1e3, g:10},
   {id:'c10k', e:'🚐', en:'Traffic Jam',     fr:'Embouteillage',      d:['Wash 10,000 cars','Lave 10 000 autos'],   ok:()=>S.cars>=1e4, g:20},
   {id:'c100k',e:'🚌', en:'Whole City',      fr:'Toute la ville',     d:['Wash 100,000 cars','Lave 100 000 autos'], ok:()=>S.cars>=1e5, g:40},
   {id:'c1m',  e:'🌎', en:'Every Car Ever',  fr:'Toutes les autos',   d:['Wash 1M cars','Lave 1M d’autos'],         ok:()=>S.cars>=1e6, g:80},
   {id:'s500', e:'🫧', en:'Elbow Grease',    fr:'Huile de coude',     d:['Scrub 500 times','Frotte 500 fois'],      ok:()=>S.scrubs>=500, g:10},
-  {id:'e1k',  e:'🪙', en:'Pocket Money',    fr:'Argent de poche',    d:['Earn 1K coins','Gagne 1K pièces'],        ok:()=>S.total>=1e3, g:3},
-  {id:'e1m',  e:'💰', en:'Millionaire',     fr:'Millionnaire',       d:['Earn 1M coins','Gagne 1M de pièces'],     ok:()=>S.total>=1e6, g:10},
-  {id:'e1b',  e:'🏦', en:'Billionaire',     fr:'Milliardaire',       d:['Earn 1B coins','Gagne 1B de pièces'],     ok:()=>S.total>=1e9, g:25},
-  {id:'e1t',  e:'🏆', en:'Car Wash Tycoon', fr:'Magnat du lave-auto',d:['Earn 1T coins','Gagne 1T de pièces'],     ok:()=>S.total>=1e12, g:60},
+  {id:'e1k',  e:'💵', en:'Pocket Money',    fr:'Argent de poche',    d:['Earn $1K','Gagne 1K $'],        ok:()=>S.total>=1e3, g:3},
+  {id:'e1m',  e:'💰', en:'Millionaire',     fr:'Millionnaire',       d:['Earn $1M','Gagne 1M $'],     ok:()=>S.total>=1e6, g:10},
+  {id:'e1b',  e:'🏦', en:'Billionaire',     fr:'Milliardaire',       d:['Earn $1B','Gagne 1B $'],     ok:()=>S.total>=1e9, g:25},
+  {id:'e1t',  e:'🏆', en:'Car Wash Tycoon', fr:'Magnat du lave-auto',d:['Earn $1T','Gagne 1T $'],     ok:()=>S.total>=1e12, g:60},
   {id:'l2',   e:'🏙️', en:'Franchise',       fr:'Franchise',          d:['Open 2 locations','Ouvre 2 succursales'], ok:()=>openCount()>=2, g:5},
   {id:'l4',   e:'🗺️', en:'Road Trip',       fr:'Road trip',          d:['Open 4 locations','Ouvre 4 succursales'], ok:()=>openCount()>=4, g:15},
   {id:'l7',   e:'🌙', en:'Chain Empire',    fr:'Empire du lavage',   d:['Open all 7 locations','Ouvre les 7 succursales'], ok:()=>openCount()>=7, g:50},
   {id:'m1',   e:'👔', en:'Boss Mode',       fr:'Mode patron',        d:['Hire a manager','Engage un gérant'],      ok:()=>S.loc.some(l=>l.mgr), g:5},
   {id:'mall', e:'🤝', en:'Dream Team',      fr:'Équipe de rêve',     d:['Hire all 7 managers','Engage les 7 gérants'], ok:()=>S.loc.every(l=>l.mgr), g:40},
-  {id:'b8',   e:'🚿', en:'Full House',      fr:'Salle comble',       d:['Have 8 bays in one location','Aie 8 baies dans une succursale'], ok:()=>S.loc.some(l=>l.bays>=8), g:10},
+  {id:'b8',   e:'🚿', en:'Full House',      fr:'Salle comble',       d:['Have 8 lanes in one location','Aie 8 voies dans une succursale'], ok:()=>S.loc.some(l=>l.bays>=8), g:10},
   {id:'v1',   e:'👑', en:'Red Carpet',      fr:'Tapis rouge',        d:['Wash a VIP car','Lave une auto VIP'],     ok:()=>S.vips>=1, g:5},
   {id:'v25',  e:'💎', en:'VIP Club',        fr:'Club VIP',           d:['Wash 25 VIP cars','Lave 25 autos VIP'],   ok:()=>S.vips>=25, g:20},
   {id:'sp5',  e:'✨', en:'Sparkle Spotter', fr:'Œil de lynx',        d:['Catch 5 sparkly cars','Attrape 5 autos brillantes'], ok:()=>S.sparks>=5, g:10},
@@ -517,12 +516,12 @@ function keyGain(){ return Math.floor(10 * Math.sqrt(Math.max(0, S.run) / CONFIG
 /* =====================================================================
    5. ART — cars drawn in code. All face right. viewBox 0 -8 100 60
 ===================================================================== */
-function wheel(x, y, r){ return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#0c0320" stroke="#3ff0ff" stroke-width="1.6"/><circle cx="' + x + '" cy="' + y + '" r="' + (r * .38) + '" fill="#9a9ab0"/>'; }
+function wheel(x, y, r){ return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#2b2f3a" stroke="#1f2a44" stroke-width="1.6"/><circle cx="' + x + '" cy="' + y + '" r="' + (r * .42) + '" fill="#d5dbe4"/>'; }
 function carSVG(id, o){
   o = o || {};
-  const T = TY(id), c = T.c, W = '#1b1036', WS = '#7fe9ff';
+  const T = TY(id), c = T.c, W = '#a8e6ff', WS = '#1f2a44';
   let over = '', body = '', win = '', wh = [[25, 41, 7], [75, 41, 7]], extra = '', front = [93, 31], back = [8, 31], glow = T.r >= 2 ? c : '#3ff0ff', dirt = [[30,30],[55,33],[72,29],[42,22]];
-  const P = (d, f) => '<path d="' + d + '" fill="' + (f || c) + '" stroke="#ffffff66" stroke-width="1"/>';
+  const P = (d, f) => '<path d="' + d + '" fill="' + (f || c) + '" stroke="#1f2a44" stroke-width="1.6" stroke-linejoin="round"/>';
   const G = d => '<path d="' + d + '" fill="' + W + '" stroke="' + WS + '" stroke-width="1"/>';
   switch(T.s){
     case 'hatch':
@@ -582,8 +581,51 @@ function carSVG(id, o){
   let lights = '<circle cx="' + front[0] + '" cy="' + front[1] + '" r="2" fill="#fff6b0"/><circle cx="' + back[0] + '" cy="' + back[1] + '" r="1.8" fill="#ff3b5b"/>';
   let d = '';
   if(o.dirt) d = '<g class="dirt" fill="#6b4a2a" opacity="1">' + dirt.map((p, k) => '<ellipse cx="' + p[0] + '" cy="' + p[1] + '" rx="' + (6 - k % 2 * 2) + '" ry="' + (3 + k % 2) + '" opacity=".8"/>').join('') + '</g>';
-  const under = wh.length ? '<ellipse cx="50" cy="48" rx="40" ry="2.5" fill="' + glow + '" opacity=".5"/>' : '';
+  const under = wh.length ? '<ellipse cx="50" cy="48" rx="42" ry="3" fill="#1f2a44" opacity=".18"/>' : '';
   return '<svg viewBox="0 -8 100 60" xmlns="http://www.w3.org/2000/svg">' + under + extra + body + win + over + lights + wh.map(w => wheel(w[0], w[1], w[2])).join('') + d + '</svg>';
+}
+
+/* top-down car (used in the wash lanes and on the road). viewBox 0 0 64 34, facing right */
+function carTop(id, o){
+  o = o || {};
+  const T = TY(id), c = T.c, s = T.s, K = '#1f2a44';
+  let x = 5, y = 5, len = 54, w = 24, rx = 7, cab = .30, wsx = .6, big = false;
+  if(s === 'bus' || s === 'limo'){ x = 1; len = 62; cab = .12; wsx = .8; }
+  if(s === 'van' || s === 'truck' || s === 'suv'){ y = 4; w = 26; cab = .16; wsx = .74; rx = 5; }
+  if(s === 'sports' || s === 'hover'){ y = 7; w = 20; cab = .38; wsx = .58; rx = 9; }
+  if(s === 'pickup' || s === 'monster'){ cab = .5; wsx = .7; }
+  if(s === 'monster') big = true;
+  if(s === 'hatch'){ len = 48; x = 8; }
+  let g = '';
+  if(s !== 'hover'){
+    const wl = big ? 13 : 9, wt = big ? 5 : 3.5;
+    [[x + len * .16, y - wt + 1], [x + len * .70, y - wt + 1], [x + len * .16, y + w - 1], [x + len * .70, y + w - 1]]
+      .forEach(q => g += '<rect x="' + q[0] + '" y="' + q[1] + '" width="' + wl + '" height="' + wt + '" rx="1.5" fill="#2b2f3a"/>');
+  } else g += '<ellipse cx="32" cy="17" rx="31" ry="15" fill="' + c + '" opacity=".35"/>';
+  g += '<rect x="' + x + '" y="' + y + '" width="' + len + '" height="' + w + '" rx="' + rx + '" fill="' + c + '" stroke="' + K + '" stroke-width="1.8"/>';
+  if(s === 'pickup' || s === 'monster') g += '<rect x="' + (x + 3) + '" y="' + (y + 3) + '" width="' + (len * .42) + '" height="' + (w - 6) + '" rx="2" fill="#00000030"/>';
+  if(s === 'truck') g += '<rect x="' + (x + 3) + '" y="' + (y + 3) + '" width="' + (len * .62) + '" height="' + (w - 6) + '" rx="2" fill="#ffffff40"/>';
+  // roof + windows
+  const rs = x + len * cab, re = x + len * wsx;
+  g += '<rect x="' + (rs - 4) + '" y="' + (y + 3) + '" width="4" height="' + (w - 6) + '" rx="1.5" fill="#a8e6ff" stroke="' + K + '" stroke-width="1"/>';
+  g += '<rect x="' + rs + '" y="' + (y + 3) + '" width="' + (re - rs) + '" height="' + (w - 6) + '" rx="3" fill="' + c + '" stroke="' + K + '" stroke-width="1"/>';
+  g += '<rect x="' + rs + '" y="' + (y + 4) + '" width="' + (re - rs) + '" height="' + ((w - 8) / 2.4) + '" rx="2" fill="#ffffff55"/>';
+  g += '<path d="M' + re + ' ' + (y + 3) + ' L' + (re + 6) + ' ' + (y + 5) + ' L' + (re + 6) + ' ' + (y + w - 5) + ' L' + re + ' ' + (y + w - 3) + ' Z" fill="#a8e6ff" stroke="' + K + '" stroke-width="1"/>';
+  // lights
+  g += '<rect x="' + (x + len - 3) + '" y="' + (y + 2.5) + '" width="2.5" height="4" rx="1" fill="#fff59a"/><rect x="' + (x + len - 3) + '" y="' + (y + w - 6.5) + '" width="2.5" height="4" rx="1" fill="#fff59a"/>';
+  g += '<rect x="' + (x + .5) + '" y="' + (y + 2.5) + '" width="2" height="4" rx="1" fill="#ff4d5e"/><rect x="' + (x + .5) + '" y="' + (y + w - 6.5) + '" width="2" height="4" rx="1" fill="#ff4d5e"/>';
+  const mx = (rs + re) / 2, my = y + w / 2;
+  switch(T.acc){
+    case 'taxi': g += '<rect x="' + (mx - 4) + '" y="' + (my - 2.5) + '" width="8" height="5" rx="1" fill="#fff" stroke="' + K + '" stroke-width=".8"/>'; break;
+    case 'police': g += '<rect x="' + (mx - 2) + '" y="' + (my - 6) + '" width="4" height="6" fill="#ff3b3b"/><rect x="' + (mx - 2) + '" y="' + my + '" width="4" height="6" fill="#3b7bff"/>'; break;
+    case 'ice': g += '<circle cx="' + mx + '" cy="' + my + '" r="5" fill="#ff8fc8" stroke="' + K + '" stroke-width="1"/><circle cx="' + (mx + 1) + '" cy="' + (my - 1) + '" r="1.5" fill="#fff"/>'; break;
+    case 'surf': g += '<ellipse cx="' + mx + '" cy="' + my + '" rx="16" ry="3" fill="#ffe93f" stroke="' + K + '" stroke-width="1"/>'; break;
+    case 'ladder': g += '<g stroke="#e0e0e0" stroke-width="1.2"><path d="M' + (x + 4) + ' ' + (my - 3) + ' H' + (x + len * .62) + ' M' + (x + 4) + ' ' + (my + 3) + ' H' + (x + len * .62) + '"/></g>'; break;
+    case 'flux': case 'stripe': g += '<rect x="' + x + '" y="' + (my - 1.5) + '" width="' + len + '" height="3" fill="' + (T.acc === 'flux' ? '#22c3e6' : '#ffffff') + '"/>'; break;
+  }
+  if(T.r >= 3) g += '<text x="' + mx + '" y="' + (my + 3) + '" font-size="8" text-anchor="middle">⭐</text>';
+  if(o.dirt) g += '<g class="dirt" fill="#7a5530" opacity="1"><ellipse cx="' + (x + 10) + '" cy="' + (y + 6) + '" rx="4" ry="2.5" opacity=".75"/><ellipse cx="' + (x + len * .5) + '" cy="' + (y + w - 6) + '" rx="5" ry="2.5" opacity=".75"/><ellipse cx="' + (x + len * .8) + '" cy="' + (y + 7) + '" rx="3.5" ry="2" opacity=".75"/><ellipse cx="' + (x + len * .35) + '" cy="' + (y + w * .5) + '" rx="3" ry="2" opacity=".6"/></g>';
+  return '<svg viewBox="0 0 64 34" xmlns="http://www.w3.org/2000/svg">' + g + '</svg>';
 }
 
 /* =====================================================================
@@ -622,11 +664,12 @@ function sfx(n){
    7. SCENE — bays, scrubbing, register, Rush Hour, sparkly cars
 ===================================================================== */
 let bayEls = [], tab = 'wash', dispCoins = 0;
+const CAR_RUN = 290;   // how far (in car lengths x100) a car drives across its lane
 const sceneOn = () => tab === 'wash' && !document.hidden;
 
 function buildScene(){
   const i = S.cur, l = S.loc[i], loc = LOCS[i];
-  $('signNm').textContent = loc.e + ' ' + L(loc).toUpperCase();
+  $('signNm').textContent = loc.e + ' ' + L(loc);
   const opens = S.loc.map((x, k) => x.open ? k : -1).filter(k => k >= 0);
   $('locPrev').classList.toggle('off', opens.indexOf(i) <= 0);
   $('locNext').classList.toggle('off', opens.indexOf(i) >= opens.length - 1);
@@ -636,12 +679,12 @@ function buildScene(){
     if(b < l.bays){
       el.className = 'bay' + (TY(l.car[b]).r >= 2 ? ' vip' : '');
       el.dataset.b = b;
-      el.innerHTML = '<div class="brush"></div><div class="car">' + carSVG(l.car[b], {dirt:1}) + '</div><div class="prog"><i></i></div>';
-      el.car = el.querySelector('.car'); el.pi = el.querySelector('.prog i'); el.dirt = el.querySelector('.dirt'); el.lastP = 0;
+      el.innerHTML = '<div class="st s1">🧼</div><div class="st s2">🌀</div><div class="st s3">💧</div><div class="st s4">💨</div><div class="car">' + carTop(l.car[b], {dirt:1}) + '</div>';
+      el.car = el.querySelector('.car'); el.dirt = el.querySelector('.dirt'); el.lastP = 0;
       bayEls.push(el);
     } else if(b === l.bays){
       el.className = 'bay buy'; el.id = 'bayBuy';
-      el.innerHTML = '<b>+</b>' + t('Bay', 'Baie') + '<span id="bayBuyC">🪙' + fmt(bayCost(i)) + '</span>';
+      el.innerHTML = '<b>+</b><span>' + t('New lane', 'Nouvelle voie') + '<br><span id="bayBuyC">$' + fmt(bayCost(i)) + '</span></span>';
     } else { el.className = 'bay lock'; el.textContent = '🔒'; }
     box.appendChild(el);
   }
@@ -651,8 +694,10 @@ function drawScene(force){
   const i = S.cur, l = S.loc[i];
   for(let b = 0; b < bayEls.length; b++){
     const el = bayEls[b], p = Math.min(1, l.p[b]);
-    if(p < el.lastP){ el.pi.style.transition = 'none'; el.pi.style.transform = 'scaleX(' + p + ')'; void el.pi.offsetWidth; el.pi.style.transition = ''; }
-    else el.pi.style.transform = 'scaleX(' + p + ')';
+    const tx = 'translateX(' + (p * CAR_RUN).toFixed(1) + '%)';
+    if(p < el.lastP && !el.swapped){ el.car.style.transition = 'none'; el.car.style.transform = tx; void el.car.offsetWidth; el.car.style.transition = ''; }
+    else el.car.style.transform = tx;
+    el.swapped = false;
     if(el.dirt) el.dirt.style.opacity = (1 - p).toFixed(2);
     el.lastP = p;
   }
@@ -662,9 +707,9 @@ function drawScene(force){
   else {
     const cap = regCap(i), f = Math.min(1, l.reg / cap);
     r.className = f >= .999 ? 'full' : '';
-    r.innerHTML = '🧾 ' + fmt(l.reg) + (f >= .999 ? ' ' + t('FULL', 'PLEIN') : '') + '<div class="bar"><i style="transform:scaleX(' + f.toFixed(3) + ')"></i></div>';
+    r.innerHTML = '💵 $' + fmt(l.reg) + (f >= .999 ? ' ' + t('FULL', 'PLEIN') : '') + '<div class="bar"><i style="transform:scaleX(' + f.toFixed(3) + ')"></i></div>';
   }
-  $('locRate').textContent = '+' + fmt(rate(i)) + '/s';
+  $('locRate').textContent = '+$' + fmt(rate(i)) + '/s';
   const bb = $('bayBuy');
   if(bb){ bb.classList.toggle('no', S.coins < bayCost(i)); }
 }
@@ -695,20 +740,21 @@ function finishCar(i, b, quiet){
   if(rushOn()) qAdd('rush');
   if(vip){ S.vips++; qAdd('vip'); }
   if(S.dex[id] === 1 && S.cars > 1){ toast('📖 ' + t('New car: ', 'Nouvelle auto : ') + L(T) + ' (+1%)', 'gold'); _pmT = 0; }
-  if(S.dex[id] === CONFIG.DEX_SHINE_AT){ toast('⭐ ' + L(T) + t(' shined! +1% coins', ' brille! +1% pièces'), 'gold'); _pmT = 0; }
+  if(S.dex[id] === CONFIG.DEX_SHINE_AT){ toast('⭐ ' + L(T) + t(' shined! +1% cash', ' brille! +1 % d’argent'), 'gold'); _pmT = 0; }
   l.car[b] = pickCar(i);
   if(i !== S.cur || !sceneOn() || quiet) return;
   const el = bayEls[b]; if(!el) return;
   const p = elPos(el);
-  fx((vip ? '👑 ' : shine ? '✨ ' : '') + '+' + fmt(pay), p.x, p.y, vip ? 'big' : '');
+  fx((vip ? '👑 ' : shine ? '✨ ' : '') + '+$' + fmt(pay), p.x, p.y, vip ? 'big' : '');
   if(vip){ sfx('vip'); shake(); } else sfx('coin');
   // car drives out, new one drives in (skipped if washes are super fast)
   const fast = washTime(i) < .7;
-  if(fast){ el.car.innerHTML = carSVG(l.car[b], {dirt:1}); }
+  if(fast){ el.car.innerHTML = carTop(l.car[b], {dirt:1}); }
   else {
-    const old = el.car; old.classList.add('out'); setTimeout(() => old.remove(), 360);
-    const nc = document.createElement('div'); nc.className = 'car pre'; nc.innerHTML = carSVG(l.car[b], {dirt:1});
-    el.appendChild(nc); void nc.offsetWidth; nc.classList.remove('pre'); el.car = nc;
+    const old = el.car; old.classList.add('gone'); old.style.transform = 'translateX(420%)'; setTimeout(() => old.remove(), 380);
+    const nc = document.createElement('div'); nc.className = 'car'; nc.innerHTML = carTop(l.car[b], {dirt:1});
+    nc.style.transition = 'none'; nc.style.transform = 'translateX(-110%)';
+    el.appendChild(nc); void nc.offsetWidth; nc.style.transition = ''; el.car = nc; el.swapped = true;
   }
   el.dirt = el.car.querySelector('.dirt');
   el.classList.toggle('vip', TY(l.car[b]).r >= 2);
@@ -727,7 +773,7 @@ function scrub(b){
 function collectReg(i, silent){
   const l = S.loc[i]; if(l.mgr || l.reg <= 0) return 0;
   const a = l.reg; addCoins(a); l.reg = 0; S.regs++; qAdd('reg');
-  if(!silent && i === S.cur && sceneOn()){ const p = elPos($('reg')); fx('+' + fmt(a), p.x, p.y + 30, 'big'); sfx('coin'); }
+  if(!silent && i === S.cur && sceneOn()){ const p = elPos($('reg')); fx('+$' + fmt(a), p.x, p.y + 30, 'big'); sfx('coin'); }
   if(S.tut === 2){ S.tut = 3; coach(); }
   return a;
 }
@@ -747,10 +793,10 @@ function spawnSpark(){
   if(sparkEl) return;
   const pool = TYPES.filter(x => x.r <= 2 && x.m <= S.cur && !x.paid);
   const id = pool[Math.floor(Math.random() * pool.length)].id;
-  const d = document.createElement('div'); d.className = 'spark'; d.innerHTML = '<div class="car">' + carSVG(id) + '</div>';
+  const d = document.createElement('div'); d.className = 'spark'; d.innerHTML = '<div class="car">' + carTop(id) + '</div>';
   d.style.transitionDuration = CONFIG.SPARK_DRIVE_S + 's';
   $('scene').querySelector('.road').appendChild(d); sparkEl = d;
-  void d.offsetWidth; d.style.transform = 'translateX(490%)';
+  void d.offsetWidth; d.style.transform = 'translateX(650%)';
   setTimeout(() => { if(sparkEl === d){ d.remove(); sparkEl = null; } }, CONFIG.SPARK_DRIVE_S * 1000 + 100);
 }
 function catchSpark(){
@@ -758,16 +804,16 @@ function catchSpark(){
   const p = elPos(sparkEl); sparkEl.remove(); sparkEl = null;
   const a = Math.max(20, totalRate() * CONFIG.SPARK_REWARD_S); addCoins(a); S.sparks++; qAdd('spark');
   let g = Math.random() < CONFIG.SPARK_GEM_CHANCE ? 1 : 0; S.gems += g;
-  fx('✨ +' + fmt(a) + (g ? ' 💎' : ''), p.x, p.y - 10, 'big'); bubbles(p.x, p.y, 6); sfx('spark');
+  fx('✨ +$' + fmt(a) + (g ? ' 💎' : ''), p.x, p.y - 10, 'big'); bubbles(p.x, p.y, 6); sfx('spark');
 }
 /* ---------- tutorial coach ---------- */
 function coach(){
   document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl'));
   const c = $('coach'), st = S.tut;
   const msg = [
-    t('👆 Tap a bay to scrub the car faster!', '👆 Touche une baie pour frotter l’auto plus vite!'),
+    t('👆 Tap a lane to scrub the car faster!', '👆 Touche une voie pour frotter l’auto plus vite!'),
     t('🧼 Buy Soap below: every car pays more!', '🧼 Achète du Savon en bas : chaque auto paie plus!'),
-    t('🧾 Coins wait in the cash register. Tap it to collect!', '🧾 Les pièces attendent dans la caisse. Touche-la pour encaisser!'),
+    t('💵 Cash waits in the register. Tap it to collect!', '💵 L’argent attend dans la caisse. Touche-la pour encaisser!'),
     t('👔 Save up for a Manager: it collects for you, even while you’re away!', '👔 Économise pour un Gérant : il encaisse pour toi, même quand tu es absente!'),
   ][st];
   if(!msg || tab !== 'wash'){ c.classList.remove('on'); return; }
@@ -803,7 +849,7 @@ function renderPanel(){
   ({wash: renderWash, chain: renderChain, cars: renderCars, goals: renderGoals, more: renderMore})[tab]();
 }
 function costBtn(cost, attrs, label, cls){
-  return '<button class="btn ' + (cls || '') + (S.coins < cost ? ' no' : '') + '" data-cost="' + cost + '" ' + attrs + '>' + (label ? '<small>' + label + '</small>' : '') + '🪙 ' + fmt(cost) + '</button>';
+  return '<button class="btn ' + (cls || '') + (S.coins < cost ? ' no' : '') + '" data-cost="' + cost + '" ' + attrs + '>' + (label ? '<small>' + label + '</small>' : '') + '$' + fmt(cost) + '</button>';
 }
 /* ---------- Wash tab: upgrades for this location ---------- */
 function renderWash(){
@@ -811,8 +857,8 @@ function renderWash(){
   let h = '<div class="row" style="justify-content:space-between"><h2>' + loc.e + ' ' + L(loc) + '</h2><div class="seg" id="amt">' +
     [1, 10, 'max'].map(a => '<button data-a="' + a + '" class="' + (S.buyAmt === a ? 'on' : '') + '">' + (a === 'max' ? 'MAX' : 'x' + a) + '</button>').join('') + '</div></div>';
   // bays
-  h += '<div class="card"><div class="ic">🚿</div><div class="info"><div class="nm">' + t('Wash Bays', 'Baies de lavage') + ' <span class="tag">' + l.bays + '/' + CONFIG.BAY_MAX + '</span></div><div class="sub">' +
-    t('Each bay washes one car at a time.', 'Chaque baie lave une auto à la fois.') + '</div></div>' +
+  h += '<div class="card"><div class="ic">🚿</div><div class="info"><div class="nm">' + t('Wash Lanes', 'Voies de lavage') + ' <span class="tag">' + l.bays + '/' + CONFIG.BAY_MAX + '</span></div><div class="sub">' +
+    t('Each lane washes one car at a time.', 'Chaque voie lave une auto à la fois.') + '</div></div>' +
     (l.bays >= CONFIG.BAY_MAX ? '<span class="tag">MAX</span>' : costBtn(bayCost(i), 'data-bay="1"', '+1')) + '</div>';
   // soap / brushes / detailers
   const up = (k, nm, desc) => {
@@ -822,7 +868,7 @@ function renderWash(){
   };
   const nS = upN(i, 'soap') || 0, nextSoap = LOCS[i].price * (1 + CONFIG.SOAP_STEP * (l.soap + nS)) * Math.pow(2, Math.floor((l.soap + nS) / CONFIG.SOAP_DOUBLE_EVERY));
   const toDouble = CONFIG.SOAP_DOUBLE_EVERY - l.soap % CONFIG.SOAP_DOUBLE_EVERY;
-  h += up('soap', t('Soap', 'Savon'), t('Each car pays ', 'Chaque auto paie ') + '<b>' + fmt(carPrice(i)) + ' → ' + fmt(nextSoap) + '</b><br>' + t('x2 pay in ', 'Paie x2 dans ') + toDouble + t(' levels', ' niveaux'));
+  h += up('soap', t('Soap', 'Savon'), t('Each car pays ', 'Chaque auto paie ') + '<b>$' + fmt(carPrice(i)) + ' → $' + fmt(nextSoap) + '</b><br>' + t('x2 pay in ', 'Paie x2 dans ') + toDouble + t(' levels', ' niveaux'));
   const nB = upN(i, 'brush') || 0, nextT = LOCS[i].time / (1 + CONFIG.BRUSH_STEP * (l.brush + nB));
   h += up('brush', t('Brushes', 'Brosses'), t('Wash time ', 'Temps de lavage ') + '<b>' + washTime(i, false).toFixed(2) + 's → ' + nextT.toFixed(2) + 's</b>');
   const nD = upN(i, 'staff') || 0;
@@ -830,17 +876,17 @@ function renderWash(){
   // manager
   const mn = L({en:loc.mgr[0], fr:loc.mgr[1]});
   h += '<div class="card"><div class="ic">👔</div><div class="info"><div class="nm">' + t('Manager: ', 'Gérant : ') + esc(mn) + '</div><div class="sub">' +
-    (l.mgr ? t('Hired! Collects the register for you, +50% coins, full earnings while you’re away.', 'Engagé! Encaisse pour toi, +50 % de pièces, revenus complets pendant ton absence.')
-           : t('Collects the register for you, +50% coins, and earns full coins while you’re away.', 'Encaisse la caisse pour toi, +50 % de pièces, et gagne tout pendant ton absence.')) + '</div></div>' +
+    (l.mgr ? t('Hired! Collects the register for you, +50% cash, full earnings while you’re away.', 'Engagé! Encaisse pour toi, +50 % d’argent, revenus complets pendant ton absence.')
+           : t('Collects the register for you, +50% cash, and earns full cash while you’re away.', 'Encaisse la caisse pour toi, +50 % d’argent, et gagne tout pendant ton absence.')) + '</div></div>' +
     (l.mgr ? '<span class="tag" style="color:var(--green)">✔</span>' : costBtn(mgrCost(i), 'data-mgr="1"', t('Hire', 'Engager'), 'cy')) + '</div>';
-  h += '<p class="muted center">' + t('Tip: tap bays to scrub · tap the ✨ sparkly car on the road!', 'Astuce : touche les baies pour frotter · touche l’auto ✨ brillante sur la route!') + '</p>';
+  h += '<p class="muted center">' + t('Tip: tap lanes to scrub · tap the ✨ sparkly car on the road!', 'Astuce : touche les voies pour frotter · touche l’auto ✨ brillante sur la route!') + '</p>';
   $('panel').innerHTML = h;
   $('amt').querySelectorAll('button').forEach(b => b.onclick = () => { S.buyAmt = b.dataset.a === 'max' ? 'max' : +b.dataset.a; sfx('tap'); renderWash(); coach(); });
   $('panel').querySelectorAll('[data-up]').forEach(b => b.onclick = () => buyUp(b.dataset.up, b));
   const bb = $('panel').querySelector('[data-bay]'); if(bb) bb.onclick = () => buyBay(bb);
   const mb = $('panel').querySelector('[data-mgr]'); if(mb) mb.onclick = () => buyMgr(mb);
 }
-function noMoney(){ sfx('err'); toast(t('Not enough coins yet', 'Pas encore assez de pièces'), 'err'); }
+function noMoney(){ sfx('err'); toast(t('Not enough cash yet', 'Pas encore assez d’argent'), 'err'); }
 function bought(btn){ sfx('buy'); S.ups++; qAdd('buy'); saveSoon(); if(btn) { btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); } }
 function buyUp(k, btn){
   const i = S.cur, n = upN(i, k); if(n <= 0) return;
@@ -853,7 +899,7 @@ function buyUp(k, btn){
 function buyBay(btn){
   const i = S.cur, l = S.loc[i]; if(l.bays >= CONFIG.BAY_MAX) return;
   const c = bayCost(i); if(S.coins < c) return noMoney();
-  S.coins -= c; l.bays++; l.p.push(0); l.car.push(pickCar(i)); bought(btn);
+  S.coins -= c; l.bays++; l.p.push(Math.random() * .6);  // new lanes start at different spots l.car.push(pickCar(i)); bought(btn);
   if(tab === 'wash'){ buildScene(); renderWash(); coach(); }
 }
 function buyMgr(btn){
@@ -874,26 +920,26 @@ function renderChain(){
     const l = S.loc[i];
     if(l.open){
       h += '<div class="card"' + (i === S.cur ? ' style="border-color:var(--cyan)"' : '') + '><div class="ic">' + loc.e + '</div><div class="info"><div class="nm">' + L(loc) + '</div><div class="sub">' +
-        l.bays + t(' bays', ' baies') + ' · <b>+' + fmt(rate(i)) + '/s</b><br>' + (l.mgr ? '👔 ' + t('Manager hired', 'Gérant engagé') : '🧾 <span id="cr' + i + '">' + fmt(l.reg) + ' / ' + fmt(regCap(i)) + '</span>') +
+        l.bays + t(' lanes', ' voies') + ' · <b>+$' + fmt(rate(i)) + '/s</b><br>' + (l.mgr ? '👔 ' + t('Manager hired', 'Gérant engagé') : '💵 <span id="cr' + i + '">$' + fmt(l.reg) + ' / $' + fmt(regCap(i)) + '</span>') +
         '</div></div><button class="btn cy" data-go="' + i + '">' + (i === S.cur ? t('Here', 'Ici') : t('Go', 'Aller')) + '</button></div>';
     } else if(!shownNext){
       shownNext = true;
       h += '<div class="card" style="border-style:dashed;border-color:var(--green)"><div class="ic">' + loc.e + '</div><div class="info"><div class="nm">' + L(loc) + '</div><div class="sub">' +
-        t('Cars pay ', 'Les autos paient ') + fmt(loc.price) + '+ · ' + t('new car types!', 'nouvelles autos!') + '</div></div>' + costBtn(openCost(i), 'data-open="' + i + '"', t('Open', 'Ouvrir'), 'green') + '</div>';
+        t('Cars pay ', 'Les autos paient ') + '$' + fmt(loc.price) + '+ · ' + t('new car types!', 'nouvelles autos!') + '</div></div>' + costBtn(openCost(i), 'data-open="' + i + '"', t('Open', 'Ouvrir'), 'green') + '</div>';
     } else {
       h += '<div class="card" style="opacity:.45"><div class="ic">❓</div><div class="info"><div class="nm">???</div><div class="sub">' + t('Open the one before first', 'Ouvre la précédente d’abord') + '</div></div><span class="tag">🔒</span></div>';
     }
   });
   $('panel').innerHTML = h;
-  $('colAll').onclick = () => { let a = 0; S.loc.forEach((l, i) => { if(l.open) a += collectReg(i, true); }); if(a > 0){ sfx('coin'); toast('🧾 +' + fmt(a), 'gold'); } renderChain(); };
+  $('colAll').onclick = () => { let a = 0; S.loc.forEach((l, i) => { if(l.open) a += collectReg(i, true); }); if(a > 0){ sfx('coin'); toast('🧾 +$' + fmt(a), 'gold'); } renderChain(); };
   $('panel').querySelectorAll('[data-go]').forEach(b => b.onclick = () => { S.cur = +b.dataset.go; sfx('tap'); showTab('wash'); });
   $('panel').querySelectorAll('[data-open]').forEach(b => b.onclick = () => openLoc(+b.dataset.open, b));
   updateChain();
 }
 function updateChain(){
   let tot = 0;
-  S.loc.forEach((l, i) => { if(l.open && !l.mgr){ tot += l.reg; const e = $('cr' + i); if(e) e.textContent = fmt(l.reg) + ' / ' + fmt(regCap(i)); } });
-  const e = $('colAllA'); if(e) e.textContent = tot > 0 ? '(+' + fmt(tot) + ')' : '';
+  S.loc.forEach((l, i) => { if(l.open && !l.mgr){ tot += l.reg; const e = $('cr' + i); if(e) e.textContent = '$' + fmt(l.reg) + ' / $' + fmt(regCap(i)); } });
+  const e = $('colAllA'); if(e) e.textContent = tot > 0 ? '(+$' + fmt(tot) + ')' : '';
 }
 function openLoc(i, btn){
   const c = openCost(i); if(S.coins < c) return noMoney();
@@ -904,7 +950,7 @@ function openLoc(i, btn){
 /* ---------- Cars tab (collection) ---------- */
 function renderCars(){
   const f = dexFound(), all = TYPES.length;
-  let h = '<h2>📖 ' + t('Car Collection', 'Collection d’autos') + '</h2><p class="muted">' + t('Find a car type: +1% coins forever. Wash 25 of it: ⭐ +1% more.', 'Trouve une sorte d’auto : +1 % de pièces pour toujours. Laves-en 25 : ⭐ +1 % de plus.') +
+  let h = '<h2>📖 ' + t('Car Collection', 'Collection d’autos') + '</h2><p class="muted">' + t('Find a car type: +1% cash forever. Wash 25 of it: ⭐ +1% more.', 'Trouve une sorte d’auto : +1 % d’argent pour toujours. Laves-en 25 : ⭐ +1 % de plus.') +
     '<br><b style="color:var(--yellow)">' + f + '/' + all + ' · ' + t('bonus +', 'bonus +') + Math.round(dexBonus() * 100) + '%</b></p>';
   RAR.forEach((r, ri) => {
     const list = TYPES.filter(x => x.r === ri); if(!list.length) return;
@@ -948,7 +994,7 @@ function renderGoals(){
       (q.claimed ? '<span class="tag" style="color:var(--green)">✔</span>' : '<button class="btn ' + (done ? 'gold' : 'no') + '" data-q="' + k + '">💎 ' + CONFIG.QUEST_GEMS + '</button>') + '</div>';
   });
   const allC = S.q.list.every(q => q.claimed);
-  h += '<div class="card" style="border-color:var(--yellow)"><div class="ic">🧰</div><div class="info"><div class="nm">' + t('Quest Chest', 'Coffre de quêtes') + '</div><div class="sub">' + t('Finish all 3 quests: ', 'Termine les 3 quêtes : ') + '💎 ' + CONFIG.CHEST_GEMS + ' + ' + CONFIG.CHEST_MIN + t(' min of coins', ' min de pièces') + '</div></div>' +
+  h += '<div class="card" style="border-color:var(--yellow)"><div class="ic">🧰</div><div class="info"><div class="nm">' + t('Quest Chest', 'Coffre de quêtes') + '</div><div class="sub">' + t('Finish all 3 quests: ', 'Termine les 3 quêtes : ') + '💎 ' + CONFIG.CHEST_GEMS + ' + ' + CONFIG.CHEST_MIN + t(' min of cash', ' min d’argent') + '</div></div>' +
     (S.q.chest ? '<span class="tag" style="color:var(--green)">✔</span>' : '<button class="btn ' + (allC ? 'gold' : 'no') + '" id="qChest">' + t('Open', 'Ouvrir') + '</button>') + '</div>';
   h += '<h2>🏆 ' + t('Achievements', 'Succès') + ' <span class="tag">' + Object.keys(S.ach).length + '/' + ACH.length + '</span></h2>';
   ACH.forEach(a => {
@@ -964,7 +1010,7 @@ function renderGoals(){
   if($('qChest')) $('qChest').onclick = () => {
     if(!allC || S.q.chest) return sfx('err');
     S.q.chest = true; const c = Math.max(50, totalRate(false) * CONFIG.CHEST_MIN * 60); addCoins(c); S.gems += CONFIG.CHEST_GEMS;
-    sfx('big'); showReward('🧰', t('Quest Chest!', 'Coffre de quêtes!'), '🪙 ' + fmt(c) + '<br>💎 ' + CONFIG.CHEST_GEMS); save(); renderGoals(); updateDots();
+    sfx('big'); showReward('🧰', t('Quest Chest!', 'Coffre de quêtes!'), '$' + fmt(c) + '<br>💎 ' + CONFIG.CHEST_GEMS); save(); renderGoals(); updateDots();
   };
 }
 function streakDay(){
@@ -981,7 +1027,7 @@ function openDaily(){
   const d = ((S.daily.streak - 1) % 7) + 1;
   const coins = Math.max(30, totalRate(false) * CONFIG.DAILY_MIN * 60 * d), gems = CONFIG.DAILY_GEMS * d;
   addCoins(coins); S.gems += gems; sfx('big'); save();
-  showReward('🎁', t('Day ', 'Jour ') + d + ' ' + t('gift!', 'cadeau!'), '🪙 ' + fmt(coins) + '<br>💎 ' + gems, {
+  showReward('🎁', t('Day ', 'Jour ') + d + ' ' + t('gift!', 'cadeau!'), '$' + fmt(coins) + '<br>💎 ' + gems, {
     label: t('Watch ad: double it', 'Pub : double-le'),
     go: async () => { if(await rewardAd()){ addCoins(coins); S.gems += gems; toast('🎁 x2!', 'gold'); save(); } }
   });
@@ -995,7 +1041,7 @@ function checkAch(){
 /* ---------- More tab: boosts, shop, rebirth, settings ---------- */
 function renderMore(){
   let h = '<h2>⚡ ' + t('Boosts', 'Boosts') + '</h2>';
-  h += '<div class="card"><div class="ic">📺</div><div class="info"><div class="nm">' + t('x2 coins', 'Pièces x2') + '</div><div class="sub">' + t('Watch an ad: +30 min of double coins (up to 4 h).', 'Regarde une pub : +30 min de pièces doublées (jusqu’à 4 h).') + (ad2xOn() ? '<br><b>' + t('Left: ', 'Reste : ') + fmtTime((S.ad2x - now()) / 1000) + '</b>' : '') + '</div></div><button class="btn" id="mAd2x">' + adIcon() + ' x2</button></div>';
+  h += '<div class="card"><div class="ic">📺</div><div class="info"><div class="nm">' + t('x2 cash', 'Argent x2') + '</div><div class="sub">' + t('Watch an ad: +30 min of double cash (up to 4 h).', 'Regarde une pub : +30 min d’argent doublé (jusqu’à 4 h).') + (ad2xOn() ? '<br><b>' + t('Left: ', 'Reste : ') + fmtTime((S.ad2x - now()) / 1000) + '</b>' : '') + '</div></div><button class="btn" id="mAd2x">' + adIcon() + ' x2</button></div>';
   const rushCd = Math.max(0, S.adRushAt + CONFIG.AD_RUSH_COOLDOWN_MIN * 60000 - now());
   h += '<div class="card"><div class="ic">🚦</div><div class="info"><div class="nm">' + t('Rush Hour now', 'Heure de pointe maintenant') + '</div><div class="sub">' + t('40 s of x2 speed, +50% pay, more VIPs.', '40 s de vitesse x2, +50 % de paie, plus de VIP.') + (rushCd > 0 ? '<br>⏳ ' + fmtTime(rushCd / 1000) : '') + '</div></div><button class="btn' + (rushCd > 0 || rushOn() ? ' no' : '') + '" id="mAdRush">' + adIcon() + ' 🚦</button></div>';
   if(S.adGemDay !== dayKey()){ S.adGemDay = dayKey(); S.adGemN = 0; }
@@ -1004,15 +1050,15 @@ function renderMore(){
   h += '<h3>💎 ' + t('Gem Shop', 'Boutique de gemmes') + ' <span class="tag">💎 ' + S.gems + '</span></h3>';
   const gemItem = (id, ic, nm, sub, cost) => '<div class="card"><div class="ic">' + ic + '</div><div class="info"><div class="nm">' + nm + '</div><div class="sub">' + sub + '</div></div><button class="btn cy' + (S.gems < cost ? ' no' : '') + '" data-gem="' + id + '">💎 ' + cost + '</button></div>';
   h += gemItem('turbo', '🫧', t('Turbo Foam', 'Mousse turbo'), t('x2 wash speed for 15 min', 'Lavage x2 plus vite pendant 15 min') + (turboOn() ? '<br><b>' + t('Left: ', 'Reste : ') + fmtTime((S.turbo - now()) / 1000) + '</b>' : ''), CONFIG.GEM_TURBO);
-  h += gemItem('warp', '⏩', t('Time Warp', 'Saut dans le temps'), t('Get 1 hour of coins right now: ', 'Reçois 1 heure de pièces maintenant : ') + '🪙 ' + fmt(totalRate(false) * 3600 * CONFIG.WARP_H), CONFIG.GEM_WARP);
+  h += gemItem('warp', '⏩', t('Time Warp', 'Saut dans le temps'), t('Get 1 hour of cash right now: ', 'Reçois 1 heure d’argent maintenant : ') + '$' + fmt(totalRate(false) * 3600 * CONFIG.WARP_H), CONFIG.GEM_WARP);
   h += gemItem('rush', '🚦', t('Rush Hour', 'Heure de pointe'), t('Start a Rush Hour right now', 'Lance une heure de pointe maintenant'), CONFIG.GEM_RUSH);
   h += '<h3>💝 ' + t('Golden Pack', 'Pack Doré') + '</h3>' + paidShopHtml();
   // rebirth
   const kg = keyGain();
   h += '<h2>🔑 ' + t('Sell the Chain', 'Vendre la chaîne') + '</h2><div class="card" style="flex-direction:column;align-items:stretch"><div class="sub">' +
-    t('Sell everything to an investor for Gold Keys. Each key = +3% coins forever. Every sale doubles all prices, so each run stays a fair challenge.', 'Vends tout à un investisseur pour des Clés d’or. Chaque clé = +3 % de pièces pour toujours. Chaque vente double tous les prix, pour que chaque partie reste un défi juste.') +
+    t('Sell everything to an investor for Gold Keys. Each key = +3% cash forever. Every sale doubles all prices, so each run stays a fair challenge.', 'Vends tout à un investisseur pour des Clés d’or. Chaque clé = +3 % d’argent pour toujours. Chaque vente double tous les prix, pour que chaque partie reste un défi juste.') +
     '<br><br>🔑 ' + t('Keys: ', 'Clés : ') + '<b>' + S.keys + '</b> (×' + (1 + CONFIG.KEY_BONUS * S.keys).toFixed(2) + ') · ' + t('Sales: ', 'Ventes : ') + S.rebirths +
-    '<br>🪙 ' + t('Earned this run: ', 'Gagné cette partie : ') + '<b>' + fmt(S.run) + '</b><br>' + t('You need at least 10 keys (about 1B coins earned).', 'Il faut au moins 10 clés (environ 1B de pièces gagnées).') + '</div>' +
+    '<br>💵 ' + t('Earned this run: ', 'Gagné cette partie : ') + '<b>$' + fmt(S.run) + '</b><br>' + t('You need at least 10 keys (about $1B earned).', 'Il faut au moins 10 clés (environ 1B $ gagnés).') + '</div>' +
     '<button class="btn wide ' + (kg >= CONFIG.KEY_MIN ? 'gold' : 'no') + '" id="mReb">🔑 ' + t('Sell for +', 'Vendre pour +') + kg + t(' keys', ' clés') + '</button></div>';
   // settings
   const tog = (id, on, nm, sub) => '<div class="card"><div class="info"><div class="nm">' + nm + '</div><div class="sub">' + sub + '</div></div><button class="tog' + (on ? ' on' : '') + '" id="' + id + '"></button></div>';
@@ -1021,10 +1067,10 @@ function renderMore(){
   h += tog('sSound', S.sound, '🔊 ' + t('Sound', 'Son'), t('Little synth blips', 'Petits bips synthé'));
   h += tog('sSaver', S.saver, '🔋 ' + t('Battery saver', 'Économie de batterie'), t('On: keeps your phone cool. Off: extra animations.', 'Activé : garde ton téléphone frais. Désactivé : plus d’animations.'));
   h += tog('sEasy', S.easy, '🔤 ' + t('Easy-read text', 'Texte facile à lire'), t('Wider letters and spacing', 'Lettres et espaces plus larges'));
-  if(S.pack) h += tog('sGold', S.gold, '✨ ' + t('Golden neon theme', 'Thème néon doré'), t('From the Golden Pack', 'Du Pack Doré'));
+  if(S.pack) h += tog('sGold', S.gold, '✨ ' + t('Golden theme', 'Thème doré'), t('From the Golden Pack', 'Du Pack Doré'));
   h += '<h3>📊 ' + t('Stats', 'Statistiques') + '</h3><div class="card"><div class="sub">' +
     t('Cars washed: ', 'Autos lavées : ') + '<b>' + fmt(S.cars) + '</b><br>' + t('Scrubs: ', 'Frottages : ') + '<b>' + fmt(S.scrubs) + '</b><br>' + t('VIP cars: ', 'Autos VIP : ') + '<b>' + fmt(S.vips) + '</b><br>' +
-    t('Total coins earned: ', 'Pièces gagnées au total : ') + '<b>' + fmt(S.total) + '</b></div></div>';
+    t('Total cash earned: ', 'Argent gagné au total : ') + '<b>$' + fmt(S.total) + '</b></div></div>';
   h += '<button class="btn wide ghost" id="sReset" style="margin-top:14px;color:var(--red)">🗑️ ' + t('Erase my progress', 'Effacer ma progression') + '</button>';
   h += '<p class="muted center" style="font-size:11px">MOS Arcade · Car Wash Tycoon</p>';
   $('panel').innerHTML = h;
@@ -1051,29 +1097,29 @@ function gemBuy(id){
   if(id === 'rush' && rushOn()){ sfx('err'); toast(t('Rush Hour is already on!', 'L’heure de pointe est déjà en cours!')); return; }
   S.gems -= cost;
   if(id === 'turbo'){ S.turbo = Math.max(now(), S.turbo) + CONFIG.TURBO_MIN * 60000; toast('🫧 ' + t('Turbo Foam on!', 'Mousse turbo activée!'), 'gold'); }
-  if(id === 'warp'){ const a = totalRate(false) * 3600 * CONFIG.WARP_H; addCoins(a); showReward('⏩', t('Time Warp!', 'Saut dans le temps!'), '🪙 ' + fmt(a)); }
+  if(id === 'warp'){ const a = totalRate(false) * 3600 * CONFIG.WARP_H; addCoins(a); showReward('⏩', t('Time Warp!', 'Saut dans le temps!'), '$' + fmt(a)); }
   if(id === 'rush') startRush();
   sfx('buy'); save(); renderMore(); renderChips();
 }
 async function adBoost2x(){
   const maxEnd = now() + CONFIG.AD_2X_MAX_H * 3600000;
   if(S.ad2x >= maxEnd - 60000){ toast(t('x2 is full (4 h max)', 'x2 est plein (4 h max)')); return; }
-  if(await rewardAd()){ S.ad2x = Math.min(maxEnd, Math.max(now(), S.ad2x) + CONFIG.AD_2X_MIN * 60000); toast('📺 ' + t('Double coins! ', 'Pièces doublées! ') + fmtTime((S.ad2x - now()) / 1000), 'gold'); save(); }
+  if(await rewardAd()){ S.ad2x = Math.min(maxEnd, Math.max(now(), S.ad2x) + CONFIG.AD_2X_MIN * 60000); toast('📺 ' + t('Double cash! ', 'Argent doublé! ') + fmtTime((S.ad2x - now()) / 1000), 'gold'); save(); }
   renderChips(); if(tab === 'more') renderMore();
 }
 function openBoosts(){
-  openModal('⚡ ' + t('Boost', 'Boost'), '<div class="big">📺</div><p class="center">' + t('Watch a short ad for <b>x2 coins for 30 min</b> (stacks up to 4 h).', 'Regarde une courte pub pour <b>pièces x2 pendant 30 min</b> (jusqu’à 4 h).') +
+  openModal('⚡ ' + t('Boost', 'Boost'), '<div class="big">📺</div><p class="center">' + t('Watch a short ad for <b>x2 cash for 30 min</b> (stacks up to 4 h).', 'Regarde une courte pub pour <b>argent x2 pendant 30 min</b> (jusqu’à 4 h).') +
     (ad2xOn() ? '<br>' + t('Left: ', 'Reste : ') + '<b>' + fmtTime((S.ad2x - now()) / 1000) + '</b>' : '') + '</p><button class="btn wide gold" id="bAd">' + adIcon() + ' x2</button><button class="btn wide ghost" id="bMore">⚡ ' + t('More boosts', 'Plus de boosts') + '</button>');
   $('bAd').onclick = async () => { closeModal(); await adBoost2x(); };
   $('bMore').onclick = () => { closeModal(); showTab('more'); };
 }
 function openRebirth(){
   const kg = keyGain();
-  if(kg < CONFIG.KEY_MIN){ sfx('err'); toast(t('Earn about 1B coins this run first', 'Gagne environ 1B de pièces dans cette partie d’abord'), 'err'); return; }
+  if(kg < CONFIG.KEY_MIN){ sfx('err'); toast(t('Earn about $1B this run first', 'Gagne environ 1B $ dans cette partie d’abord'), 'err'); return; }
   openModal('🔑 ' + t('Sell the Chain?', 'Vendre la chaîne?'),
-    '<p>🔄 <b>' + t('Starts over: ', 'Repart à zéro : ') + '</b>' + t('coins, locations, bays, upgrades, managers.', 'pièces, succursales, baies, améliorations, gérants.') + '</p>' +
+    '<p>🔄 <b>' + t('Starts over: ', 'Repart à zéro : ') + '</b>' + t('cash, locations, lanes, upgrades, managers.', 'argent, succursales, voies, améliorations, gérants.') + '</p>' +
     '<p>✅ <b>' + t('You keep: ', 'Tu gardes : ') + '</b>' + t('keys, gems, car collection, achievements, purchases.', 'clés, gemmes, collection d’autos, succès, achats.') + '</p>' +
-    '<p>🎁 <b>' + t('Head start: ', 'Coup de pouce : ') + '</b>' + fmt(CONFIG.KEY_START * (S.keys + kg)) + ' 🪙</p>' +
+    '<p>🎁 <b>' + t('Head start: ', 'Coup de pouce : ') + '</b>' + '$' + fmt(CONFIG.KEY_START * (S.keys + kg)) + '</p>' +
     '<p>📈 ' + t('Prices next run: ×', 'Prix à la prochaine partie : ×') + Math.pow(CONFIG.REBIRTH_PRICE_MULT, S.rebirths + 1) + '</p>' +
     '<div class="amt">+' + kg + ' 🔑 → ×' + (1 + CONFIG.KEY_BONUS * (S.keys + kg)).toFixed(2) + '</div>' +
     '<button class="btn wide gold" id="rbYes">' + t('Yes, sell it!', 'Oui, vendre!') + '</button><button class="btn wide ghost" id="rbNo">' + t('Not now', 'Pas maintenant') + '</button>');
@@ -1083,7 +1129,7 @@ function openRebirth(){
     S.loc = LOCS.map((l, i) => newLoc(i, i === 0)); S.cur = 0; S.run = 0;
     S.coins = CONFIG.KEY_START * S.keys; _pmT = 0;
     closeModal(); sfx('big'); save(); showTab('wash');
-    showReward('🔑', t('Chain sold!', 'Chaîne vendue!'), '+' + kg + ' 🔑<br>' + t('Coins ×', 'Pièces ×') + (1 + CONFIG.KEY_BONUS * S.keys).toFixed(2));
+    showReward('🔑', t('Chain sold!', 'Chaîne vendue!'), '+' + kg + ' 🔑<br>' + t('Cash ×', 'Argent ×') + (1 + CONFIG.KEY_BONUS * S.keys).toFixed(2));
   };
 }
 /* ---------- modal, toast, reward ---------- */
@@ -1163,7 +1209,7 @@ function grantSku(sku){
   S.pack = true; S.gold = true; S.gems += CONFIG.PACK_GEMS; _pmT = 0;
   ['plat', 'laser'].forEach(id => { S.dex[id] = Math.max(1, S.dex[id] || 0); });
   applySettings();
-  return t('✨ Golden neon theme<br>🚘 Platinum Cruiser + Laser Limo<br>🪙 x2 coins forever<br>📺 No ads: rewards are instant<br>💎 +', '✨ Thème néon doré<br>🚘 Croiseur platine + Limo laser<br>🪙 Pièces x2 pour toujours<br>📺 Sans pub : récompenses instantanées<br>💎 +') + CONFIG.PACK_GEMS;
+  return t('✨ Golden theme<br>🚘 Platinum Cruiser + Laser Limo<br>💵 x2 cash forever<br>📺 No ads: rewards are instant<br>💎 +', '✨ Thème doré<br>🚘 Croiseur platine + Limo laser<br>💵 Argent x2 pour toujours<br>📺 Sans pub : récompenses instantanées<br>💎 +') + CONFIG.PACK_GEMS;
 }
 const PRICES = {};
 let iapReady = false;
@@ -1210,7 +1256,7 @@ function paidShopHtml(){
   return '<div class="card" style="flex-direction:column;align-items:stretch;background:linear-gradient(135deg,#3a1a02,#a05a10);border-color:#ffd23f">' +
     '<div class="row" style="justify-content:center"><div style="width:120px">' + carSVG('plat') + '</div><div style="width:120px">' + carSVG('laser') + '</div></div>' +
     '<div class="nm center" style="font-size:1.1em">💝 ' + t('Golden Pack', 'Pack Doré') + '</div><div class="center" style="font-size:.9em;opacity:.95">' +
-    t('x2 coins forever · no ads (rewards are instant) · golden neon theme · 2 exclusive VIP cars · +100 💎', 'Pièces x2 pour toujours · sans pub (récompenses instantanées) · thème néon doré · 2 autos VIP exclusives · +100 💎') + '</div>' +
+    t('x2 cash forever · no ads (rewards are instant) · golden theme · 2 exclusive VIP cars · +100 💎', 'Argent x2 pour toujours · sans pub (récompenses instantanées) · thème doré · 2 autos VIP exclusives · +100 💎') + '</div>' +
     (S.pack ? '<span class="tag center" style="margin-top:8px;color:var(--green)">✔ ' + t('Owned', 'Acheté') + '</span>' : '<button class="btn gold wide" id="buyPack">' + (PRICES[PACK.sku] || PACK.price) + '</button>') + '</div>' +
     '<button class="btn wide ghost" id="spRestore">🔄 ' + t('Restore purchases', 'Restaurer les achats') + '</button>' +
     '<p class="muted center" style="font-size:.75em">' + t('Totally optional! Everything else can be earned by playing.', 'Totalement optionnel! Tout le reste se gagne en jouant.') + '</p>';
@@ -1245,13 +1291,13 @@ function tick(){
   // coins count up instead of snapping
   const diff = S.coins - dispCoins;
   dispCoins = Math.abs(diff) < Math.max(1, S.coins * .002) ? S.coins : dispCoins + diff * .4;
-  $('coins').textContent = '🪙 ' + fmt(dispCoins);
+  $('coins').textContent = '$' + fmt(dispCoins);
   if(sceneOn()) drawScene();
   if(tickN % 4 === 0) secondly();
   if(tickN % 40 === 0) save();
 }
 function secondly(){
-  $('rate').textContent = '+' + fmt(totalRate()) + '/s';
+  $('rate').textContent = '+$' + fmt(totalRate()) + '/s';
   $('gemPill').textContent = '💎 ' + fmt(S.gems);
   renderChips();
   if(tab === 'wash' || tab === 'more' || tab === 'chain'){
@@ -1293,11 +1339,11 @@ function offlineCredit(sec, popup){
   });
   addCoins(banked); S.cars += Math.floor(cars);
   if(popup && banked + inReg > 0){
-    let body = '🪙 ' + fmt(banked) + '<div class="muted" style="font-size:13px;font-weight:400">' + t('banked by your managers', 'encaissé par tes gérants') + '</div>';
-    if(inReg > 0) body += '<div style="font-size:16px;margin-top:6px">🧾 +' + fmt(inReg) + '</div><div class="muted" style="font-size:13px;font-weight:400">' + t('waiting in cash registers (managers collect it for you)', 'en attente dans les caisses (les gérants l’encaissent pour toi)') + '</div>';
+    let body = '$' + fmt(banked) + '<div class="muted" style="font-size:13px;font-weight:400">' + t('banked by your managers', 'encaissé par tes gérants') + '</div>';
+    if(inReg > 0) body += '<div style="font-size:16px;margin-top:6px">💵 +$' + fmt(inReg) + '</div><div class="muted" style="font-size:13px;font-weight:400">' + t('waiting in cash registers (managers collect it for you)', 'en attente dans les caisses (les gérants l’encaissent pour toi)') + '</div>';
     setTimeout(() => showReward('🌙', t('While you were away', 'Pendant ton absence') + ' (' + fmtTime(sec) + ')', body, banked > 0 ? {
       label: t('Watch ad: double it', 'Pub : double-le'),
-      go: async () => { if(await rewardAd()){ addCoins(banked); toast('🪙 +' + fmt(banked), 'gold'); save(); } }
+      go: async () => { if(await rewardAd()){ addCoins(banked); toast('💵 +$' + fmt(banked), 'gold'); save(); } }
     } : null), 300);
   }
   save();
