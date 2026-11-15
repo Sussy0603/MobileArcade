@@ -661,6 +661,9 @@ const FR = {
   'You already have a master this game': 'Tu as déjà un maître dans cette partie',
   'Make MASTER (powers x2)': 'Devenir MAÎTRE (pouvoirs x2)',
   'Unlock Cat Mastery in Skills to make this cat a MASTER': 'Débloque la Maîtrise dans Talents pour en faire un MAÎTRE',
+  'Support cats': 'Chats de soutien',
+  'Support cats can sit anywhere on the grass!': 'Les chats de soutien vont partout sur l’herbe !',
+  'Fisher and Cheer cats can sit anywhere: tap the grass!': 'Pêcheur et Meneur vont partout : touche l’herbe !',
 };
 /* =====================================================================
    5. PIXEL ART — every picture is a tiny text grid.
@@ -1526,6 +1529,8 @@ const POWERS = [
 const pwOpen = () => POWERS.filter(p => !p.unlock || S.pwOpen[p.id]);
 /* Cat Mastery: unlock with stars, then master ONE level-5 cat per level */
 const MASTERY_COST = 8, MASTER_FISH = 2;
+/* support cats can sit on any free grass tile, not only on cushions */
+const SUPPORT = ['fish', 'cheer'];
 /* Lucky boosts: bought with stars before a level, for that level only */
 const BOOSTS = [
   {id: 'lfish', icon: '🍀', name: 'Lucky Fish', desc: '+25% fish', cost: 2},
@@ -1838,9 +1843,19 @@ function placeCat(spot, id) {
   G.coins -= cost; S.stats.spent += cost;
   const tw = {id, lv: 1, spent: cost, x: spot.x, y: spot.y, spot, cd: 0.3, mode: 'first', anim: 0, face: false, blink: rand(1, 4), heat: 0, tg: null, webT: 0, hop: 0.35, t: rand(0, 5)};
   spot.tw = tw; G.towers.push(tw);
+  if (spot.free) (G.free = G.free || []).push(spot);
   S.stats.full = Math.max(S.stats.full || 0, G.towers.length);
   for (let i = 0; i < 10; i++) addPart(spot.x + rand(-8, 8), spot.y + 6, rand(-40, 40), rand(-60, -10), '#e8dcc0', 0.4, 2);
   sfx('meow'); return true;
+}
+/* a free grass tile where a support cat could sit (or the one already there) */
+function freeSpotAt(p) {
+  const tx = Math.floor(p.x / T), ty = Math.floor(p.y / T);
+  if (tx < 0 || ty < 0 || tx >= COLS || ty >= ROWS) return null;
+  const old = (G.free || []).find(s => s.tx === tx && s.ty === ty);
+  if (old) return old;
+  if (G.map.grid[ty][tx] !== 0) return null;
+  return {tx, ty, x: (tx + .5) * T, y: (ty + .5) * T, tw: null, free: 1};
 }
 function upgradeCat(tw) {
   const cost = upCost(tw);
@@ -1855,6 +1870,7 @@ function upgradeCat(tw) {
 function sellCat(tw) {
   addCoins(sellValue(tw));
   tw.spot.tw = null; G.towers.splice(G.towers.indexOf(tw), 1);
+  if (tw.spot.free && G.free) G.free.splice(G.free.indexOf(tw.spot), 1);
   for (let i = 0; i < 10; i++) addPart(tw.x + rand(-8, 8), tw.y, rand(-50, 50), rand(-70, -10), '#e8dcc0', 0.4, 2);
   sfx('coin');
 }
@@ -2531,6 +2547,12 @@ function drawPatch(x) {
   }
 }
 
+/* small round rug for support cats on the grass */
+function drawMat(x, y) {
+  ctx.fillStyle = OUT; ctx.beginPath(); ctx.ellipse(x, y, 13, 5.5, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#c99be8'; ctx.beginPath(); ctx.ellipse(x, y - 0.5, 11.5, 4.3, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#e8d0ff'; ctx.beginPath(); ctx.ellipse(x, y - 0.5, 6.5, 2.3, 0, 0, 7); ctx.fill();
+}
 function draw() {
   const sh = G.shake > 0 ? G.shake : 0;
   const sx = sh ? rand(-sh, sh) * 0.5 : 0, sy = sh ? rand(-sh, sh) * 0.5 : 0;
@@ -2563,6 +2585,7 @@ function draw() {
   if (G.selSpot && !G.selSpot.tw) {
     const s = G.selSpot, p = 1 + Math.sin(G.time * 8) * 0.08;
     ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 3; ctx.strokeRect(s.x - 12 * p, s.y - 12 * p, 24 * p, 24 * p);
+    if (s.free) drawMat(s.x, s.y + 7);
     if (G.pick) drawCat(ctx, G.pick, breedOf(G.pick), s.x, s.y + 9, {t: G.time});
   }
   // cats + bugs, sorted so lower things are in front
@@ -2575,6 +2598,7 @@ function draw() {
       const tw = it.tw;
       if (tw.master) { ctx.fillStyle = 'rgba(255,210,63,' + (0.35 + Math.sin(G.time * 5) * 0.15) + ')'; ctx.beginPath(); ctx.ellipse(tw.x, tw.y + 8, 15, 6, 0, 0, 7); ctx.fill();
         if (Math.random() < 0.15) addPart(tw.x + rand(-10, 10), tw.y - rand(0, 20), 0, -30, '#ffe680', 0.6, 2); }
+      if (tw.spot && tw.spot.free) drawMat(tw.x, tw.y + 7);
       drawCat(ctx, tw.id, breedOf(tw.id), tw.x, tw.y + 9, {t: tw.t, hop: tw.hop, anim: tw.anim, flip: tw.face, blink: tw.blink < 0, web: tw.webT, iced: tw.iced, dizzy: tw.dizzy});
       for (let i = 0; i < tw.lv; i++) { ctx.fillStyle = OUT; ctx.fillRect(tw.x - 10 + i * 4.5, tw.y + 10, 4, 4); ctx.fillStyle = '#ffd23f'; ctx.fillRect(tw.x - 9.5 + i * 4.5, tw.y + 10.5, 3, 3); }
       if (tw.buff > 0) { ctx.fillStyle = '#ff7aa2'; ctx.fillRect(tw.x + 10, tw.y - 22 + Math.sin(tw.t * 4) * 2, 3, 3); }
@@ -3294,10 +3318,13 @@ function openBuild(spot) {
   G.selSpot = spot; G.selTower = null;
   if (G.pick && !catOpen(CAT[G.pick])) G.pick = null;
   const c = G.pick ? CAT[G.pick] : null;
-  let h = '<h3>🐾 ' + tr('Pick a cat') + '<button class="btn small x" id="shX">✕</button></h3><div class="catgrid small">';
+  const free = !!spot.free;
+  let h = '<h3>🐾 ' + tr(free ? 'Support cats' : 'Pick a cat') + '<button class="btn small x" id="shX">✕</button></h3>' +
+    (free ? '<p class="muted" style="margin:0 0 6px">🌿 ' + tr('Support cats can sit anywhere on the grass!') + '</p>' : '') + '<div class="catgrid small">';
   const nextLocked = CATS.find(k => !catOpen(k));
   CATS.forEach(k => {
     const open = catOpen(k), cost = catCost(k);
+    if (free && !SUPPORT.includes(k.id)) return;
     if (!open && k !== nextLocked) return;
     h += '<button class="cb' + (open ? '' : ' lock') + (G.pick === k.id ? ' sel' : '') + (open && G.coins < cost ? ' poor' : '') + '" data-pick="' + k.id + '" data-cost="' + cost + '">' +
       '<img src="' + catURL(k.id, breedOf(k.id)) + '" alt="">' + (open ? '<span>' + cost + '</span>' : '<span>🔒' + k.unlock + '</span>') + '</button>';
@@ -3306,7 +3333,8 @@ function openBuild(spot) {
   if (c) {
     h += '<div class="placebar"><div class="pinfo"><b>' + tr(c.name) + '</b><br>' + tr(c.desc) + '</div>' +
       '<button class="btn green' + (G.coins < catCost(c) ? ' dis' : '') + '" id="shPlace" data-cost="' + catCost(c) + '">✔ ' + tr('Place') + '<br>' + ICO('fishy') + catCost(c) + '</button></div>';
-  } else h += '<p class="muted center" style="margin:8px 0 0">' + tr('Tap a cat, then tap it again to place it.') + '</p>';
+  } else h += '<p class="muted center" style="margin:8px 0 0">' + tr('Tap a cat, then tap it again to place it.') + '</p>' +
+    (!free && SUPPORT.some(id => catOpen(CAT[id])) ? '<p class="muted center" style="margin:4px 0 0;font-size:12px">🌿 ' + tr('Fisher and Cheer cats can sit anywhere: tap the grass!') + '</p>' : '');
   $('sheet').innerHTML = h; $('sheet').classList.add('on');
   bindBtn('shX', closeSheet);
   document.querySelectorAll('[data-pick]').forEach(b => b.onclick = e => {
@@ -3398,6 +3426,11 @@ cv.addEventListener('pointerdown', e => {
   }
   const s = spotAt(p);
   if (s) { sfx('ui'); if (s.tw) openTower(s.tw); else openBuild(s); return; }
+  // support cats can sit anywhere on the grass
+  const f = G.tut ? null : freeSpotAt(p);
+  if (f && f.tw) { sfx('ui'); openTower(f.tw); return; }
+  const sheetOn = $('sheet').classList.contains('on'), onFree = G.selSpot && G.selSpot.free;
+  if (f && SUPPORT.some(id => catOpen(CAT[id])) && (!sheetOn || onFree)) { sfx('ui'); if (G.pick && !SUPPORT.includes(G.pick)) G.pick = null; openBuild(f); return; }
   closeSheet();
 });
 cv.addEventListener('pointermove', e => { if (G && G.pmode === 'bomb') G.aim = toWorld(e); });
@@ -3910,7 +3943,7 @@ showTitle();
 requestAnimationFrame(loop);
 
 /* for testing in the browser console */
-window.__PD = {get S() { return S; }, get G() { return G; }, CATS, BUGS, CONFIG, startPlay, startEndless, placeCat, upgradeCat, launchWave, update, genWaves, tstats, upCost, catCost, showMenu, levelIntro, save, usePower, openTower};
+window.__PD = {get S() { return S; }, get G() { return G; }, CATS, BUGS, CONFIG, startPlay, startEndless, placeCat, upgradeCat, launchWave, update, genWaves, tstats, upCost, catCost, showMenu, levelIntro, save, usePower, openTower, freeSpotAt, openBuild, view: () => ({scale, offX, offY})};
 
 /* app icon drawing (used to make the Play Store icon) */
 window.__iconDraw = (x, fg) => {
