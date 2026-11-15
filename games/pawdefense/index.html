@@ -288,6 +288,8 @@ const CONFIG = {
   START_COINS_PER_LEVEL: 22,       // + this much per level number
   KILL_REWARD_GROWTH: 0.08,       // bug rewards grow 8% per level
   HP_GROWTH_LEVEL: 0.085,         // bug health +8.5% per level
+  SKILL_CHECK_FROM: 10,           // from this level on, bugs get extra health...
+  SKILL_CHECK: 0.012,             // ...+1.2% more per level (needs skill upgrades)
   HP_GROWTH_WAVE: 0.03,           // bug health +3% per wave inside a level
   WAVE_GAP: 12,                   // seconds between waves (call early to skip)
   EARLY_BONUS_PER_SEC: 1.5,       // fish per second skipped when calling early
@@ -1358,7 +1360,7 @@ const CATS = [
     desc: 'Lightning jumps from bug to bug.', sp: '+2 jumps'},
   {id: 'cheer', name: 'Cheer Cat', unlock: 19, cost: 140, kind: 'buff', dmg: 8, rate: 1, range: 1.7, air: 1, proj: 'heart', pspd: 10, buff: 0.15, acc: 'pompom',
     desc: 'Cheers up cats nearby: more damage and speed. Level 3+: they see invisible bugs. Throws hearts at bugs too!', sp: 'Bigger boost (+10%)'},
-  {id: 'ninja', name: 'Ninja Cat', unlock: 22, cost: 200, dmg: 7, rate: 1.15, range: 2.8, air: 1, kind: 'multi', shots: 3, pspd: 13, detect: 1, acc: 'mask',
+  {id: 'ninja', name: 'Ninja Cat', unlock: 22, cost: 260, dmg: 7, rate: 1.15, range: 2.8, air: 1, kind: 'multi', shots: 3, pspd: 13, detect: 1, acc: 'mask',
     desc: 'Throws 3 stars at once. Sees invisible bugs.', sp: '+1 star'},
   {id: 'laser', name: 'Laser Cat', unlock: 25, cost: 320, dmg: 24, rate: 0, range: 3.6, air: 1, kind: 'beam', detect: 1, acc: 'visor', boss: 1,
     desc: 'BOSS CAT. Laser eyes get stronger the longer they hit.', sp: 'Laser melts armor'},
@@ -1393,7 +1395,7 @@ const BUGS = {
   queen: {name: 'Queen Ant', boss: 1, hp: 750, spd: 0.42, arm: 2, rew: 120, lv: 10, from: 10, spawn: 'ant', spr: 'ant', pal: 'queen', sc: 2.4, desc: 'BOSS. Lays new ants as she walks.'},
   mantis: {name: 'Mantis', boss: 1, hp: 2600, spd: 0.48, arm: 4, rew: 200, lv: 10, from: 20, dash: 1, pal: 'mantis', sc: 2.4, desc: 'BOSS. Dashes forward super fast.'},
   spider: {name: 'Attic Spider', boss: 1, hp: 5200, spd: 0.42, arm: 5, rew: 300, lv: 10, from: 30, web: 1, pal: 'spider', sc: 2.4, desc: 'BOSS. Shoots webs that stop your cats.'},
-  hornet: {name: 'Hornet Queen', boss: 1, fly: 1, hp: 6800, spd: 0.45, shield: 0.25, rew: 500, lv: 15, from: 40, spawn: 'wasp', spr: 'wasp', pal: 'hornet', sc: 2.6, desc: 'BOSS. Flies, has a shield and calls wasps.'},
+  hornet: {name: 'Hornet Queen', boss: 1, fly: 1, hp: 3800, spd: 0.45, shield: 0.15, rew: 500, lv: 15, from: 40, spawn: 'wasp', spr: 'wasp', pal: 'hornet', sc: 2.6, desc: 'BOSS. Flies, has a shield and calls wasps.'},
 };
 Object.assign(BUGS, {
   hermit: {name: 'Hermit Crab', hp: 70, spd: 0.8, arm: 3, shell: 1, rew: 8, lv: 2, from: 41, pal: 'hermit', desc: 'Its shell breaks at half health. Then it runs!'},
@@ -1405,8 +1407,8 @@ Object.assign(BUGS, {
   ufo: {name: 'UFO Bug', hp: 30, spd: 1.2, fly: 1, camo: 1, shield: 0.25, rew: 8, lv: 1, from: 73, pal: 'ufo', desc: 'Flies, hides and has a shield.'},
   crab: {name: 'Crab King', boss: 1, hp: 9000, spd: 0.4, arm: 8, shellUp: 1, rew: 600, lv: 15, from: 50, spr: 'hermit', pal: 'crabking', sc: 2.6, desc: 'BOSS. Hides in his shell: no damage for a moment.'},
   icebeetle: {name: 'Ice Beetle', boss: 1, hp: 11000, spd: 0.42, arm: 6, noslow: 1, freezeCats: 1, rew: 700, lv: 15, from: 60, spr: 'beetle', pal: 'icebeetle', sc: 2.6, desc: 'BOSS. Freezes the cats near it.'},
-  gummy: {name: 'Gummy Worm', boss: 1, hp: 13500, spd: 0.4, regen: 0.008, spawn: 'gumdrop', rew: 800, lv: 15, from: 70, spr: 'cater', pal: 'gummy', sc: 2.4, desc: 'BOSS. Heals itself and drops gumdrops.'},
-  alienking: {name: 'Alien Queen', boss: 1, hp: 17000, spd: 0.45, arm: 4, shield: 0.2, blink: 1, spawn: 'ufo', rew: 1000, lv: 20, from: 80, spr: 'alien', pal: 'alienking', sc: 2.6, desc: 'BOSS. Teleports, calls UFO bugs and has a shield.'},
+  gummy: {name: 'Gummy Worm', boss: 1, hp: 9000, spd: 0.4, regen: 0.008, spawn: 'gumdrop', rew: 800, lv: 15, from: 70, spr: 'cater', pal: 'gummy', sc: 2.4, desc: 'BOSS. Heals itself and drops gumdrops.'},
+  alienking: {name: 'Alien Queen', boss: 1, hp: 13500, spd: 0.45, arm: 4, shield: 0.2, blink: 1, spawn: 'ufo', rew: 1000, lv: 20, from: 80, spr: 'alien', pal: 'alienking', sc: 2.6, desc: 'BOSS. Teleports, calls UFO bugs and has a shield.'},
 });
 const BUG_ORDER = ['ant', 'lady', 'beetle', 'fly', 'snail', 'pill', 'mini', 'firefly', 'moth', 'stink', 'wasp', 'cater', 'hermit', 'flea', 'frost', 'gumdrop', 'candyfly', 'alien', 'ufo',
   'queen', 'mantis', 'spider', 'hornet', 'crab', 'icebeetle', 'gummy', 'alienking'];
@@ -1630,7 +1632,9 @@ function buildMap(shapeKey, world, seed) {
 
 /* ---------- waves ---------- */
 /* bug health per level: grows 8.5% per level, a bit slower after level 40 */
-function hpLevel(L) { return 1 + CONFIG.HP_GROWTH_LEVEL * Math.min(L - 1, 39) + 0.045 * Math.max(0, L - 40); }
+function hpLevel(L) { return (1 + CONFIG.HP_GROWTH_LEVEL * Math.min(L - 1, 39) + 0.045 * Math.max(0, L - 40)) * skillCheck(L); }
+/* after level 10, bugs get extra tough so you need skill upgrades to keep up */
+function skillCheck(L) { return 1 + CONFIG.SKILL_CHECK * clamp(L - CONFIG.SKILL_CHECK_FROM, 0, 30) * (BOSS_OF[L] ? 0.3 : 1); }
 function rewLevel(L) { return (1 + CONFIG.KILL_REWARD_GROWTH * Math.min(L - 1, 39) + 0.055 * Math.max(0, L - 40)) * rbBonus(); }
 /* rebirth: cats & fish +10% each time, bugs get tougher each time */
 const rbBonus = () => 1 + CONFIG.REBIRTH_BONUS * (S.rebirths || 0);
@@ -2067,7 +2071,7 @@ function bugAbility(b, dt) {
     addRing(b.x, b.y, 10, 3.2 * T, '#bff0ff', 0.6); sfx('ice');
   }
   else if (B.spawn) {
-    b.abilT = B.spawn === 'wasp' ? 5 : B.spawn === 'ant' ? 4.5 : 6;
+    b.abilT = B.spawn === 'wasp' ? 6 : B.spawn === 'ant' ? 4.5 : 8;
     if (B.blink) blinkBug(b, 3 * T);
     for (let i = 0; i < (B.spawn === 'wasp' ? 3 : B.spawn === 'ant' ? 2 : 1); i++) { const m = spawnBug(B.spawn, b.path, (G.curHm || 1) * 1.2, Math.max(0, b.d - 10 - i * 8)); m.off = rand(-6, 6); }
     addRing(b.x, b.y, 6, 30, '#ffd23f', 0.3);
