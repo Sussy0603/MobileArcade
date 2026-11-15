@@ -570,6 +570,9 @@ const FR = {
   'Boss fight! +1 of each power-up': 'Combat de boss! +1 de chaque bonus',
   'Catches fish: extra coins every wave. Throws fish at bugs too!': 'Pêche des poissons : plus de sous à chaque vague. Lance aussi des poissons aux insectes!',
   'Cheers up cats nearby: more damage and speed. Level 3+: they see invisible bugs. Throws hearts at bugs too!': 'Encourage les chats proches : plus de dégâts et de vitesse. Niveau 3+ : ils voient les insectes invisibles. Lance aussi des cœurs aux insectes!',
+  'Level 5 cat!': 'Chat niveau 5!',
+  '5 more waves!': '5 vagues de plus!',
+  '+1 surprise power-up every day!': '+1 bonus surprise chaque jour!',
 };
 /* =====================================================================
    5. PIXEL ART — every picture is a tiny text grid.
@@ -1708,7 +1711,7 @@ function upgradeCat(tw) {
   const cost = upCost(tw);
   if (tw.lv >= 5 || G.coins < cost) return false;
   G.coins -= cost; tw.spent += cost; tw.lv++; S.stats.spent += cost;
-  if (tw.lv === 5) S.stats.max5 = 1;
+  if (tw.lv === 5) { S.stats.max5 = 1; toast('⭐ ' + tr('Level 5 cat!') + ' ' + giftPw()); }
   tw.hop = 0.4;
   addRing(tw.x, tw.y, 4, 26, '#ffd23f', 0.4);
   for (let i = 0; i < 12; i++) addPart(tw.x + rand(-10, 10), tw.y + rand(-10, 4), rand(-30, 30), rand(-90, -30), pick(['#ffd23f', '#fff6c0']), 0.6, 2);
@@ -1824,12 +1827,18 @@ function launchWave(early) {
   const isBoss = wave.some(e => BUGS[e.type].boss);
   banner(isBoss ? tr('BOSS!') : tr('Wave {n}', {n: G.wi}));
   sfx(isBoss ? 'bossIn' : 'wave');
-  if (G.mode === 'endless') endlessProgress();
+  if (G.mode === 'endless') { endlessProgress(); if (G.wi > 1 && (G.wi - 1) % 5 === 0) setTimeout(() => toast('♾️ ' + tr('5 more waves!') + ' ' + giftPw()), 1200); }
   if (isBoss) { bossTip(); bossGift(); }
   tutEvent('wave');
 }
 
 /* ---------- power-ups ---------- */
+/* gives 1 random power-up, returns a small label like "🧪 Nap Time" */
+function giftPw() {
+  const p = pick(POWERS); S.pw[p.id] = (S.pw[p.id] || 0) + 1; save();
+  if (typeof refreshPw === 'function' && screen === 'game') refreshPw();
+  return '<img class="ico" src="' + sprURL(p.id, p.id) + '" alt=""> ' + tr(p.name) + ' +1';
+}
 function powerMult() { return 1 + 0.15 * S.garden.power; }
 function usePower(id, x, y) {
   if ((S.pw[id] || 0) <= 0 || G.state !== 'play') return false;
@@ -2597,7 +2606,7 @@ function showMenu(name) {
   else if (name === 'shop') bindShop();
   music('menu');
   const got = checkAch();
-  if (got.length === 1) setTimeout(() => toast('🏆 ' + tr(got[0].name) + ' +' + got[0].r + ' ' + starIco()), 400);
+  if (got.length === 1) setTimeout(() => toast('🏆 ' + tr(got[0].name) + ' +' + got[0].r + ' ' + starIco() + ' +🧪'), 400);
   else if (got.length > 1) setTimeout(() => toast('🏆 ' + tr('{n} goals done!', {n: got.length}) + ' +' + got.reduce((a, g) => a + g.r, 0) + ' ' + starIco()), 400);
   checkBreeds().forEach(b => toast('🐱 ' + tr('New breed: {b}!', {b: tr(b.name)})));
   if (got.length) $('wallet').textContent = S.stars;
@@ -2703,15 +2712,17 @@ function dailyGift() {
   const y = new Date(); y.setDate(y.getDate() - 1);
   const streak = S.daily.last === dayKey(y) ? S.daily.streak + 1 : 1;
   const idx = (streak - 1) % 7, g = DAILY[idx];
-  const label = d => d.stars ? starIco() + ' +' + d.stars : '<img class="ico" src="' + sprURL(d.pw, d.pw) + '" alt=""> +1';
+  const label = d => (d.stars ? starIco() + ' +' + d.stars : '<img class="ico" src="' + sprURL(d.pw, d.pw) + '" alt=""> +1') + ' 🎁';
   openModal('<h2>🎁 ' + tr('Daily gift') + '</h2><p>' + tr('Day {n} in a row!', {n: streak}) + '</p>' +
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0">' +
     DAILY.map((d, i) => '<div class="cb' + (i === idx ? ' sel' : '') + '" style="padding:6px 2px;' + (i < idx ? 'opacity:.5' : '') + '"><small>' + tr('Day {n}', {n: i + 1}) + '</small>' + label(d) + '</div>').join('') + '</div>' +
+    '<p class="muted">🎁 = ' + tr('+1 surprise power-up every day!') + '</p>' +
     '<button class="btn org wide" id="dOk">' + tr('Claim') + ' ' + label(g) + '</button>');
   bindBtn('dOk', () => {
     S.daily = {last: today, streak};
     if (g.stars) { S.stars += g.stars; S.earned += g.stars; } else S.pw[g.pw] = (S.pw[g.pw] || 0) + 1;
-    save(); sfx('coin'); closeModal(); refreshWallet();
+    const extra = giftPw();
+    save(); sfx('coin'); closeModal(); refreshWallet(); toast('🎁 ' + extra);
   });
 }
 
@@ -2858,7 +2869,7 @@ function checkAch() {
   for (const a of ACH) {
     if (S.ach[a.id]) continue;
     const [v, m] = a.p();
-    if (v >= m) { S.ach[a.id] = 1; S.stars += a.r; S.earned += a.r; got.push(a); }
+    if (v >= m) { S.ach[a.id] = 1; S.stars += a.r; S.earned += a.r; giftPw(); got.push(a); }
   }
   if (got.length) save();
   return got;
@@ -3127,7 +3138,7 @@ function onWin() {
       '<div class="bigstars" id="wStars">' + [1, 2, 3].map(k => starImg(k <= stars).replace('<img', '<img class="pxi' + (k <= stars ? '' : ' off') + '"')).join('') + '</div>' +
       (gain ? '<div class="reward">' + starIco().replace('ico', 'ico') + ' +' + gain + '</div>' : '') +
       '<p>' + ICO('carrot') + ' ' + G.lives + '/' + G.maxLives + ' · 💥 ' + G.kills + '</p>' +
-      got.map(a => '<div class="reward" style="font-size:15px">🏆 ' + tr(a.name) + ' +' + a.r + ' ' + starIco() + '</div>').join('') +
+      got.map(a => '<div class="reward" style="font-size:15px">🏆 ' + tr(a.name) + ' +' + a.r + ' ' + starIco() + ' +🧪</div>').join('') +
       br.map(b => '<div class="reward" style="font-size:15px">🐱 ' + tr('New breed: {b}!', {b: tr(b.name)}) + '</div>').join('') +
       (nextCat && L < MAXL ? '<p><b>' + tr('Next level: new cat!') + '</b> <img class="pxi" style="width:40px;vertical-align:middle" src="' + catURL(nextCat.id, breedOf(nextCat.id)) + '" alt=""></p>' : '') +
       (L === MAXL && !hard ? '<p><b>' + tr('You saved the whole garden! Try Endless mode and Hard mode!') + '</b></p>' : '') +
@@ -3152,7 +3163,7 @@ function onLose() {
     const got = checkAch();
     openModal('<h2>😿 ' + tr('Oh no!') + '</h2><p>' + tr('The bugs ate the veggies!') + '</p>' +
       (G.mode === 'endless' ? '<div class="reward">' + tr('Wave {n}', {n: G.wi}) + '</div><p class="muted">' + tr('Best: wave {n}', {n: S.endless[G.w] || 0}) + '</p>' : '<p class="muted">' + tr('Tip: upgrade cats and use power-ups. Skills make cats stronger!') + '</p>') +
-      got.map(a => '<div class="reward" style="font-size:15px">🏆 ' + tr(a.name) + ' +' + a.r + ' ' + starIco() + '</div>').join('') +
+      got.map(a => '<div class="reward" style="font-size:15px">🏆 ' + tr(a.name) + ' +' + a.r + ' ' + starIco() + ' +🧪</div>').join('') +
       (canRevive ? '<button class="btn sky wide" id="lRev" style="font-size:18px">📺 ' + tr('Revive') + ' (+' + Math.ceil(G.maxLives * CONFIG.REVIVE_LIVES) + ' ' + ICO('carrot') + ')</button><div class="muted">' + tr('Optional: watch a short ad to keep playing') + '</div>' : '') +
       '<div class="row"><button class="btn org wide" id="lRe">↺ ' + tr('Try again') + '</button><button class="btn wide" id="lMap">🗺️ ' + tr('Map') + '</button></div>');
     bindBtn('lRev', () => rewardAd().then(ok => { if (ok) revive(); }));
