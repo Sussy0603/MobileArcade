@@ -603,6 +603,8 @@ const FR = {
   'Tap here to make your cats stronger.': 'Touche ici pour rendre tes chats plus forts.',
   'Stars make your cats stronger forever!': 'Les étoiles rendent tes chats plus forts pour toujours!',
   'Tap a gold button to buy. You can reset for free.': 'Touche un bouton doré pour acheter. Tu peux tout remettre à zéro gratuitement.',
+  'The boss attacks your cats!': 'Le boss attaque tes chats!',
+  'Hard: bosses knock out your cats for a moment!': 'Difficile : les boss assomment tes chats un moment!',
 };
 /* =====================================================================
    5. PIXEL ART — every picture is a tiny text grid.
@@ -1957,7 +1959,7 @@ function update(dt) {
   for (const tw of G.towers) {
     tw.t += dt; tw.anim = Math.max(0, tw.anim - dt); tw.hop = Math.max(0, tw.hop - dt);
     tw.blink -= dt; if (tw.blink < -0.15) tw.blink = rand(2, 5);
-    if (tw.webT > 0) { tw.webT -= dt; if (tw.webT <= 0) tw.iced = false; tw.tg = null; continue; }
+    if (tw.webT > 0) { tw.webT -= dt; if (tw.webT <= 0) { tw.iced = false; tw.dizzy = false; } tw.tg = null; continue; }
     catAct(tw, sts.get(tw), dt);
   }
   // 6. shots
@@ -2022,6 +2024,22 @@ function bugAbility(b, dt) {
     if (b.abilT <= 0) { b.abilT = 4; blinkBug(b, 1.5 * T); }
   }
   if (!B.boss) return;
+  /* Hard mode: bosses attack your cats (knocked out for a few seconds) */
+  if (G.hard) {
+    b.atkT = (b.atkT === undefined ? 3 : b.atkT) - dt;
+    if (b.atkT <= 0) {
+      b.atkT = 5;
+      let best = null, bd = 3.4 * T;
+      for (const tw of G.towers) { const d = dist(tw, b); if (d < bd && tw.webT <= 0) { bd = d; best = tw; } }
+      if (best) {
+        best.webT = 3.5; best.dizzy = true; best.hop = 0.35;
+        G.zaps.push({pts: [{x: b.x, y: b.y - 20}, {x: best.x, y: best.y - 12}], life: 0.3, col: '#ff4a4a'});
+        addRing(best.x, best.y - 6, 4, 24, '#ff4a4a', 0.4);
+        for (let i = 0; i < 8; i++) addPart(best.x, best.y - 10, rand(-60, 60), rand(-90, -20), pick(['#ff4a4a', '#ffd23f']), 0.5, 3);
+        G.shake = Math.max(G.shake, 4); sfx('slam');
+      }
+    }
+  }
   b.abilT -= dt;
   if (b.abilT > 0) return;
   if (B.shellUp) { b.abilT = 6; b.invT = 1.5; addRing(b.x, b.y - 10, 10, 34, '#d6d2df', 0.5); sfx('pop'); }
@@ -2321,7 +2339,10 @@ function drawCat(x, id, breed, cx, by, o) {
     x.fillStyle = '#ffffff'; x.fillRect(cx - 4 * P, y0 + 0.5 * P, P, P * 1.5);
     x.fillStyle = '#ff5a5a'; x.fillRect(cx + 4.5 * P, y0 - 2.5 * P, P, P); x.fillStyle = OUT; x.fillRect(cx + 4.8 * P, y0 - 1.5 * P, P * 0.4, P * 1.8);
   }
-  if (o.web > 0 && o.iced) { x.fillStyle = 'rgba(170,230,255,.6)'; x.fillRect(cx - 7 * P, by - 14 * P, 14 * P, 14 * P); x.strokeStyle = '#e8fbff'; x.lineWidth = 2; x.strokeRect(cx - 7 * P, by - 14 * P, 14 * P, 14 * P); }
+  if (o.web > 0 && o.dizzy) {
+    for (let i = 0; i < 3; i++) { const a = (o.t || 0) * 6 + i * 2.1; x.fillStyle = i % 2 ? '#ffd23f' : '#ff4a4a'; x.fillRect(cx + Math.cos(a) * 7 * P - P, by - 15 * P + Math.sin(a) * 1.5 * P, 2 * P, 2 * P); }
+  }
+  else if (o.web > 0 && o.iced) { x.fillStyle = 'rgba(170,230,255,.6)'; x.fillRect(cx - 7 * P, by - 14 * P, 14 * P, 14 * P); x.strokeStyle = '#e8fbff'; x.lineWidth = 2; x.strokeRect(cx - 7 * P, by - 14 * P, 14 * P, 14 * P); }
   else if (o.web > 0) drawSpr(x, sprite('web', 'web'), cx, by, sc * 1.3, false, 0.85);
 }
 function catURL(id, breed, scale) {
@@ -2434,7 +2455,7 @@ function draw() {
   for (const it of list) {
     if (it.tw) {
       const tw = it.tw;
-      drawCat(ctx, tw.id, breedOf(tw.id), tw.x, tw.y + 9, {t: tw.t, hop: tw.hop, anim: tw.anim, flip: tw.face, blink: tw.blink < 0, web: tw.webT, iced: tw.iced});
+      drawCat(ctx, tw.id, breedOf(tw.id), tw.x, tw.y + 9, {t: tw.t, hop: tw.hop, anim: tw.anim, flip: tw.face, blink: tw.blink < 0, web: tw.webT, iced: tw.iced, dizzy: tw.dizzy});
       for (let i = 0; i < tw.lv; i++) { ctx.fillStyle = OUT; ctx.fillRect(tw.x - 10 + i * 4.5, tw.y + 10, 4, 4); ctx.fillStyle = '#ffd23f'; ctx.fillRect(tw.x - 9.5 + i * 4.5, tw.y + 10.5, 3, 3); }
       if (tw.buff > 0) { ctx.fillStyle = '#ff7aa2'; ctx.fillRect(tw.x + 10, tw.y - 22 + Math.sin(tw.t * 4) * 2, 3, 3); }
       if (tw === G.selTower) { ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 2; ctx.strokeRect(tw.x - 13, tw.y - 18, 26, 32); }
@@ -2693,7 +2714,7 @@ function levelIntro(L, hard) {
   openModal('<h2>' + tr('Level {n}', {n: L}) + '</h2><div class="muted">' + WORLDS[w].icon + ' ' + tr(WORLDS[w].name) + (boss ? ' · <b style="color:#c92a31">' + tr('BOSS LEVEL') + '</b>' : '') + '</div>' +
     '<div class="tabs" style="margin-top:8px"><button class="btn' + (!hard ? ' cur' : '') + '" id="iNorm">🐾 ' + tr('Normal') + '</button>' +
     '<button class="btn' + (hard ? ' cur' : '') + (hardOpen ? '' : ' dis') + '" id="iHard">' + (hardOpen ? '👑 ' : '🔒 ') + tr('Hard') + '</button></div>' +
-    (hard ? '<div class="card" style="margin:6px 0;background:#ffe0e0"><b>' + tw.icon + ' ' + tr('Twist') + ': ' + tr(tw.name) + '</b><div class="muted">' + tr(tw.desc) + ' ' + tr('Bugs are tougher and you start with less fish.') + '</div></div>' : '') +
+    (hard ? '<div class="card" style="margin:6px 0;background:#ffe0e0"><b>' + tw.icon + ' ' + tr('Twist') + ': ' + tr(tw.name) + '</b><div class="muted">' + tr(tw.desc) + ' ' + tr('Bugs are tougher and you start with less fish.') + (BOSS_OF[L] ? '<br>💀 ' + tr('The boss attacks your cats!') : '') + '</div></div>' : '') +
     '<div class="bigstars">' + [1, 2, 3].map(k => starImg(k <= best).replace('<img', '<img class="pxi in' + (k <= best ? '' : ' off') + '"')).join('') + '</div>' +
     (hard && S.bestH[L] ? '<p>👑 ' + tr('Crown earned!') + '</p>' : '') +
     '<p><b>' + tr('{n} waves', {n: nW}) + '</b></p>' +
@@ -3383,6 +3404,7 @@ function newBugTip(k) {
 }
 function bossTip() {
   const k = G.queue.map(q => q.type).find(t => BUGS[t].boss);
+  if (k && G.hard && !S.tut.hardBoss) { S.tut.hardBoss = 1; save(); setTimeout(() => showTip('💀 <b>' + tr('Hard: bosses knock out your cats for a moment!') + '</b>', {img: bugURL(k, 2), auto: 5000}), 500); return; }
   if (!k || S.tut['boss_' + k]) return;
   S.tut['boss_' + k] = 1; save();
   setTimeout(() => showTip('<b>' + tr('BOSS: {b}!', {b: tr(BUGS[k].name)}) + '</b><br>' + tr(BUGS[k].desc) + '<br>' + tr('It eats {n} veggies if it gets through!', {n: BUGS[k].lv}), {img: bugURL(k, 2), auto: 6000}), 500);
