@@ -663,7 +663,7 @@ const FR = {
   'Unlock Cat Mastery in Skills to make this cat a MASTER': 'Débloque la Maîtrise dans Talents pour en faire un MAÎTRE',
   'Support cats': 'Chats de soutien',
   'Support cats can sit anywhere on the grass!': 'Les chats de soutien vont partout sur l’herbe !',
-  'Fisher and Cheer cats can sit anywhere: tap the grass!': 'Pêcheur et Meneur vont partout : touche l’herbe !',
+  'Fisher, Cheer and Sleepy cats can sit anywhere: tap the grass!': 'Pêcheur, Meneur et Dodo vont partout : touche l’herbe !',
 };
 /* =====================================================================
    5. PIXEL ART — every picture is a tiny text grid.
@@ -1530,7 +1530,7 @@ const pwOpen = () => POWERS.filter(p => !p.unlock || S.pwOpen[p.id]);
 /* Cat Mastery: unlock with stars, then master ONE level-5 cat per level */
 const MASTERY_COST = 8, MASTER_FISH = 2;
 /* support cats can sit on any free grass tile, not only on cushions */
-const SUPPORT = ['fish', 'cheer'];
+const SUPPORT = ['fish', 'cheer', 'sleepy'];
 /* Lucky boosts: bought with stars before a level, for that level only */
 const BOOSTS = [
   {id: 'lfish', icon: '🍀', name: 'Lucky Fish', desc: '+25% fish', cost: 2},
@@ -3334,7 +3334,7 @@ function openBuild(spot) {
     h += '<div class="placebar"><div class="pinfo"><b>' + tr(c.name) + '</b><br>' + tr(c.desc) + '</div>' +
       '<button class="btn green' + (G.coins < catCost(c) ? ' dis' : '') + '" id="shPlace" data-cost="' + catCost(c) + '">✔ ' + tr('Place') + '<br>' + ICO('fishy') + catCost(c) + '</button></div>';
   } else h += '<p class="muted center" style="margin:8px 0 0">' + tr('Tap a cat, then tap it again to place it.') + '</p>' +
-    (!free && SUPPORT.some(id => catOpen(CAT[id])) ? '<p class="muted center" style="margin:4px 0 0;font-size:12px">🌿 ' + tr('Fisher and Cheer cats can sit anywhere: tap the grass!') + '</p>' : '');
+    (!free && SUPPORT.some(id => catOpen(CAT[id])) ? '<p class="muted center" style="margin:4px 0 0;font-size:12px">🌿 ' + tr('Fisher, Cheer and Sleepy cats can sit anywhere: tap the grass!') + '</p>' : '');
   $('sheet').innerHTML = h; $('sheet').classList.add('on');
   bindBtn('shX', closeSheet);
   document.querySelectorAll('[data-pick]').forEach(b => b.onclick = e => {
