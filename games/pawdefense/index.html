@@ -74,6 +74,19 @@ img.pxi{image-rendering:pixelated}
 .pw .n{position:absolute;right:-7px;top:-9px;background:var(--bad);color:#fff;border:2px solid var(--ink);font-size:12px;min-width:21px;padding:1px 3px;text-shadow:none}
 .pw.on{background:var(--gold);animation:wob .5s infinite alternate}
 .pw.gift{animation:gift .9s 2}
+.pw[hidden]{display:none}
+#bot.many .pw{width:42px}#bot.many .pw img{width:26px;height:26px}#bot.many #bWave{font-size:14px}
+.boosts{display:flex;gap:5px;margin:6px 0}
+.boost{flex:1;border:3px solid var(--ink);background:#fff;padding:5px 2px;font-size:12px;font-weight:900;line-height:1.15;font-family:inherit;color:var(--ink)}
+.boost .bi{font-size:22px;display:block}
+.boost.on{background:var(--gold);box-shadow:inset 0 -4px 0 rgba(0,0,0,.15)}
+.boost.dis{opacity:.45}
+.mst{background:linear-gradient(#fff6c0,#ffd23f)!important}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.mcell{border:3px solid var(--ink);background:#fff;padding:3px 1px;font-family:inherit;color:var(--ink);font-size:11px;font-weight:800;display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.mcell img{width:38px;image-rendering:pixelated}.mcell b{font-size:13px;margin-top:2px}.mcell b img{width:14px}
+.mcell.on{background:linear-gradient(#fff6c0,#ffd23f)}.mcell.dis{opacity:.5}
+.masterTag{display:inline-block;background:#ffd23f;border:2px solid var(--ink);padding:0 5px;font-size:12px;margin-left:4px}
 @keyframes gift{0%{transform:scale(1)}30%{transform:scale(1.25) rotate(-6deg);background:var(--gold)}60%{transform:scale(1.1) rotate(6deg)}100%{transform:scale(1)}}
 @keyframes wob{to{transform:translateY(-3px)}}
 #bWave{flex:1;height:48px;font-size:16px;min-width:0}
@@ -264,6 +277,8 @@ img.pxi{image-rendering:pixelated}
       <button class="btn pw" data-pw="bomb"><img alt=""><span class="n">0</span></button>
       <button class="btn pw" data-pw="laser"><img alt=""><span class="n">0</span></button>
       <button class="btn pw" data-pw="nap"><img alt=""><span class="n">0</span></button>
+      <button class="btn pw" data-pw="fishrain" hidden><img alt=""><span class="n">0</span></button>
+      <button class="btn pw" data-pw="paw" hidden><img alt=""><span class="n">0</span></button>
       <button id="bWave" class="btn org"></button>
     </div>
     <div id="sheet" class="sheet"></div>
@@ -347,7 +362,7 @@ function defaults() {
     skills: {},          // cat id -> rank 0..4
     garden: {lives: 0, coins: 0, refund: 0, bargain: 0, power: 0},
     skillSpent: 0,
-    pw: {bomb: 1, laser: 1, nap: 1},
+    pw: {bomb: 1, laser: 1, nap: 1, fishrain: 0, paw: 0},
     breedOwn: {tabby: 1, grey: 1},
     breedPick: {},       // cat id -> breed id
     seen: {},            // bug id -> 1 (album)
@@ -355,6 +370,8 @@ function defaults() {
     stats: {kills: 0, maxCombo: 0, early: 0, spent: 0, pwUsed: 0, boss: {}, noLossBoss: 0, max5: 0, full: 0},
     endless: {},         // world -> best wave
     rebirths: 0,         // times the player rebirthed after finishing all levels
+    pwOpen: {},          // super power-ups unlocked
+    mastery: {},         // cat id -> can be mastered
     endlessPaid: {},     // world -> milestone already paid
     comics: {},          // world -> seen
     tut: {},
@@ -619,6 +636,31 @@ const FR = {
   'Resets': 'Remis à zéro', 'You keep': 'Tu gardes', 'levels, stars on levels, crowns': 'niveaux, étoiles des niveaux, couronnes',
   'skills, star wallet, breeds, goals, power-ups, Endless records': 'talents, étoiles à dépenser, races, objectifs, bonus, records Sans fin',
   'damage': 'dégâts', 'fish': 'poissons', 'health': 'vie', 'Phoenix': 'Phénix', 'Rebirth once': 'Renaître une fois',
+  'Fish Rain': 'Pluie de poissons',
+  'Fish fall from the sky: lots of fish right now!': 'Des poissons tombent du ciel : plein de poissons tout de suite !',
+  'Giant Paw': 'Patte géante',
+  'A giant paw squishes the toughest bug.': 'Une patte géante écrase le bug le plus fort.',
+  'No bugs to squish!': 'Pas de bug à écraser !',
+  'SQUISH!': 'ÉCRASÉ !',
+  'MASTER!': 'MAÎTRE !',
+  'MASTER': 'MAÎTRE',
+  'Lucky Fish': 'Poisson chanceux',
+  'Extra Veggies': 'Légumes en plus',
+  'Head Start': 'Bon départ',
+  '+25% fish': '+25% de poissons',
+  '+5 veggies': '+5 légumes',
+  '+150 start fish': '+150 poissons au départ',
+  'SUPER': 'SUPER',
+  'Cat Mastery': 'Maîtrise des chats',
+  'Unlock a cat. In a game, a level 5 cat can become MASTER: its powers x2! Only 1 master per game.': 'Débloque un chat. En partie, un chat niveau 5 peut devenir MAÎTRE : ses pouvoirs x2 ! 1 seul maître par partie.',
+  'Ready': 'Prêt',
+  'Super power-ups': 'Super pouvoirs',
+  '{c} can be mastered!': '{c} peut devenir maître !',
+  'Lucky boosts (this game only)': 'Coups de chance (cette partie seulement)',
+  'powers x2': 'pouvoirs x2',
+  'You already have a master this game': 'Tu as déjà un maître dans cette partie',
+  'Make MASTER (powers x2)': 'Devenir MAÎTRE (pouvoirs x2)',
+  'Unlock Cat Mastery in Skills to make this cat a MASTER': 'Débloque la Maîtrise dans Talents pour en faire un MAÎTRE',
 };
 /* =====================================================================
    5. PIXEL ART — every picture is a tiny text grid.
@@ -1150,6 +1192,8 @@ const SPR = {
   tricorn: ["..oooooooo..", ".oHHHHHHHHo.", "oHHHWHHWHHHo", "oHHHHWWHHHHo", ".oooooooooo."],
   beanie: ["....oo....", "...oWWo...", ".ooHHHHoo.", "oHHHHHHHHo", "oBBBBBBBBo"],
   bow: ["oo..oo", "oPooPo", "oPPPPo", "oPooPo", "oo..oo"],
+  fishrain: ["....oooo....", "..oowwwwoo..", ".owwwwwwwwo.", "owwwwwwwwwwo", "owwwwwwwwwwo", ".oooooooooo.", "............", ".aa.....aa..", "aaak...aaak.", ".aa..aa..aa.", "....aaak....", ".....aa....."],
+  paw: ["...oo..oo...", "..oppooppo..", "..oppooppo..", "oo.oo..oo.oo", "oppo....oppo", "oppo.oo.oppo", ".oo.oppo.oo.", "...oppppo...", "..oppppppo..", ".oppppppppo.", ".oppppppppo.", "..oooooooo.."],
   web: [
     "o...o...o",
     ".o..o..o.",
@@ -1204,6 +1248,8 @@ const PALS = {
   nap: {o: OUT, y: '#ffe680', z: '#bfe1ff'},
   web: {o: '#e8e8f0'},
   crown: {o: OUT, y: '#ffd23f', r: '#e8483c'},
+  paw: {o: OUT, p: '#ffb3c8'},
+  fishrain: {o: OUT, w: '#ffffff', a: '#3a9be0', k: OUT},
   cushion4: {o: OUT, c: '#3fbfb0', d: '#c8fff6'},
   cushion5: {o: OUT, c: '#7aa8e8', d: '#ffffff'},
   cushion6: {o: OUT, c: '#7fdcb0', d: '#ffd0e8'},
@@ -1473,6 +1519,18 @@ const POWERS = [
   {id: 'bomb', name: 'Catnip Bomb', cost: 3, desc: 'Boom! Big damage where you tap.'},
   {id: 'laser', name: 'Laser Pointer', cost: 2, desc: 'All bugs chase the red dot backwards.'},
   {id: 'nap', name: 'Nap Time', cost: 2, desc: 'Every bug falls asleep for a moment.'},
+  {id: 'fishrain', name: 'Fish Rain', cost: 3, desc: 'Fish fall from the sky: lots of fish right now!', unlock: 10},
+  {id: 'paw', name: 'Giant Paw', cost: 4, desc: 'A giant paw squishes the toughest bug.', unlock: 12},
+];
+/* power-ups you own (super ones must be unlocked with stars first) */
+const pwOpen = () => POWERS.filter(p => !p.unlock || S.pwOpen[p.id]);
+/* Cat Mastery: unlock with stars, then master ONE level-5 cat per level */
+const MASTERY_COST = 8, MASTER_FISH = 2;
+/* Lucky boosts: bought with stars before a level, for that level only */
+const BOOSTS = [
+  {id: 'lfish', icon: '🍀', name: 'Lucky Fish', desc: '+25% fish', cost: 2},
+  {id: 'veg', icon: '🥕', name: 'Extra Veggies', desc: '+5 veggies', cost: 2},
+  {id: 'start', icon: '💰', name: 'Head Start', desc: '+150 start fish', cost: 3},
 ];
 
 /* ---- skill tree. Cat branch: 4 steps in order, costs 1,2,3,4 stars ---- */
@@ -1560,6 +1618,7 @@ function catOpen(c) { return S.unlocked >= c.unlock; }
    update(): spawn bugs -> move bugs -> cats attack -> shots fly -> effects
 ===================================================================== */
 let G = null; // the level being played
+let pendingBoosts = null; // lucky boosts bought for the next level
 
 /* ---------- maps ---------- */
 function shapePts(key) {
@@ -1711,11 +1770,14 @@ function newGame(mode, L, w, hard) {
   let coins = (mode === 'endless' ? CONFIG.START_COINS + CONFIG.START_COINS_PER_LEVEL * (10 * w + 4) : CONFIG.START_COINS + CONFIG.START_COINS_PER_LEVEL * (L - 1)) + 25 * S.garden.coins;
   coins = Math.round(coins * rbBonus());
   if (hard) coins = Math.round(coins * HARD.COINS);
+  const boosts = pendingBoosts || {}; pendingBoosts = null;
+  if (boosts.start) coins += 150;
+  const extraV = boosts.veg ? 5 : 0;
   G = {
     mode, L, w, map, hard, twist: hard ? twistOf(L).id : null, traps: [], meteors: [],
     waves: mode === 'endless' ? null : genWaves(L, map.paths.length),
     wi: 0, queue: [], countdown: null, started: false,
-    lives, maxLives: lives, coins, shownCoins: coins,
+    lives: lives + extraV, maxLives: lives + extraV, coins, shownCoins: coins, boosts, masterUsed: false,
     towers: [], bugs: [], projs: [], parts: [], texts: [], rings: [], zaps: [], slashes: [],
     combo: {n: 0, t: 0}, napT: 0, laserT: 0, time: 0, state: 'play', revived: false, shake: 0,
     selSpot: null, selTower: null, pick: null, pmode: null, lostAny: false, kills: 0, earned: 0, hurtT: 0,
@@ -1736,7 +1798,7 @@ function addCoins(n) { G.coins += n; G.earned += Math.max(0, n); }
 function tstats(tw) {
   const c = CAT[tw.id], lv = tw.lv, r = S.skills[c.id] || 0, buff = tw.buff || 0;
   const sp = r >= 4;
-  return {
+  const st = {
     c, sp,
     dmg: (c.dmg || 0) * Math.pow(CONFIG.UPGRADE_DMG, lv - 1) * (r >= 1 ? 1.15 : 1) * (1 + buff) * rbBonus(),
     range: (c.range || 0) * (1 + CONFIG.UPGRADE_RANGE * (lv - 1)) * (r >= 2 ? 1.1 : 1) * T,
@@ -1750,6 +1812,25 @@ function tstats(tw) {
     income: c.id === 'fish' ? Math.round(c.income[lv - 1] * (sp ? 1.5 : 1)) : 0,
     splash: c.id === 'hair' ? c.splash * (sp ? 1.3 : 1) * (1 + 0.05 * (lv - 1)) * T : 0,
   };
+  /* MASTERED cat: its abilities are doubled */
+  if (tw.master) {
+    st.master = true; st.range *= 1.1;
+    if (c.kind === 'beam' || c.kind === 'trap' || c.kind === 'aura') st.dmg *= 2; else st.rate *= 2;
+    st.chain *= 2; st.shots *= 2; st.income *= 2; st.buff *= 2; st.stun *= 2; st.splash *= 1.4;
+    if (st.slow) st.slow = Math.min(0.85, st.slow * 1.5);
+  }
+  return st;
+}
+function canMaster(tw) { return tw.lv >= 5 && S.mastery[tw.id] && !tw.master && !G.masterUsed; }
+const masterCost = tw => Math.round(catCost(CAT[tw.id]) * MASTER_FISH);
+function masterCat(tw) {
+  const cost = masterCost(tw);
+  if (!canMaster(tw) || G.coins < cost) return false;
+  G.coins -= cost; tw.spent += cost; tw.master = true; G.masterUsed = true; tw.hop = 0.5;
+  addRing(tw.x, tw.y, 4, 40, '#ffd23f', 0.6); addRing(tw.x, tw.y, 2, 26, '#fff6c0', 0.4);
+  for (let i = 0; i < 24; i++) addPart(tw.x + rand(-12, 12), tw.y + rand(-14, 6), rand(-60, 60), rand(-140, -40), pick(['#ffd23f', '#fff6c0', '#ff9a3d']), 0.8, 3);
+  G.shake = 6; sfx('combo'); banner('✨ ' + tr('MASTER!'));
+  return true;
 }
 function placeCat(spot, id) {
   const c = CAT[id], cost = catCost(c);
@@ -1814,7 +1895,7 @@ function hurt(b, dmg, o) {
 function killBug(b) {
   if (b.dead) return;
   b.dead = true;
-  const rew = Math.max(1, Math.round(b.B.rew * rewLevel(levelEq())));
+  const rew = Math.max(1, Math.round(b.B.rew * rewLevel(levelEq()) * (G.boosts && G.boosts.lfish ? 1.25 : 1)));
   addCoins(rew);
   S.stats.kills++; G.kills++;
   G.combo.n++; G.combo.t = CONFIG.COMBO_WINDOW;
@@ -1891,7 +1972,7 @@ function launchWave(early) {
 /* ---------- power-ups ---------- */
 /* gives 1 random power-up, returns a small label like "🧪 Nap Time" */
 function giftPw() {
-  const p = pick(POWERS); S.pw[p.id] = (S.pw[p.id] || 0) + 1; save();
+  const p = pick(pwOpen()); S.pw[p.id] = (S.pw[p.id] || 0) + 1; save();
   if (typeof refreshPw === 'function' && screen === 'game') refreshPw();
   return '<img class="ico" src="' + sprURL(p.id, p.id) + '" alt=""> ' + tr(p.name) + ' +1';
 }
@@ -1908,6 +1989,19 @@ function usePower(id, x, y) {
     G.shake = 10; sfx('boom');
   } else if (id === 'laser') { G.laserT = CONFIG.LASER_TIME * powerMult(); sfx('zap'); banner(tr('Chase the dot!')); }
   else if (id === 'nap') { G.napT = CONFIG.NAP_TIME * powerMult(); sfx('nap'); banner(tr('Nap time!')); }
+  else if (id === 'fishrain') {
+    const n = Math.round((60 + 15 * levelEq()) * powerMult() * rbBonus());
+    addCoins(n); hudBump('hCoins'); banner('🐟 +' + n);
+    for (let i = 0; i < 40; i++) addPart(rand(0, W), rand(-40, 60), rand(-20, 20), rand(40, 160), pick(['#6ec6ff', '#9fe0ff', '#ffd23f']), rand(0.8, 1.6), 4);
+    sfx('coin');
+  } else if (id === 'paw') {
+    let tg = null; for (const b of G.bugs) if (!b.dead && (!tg || b.hp > tg.hp)) tg = b;
+    if (!tg) { S.pw[id]++; save(); toast(tr('No bugs to squish!')); return false; }
+    if (tg.B.boss) hurt(tg, tg.max * 0.3 * powerMult(), {magic: 1, pierce: 1}); else { tg.sh = 0; tg.invT = 0; hurt(tg, tg.hp + 1, {magic: 1, pierce: 1}); }
+    addRing(tg.x, tg.y, 6, 60, '#ffb3c8', 0.5); addRing(tg.x, tg.y, 3, 34, '#fff', 0.3);
+    for (let i = 0; i < 20; i++) addPart(tg.x, tg.y, rand(-120, 120), rand(-150, -20), pick(['#ffb3c8', '#fff', '#c8402f']), 0.6, 4);
+    G.shake = 12; sfx('slam'); banner('🐾 ' + tr('SQUISH!'));
+  }
   return true;
 }
 
@@ -2479,6 +2573,8 @@ function draw() {
   for (const it of list) {
     if (it.tw) {
       const tw = it.tw;
+      if (tw.master) { ctx.fillStyle = 'rgba(255,210,63,' + (0.35 + Math.sin(G.time * 5) * 0.15) + ')'; ctx.beginPath(); ctx.ellipse(tw.x, tw.y + 8, 15, 6, 0, 0, 7); ctx.fill();
+        if (Math.random() < 0.15) addPart(tw.x + rand(-10, 10), tw.y - rand(0, 20), 0, -30, '#ffe680', 0.6, 2); }
       drawCat(ctx, tw.id, breedOf(tw.id), tw.x, tw.y + 9, {t: tw.t, hop: tw.hop, anim: tw.anim, flip: tw.face, blink: tw.blink < 0, web: tw.webT, iced: tw.iced, dizzy: tw.dizzy});
       for (let i = 0; i < tw.lv; i++) { ctx.fillStyle = OUT; ctx.fillRect(tw.x - 10 + i * 4.5, tw.y + 10, 4, 4); ctx.fillStyle = '#ffd23f'; ctx.fillRect(tw.x - 9.5 + i * 4.5, tw.y + 10.5, 3, 3); }
       if (tw.buff > 0) { ctx.fillStyle = '#ff7aa2'; ctx.fillRect(tw.x + 10, tw.y - 22 + Math.sin(tw.t * 4) * 2, 3, 3); }
@@ -2746,6 +2842,7 @@ function rebirthModal() {
   bindBtn('rbNo', closeModal);
 }
 function levelBugs(L) { const set = new Set(); genWaves(L, 1).forEach(w => w.forEach(e => set.add(e.type))); return BUG_ORDER.filter(k => set.has(k)); }
+let introBoost = {};
 function levelIntro(L, hard) {
   const w = worldOf(L);
   const hardOpen = (S.best[L] || 0) > 0; if (!hardOpen) hard = false;
@@ -2764,11 +2861,27 @@ function levelIntro(L, hard) {
     levelBugs(L).map(k => '<img class="pxi" style="height:34px" src="' + bugURL(k, 3) + '" alt="">').join('') + '</div></div>' +
     (nc ? '<div class="card" style="margin:8px 0;display:flex;gap:8px;align-items:center"><img class="pxi" style="width:56px" src="' + catURL(nc.id, breedOf(nc.id)) + '" alt=""><div style="text-align:left"><b>' + tr('New cat: {c}!', {c: tr(nc.name)}) + '</b><div class="muted">' + tr(nc.desc) + '</div></div></div>' : '') +
     '<p class="muted">' + starIco() + '3 = ' + tr('lose 2 veggies or less') + '</p>' +
+    (S.unlocked > 3 ? '<div class="muted" style="margin-top:4px">🍀 ' + tr('Lucky boosts (this game only)') + '</div><div class="boosts">' + BOOSTS.map(b => '<button class="boost' + (introBoost[b.id] ? ' on' : '') + '" data-bo="' + b.id + '"><span class="bi">' + b.icon + '</span>' + tr(b.desc) + '<br>' + starIco() + b.cost + '</button>').join('') + '</div>' : '') +
     '<button class="btn ' + (hard ? 'bad' : 'org') + ' wide" id="iPlay" style="font-size:20px">▶ ' + (hard ? tr('Play on Hard') : tr('Play')) + '</button><button class="btn wide" id="iNo">' + tr('Close') + '</button>');
-  bindBtn('iPlay', () => { closeModal(); startPlay(L, hard); });
+  const boostCost = () => BOOSTS.reduce((s, b) => s + (introBoost[b.id] ? b.cost : 0), 0);
+  const paintBoosts = () => document.querySelectorAll('[data-bo]').forEach(el => {
+    const b = BOOSTS.find(x => x.id === el.dataset.bo), on = !!introBoost[b.id];
+    el.classList.toggle('on', on); el.classList.toggle('dis', !on && S.stars < boostCost() + b.cost);
+  });
+  document.querySelectorAll('[data-bo]').forEach(el => el.onclick = () => {
+    const b = BOOSTS.find(x => x.id === el.dataset.bo);
+    if (!introBoost[b.id] && S.stars < boostCost() + b.cost) { sfx('no'); toast(tr('Not enough stars')); return; }
+    introBoost[b.id] = !introBoost[b.id]; sfx('ui'); paintBoosts();
+  });
+  paintBoosts();
+  bindBtn('iPlay', () => {
+    const c = boostCost();
+    if (c && S.stars >= c) { S.stars -= c; pendingBoosts = Object.assign({}, introBoost); save(); }
+    introBoost = {}; closeModal(); startPlay(L, hard);
+  });
   bindBtn('iNorm', () => levelIntro(L, false));
   bindBtn('iHard', () => { if (!hardOpen) { sfx('no'); toast(tr('Win this level on Normal first')); return; } levelIntro(L, true); });
-  bindBtn('iNo', closeModal);
+  bindBtn('iNo', () => { introBoost = {}; closeModal(); });
 }
 function endlessIntro(w) {
   openModal('<h2>♾️ ' + tr('Endless') + '</h2><div class="muted">' + WORLDS[w].icon + ' ' + tr(WORLDS[w].name) + '</div>' +
@@ -2881,6 +2994,17 @@ function skillsHtml() {
       '<div class="chips">' + ['🗡️', '👁️', '⚡', '★'].map((e, i) => '<div class="chip' + (i < r ? ' on' : '') + '" title="">' + (i < r ? '✔' : e) + '</div>').join('') + '</div>' +
       (open && r < 4 ? '<button class="btn small ' + (S.stars >= CAT_SKILL_COST[r] ? 'gold' : 'dis') + '" data-cs="' + c.id + '">' + starIco() + CAT_SKILL_COST[r] + '</button>' : '') + '</div>';
   });
+  h += '</div><div class="card" style="background:#fff8dc"><h3>✨ ' + tr('Cat Mastery') + '</h3><p class="muted" style="margin:0 0 4px">' + tr('Unlock a cat. In a game, a level 5 cat can become MASTER: its powers x2! Only 1 master per game.') + '</p>';
+  h += '<div class="mgrid">' + CATS.filter(catOpen).map(c => {
+    const m = S.mastery[c.id];
+    return '<button class="mcell' + (m ? ' on' : S.stars >= MASTERY_COST ? '' : ' dis') + '" data-ms="' + c.id + '"><img src="' + catURL(c.id, breedOf(c.id)) + '" alt=""><span>' + tr(c.name).replace(/ ?(Cat|Chat) ?/, '') + '</span><b>' + (m ? '✨' : starIco() + MASTERY_COST) + '</b></button>';
+  }).join('') + '</div>';
+  h += '</div><div class="card"><h3>🧪 ' + tr('Super power-ups') + '</h3>';
+  POWERS.filter(p => p.unlock).forEach(p => {
+    const o = S.pwOpen[p.id];
+    h += '<div class="sk"><img class="ci" style="width:36px;height:36px' + (o ? '' : ';filter:grayscale(1)') + '" src="' + sprURL(p.id, p.id, 4) + '" alt=""><div class="nm">' + tr(p.name) + '<small>' + tr(p.desc) + '</small></div>' +
+      (o ? '<b class="muted">✔</b>' : '<button class="btn small ' + (S.stars >= p.unlock ? 'gold' : 'dis') + '" data-pwu="' + p.id + '">🔓 ' + starIco() + p.unlock + '</button>') + '</div>';
+  });
   h += '</div><p class="muted center">' + tr('Get stars by winning levels, goals and gifts.') + '</p>' +
     '<button class="btn wide" id="skReset">↺ ' + tr('Reset skills (free, get all stars back)') + '</button>';
   return h;
@@ -2896,8 +3020,18 @@ function bindSkills() {
     if (r >= 4 || S.stars < CAT_SKILL_COST[r]) { sfx('no'); toast(tr('Not enough stars')); return; }
     S.stars -= CAT_SKILL_COST[r]; S.skillSpent += CAT_SKILL_COST[r]; S.skills[id] = r + 1; save(); sfx('up'); keepScroll(() => showMenu('skills'));
   });
+  document.querySelectorAll('[data-ms]').forEach(b => b.onclick = () => {
+    const id = b.dataset.ms;
+    if (S.mastery[id]) { toast('✨ ' + tr('{c} can be mastered!', {c: tr(CAT[id].name)})); return; }
+    if (S.stars < MASTERY_COST) { sfx('no'); toast(tr('Not enough stars')); return; }
+    S.stars -= MASTERY_COST; S.skillSpent += MASTERY_COST; S.mastery[id] = 1; save(); sfx('up');
+    toast('✨ ' + tr('{c} can be mastered!', {c: tr(CAT[id].name)})); keepScroll(() => showMenu('skills'));
+  });
+  bindPwUnlock('skills');
   bindBtn('skReset', () => {
     let back = 0;
+    for (const id in S.mastery) if (S.mastery[id]) back += MASTERY_COST;
+    S.mastery = {};
     GARDEN_SKILLS.forEach(g => { for (let i = 0; i < (S.garden[g.id] || 0); i++) back += g.cost[i]; S.garden[g.id] = 0; });
     CATS.forEach(c => { for (let i = 0; i < (S.skills[c.id] || 0); i++) back += CAT_SKILL_COST[i]; S.skills[c.id] = 0; });
     S.stars += back; save(); toast(starIco() + ' +' + back); showMenu('skills');
@@ -3021,7 +3155,12 @@ function freeAdLeft() { return Math.max(0, Math.ceil((S.freeAdAt + CONFIG.FREE_A
 function shopHtml() {
   let h = '<div class="card"><h3>🧪 ' + tr('Power-ups') + '</h3>';
   POWERS.forEach(p => {
-    h += '<div class="sk"><img class="ci" style="width:36px;height:36px" src="' + sprURL(p.id, p.id, 4) + '" alt=""><div class="nm">' + tr(p.name) + ' <span class="st">x' + (S.pw[p.id] || 0) + '</span><small>' + tr(p.desc) + '</small></div>' +
+    if (p.unlock && !S.pwOpen[p.id]) {
+      h += '<div class="sk" style="background:#fff3d6"><img class="ci" style="width:36px;height:36px;filter:grayscale(1)" src="' + sprURL(p.id, p.id, 4) + '" alt=""><div class="nm">🔒 ' + tr(p.name) + ' <span class="masterTag">' + tr('SUPER') + '</span><small>' + tr(p.desc) + '</small></div>' +
+        '<button class="btn small ' + (S.stars >= p.unlock ? 'gold' : 'dis') + '" data-pwu="' + p.id + '">🔓 ' + starIco() + p.unlock + '</button></div>';
+      return;
+    }
+    h += '<div class="sk"><img class="ci" style="width:36px;height:36px" src="' + sprURL(p.id, p.id, 4) + '" alt=""><div class="nm">' + tr(p.name) + (p.unlock ? ' <span class="masterTag">' + tr('SUPER') + '</span>' : '') + ' <span class="st">x' + (S.pw[p.id] || 0) + '</span><small>' + tr(p.desc) + '</small></div>' +
       '<div style="display:flex;flex-direction:column;gap:5px"><button class="btn small ' + (S.stars >= p.cost ? 'gold' : 'dis') + '" data-buy="' + p.id + '">' + starIco() + p.cost + '</button>' +
       '<button class="btn small sky" data-ad="' + p.id + '">📺 ' + tr('Free') + '</button></div></div>';
   });
@@ -3039,7 +3178,17 @@ function bindShop() {
     if (freeAdLeft()) { sfx('no'); toast(tr('Next free ad in {s}s', {s: freeAdLeft()})); return; }
     rewardAd().then(ok => { if (!ok) return; S.freeAdAt = now(); S.pw[b.dataset.ad] = (S.pw[b.dataset.ad] || 0) + 1; save(); sfx('coin'); toast('+1 ' + tr(POWERS.find(x => x.id === b.dataset.ad).name)); if (screen === 'shop') keepScroll(() => showMenu('shop')); });
   });
+  bindPwUnlock('shop');
   bindPaidShop();
+}
+/* unlock a super power-up with stars (you also get 1 to try) */
+function bindPwUnlock(back) {
+  document.querySelectorAll('[data-pwu]').forEach(b => b.onclick = () => {
+    const p = POWERS.find(x => x.id === b.dataset.pwu);
+    if (S.pwOpen[p.id] || S.stars < p.unlock) { sfx('no'); toast(tr('Not enough stars')); return; }
+    S.stars -= p.unlock; S.pwOpen[p.id] = 1; S.pw[p.id] = (S.pw[p.id] || 0) + 1; save(); sfx('up');
+    toast('🔓 ' + tr(p.name) + ' +1'); keepScroll(() => showMenu(back));
+  });
 }
 
 /* ---------- settings ---------- */
@@ -3128,13 +3277,16 @@ function banner(text) { const b = $('banner'); b.textContent = text; b.classList
 function comboEnd(n, bonus) { addText(W / 2, 70, 'x' + n + ' +' + bonus, '#ff9a3d'); toast('🔥 ' + tr('Combo') + ' x' + n + '! ' + ICO('fishy') + ' +' + bonus); sfx('combo'); }
 function refreshPw() {
   document.querySelectorAll('.pw').forEach(b => {
-    const id = b.dataset.pw;
-    b.querySelector('img').src = sprURL(id, id, 4);
+    const id = b.dataset.pw, P = POWERS.find(p => p.id === id);
+    b.hidden = !!(P.unlock && !S.pwOpen[id]);
     b.querySelector('.n').textContent = S.pw[id] || 0;
     b.classList.toggle('on', G && G.pmode === id);
     b.classList.toggle('dis', !!(G && G.hard && G.twist === 'nopw'));
-    b.setAttribute('aria-label', tr(POWERS.find(p => p.id === id).name));
+    if (b.hidden) return;
+    const src = sprURL(id, id, 4), im = b.querySelector('img'); if (im.getAttribute('src') !== src) im.src = src;
+    b.setAttribute('aria-label', tr(P.name));
   });
+  $('bot').classList.toggle('many', pwOpen().length > 3);
 }
 
 /* ---------- build sheet (empty cushion) ---------- */
@@ -3176,8 +3328,8 @@ function openBuild(spot) {
 /* ---------- cat panel (cat on a cushion) ---------- */
 const MODES = [['first', 'First'], ['last', 'Last'], ['strong', 'Strong'], ['close', 'Closest']];
 /* short stats: "now → next level" in one line of chips */
-function statsCompare(c, lv) {
-  const a = tstats({id: c.id, lv, buff: 0}), b = lv < 5 ? tstats({id: c.id, lv: lv + 1, buff: 0}) : null;
+function statsCompare(c, lv, m) {
+  const a = tstats({id: c.id, lv, buff: 0, master: m}), b = lv < 5 ? tstats({id: c.id, lv: lv + 1, buff: 0}) : null;
   const f = v => Math.round(v * 10) / 10, ch = [];
   const add = (ico, x, y) => ch.push(ico + ' ' + x + (b && y !== x ? ' <b style="color:#3f8a32">→ ' + y + '</b>' : ''));
   if (c.dmg) add('🗡️', f(a.dmg), b && f(b.dmg));
@@ -3199,7 +3351,13 @@ function openTower(tw) {
     '<span class="lvpips">' + [1, 2, 3, 4, 5].map(i => '<i class="' + (i <= tw.lv ? 'on' : '') + '"></i>').join('') + '</span><button class="btn small x" id="shX">✕</button></h3>';
   h += '<div class="row">' + (tw.lv < 5 ? '<button class="btn green' + (G.coins < up ? ' dis' : '') + '" id="shUp" data-cost="' + up + '">⬆️ ' + tr('Upgrade') + ' ' + ICO('fishy') + up + '</button>' : '<button class="btn gold dis">⭐ MAX</button>') +
     (canSell() ? '<button class="btn bad" id="shSell" style="flex:.6">' + tr('Sell') + ' +' + sellValue(tw) + '</button>' : '<button class="btn dis" style="flex:.6">🔒 ' + tr('No selling') + '</button>') + '</div>';
-  h += statsCompare(c, tw.lv);
+  if (tw.master) h += '<div class="card mst center" style="margin:4px 0;padding:4px"><b>✨ ' + tr('MASTER') + '</b> · ' + tr('powers x2') + '</div>';
+  else if (tw.lv >= 5 && S.mastery[tw.id]) {
+    const mc = masterCost(tw);
+    h += G.masterUsed ? '<div class="muted center">✨ ' + tr('You already have a master this game') + '</div>'
+      : '<button class="btn gold wide mst' + (G.coins < mc ? ' dis' : '') + '" id="shMaster" data-cost="' + mc + '">✨ ' + tr('Make MASTER (powers x2)') + ' ' + ICO('fishy') + mc + '</button>';
+  } else if (tw.lv >= 5 && !G.masterUsed) h += '<div class="muted center" style="font-size:12px">✨ ' + tr('Unlock Cat Mastery in Skills to make this cat a MASTER') + '</div>';
+  h += statsCompare(c, tw.lv, tw.master);
   if (['proj', 'melee', 'lob', 'chain', 'multi', 'beam', 'trap', 'meteor'].includes(c.kind) || c.dmg)
     h += '<div class="row" style="gap:4px">🎯 ' + MODES.map(m => '<button class="btn small' + (tw.mode === m[0] ? ' gold' : '') + '" data-mode="' + m[0] + '">' + tr(m[1]) + '</button>').join('') + '</div>';
   $('sheet').innerHTML = h; $('sheet').classList.add('on');
@@ -3207,6 +3365,7 @@ function openTower(tw) {
   document.querySelectorAll('[data-mode]').forEach(b => b.onclick = e => { e.stopPropagation(); sfx('ui'); tw.mode = b.dataset.mode; openTower(tw); });
   bindBtn('shUp', () => { if (!upgradeCat(tw)) { sfx('no'); toast(tr('Not enough fish')); return; } openTower(tw); tutEvent('upgraded'); });
   bindBtn('shSell', () => { sellCat(tw); closeSheet(); });
+  bindBtn('shMaster', () => { if (!masterCat(tw)) { sfx('no'); toast(tr('Not enough fish')); return; } openTower(tw); });
   tutEvent('tower');
 }
 function closeSheet() { $('sheet').classList.remove('on'); if (G) { G.selSpot = null; G.selTower = null; G.pick = null; } }
@@ -3435,7 +3594,7 @@ function tutTick() {
 }
 /* every boss fight gives +1 of each power-up */
 function bossGift() {
-  POWERS.forEach(p => S.pw[p.id] = (S.pw[p.id] || 0) + 1);
+  pwOpen().forEach(p => S.pw[p.id] = (S.pw[p.id] || 0) + 1);
   save(); refreshPw(); sfx('combo');
   toast('🎁 ' + tr('Boss fight! +1 of each power-up'));
   document.querySelectorAll('.pw').forEach(b => { b.classList.remove('gift'); void b.offsetWidth; b.classList.add('gift'); });
@@ -3630,7 +3789,7 @@ async function adsInit() { const A = AdMobP(); if (!A) return; try { await A.ini
 function grantSku(sku) {
   if (sku !== PACK.sku || S.pack) return '';
   S.pack = true; S.noAds = true; S.stars += PACK.stars; S.earned += PACK.stars;
-  POWERS.forEach(p => S.pw[p.id] = (S.pw[p.id] || 0) + 2);
+  pwOpen().forEach(p => S.pw[p.id] = (S.pw[p.id] || 0) + 2);
   checkBreeds(); S.breedOwn.golden = 1;
   return '✨ ' + tr('Golden cat breed') + '<br>' + starIco() + ' +' + PACK.stars + ' ' + tr('stars') + '<br>🧪 +2 ' + tr('of each power-up') + '<br>📺 ' + tr('Ad rewards without ads');
 }
@@ -3751,7 +3910,7 @@ showTitle();
 requestAnimationFrame(loop);
 
 /* for testing in the browser console */
-window.__PD = {get S() { return S; }, get G() { return G; }, CATS, BUGS, CONFIG, startPlay, startEndless, placeCat, upgradeCat, launchWave, update, genWaves, tstats, upCost, catCost, showMenu, levelIntro, save, usePower};
+window.__PD = {get S() { return S; }, get G() { return G; }, CATS, BUGS, CONFIG, startPlay, startEndless, placeCat, upgradeCat, launchWave, update, genWaves, tstats, upCost, catCost, showMenu, levelIntro, save, usePower, openTower};
 
 /* app icon drawing (used to make the Play Store icon) */
 window.__iconDraw = (x, fg) => {
