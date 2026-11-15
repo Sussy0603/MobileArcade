@@ -235,6 +235,11 @@ img.pxi{image-rendering:pixelated}
 #combo.on{opacity:1}
 #hint{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:3;background:var(--ink);color:#fff;font-weight:900;padding:6px 12px;border:3px solid #fff;display:none;white-space:nowrap}
 #hint.on{display:block}
+#nextw{position:absolute;left:6px;bottom:6px;z-index:3;display:none;align-items:center;gap:4px;background:rgba(255,244,220,.94);border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);padding:3px 7px;font-weight:900;font-size:13px;max-width:calc(100% - 12px);flex-wrap:wrap;pointer-events:none}
+#nextw.on{display:flex}
+#nextw .nb{display:inline-flex;align-items:center;gap:1px}
+#nextw img{height:22px;image-rendering:pixelated}
+#nextw .boss{color:#c92a31}
 </style>
 </head>
 <body>
@@ -252,6 +257,7 @@ img.pxi{image-rendering:pixelated}
       <div id="combo"></div>
       <div id="banner"></div>
       <div id="hint"></div>
+      <div id="nextw"></div>
     </div>
     <div id="bot" class="bar">
       <button class="btn pw" data-pw="bomb"><img alt=""><span class="n">0</span></button>
@@ -3037,8 +3043,22 @@ function hud() {
   setHtml('bWave', wb);
   const bc = 'btn ' + cls + (!G.started ? ' pulse' : '');
   if (hudCache.bwc !== bc) { hudCache.bwc = bc; $('bWave').className = bc; }
+  const showNext = G.state === 'play' && !G.queue.length && G.wi < waveCount();
+  if (showNext) { if (hudCache.nextKey !== G.wi) { hudCache.nextKey = G.wi; $('nextw').innerHTML = nextWaveHtml(); } }
+  if (hudCache.nextOn !== showNext) { hudCache.nextOn = showNext; $('nextw').classList.toggle('on', showNext); }
   const cmb = $('combo');
   if (G.combo.n >= 3) { setHtml('combo', tr('Combo') + ' x' + G.combo.n); cmb.classList.add('on'); } else cmb.classList.remove('on');
+}
+/* small box in the corner: which bugs come in the next wave */
+function nextWaveHtml() {
+  const wave = G.mode === 'endless' ? genEndlessWave(G.w, G.wi + 1, G.map.paths.length) : G.waves[G.wi];
+  const cnt = {};
+  wave.forEach(e => cnt[e.type] = (cnt[e.type] || 0) + 1);
+  const keys = BUG_ORDER.filter(k => cnt[k]);
+  const boss = keys.some(k => BUGS[k].boss);
+  return '<span' + (boss ? ' class="boss"' : '') + '>' + (boss ? '💀 ' : '') + tr('Next') + ':</span>' +
+    keys.map(k => '<span class="nb"><img src="' + bugURL(k, 2) + '" alt="">' + (BUGS[k].boss ? '' : '×' + cnt[k]) +
+      (BUGS[k].fly ? '🪽' : '') + (BUGS[k].camo ? '👻' : '') + '</span>').join('');
 }
 function hudBump(id, bad) { const el = $(id); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); setTimeout(() => el.classList.remove('bump'), 150); }
 function banner(text) { const b = $('banner'); b.textContent = text; b.classList.remove('show'); void b.offsetWidth; b.classList.add('show'); }
