@@ -120,7 +120,8 @@ img.pxi{image-rendering:pixelated}
 .nav .btn.cur{background:var(--gold)}
 .nav .dot{position:absolute;top:-8px;right:-6px;min-width:22px;height:20px;padding:0 3px;background:var(--bad);color:#fff;border:2px solid var(--ink);font-style:normal;font-size:12px;line-height:16px;text-shadow:none;animation:pulse 1s infinite}
 .skillnag{display:flex;gap:10px;align-items:center;width:100%;text-align:left;font:inherit;font-size:14px;background:#e9f7dc;cursor:pointer;animation:pulse 1.4s infinite}
-.skillnag .si{font-size:30px}
+.skillnag .si,.rebirth .si{font-size:30px}
+.rebirth{display:flex;gap:10px;align-items:center;width:100%;text-align:left;font:inherit;font-size:14px;background:linear-gradient(90deg,#ffe6a0,#ffb3c8);cursor:pointer;animation:pulse 1.4s infinite}
 .qsk h3{font-size:15px;display:flex;gap:6px;align-items:center;justify-content:space-between}
 .qrow{display:flex;align-items:center;gap:8px;width:100%;background:#fff;border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);padding:4px 8px;margin-bottom:7px;text-align:left;font-size:13px;line-height:1.25}
 .qrow > img{width:34px;height:37px;image-rendering:pixelated}
@@ -306,6 +307,9 @@ const CONFIG = {
   REVIVE_LIVES: 0.5,              // revive gives back half the veggies
   ENDLESS_HP_GROWTH: 1.06,        // endless: bugs x1.06 health each wave
   FREE_AD_COOLDOWN: 120,          // seconds between free power-up ads
+  REBIRTH_BONUS: 0.10,            // each rebirth: cats +10% damage, +10% fish
+  REBIRTH_HP: 0.30,               // each rebirth: bugs +30% health
+  REBIRTH_SPEED: 0.04,            // each rebirth: bugs +4% speed (max +30%)
   STAR3: 0.9, STAR2: 0.5,         // lives kept for 3 stars / 2 stars
 };
 
@@ -348,6 +352,7 @@ function defaults() {
     ach: {},             // achievement id -> 1
     stats: {kills: 0, maxCombo: 0, early: 0, spent: 0, pwUsed: 0, boss: {}, noLossBoss: 0, max5: 0, full: 0},
     endless: {},         // world -> best wave
+    rebirths: 0,         // times the player rebirthed after finishing all levels
     endlessPaid: {},     // world -> milestone already paid
     comics: {},          // world -> seen
     tut: {},
@@ -605,6 +610,13 @@ const FR = {
   'Tap a gold button to buy. You can reset for free.': 'Touche un bouton doré pour acheter. Tu peux tout remettre à zéro gratuitement.',
   'The boss attacks your cats!': 'Le boss attaque tes chats!',
   'Hard: bosses knock out your cats for a moment!': 'Difficile : les boss assomment tes chats un moment!',
+  'All 80 levels done! Rebirth?': 'Les 80 niveaux sont finis! Renaissance?',
+  'Start again stronger. Bugs get tougher too!': 'Recommence plus fort. Les insectes aussi deviennent plus forts!',
+  'Rebirth {n}': 'Renaissance {n}', 'Rebirth!': 'Renaître!', 'Not now': 'Pas maintenant',
+  'Play all the levels again, from level 1.': 'Rejoue tous les niveaux, à partir du niveau 1.',
+  'Resets': 'Remis à zéro', 'You keep': 'Tu gardes', 'levels, stars on levels, crowns': 'niveaux, étoiles des niveaux, couronnes',
+  'skills, star wallet, breeds, goals, power-ups, Endless records': 'talents, étoiles à dépenser, races, objectifs, bonus, records Sans fin',
+  'damage': 'dégâts', 'fish': 'poissons', 'health': 'vie', 'Phoenix': 'Phénix', 'Rebirth once': 'Renaître une fois',
 };
 /* =====================================================================
    5. PIXEL ART — every picture is a tiny text grid.
@@ -1231,6 +1243,7 @@ const BREEDS = [
   {id: 'golden', name: 'Golden', how: 'Golden Paw Pack', f: '#ffd54a', s: '#ef9f12', w: '#fff7d0'},
   {id: 'ghost', name: 'Ghost', how: 'Win 5 Hard levels', f: '#d8e8ff', s: '#a8c0e8', w: '#ffffff', e: '#5a8ad8', o: '#3a4a6a'},
   {id: 'lava', name: 'Lava', how: 'Win 25 Hard levels', f: '#3a2020', s: '#ff5a1a', w: '#ff9a3a', e: '#ffd23f', o: '#120808'},
+  {id: 'phoenix', name: 'Phoenix', how: 'Rebirth once', f: '#ff6a1a', s: '#ffd23f', w: '#ffe6a0', e: '#7a1a0a', o: '#3a0a05'},
   {id: 'royal', name: 'Royal', how: 'Get all 80 crowns', f: '#7a3fc4', s: '#ffd23f', w: '#f0e0ff', e: '#ffd23f', o: '#1a0f30'},
 ];
 const BREED = {}; BREEDS.forEach(b => BREED[b.id] = b);
@@ -1618,7 +1631,11 @@ function buildMap(shapeKey, world, seed) {
 /* ---------- waves ---------- */
 /* bug health per level: grows 8.5% per level, a bit slower after level 40 */
 function hpLevel(L) { return 1 + CONFIG.HP_GROWTH_LEVEL * Math.min(L - 1, 39) + 0.045 * Math.max(0, L - 40); }
-function rewLevel(L) { return 1 + CONFIG.KILL_REWARD_GROWTH * Math.min(L - 1, 39) + 0.055 * Math.max(0, L - 40); }
+function rewLevel(L) { return (1 + CONFIG.KILL_REWARD_GROWTH * Math.min(L - 1, 39) + 0.055 * Math.max(0, L - 40)) * rbBonus(); }
+/* rebirth: cats & fish +10% each time, bugs get tougher each time */
+const rbBonus = () => 1 + CONFIG.REBIRTH_BONUS * (S.rebirths || 0);
+const rbHp = () => 1 + CONFIG.REBIRTH_HP * (S.rebirths || 0);
+const rbSpd = () => 1 + Math.min(0.3, CONFIG.REBIRTH_SPEED * (S.rebirths || 0));
 function threat(k) {
   const b = BUGS[k];
   let t = b.hp / 10 * Math.sqrt(b.spd / 1.1);
@@ -1688,6 +1705,7 @@ function newGame(mode, L, w, hard) {
   const map = buildMap(shape, w, mode === 'endless' ? 999 + w : L * 131);
   const lives = CONFIG.START_LIVES + 2 * S.garden.lives;
   let coins = (mode === 'endless' ? CONFIG.START_COINS + CONFIG.START_COINS_PER_LEVEL * (10 * w + 4) : CONFIG.START_COINS + CONFIG.START_COINS_PER_LEVEL * (L - 1)) + 25 * S.garden.coins;
+  coins = Math.round(coins * rbBonus());
   if (hard) coins = Math.round(coins * HARD.COINS);
   G = {
     mode, L, w, map, hard, twist: hard ? twistOf(L).id : null, traps: [], meteors: [],
@@ -1716,7 +1734,7 @@ function tstats(tw) {
   const sp = r >= 4;
   return {
     c, sp,
-    dmg: (c.dmg || 0) * Math.pow(CONFIG.UPGRADE_DMG, lv - 1) * (r >= 1 ? 1.15 : 1) * (1 + buff),
+    dmg: (c.dmg || 0) * Math.pow(CONFIG.UPGRADE_DMG, lv - 1) * (r >= 1 ? 1.15 : 1) * (1 + buff) * rbBonus(),
     range: (c.range || 0) * (1 + CONFIG.UPGRADE_RANGE * (lv - 1)) * (r >= 2 ? 1.1 : 1) * T,
     rate: (c.rate || 0) * (1 + CONFIG.UPGRADE_RATE * (lv - 1)) * (r >= 3 ? 1.12 : 1) * (1 + buff * 0.67),
     detect: !!(c.detect || tw.cheerDetect),
@@ -1759,7 +1777,7 @@ function sellCat(tw) {
 /* ---------- bugs ---------- */
 function spawnBug(type, pi, hm, d0) {
   const B = BUGS[type], path = G.map.paths[pi] || G.map.paths[0];
-  const hp = B.hp * (hm || 1);
+  const hp = B.hp * (hm || 1) * rbHp();
   const b = {t: type, B, path: G.map.paths.indexOf(path), d: d0 || 0, x: 0, y: 0, hp, max: hp, arm: B.arm || 0,
     sh: B.shield ? hp * B.shield : 0, shMax: B.shield ? hp * B.shield : 0, hm: hm || 1,
     slow: 0, slowT: 0, aura: 0, frzT: 0, stunT: 0, bleedT: 0, bleedD: 0, abilT: 2, dashT: 0, hitT: 0,
@@ -1932,7 +1950,7 @@ function update(dt) {
   for (const b of G.bugs) {
     if (b.dead) continue;
     const path = G.map.paths[b.path];
-    let sp = b.B.spd * T;
+    let sp = b.B.spd * T * rbSpd();
     if (G.hard && G.twist === 'fast') sp *= HARD.FAST;
     if (b.B.rage) sp *= 1 + (1 - b.hp / b.max) * 1.2;
     if (b.cracked) sp *= 1.6;
@@ -2672,7 +2690,8 @@ function mapHtml() {
   const mw = maxWorld();
   let h = '<div class="worlds">' + WORLDS.map((w, i) => '<button class="btn' + (i === mapWorld ? ' cur' : '') + (i > mw ? ' dis' : '') + '" data-world="' + i + '"><b>' + (i > mw ? '🔒' : w.icon) + '</b>' + tr(w.name) + '</button>').join('') + '</div>';
   h += '<div class="card wbanner"><div style="font-size:34px">' + WORLDS[mapWorld].icon + '</div><div style="flex:1"><div class="big">' + tr('World {n}', {n: mapWorld + 1}) + ': ' + tr(WORLDS[mapWorld].name) + '</div>' +
-    '<div class="muted">' + starIco() + ' ' + worldStars(mapWorld) + ' / 30 · 👑 ' + worldCrowns(mapWorld) + ' / 10</div></div><button class="btn small" id="mComic">📖</button></div>';
+    '<div class="muted">' + starIco() + ' ' + worldStars(mapWorld) + ' / 30 · 👑 ' + worldCrowns(mapWorld) + ' / 10' + (S.rebirths ? ' · <b>♻️ ' + S.rebirths + '</b>' : '') + '</div></div><button class="btn small" id="mComic">📖</button></div>';
+  if (S.unlocked > MAXL) h += '<button class="card rebirth" id="mRebirth"><span class="si">♻️</span><span><b>' + tr('All 80 levels done! Rebirth?') + '</b><br>' + tr('Start again stronger. Bugs get tougher too!') + '</span></button>';
   if (canBuySkill()) h += '<button class="card skillnag" id="mSkills"><span class="si">🌳</span><span><b>' + tr('You have {n} stars to spend!', {n: S.stars}) + '</b><br>' + tr('Tap here to make your cats stronger.') + '</span></button>';
   h += '<div class="lvls">';
   for (let i = 0; i < 10; i++) {
@@ -2701,8 +2720,25 @@ function bindMap() {
   bindBtn('mEnd', () => { if (S.unlocked > (mapWorld + 1) * 10) endlessIntro(mapWorld); else toast(tr('Finish this world to unlock')); });
   bindBtn('mComic', () => showComic(mapWorld));
   bindBtn('mSkills', () => showMenu('skills'));
+  bindBtn('mRebirth', rebirthModal);
 }
 
+function rebirthModal() {
+  const n = (S.rebirths || 0) + 1, P = x => Math.round(x * 100);
+  openModal('<h2>♻️ ' + tr('Rebirth {n}', {n}) + '</h2>' +
+    '<p>' + tr('Play all the levels again, from level 1.') + '</p>' +
+    '<div class="card" style="text-align:left;line-height:1.7"><b>🔄 ' + tr('Resets') + ':</b> ' + tr('levels, stars on levels, crowns') + '<br>' +
+    '<b>✅ ' + tr('You keep') + ':</b> ' + tr('skills, star wallet, breeds, goals, power-ups, Endless records') + '</div>' +
+    '<div class="card" style="text-align:left;line-height:1.7;background:#e9f7dc">🐱 ' + tr('Cats') + ' +' + P(CONFIG.REBIRTH_BONUS * n) + '% ' + tr('damage') + '<br>🐟 +' + P(CONFIG.REBIRTH_BONUS * n) + '% ' + tr('fish') + (n === 1 ? '<br>🔥 ' + tr('New breed: {b}!', {b: tr('Phoenix')}) : '') + '</div>' +
+    '<div class="card" style="text-align:left;line-height:1.7;background:#ffe0e0">🐛 ' + tr('Bugs') + ' +' + P(CONFIG.REBIRTH_HP * n) + '% ' + tr('health') + ', +' + P(Math.min(0.3, CONFIG.REBIRTH_SPEED * n)) + '% ' + tr('speed') + '</div>' +
+    '<button class="btn org wide" id="rbYes" style="font-size:19px">♻️ ' + tr('Rebirth!') + '</button><button class="btn wide" id="rbNo">' + tr('Not now') + '</button>');
+  bindBtn('rbYes', () => {
+    S.rebirths = n; S.unlocked = 1; S.best = {}; S.bestH = {};
+    save(); const br = checkBreeds(); closeModal(); mapWorld = 0; showMenu('map');
+    sfx('win'); toast('♻️ ' + tr('Rebirth {n}', {n}) + '!' + (br.length ? ' 🔥 ' + tr(br[0].name) : ''));
+  });
+  bindBtn('rbNo', closeModal);
+}
 function levelBugs(L) { const set = new Set(); genWaves(L, 1).forEach(w => w.forEach(e => set.add(e.type))); return BUG_ORDER.filter(k => set.has(k)); }
 function levelIntro(L, hard) {
   const w = worldOf(L);
@@ -2966,7 +3002,7 @@ function checkAch() {
 }
 function checkBreeds() {
   const rules = {black: S.unlocked > 10, siamese: S.unlocked > 20, calico: S.unlocked > 30, galaxy: S.unlocked > 40,
-    ghost: crowns() >= 5, lava: crowns() >= 25, royal: crowns() >= 80,
+    ghost: crowns() >= 5, lava: crowns() >= 25, royal: crowns() >= 80, phoenix: (S.rebirths || 0) >= 1,
     white: S.earned >= 60, tux: Object.keys(S.ach).length >= 12, golden: S.pack};
   const got = [];
   for (const k in rules) if (rules[k] && !S.breedOwn[k]) { S.breedOwn[k] = 1; got.push(BREED[k]); }
