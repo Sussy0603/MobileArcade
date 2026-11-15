@@ -719,7 +719,6 @@ function bubbles(x, y, n){
   }
 }
 function elPos(el){ const s = $('scene').getBoundingClientRect(), r = el.getBoundingClientRect(); return {x: r.left - s.left + r.width / 2, y: r.top - s.top + r.height * .35}; }
-function shake(){ const s = $('scene'); s.classList.remove('shake'); void s.offsetWidth; s.classList.add('shake'); }
 
 function finishCar(i, b, quiet){
   const l = S.loc[i], id = l.car[b], T = TY(id), vip = T.r >= 2;
@@ -736,7 +735,7 @@ function finishCar(i, b, quiet){
   const el = bayEls[b]; if(!el) return;
   const p = elPos(el);
   fx((vip ? '👑 ' : shine ? '✨ ' : '') + '+$' + fmt(pay), p.x, p.y, vip ? 'big' : '');
-  if(vip){ sfx('vip'); shake(); } else sfx('coin');
+  if(vip) sfx('vip'); else sfx('coin');
   // car drives out, new one drives in (skipped if washes are super fast)
   const fast = washTime(i) < .7;
   if(fast){ el.car.innerHTML = carTop(l.car[b], {dirt:1}); }
@@ -766,7 +765,7 @@ function startRush(){
   S.rushUntil = now() + CONFIG.RUSH_LEN_S * 1000;
   S.nextRush = S.rushUntil + rnd(CONFIG.RUSH_EVERY_MIN[0], CONFIG.RUSH_EVERY_MIN[1]) * 60000;
   sfx('rush');
-  if(sceneOn()){ const b = $('rushBan'); b.textContent = '🚦 ' + t('RUSH HOUR!', 'HEURE DE POINTE!'); b.classList.remove('on'); void b.offsetWidth; b.classList.add('on'); shake(); }
+  if(sceneOn()){ const b = $('rushBan'); b.textContent = '🚦 ' + t('RUSH HOUR!', 'HEURE DE POINTE!'); b.classList.remove('on'); void b.offsetWidth; b.classList.add('on'); }
   else toast('🚦 ' + t('Rush Hour! Washes x2 faster', 'Heure de pointe! Lavages x2 plus vite'), 'gold');
   renderChips();
 }
