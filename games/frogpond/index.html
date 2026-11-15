@@ -103,6 +103,10 @@ h3{margin:14px 0 8px;font-size:1.08em}
 .seg{display:flex;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 0 var(--line)}
 .seg button{flex:1;padding:9px 6px;font-weight:900}
 .seg button.on{background:var(--leaf)}
+/* battery saver: no decorative animations */
+body.eco .star,body.eco .cloud,body.eco .speck,body.eco .moonRef,body.eco .fog,body.eco .ffly i,body.eco .frog .bob,body.eco .eggslot.ready,body.eco .frog .zz,body.eco .fab.glow,body.eco #choirBanner.on{animation:none!important}
+body.eco .petal,body.eco .dfly,body.eco .drop{display:none}
+body.eco .frog .sac,body.eco .frog.swim::after{animation:none!important}
 /* ---------- pond scene ---------- */
 #scene{position:absolute;inset:0;overflow:hidden;touch-action:none;z-index:0}
 #sceneBg{position:absolute;inset:0;width:100%;height:100%}
@@ -119,11 +123,11 @@ h3{margin:14px 0 8px;font-size:1.08em}
 @keyframes cloud{from{transform:translateX(-120px)}to{transform:translateX(110vw)}}
 .prop{position:absolute;transform:translate(-50%,-100%)}
 .prop svg{width:100%;height:100%;display:block;overflow:visible}
-.pad{position:absolute;transform:translate(-50%,-50%);animation:padbob 5s ease-in-out infinite alternate}
+.pad{position:absolute;transform:translate(-50%,-50%)}
 .pad svg{width:100%;height:100%;display:block;overflow:visible}
 @keyframes padbob{from{margin-top:-1px}to{margin-top:2px}}
 .prop.glowp svg{filter:drop-shadow(0 0 4px var(--gc)) drop-shadow(0 0 10px var(--gc))}
-.halo{position:absolute;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,var(--gc) 0,transparent 68%);opacity:.35;mix-blend-mode:screen;animation:halo 3s ease-in-out infinite alternate}
+.halo{position:absolute;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,var(--gc) 0,transparent 68%);opacity:.35;animation:none;--x:ease-in-out infinite alternate}
 @keyframes halo{from{opacity:.25}to{opacity:.45}}
 .speck{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--gc);box-shadow:0 0 8px var(--gc);animation:speck 7s ease-in-out infinite alternate;pointer-events:none}
 @keyframes speck{from{transform:translate(0,0);opacity:.2}to{transform:translate(14px,-30px);opacity:.9}}
@@ -135,7 +139,7 @@ h3{margin:14px 0 8px;font-size:1.08em}
 #frogs,#fxL,#bugs{position:absolute;inset:0}
 #bugs{z-index:8;pointer-events:none}
 #fxL{pointer-events:none;z-index:9}
-.frog{position:absolute;will-change:left,top;touch-action:none;z-index:3}
+.frog{position:absolute;left:0;top:0;will-change:transform;touch-action:none;z-index:3;contain:layout style}
 .frog .bob{width:100%;height:100%;transform-origin:50% 90%;animation:sitA 3.2s ease-in-out infinite}
 .frog svg{width:100%;height:100%;overflow:visible;display:block}
 .frog.nap .bob,.frog.sun .bob{animation:breathe 3.8s ease-in-out infinite}
@@ -156,9 +160,9 @@ h3{margin:14px 0 8px;font-size:1.08em}
 .frog .zz{position:absolute;top:-6px;right:6px;font-size:15px;font-weight:900;color:#6a5ac9;animation:zz 2s infinite}
 .frog .bub{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:17px;background:#fff;border-radius:12px;padding:0 5px;box-shadow:0 2px 0 #0002;white-space:nowrap}
 .frog.sel::before{content:"";position:absolute;left:12%;right:12%;bottom:-4px;height:9px;border-radius:50%;background:#fff9;box-shadow:0 0 12px #fff}
-.frog.visitor .bob{filter:drop-shadow(0 0 6px #fff)}
-.frog .bob svg{filter:brightness(var(--dim,1))}
-.glowOn .frog.glowy .bob svg{filter:drop-shadow(0 0 7px var(--gc)) drop-shadow(0 0 14px var(--gc))}
+.frog.visitor::before{content:"";position:absolute;inset:-10%;border-radius:50%;background:radial-gradient(circle,#ffffffaa 0,transparent 65%);pointer-events:none}
+.frog.glowy::before{content:"";position:absolute;left:-15%;top:-15%;right:-15%;bottom:-15%;border-radius:50%;background:radial-gradient(circle,var(--gc) 0,transparent 65%);opacity:0;pointer-events:none}
+.glowOn .frog.glowy::before{opacity:.45}
 @keyframes sitA{0%,100%{transform:scale(1,1)}50%{transform:scale(1.02,.975)}}
 @keyframes swimA{0%,100%{transform:translateY(32%) rotate(-3deg)}50%{transform:translateY(36%) rotate(3deg)}}
 @keyframes breathe{0%,100%{transform:scale(1,1)}50%{transform:scale(1.04,.95)}}
@@ -171,7 +175,10 @@ h3{margin:14px 0 8px;font-size:1.08em}
 .rip{position:absolute;border-radius:50%;border:2px solid #ffffffb0;transform:translate(-50%,-50%);pointer-events:none;animation:rip 1.4s ease-out forwards}
 @keyframes rip{from{width:8px;height:3px;opacity:1}to{width:60px;height:18px;opacity:0}}
 /* bugs: fireflies (tap them!) + dragonflies */
-.ffly{position:absolute;width:48px;height:48px;margin:-24px 0 0 -24px;display:grid;place-items:center;pointer-events:auto;transition:left 3s ease-in-out,top 3s ease-in-out}
+.ffly{position:absolute;width:48px;height:48px;margin:-24px 0 0 -24px;display:grid;place-items:center;pointer-events:auto}
+.ffly{animation:ffdrift var(--fd,6s) ease-in-out infinite alternate}
+@keyframes ffdrift{from{transform:translate(0,0)}to{transform:translate(var(--dx,20px),var(--dy,-16px))}}
+body.eco .ffly{animation:none}
 .ffly i{width:13px;height:13px;border-radius:50%;background:#fff6a0;box-shadow:0 0 8px 4px #ffe95add,0 0 26px 12px #ffd84d77;animation:blink 1.4s ease-in-out infinite alternate}
 @keyframes blink{from{opacity:.35;transform:scale(.8)}to{opacity:1;transform:scale(1.15)}}
 .dfly{position:absolute;width:46px;height:30px;pointer-events:none;animation:dfly linear forwards}
@@ -256,7 +263,7 @@ h3{margin:14px 0 8px;font-size:1.08em}
 #tut .box{pointer-events:auto;background:#fff;border-radius:20px;padding:10px 12px;display:flex;gap:10px;align-items:center;box-shadow:0 6px 24px #0003;max-width:460px;width:100%;border:3px solid var(--lemon2)}
 #tut #tutCap svg{width:60px;height:48px;flex:none}
 #tut .tx{flex:1;font-weight:900;font-size:.95em}
-.hl{outline:4px solid var(--lemon2)!important;outline-offset:2px;animation:hlp 1s infinite alternate;z-index:44}
+.hl{outline:4px solid var(--pink2)!important;outline-offset:2px;z-index:44}
 @keyframes hlp{from{outline-color:var(--lemon2)}to{outline-color:var(--pink2)}}
 </style>
 </head>
@@ -609,7 +616,7 @@ function newState(){
   return {
     v:1, created:t, lastSeen:t, name:'', avatar:null,
     lang:(navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en',
-    snd:true, mus:true, easy:false, fsz:1,
+    snd:true, mus:true, easy:false, fsz:1, eco:true, ecoSet:1,
     c:CONFIG.START_COINS, g:CONFIG.START_GEMS, xp:0, lv:1,
     cur:'pond', open:['pond'], ar:{pond:newArea()},
     frogs:[], nextId:1, eggs:[],
@@ -622,6 +629,7 @@ function newState(){
     theme:'classic',
     stats:{coins:0, play:0, hatched:0, games:0, pets:0, feeds:0, hops:0, gems:0, fireflies:0, choirs:0, best:{tongue:0, hop:0}},
     tut:0, noAds:false, pack:false, iapDone:{}, awayLast:0,
+    lilies:0, reb:0, runC:0, rebBadge:{}, keepDecor:{},
   };
 }
 function load(){
@@ -634,12 +642,14 @@ function load(){
 /* fills in anything missing from an older save */
 function fixState(o){
   const d = newState();
+  if(!o.ecoSet){ o.eco = true; o.ecoSet = 1; }   // battery saver is on by default (can be turned off in More)
   for(const k in d) if(o[k] === undefined) o[k] = d[k];
   for(const k in d.stats) if(o.stats[k] === undefined) o.stats[k] = d.stats[k];
   for(const k in d.inv) if(o.inv[k] === undefined) o.inv[k] = 0;
   for(const k in d.up) if(o.up[k] === undefined) o.up[k] = 0;
   o.open.forEach(id => { if(!o.ar[id]) o.ar[id] = newArea(); });
   o.frogs = o.frogs.filter(x => FROGS[x.sp]);
+  if(!o.runC && o.stats && o.stats.coins && !o.reb) o.runC = o.stats.coins;   // older saves: this run = all coins so far
   return o;
 }
 function saveNow(){
@@ -683,7 +693,7 @@ function nextHeartAt(x){ return CONFIG.FRIEND_LEVELS.find(v => v > x.f); }
 const fireflyCount = t => (isNight(t) && S.ff.id === nightId(t)) ? S.ff.n : 0;
 const wxMult = (t, a) => (!AREA(a).cave && wxAt(t) === 'rain') ? CONFIG.RAIN_BONUS : 1;
 const choirOn = (a, t) => S.choirUntil > (t || now()) && S.choirArea === a;
-function globalMult(t){ return (1 + CONFIG.BUG_UP_BONUS * S.up.bugs) * (S.ad2x > (t || now()) ? 2 : 1) * (1 + CONFIG.FIREFLY_LIGHT * fireflyCount(t)); }
+function globalMult(t){ return lilyMul() * (1 + CONFIG.BUG_UP_BONUS * S.up.bugs) * (S.ad2x > (t || now()) ? 2 : 1) * (1 + CONFIG.FIREFLY_LIGHT * fireflyCount(t)); }
 function nightMult(x, t){ const F = FROGS[x.sp]; if(!F.w || !F.w.night) return 1; return isNight(t) ? CONFIG.NIGHT_FROG_BONUS : CONFIG.NIGHT_FROG_DAY; }
 function frogRate(x, t){
   const F = FROGS[x.sp] || FROGS.green, h = hearts(x), st = stageOf(x);
@@ -698,7 +708,28 @@ function areaIncome(a){ return frogsIn(a).reduce((s, x) => s + frogRate(x), 0); 
 const incomeFloor = () => Math.max(2, incomePerSec());
 const priceScale = () => Math.pow(3, S.open.length - 1);
 
-function addC(n){ S.c += n; if(n > 0) S.stats.coins += n; }
+/* ---------- New Spring (rebirth) — same rules as Fishies ----------
+   Moon Lilies: need BASE x5 more coins each time, +3% coins forever each,
+   every New Spring doubles all coin prices and the max coins. */
+const REB_BASE = 5e6;        // coins earned this run for the first 10 Moon Lilies
+const REB_HEAD = 300;        // head start: coins per Moon Lily when a new run starts
+const LILY_BONUS = 0.03;     // +3% coins forever per Moon Lily
+const TOP_PRICE = 1.5e9;     // most expensive coin price (Better bugs Lv 24)
+const rebMul = () => Math.pow(2, (S && S.reb) || 0);
+const lilyNeed = () => REB_BASE * Math.pow(5, (S && S.reb) || 0);
+const lilyGain = () => Math.floor(10 * Math.pow(Math.max(0, (S && S.runC) || 0) / lilyNeed(), 0.4));
+const lilyMul = () => 1 + LILY_BONUS * ((S && S.lilies) || 0);
+const COIN_MAX = () => Math.max(REB_BASE * 1e6, 10 * TOP_PRICE) * rebMul();
+let _capT = 0;
+function capNotice(){ const t = now(); if(t - _capT < 60000) return; _capT = t; try{ toast('💰 ' + tr('Max coins reached! Tap your coins to see what to do.'), 'gold'); }catch(e){} }
+function addC(n){
+  if(n > 0){
+    const add = Math.max(0, Math.min(n, COIN_MAX() - S.c));
+    S.c += add; S.stats.coins += add; S.runC = (S.runC || 0) + add;
+    if(add < n) capNotice();
+  } else S.c += n;
+  if(S.c > COIN_MAX()) S.c = COIN_MAX();
+}
 function canPay(cur, n){ return cur === 'g' ? S.g >= n : S.c >= n; }
 function pay(cur, n){
   if(!canPay(cur, n)){ toast((cur === 'g' ? '💎 ' + tr('Not enough gems') : CN + ' ' + tr('Not enough coins')), 'err'); sfx('err'); return false; }
@@ -825,7 +856,7 @@ function rollVisitorKind(kind, area){
 }
 function spawnVisitor(kind){
   const a = S.cur, sp = rollVisitorKind(kind, a);
-  const cost = kind === 'random' ? Math.round(Math.max(250, incomeFloor() * 150) * (1 + FROGS[sp].r)) : 0;
+  const cost = kind === 'random' ? Math.round(Math.max(250, incomeFloor() * 150) * (1 + FROGS[sp].r) * rebMul()) : 0;
   S.visitor = {sp, t: pick(PERS_IDS), s: pick(SPOT_IDS), a, kind, cost, n: randName(), until: now() + (kind === 'random' ? CONFIG.VISITOR_STAY_MIN : 30) * 60000};
   sfx('chime'); renderPond(); saveNow();
   toast('👋 ' + tr('A frog is visiting your pond!'), 'gold');
@@ -902,14 +933,14 @@ function catchFirefly(){
 }
 
 /* ---------- costs ---------- */
-const foodPrice = k => Math.round(FOODS[k].p * priceScale());
-const bugUpCost = () => Math.round(300 * Math.pow(1.9, S.up.bugs));
-const padCost = a => Math.round(500 * Math.pow(2.3, S.ar[a].pads) * Math.pow(CONFIG.AREA_MULT, tierOf(a)));
-const spawnCost = () => Math.round(800 * Math.pow(3, S.up.spawn));
-const jarCost = () => Math.round(2000 * Math.pow(4, S.up.jar));
-const decorCost = (k, a) => Math.round(DECOR[k].p * Math.pow(CONFIG.AREA_MULT, tierOf(a)));
+const foodPrice = k => Math.round(FOODS[k].p * priceScale() * rebMul());
+const bugUpCost = () => Math.round(300 * Math.pow(1.9, S.up.bugs) * rebMul());
+const padCost = a => Math.round(500 * Math.pow(2.3, S.ar[a].pads) * Math.pow(CONFIG.AREA_MULT, tierOf(a)) * rebMul());
+const spawnCost = () => Math.round(800 * Math.pow(3, S.up.spawn) * rebMul());
+const jarCost = () => Math.round(2000 * Math.pow(4, S.up.jar) * rebMul());
+const decorCost = (k, a) => Math.round(DECOR[k].p * Math.pow(CONFIG.AREA_MULT, tierOf(a)) * rebMul());
 const offlineCapH = () => CONFIG.OFFLINE_HOURS + CONFIG.OFFLINE_UP_HOURS * S.up.jar;
-function areaCost(i){ return CONFIG.AREA_COST[i]; }
+function areaCost(i){ return CONFIG.AREA_COST[i] * rebMul(); }
 function canOpenArea(i){ return !S.open.includes(AREAS[i].id) && S.open.length === i && S.lv >= CONFIG.AREA_LEVEL[i]; }
 
 /* =====================================================================
@@ -1208,7 +1239,10 @@ function rainSound(on){
     rainNode = {src, g};
   } else if(!on && rainNode){ try{ rainNode.src.stop(); }catch(e){} rainNode = null; }
 }
-function audioUnlock(){ const A = audio(); if(A && A.state === 'suspended') A.resume(); musicStart(); }
+function audioUnlock(){
+  if(S && !S.snd && !S.mus){ try{ if(AC && AC.state === 'running') AC.suspend(); }catch(e){} return; }   // all sound off: let the sound engine sleep
+  const A = audio(); if(A && A.state === 'suspended') A.resume(); musicStart();
+}
 
 /* =====================================================================
    8. POND VIEW — the main screen. Frogs hop, swim, sing and nap.
@@ -1273,7 +1307,7 @@ function renderBg(){
       for(let i=0;i<nc;i++) sk += '<div class="cloud" style="top:' + rnd(3, 18) + '%;width:' + rnd(50, 80) + 'px;animation-duration:' + rnd(60, 110) + 's;animation-delay:-' + rnd(0, 90) + 's;' + (wx === 'rain' ? 'background:#e2e8ee' : '') + '"></div>';
     }
     if(night){
-      for(let i=0;i<22;i++) sk += '<div class="star" style="left:' + rnd(2, 98) + '%;top:' + rnd(2, 26) + '%;animation-delay:-' + rnd(0, 3) + 's"></div>';
+      for(let i=0;i<(S.eco ? 8 : 14);i++) sk += '<div class="star" style="left:' + rnd(2, 98) + '%;top:' + rnd(2, 26) + '%;animation-delay:-' + rnd(0, 3) + 's"></div>';
       if(wx !== 'storm' && wx !== 'rain'){
         const p = ((h - 20 + 24) % 24) / 10, mx = 16 + clamp(p, 0, 1) * 56, my = 22 - Math.sin(Math.PI * clamp(p, 0, 1)) * 15, sz = 38 * sc;
         const ph2 = full ? 0.5 : moonPhase(t), off = (ph2 <= 0.5 ? ph2 * 2 : -(1 - ph2) * 2) * sz;
@@ -1318,7 +1352,7 @@ function renderWeather(wx){
   rainSound(wx === 'rain' || wx === 'storm');
   if(k === wxKey) return; wxKey = k;
   let h = '';
-  if(wx === 'rain' || wx === 'storm'){ const n = wx === 'storm' ? 60 : 38; for(let i=0;i<n;i++) h += '<div class="drop" style="left:' + rnd(-5, 105) + '%;animation-duration:' + rnd(0.55, 0.9) + 's;animation-delay:-' + rnd(0, 1) + 's"></div>'; }
+  if(wx === 'rain' || wx === 'storm'){ const n = S.eco ? 0 : wx === 'storm' ? 34 : 22; for(let i=0;i<n;i++) h += '<div class="drop" style="left:' + rnd(-5, 105) + '%;animation-duration:' + rnd(0.55, 0.9) + 's;animation-delay:-' + rnd(0, 1) + 's"></div>'; }
   if(wx === 'fog' || A.fog){ const n = wx === 'fog' ? 4 : 2; for(let i=0;i<n;i++) h += '<div class="fog" style="top:' + (26 + i * 18) + '%;animation-duration:' + rnd(9, 15) + 's;opacity:' + (wx === 'fog' ? 0.85 : 0.5) + '"></div>'; }
   $('wx').innerHTML = h;
 }
@@ -1334,7 +1368,6 @@ function applyDark(){
   const d = darkness();
   $('dark').style.opacity = d;
   sceneEl().classList.toggle('glowOn', d > 0.25);
-  $('frogs').style.setProperty('--dim', (1 - d * 0.6).toFixed(2));
 }
 
 /* ---------- frogs ---------- */
@@ -1392,13 +1425,23 @@ function renderFrogs(){
   });
   for(const id in actors) if(!seen[id]){ actors[id].el.remove(); delete actors[id]; }
 }
+/* the pond's size in px, measured once (and again when the screen turns) */
+let sceneW = 0, sceneH = 0;
+function measureScene(){ const r = sceneEl().getBoundingClientRect(); sceneW = r.width; sceneH = r.height; }
 function placeActor(a){
-  a.el.style.left = a.x + '%'; a.el.style.top = a.y + '%'; a.el.style.zIndex = 3 + Math.round(a.y);
-  a.el.classList.toggle('swim', a.st === 'swim');
-  a.el.classList.toggle('air', a.st === 'hop');
-  a.el.classList.toggle('nap', a.st === 'nap');
-  a.el.classList.toggle('sun', a.st === 'sun');
-  a.el.classList.toggle('sing', a.st === 'sing');
+  if(!sceneW) measureScene();
+  const px = Math.round(a.x * sceneW / 100), py = Math.round(a.y * sceneH / 100);
+  if(px !== a._px || py !== a._py){ a._px = px; a._py = py; a.el.style.transform = 'translate3d(' + px + 'px,' + py + 'px,0)'; }
+  const z = 3 + Math.round(a.y);
+  if(z !== a._z){ a._z = z; a.el.style.zIndex = z; }
+  if(a.st !== a._st){
+    a._st = a.st;
+    a.el.classList.toggle('swim', a.st === 'swim');
+    a.el.classList.toggle('air', a.st === 'hop');
+    a.el.classList.toggle('nap', a.st === 'nap');
+    a.el.classList.toggle('sun', a.st === 'sun');
+    a.el.classList.toggle('sing', a.st === 'sing');
+  }
 }
 /* start a hop to (x1,y1). then = what to do on landing */
 function startHop(a, x1, y1, then){
@@ -1519,10 +1562,10 @@ function bugsTick(){
     if(ffs.length < CONFIG.FIREFLIES_MAX && Math.random() < 0.35) {
       const e = document.createElement('div'); e.className = 'ffly'; e.innerHTML = '<i></i>';
       e.style.left = rnd(8, 92) + '%'; e.style.top = rnd(30, 85) + '%';
+      e.style.setProperty('--dx', rnd(-40, 40).toFixed(0) + 'px'); e.style.setProperty('--dy', rnd(-30, 30).toFixed(0) + 'px'); e.style.setProperty('--fd', rnd(4, 8).toFixed(1) + 's');
       e.addEventListener('pointerdown', ev => { ev.stopPropagation(); audioUnlock(); const p = catchFirefly(); sfx('ffly'); fxAt(parseFloat(e.style.left), parseFloat(e.style.top) - 3, '✨ +' + fmt(p) + ' ' + CN); e.remove(); bgKey = ''; renderBg(); applyDark(); refreshTop(); tutEvent('firefly'); saveNow(); });
       box.appendChild(e);
     }
-    ffs.forEach(e => { if(Math.random() < 0.6){ e.style.left = clamp(parseFloat(e.style.left) + rnd(-10, 10), 5, 95) + '%'; e.style.top = clamp(parseFloat(e.style.top) + rnd(-8, 8), 28, 88) + '%'; } });
   }
   if(!night && !A.cave && (wx === 'sun' || wx === 'fog') && Math.random() < 0.12){
     const e = document.createElement('div'), dir = Math.random() < 0.5 ? 1 : -1, W = sceneEl().getBoundingClientRect().width;
@@ -1650,6 +1693,7 @@ function openVisitor(){
   $('viNo').onclick = closeModal;
 }
 function renderPond(){
+  if(S) measureScene();
   if(!S) return;
   renderAreaName(); renderBg(); renderFrogs(); renderEggs(); renderSide(); renderCare(); applyDark();
 }
@@ -1694,7 +1738,8 @@ function refreshTop(){
 function tickCoinDisplay(){
   const diff = S.c - shownC;   // the number counts up smoothly instead of jumping
   shownC = Math.abs(diff) < 1 ? S.c : shownC + diff * 0.25;
-  $('vCoin').textContent = fmt(shownC);
+  const txt = fmt(shownC);
+  if(txt !== tickCoinDisplay._t){ tickCoinDisplay._t = txt; $('vCoin').textContent = txt; }
 }
 
 /* ---------- toast + modal ---------- */
@@ -1937,7 +1982,7 @@ function renderShop(){
 function openArea(i){
   const A = AREAS[i];
   if(!canOpenArea(i) || !pay('c', areaCost(i))) return;
-  S.open.push(A.id); S.ar[A.id] = newArea(); addXP(30); sfx('new');
+  S.open.push(A.id); S.ar[A.id] = newArea(); if(S.keepDecor && S.keepDecor[A.id]){ S.ar[A.id].decor = S.keepDecor[A.id]; delete S.keepDecor[A.id]; } addXP(30); sfx('new');
   // a frog moves in to welcome you
   const sp = {marsh: 'mist', shroom: 'mushroom', cave: 'glow'}[A.id] || 'bull';
   const x = makeFrog({sp, a: A.id, adult: true});
@@ -1987,6 +2032,9 @@ function renderMore(){
   const av = S.avatar && frogById(S.avatar), t = now();
   let h = '<div class="center">' + (av ? stageSVG(av, {size: 150, halo: true}) : '') + '<div style="font-size:1.4em;font-weight:900">' + esc(S.name || tr('Pond Keeper')) + ' <button class="btn ghost sm" id="pfName">✏️</button></div>' +
     '<div class="tag" style="font-size:.95em;margin-top:4px">⭐ ' + tr('Level') + ' ' + S.lv + ' · ' + L(titleOf(S.lv)) + '</div><p class="muted">' + tr('Pick your profile picture from any frog.') + '</p></div>';
+  // New Spring (rebirth)
+  h += '<h3>🌱 ' + tr('New Spring') + '</h3><div class="card"><div class="art">🪷</div><div class="info"><div class="nm">' + fmt(S.lilies || 0) + ' ' + tr('Moon Lilies') + ' · ×' + lilyMul().toFixed(2) + '</div><div class="sub">' +
+    (lilyGain() >= 10 ? '✨ ' + tr('Ready: +{n} Moon Lilies', {n: fmt(lilyGain())}) : tr('Earned this run') + ': ' + fmt(S.runC || 0) + ' / ' + fmt(lilyNeed()) + ' ' + CN) + '</div></div><button class="btn sm mint" id="pfReb">🌱</button></div>';
   // today in the pond
   const wx = wxAt(t), mins = Math.ceil((wxEndsAt(t) - t) / 60000);
   h += '<h3>🌤️ ' + tr('Today at the pond') + '</h3><div class="card" style="display:block;line-height:1.7">' +
@@ -2000,7 +2048,7 @@ function renderMore(){
   h += '<h3>📊 ' + tr('Stats') + '</h3><div class="card" style="display:block">' + rows.map(r => '<div class="row" style="justify-content:space-between;padding:4px 0"><span>' + r[0] + ' ' + r[1] + '</span><b>' + r[2] + '</b></div>').join('') + '</div>';
   h += '<h3>⚙️ ' + tr('Settings') + '</h3>';
   const tg = (id, on, e, n) => '<div class="card"><div class="art">' + e + '</div><div class="info nm">' + n + '</div><button class="btn sm ' + (on ? 'mint' : 'ghost') + '" id="' + id + '">' + (on ? tr('On') : tr('Off')) + '</button></div>';
-  h += tg('stSnd', S.snd, '🔊', tr('Sounds')) + tg('stMus', S.mus, '🎵', tr('Music')) + tg('stEasy', S.easy, '🔤', tr('Easy-read font'));
+  h += tg('stSnd', S.snd, '🔊', tr('Sounds')) + tg('stMus', S.mus, '🎵', tr('Music')) + tg('stEasy', S.easy, '🔤', tr('Easy-read font')) + tg('stEco', S.eco, '🔋', tr('Battery saver'));
   h += '<div class="card"><div class="art">🌐</div><div class="info nm">' + tr('Language') + '</div><div class="seg"><button id="lgEn" class="' + (S.lang === 'en' ? 'on' : '') + '">English</button><button id="lgFr" class="' + (S.lang === 'fr' ? 'on' : '') + '">Français</button></div></div>';
   h += '<div class="card"><div class="art">🔠</div><div class="info nm">' + tr('Text size') + '</div><div class="seg">' + [[0.9, 'A'], [1, 'A+'], [1.15, 'A++']].map(([v, n]) => '<button data-fs="' + v + '" class="' + (S.fsz === v ? 'on' : '') + '">' + n + '</button>').join('') + '</div></div>';
   if(S.pack) h += '<div class="card"><div class="art">🌸</div><div class="info nm">' + tr('Pond theme') + '</div><div class="seg"><button id="thC" class="' + (S.theme !== 'blossom' ? 'on' : '') + '">' + tr('Classic') + '</button><button id="thS" class="' + (S.theme === 'blossom' ? 'on' : '') + '">🌸</button></div></div>';
@@ -2010,13 +2058,15 @@ function renderMore(){
   h += '<button class="btn wide ghost" id="stTut">🧭 ' + tr('Replay tutorial') + '</button>';
   h += '<button class="btn wide ghost" id="stRestore">💳 ' + tr('Restore purchases') + '</button>';
   h += '<button class="btn wide ghost" id="stReset" style="color:var(--bad)">🗑️ ' + tr('Reset game') + '</button>';
-  h += '<p class="muted center">' + tr('No account. Everything is saved on this phone.') + '<br>Frog Pond v1.0 · MOS Arcade</p>';
+  h += '<p class="muted center">' + tr('No account. Everything is saved on this phone.') + '<br>Frog Pond v1.0.2 · MOS Arcade</p>';
   $('iMore').innerHTML = h;
   $('pfName').onclick = () => { openModal(tr('Your name'), '<input id="pnIn" maxlength="16" value="' + esc(S.name) + '" style="width:100%;padding:12px;border-radius:12px;border:2px solid #dde;font-size:18px"><button class="btn wide" id="pnOk">' + tr('Save') + '</button>');
     $('pnOk').onclick = () => { S.name = $('pnIn').value.trim().slice(0, 16); closeModal(); renderMore(); saveNow(); }; };
+  $('pfReb').onclick = () => { sfx('tap'); openRebirth(); };
   $('stSnd').onclick = () => { S.snd = !S.snd; if(!S.snd) rainSound(false); renderMore(); refreshTop(); saveNow(); sfx('tap'); };
   $('stMus').onclick = () => { S.mus = !S.mus; if(S.mus) audioUnlock(); else musicStop(); renderMore(); refreshTop(); saveNow(); };
   $('stEasy').onclick = () => { S.easy = !S.easy; applySettings(); renderMore(); saveNow(); };
+  $('stEco').onclick = () => { S.eco = !S.eco; applySettings(); bgKey = ''; wxKey = ''; renderMore(); saveNow(); };
   $('lgEn').onclick = () => { S.lang = 'en'; applySettings(); renderAll(); saveNow(); };
   $('lgFr').onclick = () => { S.lang = 'fr'; applySettings(); renderAll(); saveNow(); };
   $('iMore').querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { S.fsz = +b.dataset.fs; applySettings(); renderMore(); saveNow(); });
@@ -2029,6 +2079,7 @@ function renderMore(){
 }
 function applySettings(){
   document.body.classList.toggle('easy', !!S.easy);
+  document.body.classList.toggle('eco', !!S.eco);
   document.documentElement.style.setProperty('--fs', S.fsz || 1);
   document.documentElement.lang = S.lang;
 }
@@ -2497,10 +2548,13 @@ function tick(){
 }
 let lastFrame = performance.now();
 function frame(ts){
+  requestAnimationFrame(frame);
+  if(document.hidden) { lastFrame = ts; return; }
+  const minGap = S && S.eco ? 48 : 32;      // ms between updates: about 30 fps (20 fps in battery saver)
+  if(ts - lastFrame < minGap) return;
   const dt = Math.min(0.1, (ts - lastFrame) / 1000); lastFrame = ts;
   if(S && curView === 'Pond' && !G) stepActors(dt);
   if(S) tickCoinDisplay();
-  requestAnimationFrame(frame);
 }
 
 /* ---------- away time (coins while the app is closed) ---------- */
@@ -2616,20 +2670,20 @@ function boot(){
   }, 1300);
   $('mClose').onclick = closeModal;
   $('modalBg').addEventListener('pointerdown', e => { if(e.target === $('modalBg') && $('mClose').style.display !== 'none') closeModal(); });
-  $('pCoin').onclick = openBoosts;
+  $('pCoin').onclick = () => { if(S.c >= COIN_MAX()) showMaxCoins(); else openBoosts(); };
   $('pGem').onclick = () => { shopTab = 'paid'; showView('Shop'); };
   $('pLevel').onclick = () => showView('More');
   $('profBtn').onclick = () => showView('More');
-  $('muteBtn').onclick = () => { const on = S.snd || S.mus; S.snd = S.mus = !on; if(!on) audioUnlock(); else { musicStop(); rainSound(false); } refreshTop(); saveNow(); if(curView === 'More') renderMore(); };
+  $('muteBtn').onclick = () => { const on = S.snd || S.mus; S.snd = S.mus = !on; if(!on) audioUnlock(); else { musicStop(); rainSound(false); try{ if(AC) AC.suspend(); }catch(e){} } refreshTop(); saveNow(); if(curView === 'More') renderMore(); };
   $('scene').addEventListener('pointerdown', () => { if(sel){ sel = null; renderFrogs(); renderCare(); } });
   document.addEventListener('pointerdown', audioUnlock, {once: true});
   document.addEventListener('visibilitychange', () => {
     if(!S) return;
-    if(document.hidden){ saveNow(); musicStop(); rainSound(false); }
-    else { catchUp(); if(S.mus) musicStart(); if(curView === 'Pond'){ bgKey = ''; renderPond(); } }
+    if(document.hidden){ saveNow(); musicStop(); rainSound(false); try{ if(AC) AC.suspend(); }catch(e){} }
+    else { catchUp(); if(S.snd || S.mus) audioUnlock(); if(curView === 'Pond'){ bgKey = ''; renderPond(); } }
   });
   document.addEventListener('pause', () => { if(S){ saveNow(); musicStop(); rainSound(false); } }, false);
-  window.addEventListener('resize', () => { if(S && curView === 'Pond'){ bgKey = ''; for(const k in actors) actors[k].key = ''; renderPond(); } });
+  window.addEventListener('resize', () => { measureScene(); for(const k in actors) actors[k]._px = null; if(S && curView === 'Pond'){ bgKey = ''; for(const k in actors) actors[k].key = ''; renderPond(); } });
 }
 window.addEventListener('load', boot);
 
@@ -2818,6 +2872,7 @@ const FR = {
 "Sounds": "Sons",
 "Music": "Musique",
 "Easy-read font": "Police facile à lire",
+"Battery saver": "Économie de batterie",
 "Language": "Langue",
 "Text size": "Taille du texte",
 "Pond theme": "Thème de l’étang",
@@ -2892,6 +2947,104 @@ const FR = {
 "This little frog is yours. What’s its name?": "Cette petite grenouille est à toi. Comment s’appelle-t-elle?",
 "Let’s go!": "C’est parti!",
 };
+
+/* =====================================================================
+   NEW SPRING (rebirth) — same rules as Fishies
+===================================================================== */
+const REB_GOALS = [[1, 10], [3, 25], [10, 50], [25, 100]];   // New Springs → gems (one time)
+function rebBadges(){
+  REB_GOALS.forEach(([n, g]) => { if((S.reb || 0) >= n && !S.rebBadge[n]){ S.rebBadge[n] = 1; S.g += g;
+    queueModal(() => showReward('🏅', tr('New Spring ×{n}!', {n}), '+' + g + ' 💎')); } });
+}
+function showMaxCoins(){
+  openModal('💰 ' + tr('Max coins!'), '<div class="reward"><div class="big">💰</div>' +
+    '<p>' + tr('Your coins are full at {n}. Coins stop adding up until you spend some.', {n: '<b>' + fmt(COIN_MAX()) + '</b>'}) + '</p>' +
+    '<p>🌱 ' + tr('Start a New Spring to raise your max to {n} and earn Moon Lilies!', {n: '<b>' + fmt(COIN_MAX() * 2) + '</b>'}) + '</p>' +
+    '<button class="btn wide" id="mcReb">🌱 ' + tr('Go to New Spring') + '</button><button class="btn wide ghost" id="mcShop">🛒 ' + tr('Spend it in the Shop') + '</button></div>');
+  $('mcReb').onclick = () => { sfx('tap'); closeModal(); openRebirth(); };
+  $('mcShop').onclick = () => { sfx('tap'); closeModal(); showView('Shop'); };
+}
+function openRebirth(){
+  const g = lilyGain(), P = S.lilies || 0, ok = g >= 10;
+  const row = (t, d) => '<div class="card" style="display:block"><div class="nm">' + t + '</div><div class="sub">' + d + '</div></div>';
+  let h = '<div class="center"><div style="font-size:54px">🪷</div><div style="font-size:1.3em;font-weight:900">' + tr('You have {n} Moon Lilies', {n: fmt(P)}) + '</div>' +
+    '<div class="muted">' + tr('Each Moon Lily gives +3% coins forever → now ×{m}', {m: lilyMul().toFixed(2)}) + '</div>' +
+    (S.reb ? '<div class="muted">' + tr('New Springs') + ': ' + S.reb + '</div>' : '') + '</div>';
+  h += row('🌱 ' + tr('New Spring now for +{n} Moon Lilies', {n: fmt(g)}),
+    tr('More coins earned this run = more Moon Lilies. You need at least 10 (about {n} coins earned). Each New Spring makes Moon Lilies harder to get.', {n: fmt(lilyNeed())}) +
+    '<br>' + tr('Earned this run') + ': ' + fmt(S.runC || 0) + ' ' + CN);
+  h += row('🔄 ' + tr('Starts over'), tr('Coins, frogs, eggs, areas, lily pads, bugs (food), upgrades and player level.'));
+  h += row('✅ ' + tr('You keep'), tr('Moon Lilies, Frog book, gems, decor, Cherry Blossom frogs and pack, stats and streak.'));
+  h += row('🎁 ' + tr('Head start'), tr('You start the new run with {n} coins per Moon Lily.', {n: fmt(REB_HEAD)}));
+  h += row('📈 ' + tr('Harder each time'), tr('Every New Spring doubles all coin prices. Next run: prices ×{n}', {n: fmt(rebMul() * 2)}));
+  h += row('🏅 ' + tr('New Spring goals'), REB_GOALS.map(([n, gm]) => (S.rebBadge[n] ? '✔ ' : '⬜ ') + '×' + n + ' → ' + gm + ' 💎').join(' · '));
+  h += '<button class="btn wide' + (ok ? '' : ' ghost') + '" id="rbGo"' + (ok ? '' : ' disabled') + '>' + (ok ? '🌱 ' + tr('New Spring for +{n} Moon Lilies', {n: fmt(g)}) : tr('Not enough yet')) + '</button>';
+  openModal('🌱 ' + tr('New Spring'), h);
+  if(ok) $('rbGo').onclick = () => { sfx('tap');
+    confirmBox('🌱 ' + tr('New Spring?'), tr('Your pond starts over, but you get +{n} Moon Lilies (×{m} coins forever).', {n: fmt(g), m: (1 + LILY_BONUS * (P + g)).toFixed(2)}), tr('Yes, New Spring!'), doRebirth); };
+}
+function doRebirth(){
+  const g = lilyGain(); if(g < 10) return;
+  const F = newState();
+  const keepFrogs = S.frogs.filter(x => FROGS[x.sp] && FROGS[x.sp].paid);
+  // decor is kept: the pond keeps its decor, other areas get theirs back when reopened
+  const kd = S.keepDecor || {};
+  for(const a in S.ar){ const d = S.ar[a].decor || {}; if(Object.keys(d).length) kd[a] = Object.assign(kd[a] || {}, d); }
+  S.lilies = (S.lilies || 0) + g; S.reb = (S.reb || 0) + 1; S.runC = 0;
+  S.c = F.c + REB_HEAD * S.lilies;
+  S.xp = 0; S.lv = 1;
+  S.cur = 'pond'; S.open = ['pond']; S.ar = {pond: newArea()};
+  if(kd.pond){ S.ar.pond.decor = kd.pond; delete kd.pond; }
+  S.keepDecor = kd;
+  S.frogs = []; S.eggs = []; S.inv = F.inv; S.up = F.up;
+  S.visitor = null; S.visitorAt = now() + 8 * 60000;
+  S.ad2x = 0; S.choirUntil = 0; S.choirArea = null; S.choirCd = 0; S.ff = {id: null, n: 0}; S.awayLast = 0;
+  const first = makeFrog({sp: 'green', a: 'pond', adult: true, t: 'singer', s: 'lotus'});
+  const second = makeFrog({sp: 'brown', a: 'pond', adult: true, t: 'sleepy', s: 'rock'});
+  keepFrogs.forEach(x => { x.a = 'pond'; x.id = S.nextId++; x.pc = 0; S.frogs.push(x); });
+  if(S.avatar && !S.frogs.some(x => x.id === S.avatar)) S.avatar = null;
+  rebBadges();
+  saveNow();
+  for(const k in actors) actors[k].el.remove(); actors = {};
+  $('bugs').innerHTML = ''; bgKey = ''; sel = null;
+  shownC = S.c; showView('Pond'); refreshTop();
+  sfx('new');
+  showReward('🪷', tr('A New Spring!'), '+' + fmt(g) + ' ' + tr('Moon Lilies') + '<br>' + tr('Coins ×{m} forever', {m: lilyMul().toFixed(2)}));
+}
+Object.assign(FR, {
+"New Spring": "Nouveau printemps",
+"New Springs": "Nouveaux printemps",
+"New Spring?": "Nouveau printemps?",
+"Moon Lilies": "Lys de lune",
+"Ready: +{n} Moon Lilies": "Prêt : +{n} lys de lune",
+"Earned this run": "Gagné cette partie",
+"Max coins reached! Tap your coins to see what to do.": "Pièces au max! Touche tes pièces pour voir quoi faire.",
+"Max coins!": "Pièces au max!",
+"Your coins are full at {n}. Coins stop adding up until you spend some.": "Tes pièces sont pleines à {n}. Elles arrêtent de monter tant que tu n’en dépenses pas.",
+"Start a New Spring to raise your max to {n} and earn Moon Lilies!": "Fais un nouveau printemps pour monter ton max à {n} et gagner des lys de lune!",
+"Go to New Spring": "Aller au nouveau printemps",
+"Spend it in the Shop": "Les dépenser à la Boutique",
+"You have {n} Moon Lilies": "Tu as {n} lys de lune",
+"Each Moon Lily gives +3% coins forever → now ×{m}": "Chaque lys de lune donne +3 % de pièces pour toujours → maintenant ×{m}",
+"New Spring now for +{n} Moon Lilies": "Nouveau printemps maintenant pour +{n} lys de lune",
+"More coins earned this run = more Moon Lilies. You need at least 10 (about {n} coins earned). Each New Spring makes Moon Lilies harder to get.": "Plus de pièces gagnées cette partie = plus de lys de lune. Il en faut au moins 10 (environ {n} pièces gagnées). Chaque nouveau printemps rend les lys de lune plus durs à avoir.",
+"Starts over": "Recommence",
+"Coins, frogs, eggs, areas, lily pads, bugs (food), upgrades and player level.": "Pièces, grenouilles, œufs, zones, nénuphars, insectes (nourriture), améliorations et niveau du joueur.",
+"You keep": "Tu gardes",
+"Moon Lilies, Frog book, gems, decor, Cherry Blossom frogs and pack, stats and streak.": "Lys de lune, livre des grenouilles, gemmes, décorations, grenouilles et pack Cerisier, stats et série.",
+"Head start": "Coup de pouce",
+"You start the new run with {n} coins per Moon Lily.": "Tu commences la nouvelle partie avec {n} pièces par lys de lune.",
+"Harder each time": "Plus dur chaque fois",
+"Every New Spring doubles all coin prices. Next run: prices ×{n}": "Chaque nouveau printemps double tous les prix en pièces. Prochaine partie : prix ×{n}",
+"New Spring goals": "Objectifs nouveau printemps",
+"New Spring for +{n} Moon Lilies": "Nouveau printemps pour +{n} lys de lune",
+"Not enough yet": "Pas encore assez",
+"Your pond starts over, but you get +{n} Moon Lilies (×{m} coins forever).": "Ton étang recommence, mais tu gagnes +{n} lys de lune (×{m} pièces pour toujours).",
+"Yes, New Spring!": "Oui, nouveau printemps!",
+"A New Spring!": "Un nouveau printemps!",
+"Coins ×{m} forever": "Pièces ×{m} pour toujours",
+"New Spring ×{n}!": "Nouveau printemps ×{n}!"
+});
 </script>
 </body>
 </html>
