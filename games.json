@@ -1,5 +1,13 @@
 [
   {
+    "id": "carwash",
+    "name": "Car Wash Tycoon",
+    "description": "Scrub cars, wash VIPs and grow one bay into a neon car-wash chain.",
+    "url": "games/carwash/index.html",
+    "category": "Chill",
+    "addedAt": 1792124054602.748
+  },
+  {
     "id": "pawdefense",
     "name": "Paw Defense",
     "description": "Cats on cushions stop the bugs before they eat the veggies!",

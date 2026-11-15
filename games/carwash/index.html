@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#12062a">
+<title>Car Wash Tycoon</title>
+<style>
+/* =====================================================================
+   CAR WASH TYCOON — styles
+   Retro 80s neon. Change the colors here to restyle the whole game.
+===================================================================== */
+:root{
+  --bg:#12062a; --top:#0c0320; --card:#22104a; --card2:#2c1460; --line:#40207e;
+  --pink:#ff3fa4; --cyan:#3ff0ff; --yellow:#ffe93f; --green:#4fff9a; --orange:#ff8a3d; --red:#ff4f6b;
+  --txt:#f6efff; --mut:#bba9e0;
+  --neon:#ff3fa4; --neon2:#3ff0ff;
+  --font:"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+}
+body.gold{ --pink:#ffb627; --neon:#ffd23f; --neon2:#ff9f1c; --line:#6a4a1e; --card:#2a1a0a; --card2:#3a2410; --bg:#140b02; --top:#0d0700; }
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:var(--font);font-size:15px}
+body.easy{--font:Verdana,Tahoma,sans-serif;letter-spacing:.04em;word-spacing:.12em;line-height:1.45}
+button{font-family:inherit;font-size:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+
+/* ---------- top bar ---------- */
+#top{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--top);border-bottom:2px solid var(--pink);box-shadow:0 2px 10px #ff3fa444;z-index:5}
+#coinBox{flex:1;min-width:0}
+#coins{font-size:22px;font-weight:900;color:var(--yellow);text-shadow:0 0 6px #ff9f1c88;white-space:nowrap}
+#rate{font-size:12px;color:var(--cyan);white-space:nowrap}
+#chips{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.chip{font-size:11px;font-weight:800;padding:3px 7px;border-radius:999px;background:var(--card2);border:1px solid var(--line);white-space:nowrap}
+.chip.rush{background:#5a1030;border-color:var(--yellow);color:var(--yellow)}
+.chip.x2{border-color:var(--green);color:var(--green)}
+.chip.turbo{border-color:var(--cyan);color:var(--cyan)}
+.pill{font-weight:800;padding:6px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--line);white-space:nowrap}
+#boostBtn{background:linear-gradient(var(--pink),#b5126a);color:#fff;box-shadow:0 0 8px #ff3fa488;border:0}
+
+/* ---------- the scene ---------- */
+#scene{position:relative;flex:0 0 47%;overflow:hidden;touch-action:manipulation}
+.sky{position:absolute;inset:0;background:linear-gradient(#14042e 0%,#3a0a5e 38%,#a0206e 58%,#ff5f7e 70%,#ffb347 78%)}
+body.gold .sky{background:linear-gradient(#120700 0%,#3a1a02 38%,#a05a10 58%,#ffb627 70%,#ffe08a 78%)}
+.sun{position:absolute;left:50%;top:22%;width:44vmin;height:44vmin;max-width:240px;max-height:240px;transform:translateX(-50%);border-radius:50%;background:linear-gradient(#ffe93f,#ff7a3d 55%,#ff3fa4)}
+.sun::after{content:"";position:absolute;inset:50% 0 0 0;background:repeating-linear-gradient(transparent 0 7px,#a0206e 7px 11px)}
+.mtn{position:absolute;left:0;right:0;bottom:30%;height:22%;background:#2a0846;clip-path:polygon(0 100%,0 55%,10% 25%,22% 60%,34% 10%,48% 65%,60% 30%,74% 70%,86% 20%,100% 50%,100% 100%)}
+.ground{position:absolute;left:0;right:0;bottom:0;height:31%;background:#13042a;overflow:hidden}
+.grid{position:absolute;left:-50%;right:-50%;top:0;height:220%;transform-origin:top;transform:perspective(160px) rotateX(58deg);
+  background-image:linear-gradient(var(--neon) 1.5px,transparent 1.5px),linear-gradient(90deg,var(--neon) 1.5px,transparent 1.5px);background-size:40px 40px;opacity:.45}
+.road{position:absolute;left:0;right:0;bottom:0;height:15%;background:#0a0218;border-top:2px solid var(--neon2)}
+.lane{position:absolute;left:0;right:0;top:48%;height:2px;background:repeating-linear-gradient(90deg,var(--yellow) 0 18px,transparent 18px 34px);opacity:.6}
+
+#bldg{position:absolute;left:3%;right:3%;top:13%;bottom:16%;display:flex;flex-direction:column;background:#1a0838ee;border:2px solid var(--neon);border-radius:14px 14px 4px 4px;box-shadow:0 0 12px var(--neon),inset 0 0 14px #ff3fa422}
+#sign{display:flex;align-items:center;justify-content:space-between;height:26px;padding:0 4px;border-bottom:2px solid var(--neon)}
+#sign .nm{flex:1;text-align:center;font-weight:900;letter-spacing:2px;font-size:15px;color:#fff;text-shadow:0 0 4px var(--neon2),0 0 10px var(--neon2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sign button{width:32px;height:24px;font-size:14px;color:var(--neon2)}
+#sign button.off{opacity:.2}
+#bays{flex:1;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,1fr);gap:5px;padding:6px}
+.bay{position:relative;border:2px solid var(--neon2);border-radius:8px;background:linear-gradient(#2a0f55,#14052e);overflow:hidden;box-shadow:inset 0 0 8px #3ff0ff33}
+.bay.vip{border-color:var(--yellow);box-shadow:0 0 8px var(--yellow),inset 0 0 10px #ffe93f44}
+.bay.vip::before{content:"👑";position:absolute;top:1px;left:3px;font-size:11px;z-index:3}
+.bay .brush{position:absolute;left:10%;right:10%;top:0;height:30%;background:repeating-linear-gradient(90deg,var(--pink) 0 5px,var(--cyan) 5px 10px,var(--yellow) 10px 15px);opacity:.75;border-radius:0 0 8px 8px}
+body:not(.saver) .bay .brush{animation:brush .45s ease-in-out infinite alternate}
+@keyframes brush{from{transform:translateX(-6%) scaleY(.9)}to{transform:translateX(6%) scaleY(1.05)}}
+.bay .car{position:absolute;left:4%;right:4%;bottom:12%;transition:transform .32s ease}
+.bay .car.pre{transform:translateX(-140%);transition:none}
+.bay .car.out{transform:translateX(140%)}
+.car svg{display:block;width:100%;height:auto}
+.prog{position:absolute;left:4px;right:4px;bottom:3px;height:5px;background:#0008;border-radius:3px;overflow:hidden}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink));transform-origin:left;transform:scaleX(0);transition:transform .25s linear}
+.dirt{transition:opacity .25s linear}
+.bay.buy{display:flex;flex-direction:column;align-items:center;justify-content:center;border-style:dashed;border-color:var(--green);color:var(--green);font-weight:800;font-size:11px;text-align:center;gap:2px}
+.bay.buy b{font-size:20px;line-height:1}
+.bay.buy.no{border-color:var(--line);color:var(--mut);opacity:.7}
+.bay.lock{border-style:dashed;border-color:#40207e;opacity:.35;display:flex;align-items:center;justify-content:center;font-size:16px}
+.bay.hit{animation:hit .12s}
+@keyframes hit{50%{transform:scale(.94)}}
+
+#reg{position:absolute;top:2.5%;right:3%;z-index:4;padding:4px 9px 6px;border-radius:12px;background:#0c0320dd;border:2px solid var(--green);font-weight:900;font-size:13px;color:var(--green);min-width:86px;text-align:center}
+#reg .bar{height:4px;margin-top:3px;background:#0008;border-radius:2px;overflow:hidden}
+#reg .bar i{display:block;height:100%;background:var(--green);transform-origin:left}
+#reg.full{border-color:var(--red);color:var(--red)}
+#reg.full .bar i{background:var(--red)}
+body:not(.saver) #reg.full{animation:pulse 1s infinite}
+#reg.mgr{border-color:var(--cyan);color:var(--cyan);font-size:11px}
+#locRate{position:absolute;top:2.5%;left:3%;z-index:4;padding:5px 9px;border-radius:12px;background:#0c0320bb;font-size:11px;font-weight:800;color:var(--cyan)}
+
+.spark{position:absolute;bottom:4%;left:0;width:21%;z-index:4;transform:translateX(-110%);transition:transform 7s linear;filter:drop-shadow(0 0 6px var(--yellow))}
+.spark::after{content:"✨";position:absolute;top:-30%;right:10%;font-size:16px}
+#fx{position:absolute;inset:0;pointer-events:none;z-index:6;overflow:hidden}
+.fl{position:absolute;font-weight:900;font-size:14px;color:var(--yellow);text-shadow:0 0 5px #ff3fa4,0 1px 0 #000;white-space:nowrap;transform:translateX(-50%);animation:fl .95s ease-out forwards}
+.fl.big{font-size:20px}
+@keyframes fl{to{transform:translate(-50%,-46px);opacity:0}}
+.bub{position:absolute;width:11px;height:11px;border-radius:50%;border:1.5px solid #c9fbff;background:#ffffff33;animation:bub .7s ease-out forwards}
+@keyframes bub{to{transform:translate(var(--dx),-34px) scale(1.5);opacity:0}}
+#scene.shake{animation:shake .35s}
+@keyframes shake{20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,1px)}80%{transform:translate(2px,-1px)}}
+#rushBan{position:absolute;left:0;right:0;top:40%;z-index:7;text-align:center;font-size:30px;font-weight:900;color:var(--yellow);text-shadow:0 0 6px var(--pink),0 0 16px var(--pink);pointer-events:none;opacity:0}
+#rushBan.on{animation:ban 2.2s ease-out}
+@keyframes ban{0%{opacity:0;transform:scale(.4)}15%{opacity:1;transform:scale(1.15)}25%{transform:scale(1)}80%{opacity:1}100%{opacity:0}}
+#coach{position:absolute;left:5%;right:5%;bottom:1%;z-index:8;background:#0c0320ee;border:2px solid var(--yellow);border-radius:14px;padding:8px 10px;font-weight:800;font-size:14px;text-align:center;color:#fff;display:none;pointer-events:none}
+#coach.on{display:block}
+.hl{outline:3px solid var(--yellow);outline-offset:2px}
+body:not(.saver) .hl{animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.6}}
+body:not(.saver) #sign .nm{animation:flick 7s infinite}
+@keyframes flick{0%,92%,96%,100%{opacity:1}94%{opacity:.4}}
+
+/* ---------- panel ---------- */
+#panel{flex:1;overflow-y:auto;padding:8px 10px 18px;-webkit-overflow-scrolling:touch}
+#app.full #scene{display:none}
+h2{margin:6px 0 4px;font-size:18px;color:var(--cyan);text-shadow:0 0 6px #3ff0ff66}
+h3{margin:14px 0 4px;font-size:15px;color:var(--pink)}
+.row{display:flex;align-items:center;gap:8px}
+.muted{color:var(--mut);font-size:13px}
+.center{text-align:center}
+.card{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;margin:7px 0}
+.card .ic{font-size:28px;width:38px;text-align:center;flex:0 0 38px}
+.card .info{flex:1;min-width:0}
+.nm{font-weight:900}
+.sub{font-size:12.5px;color:var(--mut);margin-top:2px}
+.sub b{color:var(--txt)}
+.btn{background:linear-gradient(var(--pink),#b5126a);color:#fff;font-weight:900;border-radius:12px;padding:10px 12px;min-width:86px;box-shadow:0 3px 0 #6a0a40;text-align:center;line-height:1.15}
+.btn small{display:block;font-size:10px;opacity:.85;font-weight:700}
+.btn.cy{background:linear-gradient(var(--cyan),#14a6be);color:#0c0320;box-shadow:0 3px 0 #0b5a6a}
+.btn.gold{background:linear-gradient(#ffe93f,#ff9f1c);color:#2a1300;box-shadow:0 3px 0 #8a4a00}
+.btn.green{background:linear-gradient(var(--green),#1fb86a);color:#062a14;box-shadow:0 3px 0 #0b5a30}
+.btn.ghost{background:var(--card2);border:1px solid var(--line);box-shadow:none;color:var(--txt)}
+.btn.wide{display:block;width:100%;margin-top:8px}
+.btn.no{filter:grayscale(.8);opacity:.5}
+.btn.max{background:var(--card2);box-shadow:none;color:var(--green);border:1px solid var(--green)}
+.btn:active{transform:translateY(2px) scale(.97)}
+.pop{animation:pop .28s}
+@keyframes pop{40%{transform:scale(1.12)}}
+.seg{display:flex;background:var(--card2);border-radius:10px;padding:2px;gap:2px}
+.seg button{padding:6px 10px;border-radius:8px;font-weight:800;font-size:12px;color:var(--mut)}
+.seg button.on{background:var(--pink);color:#fff}
+.bar2{height:8px;background:#0008;border-radius:4px;overflow:hidden;margin-top:5px}
+.bar2 i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink))}
+.tag{display:inline-block;font-size:10.5px;font-weight:900;padding:2px 6px;border-radius:6px;background:var(--card2);vertical-align:middle}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.dex{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px;text-align:center;font-size:11px}
+.dex .car{margin:2px 0}
+.dex.no .car{filter:brightness(0) opacity(.45)}
+.dex .cnt{color:var(--mut)}
+.dex.shined{border-color:var(--yellow);box-shadow:0 0 6px #ffe93f55}
+.tog{width:52px;height:30px;border-radius:15px;background:var(--card2);border:1px solid var(--line);position:relative;flex:0 0 52px}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--mut);transition:transform .2s}
+.tog.on{background:var(--pink)}
+.tog.on::after{transform:translateX(22px);background:#fff}
+
+/* ---------- nav ---------- */
+#nav{display:flex;background:var(--top);border-top:2px solid var(--neon2)}
+#nav button{flex:1;padding:5px 0 7px;font-size:11px;font-weight:800;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:1px;position:relative}
+#nav button b{font-size:22px;line-height:1.2}
+#nav button.on{color:var(--cyan);text-shadow:0 0 6px var(--cyan)}
+#nav .dot{position:absolute;top:4px;right:22%;width:10px;height:10px;border-radius:50%;background:var(--red);display:none;box-shadow:0 0 6px var(--red)}
+#nav .dot.on{display:block}
+
+/* ---------- modal + toast ---------- */
+#modalBg{position:fixed;inset:0;background:#05010fcc;display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+#modalBg.on{display:flex}
+#modal{position:relative;width:100%;max-width:400px;max-height:88vh;overflow-y:auto;background:var(--bg);border:2px solid var(--neon);border-radius:18px;padding:16px;box-shadow:0 0 22px var(--neon)}
+#modal h2{margin-top:0;text-align:center;padding:0 26px}
+#mClose{position:absolute;top:8px;right:10px;width:34px;height:34px;font-size:18px;color:var(--mut)}
+.big{font-size:54px;text-align:center}
+.amt{font-size:26px;font-weight:900;text-align:center;color:var(--yellow);margin:6px 0}
+#toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom));pointer-events:none;transform:translateX(-50%);z-index:60;background:#0c0320f2;border:2px solid var(--cyan);border-radius:12px;padding:8px 14px;font-weight:800;font-size:14px;max-width:90vw;text-align:center;display:none}
+#toast.on{display:block;animation:pop .25s}
+#toast.gold{border-color:var(--yellow);color:var(--yellow)}
+#toast.err{border-color:var(--red)}
+#load{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .5s}
+#load .t{font-size:34px;font-weight:900;color:#fff;letter-spacing:3px;text-shadow:0 0 6px var(--pink),0 0 16px var(--pink);text-align:center;line-height:1.1}
+#load .t span{display:block;font-size:20px;color:var(--cyan);text-shadow:0 0 6px var(--cyan),0 0 14px var(--cyan)}
+#load .lb{width:60%;max-width:260px;height:8px;border-radius:4px;background:var(--card2);overflow:hidden}
+#load .lb i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--pink));transition:width .15s}
+</style>
+</head>
+<body class="saver">
+<div id="load"><div class="t">CAR WASH<span>TYCOON</span></div><div id="loadCar" style="width:150px"></div><div class="lb"><i id="loadBar"></i></div></div>
+<div id="app">
+  <div id="top">
+    <div id="coinBox"><div id="coins">🪙 0</div><div id="rate">+0/s</div></div>
+    <div id="chips"></div>
+    <button class="pill" id="gemPill">💎 0</button>
+    <button class="pill" id="boostBtn">📺 x2</button>
+  </div>
+  <div id="scene">
+    <div class="sky"></div><div class="sun"></div><div class="mtn"></div>
+    <div class="ground"><div class="grid"></div></div>
+    <div class="road"><div class="lane"></div></div>
+    <div id="bldg"><div id="sign"><button id="locPrev">◀</button><div class="nm" id="signNm"></div><button id="locNext">▶</button></div><div id="bays"></div></div>
+    <div id="locRate"></div>
+    <button id="reg"></button>
+    <div id="rushBan"></div>
+    <div id="fx"></div>
+    <div id="coach"></div>
+  </div>
+  <div id="panel"></div>
+  <div id="nav"></div>
+</div>
+<div id="modalBg"><div id="modal"><button id="mClose" aria-label="Close">✕</button><div id="mBody"></div></div></div>
+<div id="toast"></div>
+<script>
+/* =====================================================================
+   CAR WASH TYCOON — one bay grows into a car-wash chain  (MOS Arcade)
+   ---------------------------------------------------------------------
+   HOW THIS FILE IS ORGANISED
+     1. CONFIG        ← all the tuning numbers. Change the feel here.
+     2. DATA          ← locations, cars, managers, quests, achievements
+     3. STATE + SAVE  ← what the game remembers (on the phone only)
+     4. ECONOMY       ← how coins are made
+     5. ART           ← cars drawn in code (SVG)
+     6. SOUND         ← synth blips made in code (no files)
+     7. SCENE         ← the car wash: bays, scrubbing, register, events
+     8. SCREENS       ← Wash, Chain, Cars, Goals, More
+     9. MONEY         ← optional ads + purchases (demo in a browser)
+    10. MAIN LOOP     ← ticks, away time, tutorial, start-up
+
+   PHONE-COOL DESIGN (why your phone stays cool):
+     • No game canvas and no 60 fps loop. The game thinks 4 times a
+       second and the movement is done by cheap CSS transitions.
+     • Only the location you are looking at is drawn. The scene is
+       hidden on other tabs, and everything stops when the app is closed.
+     • Battery saver (on by default) turns off the decoration animations.
+===================================================================== */
+
+/* =====================================================================
+   1. CONFIG — tune the game here. Numbers only, no code knowledge needed.
+===================================================================== */
+const CONFIG = {
+  START_COINS: 12,
+  START_GEMS: 5,
+  TICK_MS: 250,              // the game thinks every 250 ms (4 times a second)
+  OFFLINE_MAX_H: 8,          // coins while the app is closed: up to 8 hours
+  REG_CAP_MIN: 20,           // a cash register holds 20 minutes of coins (no manager)
+
+  /* ---- scrubbing (tap a bay) ---- */
+  SCRUB_PUSH: 0.12,          // one tap = 12% of a wash
+  SCRUB_COIN: 0.10,          // one tap pays 10% of a car (straight to your wallet)
+
+  /* ---- upgrades (each location) ---- */
+  BAY_MAX: 8, BAY_BASE: 2, BAY_GROWTH: 3.5,               // new bay cost = base x2, then x3.5 each
+  SOAP_STEP: 0.30, SOAP_DOUBLE_EVERY: 25, SOAP_MAX: 200, SOAP_GROWTH: 1.12, // +30% pay per level, x2 every 25 levels
+  BRUSH_STEP: 0.12, BRUSH_MAX: 60, BRUSH_BASE: 2.5, BRUSH_GROWTH: 1.17,     // +12% wash speed per level
+  STAFF_STEP: 0.04, STAFF_MAX: 20, STAFF_BASE: 6, STAFF_GROWTH: 1.4,        // +4% shine chance per detailer level
+  SHINE_MULT: 3,             // a shined car pays x3
+  MGR_BASE: 40,              // manager cost = location base x40
+  MGR_BONUS: 1.5,            // a manager gives +50% coins
+
+  /* ---- VIP cars ---- */
+  VIP_CHANCE: 0.04,          // 4% of cars are VIPs
+  VIP_MULT: 10,              // a VIP car pays x10
+
+  /* ---- Rush Hour ---- */
+  RUSH_EVERY_MIN: [3, 6],    // a Rush Hour every 3-6 minutes
+  RUSH_LEN_S: 40,            // lasts 40 seconds
+  RUSH_SPEED: 2,             // washes go x2 faster
+  RUSH_PAY: 1.5,             // cars pay +50%
+  RUSH_VIP: 0.08,            // and VIPs show up twice as often
+
+  /* ---- sparkly car on the road ---- */
+  SPARK_EVERY_S: [50, 110],  // a sparkly car drives by every 50-110 seconds
+  SPARK_REWARD_S: 30,        // tap it: 30 seconds of all your income
+  SPARK_DRIVE_S: 7,          // seconds it takes to cross the road
+  SPARK_GEM_CHANCE: 0.25,    // and sometimes a gem
+
+  /* ---- boosts ---- */
+  AD_2X_MIN: 30, AD_2X_MAX_H: 4,   // each ad: +30 min of x2 coins, up to 4 h
+  AD_RUSH_COOLDOWN_MIN: 20,        // ad "Rush Hour now": once every 20 min
+  AD_GEMS: 3, AD_GEMS_PER_DAY: 5,  // ad for 3 gems, 5 times a day
+  TURBO_MIN: 15, GEM_TURBO: 10,    // Turbo Foam: x2 wash speed for 15 min
+  WARP_H: 1, GEM_WARP: 15,         // Time Warp: 1 hour of coins right now
+  GEM_RUSH: 8,                     // start a Rush Hour now
+
+  /* ---- Sell the Chain (rebirth, same rules as Fishies) ---- */
+  KEY_COINS: 1e9,            // keys = 10 x √(coins earned this run / 1B)
+  KEY_MIN: 10,               // need at least 10 keys (about 1B coins earned)
+  KEY_BONUS: 0.03,           // each Gold Key = +3% coins forever
+  KEY_START: 1000,           // start the new run with 1,000 coins per key
+  REBIRTH_PRICE_MULT: 2,     // each rebirth doubles all prices
+
+  /* ---- collection ---- */
+  DEX_FOUND: 0.01,           // +1% coins for each car type found
+  DEX_SHINE_AT: 25,          // wash 25 of a type to "shine" it...
+  DEX_SHINE: 0.01,           // ...for +1% more
+
+  /* ---- quests + daily gift ---- */
+  QUEST_GEMS: 5, CHEST_GEMS: 15, CHEST_MIN: 20,   // chest = 15 gems + 20 min of coins
+  DAILY_MIN: 5,              // daily gift = 5 min of coins x streak day
+  DAILY_GEMS: 2,             // + 2 gems x streak day
+
+  /* ---- Golden pack ---- */
+  PACK_MULT: 2, PACK_GEMS: 100,
+};
+
+/* =====================================================================
+   2. DATA
+===================================================================== */
+// price = coins a car pays, time = seconds per wash, base = upgrade price base, open = cost to open
+const LOCS = [
+  {id:'main',  e:'🏪', en:'Main Street',     fr:'Rue Principale',       price:2,     time:4,  base:10,     open:0,      mgr:['Bubbles Bob','Bob Bulles']},
+  {id:'down',  e:'🏙️', en:'Downtown',        fr:'Centre-ville',         price:25,    time:6,  base:900,    open:1500,   mgr:['Foamy Fran','Fran Mousse']},
+  {id:'hwy',   e:'🛣️', en:'Highway Stop',    fr:'Halte routière',       price:400,   time:8,  base:2.4e4,  open:5e4,    mgr:['Sudsy Sam','Sam Savon']},
+  {id:'beach', e:'🌴', en:'Beach Boulevard', fr:'Boulevard de la Plage',price:6500,  time:10, base:6.5e5,  open:1.4e6,  mgr:['Wax Wanda','Wanda Cire']},
+  {id:'air',   e:'✈️', en:'Airport Express', fr:'Express Aéroport',     price:1e5,   time:12, base:1.8e7,  open:4e7,    mgr:['Rinse Rita','Rita Rinçage']},
+  {id:'neon',  e:'🌃', en:'Neon City',       fr:'Ville Néon',           price:1.7e6, time:14, base:5e8,    open:1.2e9,  mgr:['Chrome Carl','Carl Chrome']},
+  {id:'moon',  e:'🌙', en:'Moon Base',       fr:'Base Lunaire',         price:3e7,   time:16, base:1.5e10, open:4e10,   mgr:['Luna Lou','Lou Luna']},
+];
+// r = rarity (0 common, 1 rare, 2 epic VIP, 3 legendary VIP, 4 pack), m = first location it visits, s = shape
+const TYPES = [
+  {id:'hatch',  r:0, m:0, s:'hatch',  c:'#ff4fa3', en:'Hatchback',      fr:'Compacte'},
+  {id:'sedan',  r:0, m:0, s:'sedan',  c:'#3ff0ff', en:'Sedan',          fr:'Berline'},
+  {id:'taxi',   r:0, m:0, s:'sedan',  c:'#ffd23f', en:'Taxi',           fr:'Taxi', acc:'taxi'},
+  {id:'minivan',r:0, m:0, s:'van',    c:'#9d7bff', en:'Minivan',        fr:'Fourgonnette'},
+  {id:'pickup', r:0, m:0, s:'pickup', c:'#ff8a3d', en:'Pickup',         fr:'Camionnette'},
+  {id:'suv',    r:0, m:0, s:'suv',    c:'#4fff9a', en:'SUV',            fr:'VUS'},
+  {id:'wagon',  r:0, m:1, s:'wagon',  c:'#ff6b6b', en:'Station Wagon',  fr:'Familiale'},
+  {id:'coupe',  r:0, m:1, s:'sports', c:'#6bb0ff', en:'Coupe',          fr:'Coupé'},
+  {id:'police', r:1, m:0, s:'sedan',  c:'#e8eefc', en:'Police Car',     fr:'Auto-patrouille', acc:'police'},
+  {id:'ice',    r:1, m:1, s:'van',    c:'#ffb3d9', en:'Ice Cream Truck',fr:'Camion de crème glacée', acc:'ice'},
+  {id:'bus',    r:1, m:2, s:'bus',    c:'#ffc42e', en:'School Bus',     fr:'Autobus scolaire'},
+  {id:'surf',   r:1, m:3, s:'van',    c:'#3fd9c4', en:'Surf Van',       fr:'Van de surf', acc:'surf'},
+  {id:'fire',   r:1, m:3, s:'truck',  c:'#ff3b3b', en:'Fire Truck',     fr:'Camion de pompiers', acc:'ladder'},
+  {id:'sports', r:2, m:0, s:'sports', c:'#ff2e63', en:'Sports Car',     fr:'Voiture sport'},
+  {id:'monster',r:2, m:2, s:'monster',c:'#7cff3f', en:'Monster Truck',  fr:'Camion monstre'},
+  {id:'limo',   r:2, m:4, s:'limo',   c:'#3a3a52', en:'Limo',           fr:'Limousine'},
+  {id:'timecar',r:2, m:5, s:'sports', c:'#c9d1db', en:'Time Machine',   fr:'Machine à voyager', acc:'flux'},
+  {id:'golden', r:3, m:1, s:'sports', c:'#ffd700', en:'Golden Supercar',fr:'Super-voiture dorée'},
+  {id:'racer',  r:3, m:3, s:'sports', c:'#3ff0ff', en:'Neon Racer',     fr:'Bolide néon', acc:'stripe'},
+  {id:'hover',  r:3, m:5, s:'hover',  c:'#ff3fa4', en:'Hover Car',      fr:'Auto volante'},
+  {id:'rover',  r:3, m:6, s:'rover',  c:'#e8f0ff', en:'Moon Rover',     fr:'Rover lunaire'},
+  {id:'plat',   r:4, m:0, s:'limo',   c:'#e5e4e2', en:'Platinum Cruiser',fr:'Croiseur platine', paid:1},
+  {id:'laser',  r:4, m:0, s:'hover',  c:'#ffe93f', en:'Laser Limo',     fr:'Limo laser', paid:1},
+];
+const TY = id => TYPES.find(x => x.id === id) || TYPES[0];
+const RAR = [
+  {en:'Common', fr:'Commune', c:'#bba9e0'},
+  {en:'Rare', fr:'Rare', c:'#3ff0ff'},
+  {en:'Epic VIP', fr:'VIP épique', c:'#c77dff'},
+  {en:'Legendary VIP', fr:'VIP légendaire', c:'#ffd23f'},
+  {en:'Golden Pack', fr:'Pack Doré', c:'#ff9f1c'},
+];
+const QUESTS = [
+  {id:'wash',  n:[60,120,200], en:'Wash {n} cars', fr:'Lave {n} autos'},
+  {id:'scrub', n:[80,150,250], en:'Scrub {n} times', fr:'Frotte {n} fois'},
+  {id:'reg',   n:[5,10,15],    en:'Empty a cash register {n} times', fr:'Vide une caisse {n} fois'},
+  {id:'buy',   n:[10,20,40],   en:'Buy {n} upgrades', fr:'Achète {n} améliorations'},
+  {id:'vip',   n:[2,4,6],      en:'Wash {n} VIP cars', fr:'Lave {n} autos VIP'},
+  {id:'spark', n:[2,3,5],      en:'Catch {n} sparkly cars', fr:'Attrape {n} autos brillantes'},
+  {id:'rush',  n:[20,40,60],   en:'Wash {n} cars during Rush Hour', fr:'Lave {n} autos à l’heure de pointe'},
+];
+const ACH = [
+  {id:'c1',   e:'🚗', en:'First Shine',     fr:'Premier lavage',     d:['Wash 1 car','Lave 1 auto'],               ok:()=>S.cars>=1, g:2},
+  {id:'c100', e:'🧽', en:'Busy Bay',        fr:'Baie occupée',       d:['Wash 100 cars','Lave 100 autos'],         ok:()=>S.cars>=100, g:5},
+  {id:'c1k',  e:'🚙', en:'Car Magnet',      fr:'Aimant à autos',     d:['Wash 1,000 cars','Lave 1 000 autos'],     ok:()=>S.cars>=1e3, g:10},
+  {id:'c10k', e:'🚐', en:'Traffic Jam',     fr:'Embouteillage',      d:['Wash 10,000 cars','Lave 10 000 autos'],   ok:()=>S.cars>=1e4, g:20},
+  {id:'c100k',e:'🚌', en:'Whole City',      fr:'Toute la ville',     d:['Wash 100,000 cars','Lave 100 000 autos'], ok:()=>S.cars>=1e5, g:40},
+  {id:'c1m',  e:'🌎', en:'Every Car Ever',  fr:'Toutes les autos',   d:['Wash 1M cars','Lave 1M d’autos'],         ok:()=>S.cars>=1e6, g:80},
+  {id:'s500', e:'🫧', en:'Elbow Grease',    fr:'Huile de coude',     d:['Scrub 500 times','Frotte 500 fois'],      ok:()=>S.scrubs>=500, g:10},
+  {id:'e1k',  e:'🪙', en:'Pocket Money',    fr:'Argent de poche',    d:['Earn 1K coins','Gagne 1K pièces'],        ok:()=>S.total>=1e3, g:3},
+  {id:'e1m',  e:'💰', en:'Millionaire',     fr:'Millionnaire',       d:['Earn 1M coins','Gagne 1M de pièces'],     ok:()=>S.total>=1e6, g:10},
+  {id:'e1b',  e:'🏦', en:'Billionaire',     fr:'Milliardaire',       d:['Earn 1B coins','Gagne 1B de pièces'],     ok:()=>S.total>=1e9, g:25},
+  {id:'e1t',  e:'🏆', en:'Car Wash Tycoon', fr:'Magnat du lave-auto',d:['Earn 1T coins','Gagne 1T de pièces'],     ok:()=>S.total>=1e12, g:60},
+  {id:'l2',   e:'🏙️', en:'Franchise',       fr:'Franchise',          d:['Open 2 locations','Ouvre 2 succursales'], ok:()=>openCount()>=2, g:5},
+  {id:'l4',   e:'🗺️', en:'Road Trip',       fr:'Road trip',          d:['Open 4 locations','Ouvre 4 succursales'], ok:()=>openCount()>=4, g:15},
+  {id:'l7',   e:'🌙', en:'Chain Empire',    fr:'Empire du lavage',   d:['Open all 7 locations','Ouvre les 7 succursales'], ok:()=>openCount()>=7, g:50},
+  {id:'m1',   e:'👔', en:'Boss Mode',       fr:'Mode patron',        d:['Hire a manager','Engage un gérant'],      ok:()=>S.loc.some(l=>l.mgr), g:5},
+  {id:'mall', e:'🤝', en:'Dream Team',      fr:'Équipe de rêve',     d:['Hire all 7 managers','Engage les 7 gérants'], ok:()=>S.loc.every(l=>l.mgr), g:40},
+  {id:'b8',   e:'🚿', en:'Full House',      fr:'Salle comble',       d:['Have 8 bays in one location','Aie 8 baies dans une succursale'], ok:()=>S.loc.some(l=>l.bays>=8), g:10},
+  {id:'v1',   e:'👑', en:'Red Carpet',      fr:'Tapis rouge',        d:['Wash a VIP car','Lave une auto VIP'],     ok:()=>S.vips>=1, g:5},
+  {id:'v25',  e:'💎', en:'VIP Club',        fr:'Club VIP',           d:['Wash 25 VIP cars','Lave 25 autos VIP'],   ok:()=>S.vips>=25, g:20},
+  {id:'sp5',  e:'✨', en:'Sparkle Spotter', fr:'Œil de lynx',        d:['Catch 5 sparkly cars','Attrape 5 autos brillantes'], ok:()=>S.sparks>=5, g:10},
+  {id:'d10',  e:'📖', en:'Car Spotter',     fr:'Collectionneur',     d:['Find 10 car types','Trouve 10 sortes d’autos'], ok:()=>dexFound()>=10, g:10},
+  {id:'dall', e:'🏁', en:'Seen Them All',   fr:'Je les ai toutes vues', d:['Find all 21 car types','Trouve les 21 sortes d’autos'], ok:()=>TYPES.filter(x=>!x.paid).every(x=>S.dex[x.id]), g:50},
+  {id:'r1',   e:'🔑', en:'New Franchise',   fr:'Nouvelle franchise', d:['Sell your chain once','Vends ta chaîne une fois'], ok:()=>S.rebirths>=1, g:20},
+  {id:'r5',   e:'🗝️', en:'Serial Founder',  fr:'Fondateur en série', d:['Sell your chain 5 times','Vends ta chaîne 5 fois'], ok:()=>S.rebirths>=5, g:50},
+];
+
+/* =====================================================================
+   3. STATE + SAVE
+===================================================================== */
+const SAVE_KEY = 'carwash_tycoon_v1';
+let S = null;
+const $ = id => document.getElementById(id);
+const now = () => Date.now();
+const rnd = (a, b) => a + Math.random() * (b - a);
+const t = (en, fr) => (S && S.lang === 'fr') ? fr : en;
+const L = o => (S && S.lang === 'fr') ? o.fr : o.en;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SUF = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
+function fmt(n){
+  if(!isFinite(n)) return '∞';
+  if(n < 0) return '-' + fmt(-n);
+  if(n < 1000) return n < 10 && n % 1 ? (Math.floor(n * 10) / 10).toString() : Math.floor(n).toString();
+  let i = 0; while(n >= 1000 && i < SUF.length - 1){ n /= 1000; i++; }
+  return (n < 10 ? Math.floor(n * 100) / 100 : n < 100 ? Math.floor(n * 10) / 10 : Math.floor(n)) + SUF[i];
+}
+function fmtTime(s){
+  s = Math.max(0, Math.floor(s));
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  if(h) return h + 'h ' + String(m).padStart(2, '0') + 'm';
+  if(m) return m + ':' + String(x).padStart(2, '0');
+  return x + 's';
+}
+function dayKey(d){ d = d || new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+
+function newLoc(i, open){
+  const b = open ? 1 : 0;
+  return {open: !!open, bays: b, soap: 0, brush: 0, staff: 0, mgr: false, reg: 0,
+          p: Array(b).fill(0), car: Array.from({length: b}, () => pickCar(i))};
+}
+function fresh(){
+  return {v:1, lang: (navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en',
+    sound: true, saver: true, easy: false,
+    coins: CONFIG.START_COINS, gems: CONFIG.START_GEMS, total: 0, run: 0,
+    cars: 0, scrubs: 0, vips: 0, sparks: 0, regs: 0, ups: 0,
+    keys: 0, rebirths: 0, pack: false, gold: false, iapDone: {},
+    cur: 0, loc: LOCS.map((l, i) => newLoc(i, i === 0)), dex: {}, ach: {},
+    q: null, daily: {last: '', streak: 0},
+    ad2x: 0, turbo: 0, rushUntil: 0, nextRush: now() + 120000, nextSpark: now() + 45000,
+    adRushAt: 0, adGemDay: '', adGemN: 0,
+    lastSeen: now(), buyAmt: 1, tut: 0};
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY); if(!raw) return null;
+    const d = JSON.parse(raw), f = fresh();
+    for(const k in f) if(d[k] === undefined) d[k] = f[k];
+    LOCS.forEach((l, i) => {
+      if(!d.loc[i]) d.loc[i] = f.loc[i];
+      const x = d.loc[i];
+      while(x.p.length < x.bays) x.p.push(0);
+      while(x.car.length < x.bays) x.car.push('sedan');
+    });
+    return d;
+  }catch(e){ return null; }
+}
+let lastSave = 0;
+function save(){ if(!S) return; S.lastSeen = now(); try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} lastSave = now(); }
+function saveSoon(){ if(now() - lastSave > 3000) save(); }
+
+/* =====================================================================
+   4. ECONOMY
+===================================================================== */
+const openCount = () => S.loc.filter(l => l.open).length;
+const rushOn = () => S && now() < S.rushUntil;
+const turboOn = () => S && now() < S.turbo;
+const ad2xOn = () => S && now() < S.ad2x;
+const costMul = () => Math.pow(CONFIG.REBIRTH_PRICE_MULT, S.rebirths || 0);
+function dexFound(){ return TYPES.filter(x => S.dex[x.id]).length; }
+function dexShined(){ return TYPES.filter(x => (S.dex[x.id] || 0) >= CONFIG.DEX_SHINE_AT).length; }
+function dexBonus(){ return dexFound() * CONFIG.DEX_FOUND + dexShined() * CONFIG.DEX_SHINE; }
+let _pmT = 0, _pmV = 1;
+function permMul(){
+  const n = now(); if(n - _pmT < 1000) return _pmV; _pmT = n;
+  _pmV = (1 + CONFIG.KEY_BONUS * S.keys) * (1 + dexBonus()) * (S.pack ? CONFIG.PACK_MULT : 1);
+  return _pmV;
+}
+function carPrice(i){ const l = S.loc[i]; return LOCS[i].price * (1 + CONFIG.SOAP_STEP * l.soap) * Math.pow(2, Math.floor(l.soap / CONFIG.SOAP_DOUBLE_EVERY)); }
+function washTime(i, live = true){
+  let w = LOCS[i].time / (1 + CONFIG.BRUSH_STEP * S.loc[i].brush);
+  if(live){ if(rushOn()) w /= CONFIG.RUSH_SPEED; if(turboOn()) w /= 2; }
+  return w;
+}
+function incMul(i, live = true){
+  let m = permMul() * (S.loc[i].mgr ? CONFIG.MGR_BONUS : 1);
+  if(live && ad2xOn()) m *= 2;
+  if(live && rushOn()) m *= CONFIG.RUSH_PAY;
+  return m;
+}
+const shineChance = i => Math.min(1, CONFIG.STAFF_STEP * S.loc[i].staff);
+function avgMult(i){ return (1 + (CONFIG.SHINE_MULT - 1) * shineChance(i)) * (1 + (CONFIG.VIP_MULT - 1) * CONFIG.VIP_CHANCE); }
+function rate(i, live = true){ const l = S.loc[i]; if(!l.open) return 0; return l.bays * carPrice(i) * incMul(i, live) * avgMult(i) / washTime(i, live); }
+function totalRate(live = true){ let r = 0; for(let i = 0; i < LOCS.length; i++) r += rate(i, live); return r; }
+function regCap(i){ return Math.max(carPrice(i) * 20, rate(i, false) * CONFIG.REG_CAP_MIN * 60); }
+
+function addCoins(a){ if(!(a > 0)) return; S.coins += a; S.total += a; S.run += a; }
+function earn(i, a){
+  const l = S.loc[i];
+  if(l.mgr) addCoins(a);
+  else l.reg = Math.min(regCap(i), l.reg + a);
+}
+function pickCar(i){
+  const rush = S ? rushOn() : false;
+  const vipCh = rush ? CONFIG.RUSH_VIP : CONFIG.VIP_CHANCE;
+  if(S && Math.random() < vipCh){
+    const pool = TYPES.filter(x => x.r >= 2 && x.m <= i && (!x.paid || S.pack));
+    const w = x => x.r === 2 ? 70 : x.r === 3 ? 25 : 15;
+    let tot = pool.reduce((a, x) => a + w(x), 0), r = Math.random() * tot;
+    for(const x of pool){ r -= w(x); if(r <= 0) return x.id; }
+    return pool[0].id;
+  }
+  const rares = TYPES.filter(x => x.r === 1 && x.m <= i), commons = TYPES.filter(x => x.r === 0 && x.m <= i);
+  const pool = (rares.length && Math.random() < 0.15) ? rares : commons;
+  return pool[Math.floor(Math.random() * pool.length)].id;
+}
+
+/* ---------- upgrade prices ---------- */
+const UPG = {
+  soap:  {e:'🧼', base:1,                  g:CONFIG.SOAP_GROWTH,  max:CONFIG.SOAP_MAX},
+  brush: {e:'🌀', base:CONFIG.BRUSH_BASE,  g:CONFIG.BRUSH_GROWTH, max:CONFIG.BRUSH_MAX},
+  staff: {e:'✨', base:CONFIG.STAFF_BASE,  g:CONFIG.STAFF_GROWTH, max:CONFIG.STAFF_MAX},
+};
+function upBase(i, k){ const u = UPG[k]; return LOCS[i].base * u.base * costMul() * Math.pow(u.g, S.loc[i][k]); }
+function upCost(i, k, n){ const u = UPG[k]; return upBase(i, k) * (Math.pow(u.g, n) - 1) / (u.g - 1); }
+function upN(i, k){
+  const u = UPG[k], room = u.max - S.loc[i][k]; if(room <= 0) return 0;
+  if(S.buyAmt === 'max'){ const n = Math.floor(Math.log(S.coins * (u.g - 1) / upBase(i, k) + 1) / Math.log(u.g)); return Math.max(1, Math.min(room, n)); }
+  return Math.min(room, S.buyAmt);
+}
+const bayCost = i => LOCS[i].base * CONFIG.BAY_BASE * costMul() * Math.pow(CONFIG.BAY_GROWTH, Math.max(0, S.loc[i].bays - 1));
+const mgrCost = i => LOCS[i].base * CONFIG.MGR_BASE * costMul();
+const openCost = i => LOCS[i].open * costMul();
+function keyGain(){ return Math.floor(10 * Math.sqrt(Math.max(0, S.run) / CONFIG.KEY_COINS)); }
+
+/* =====================================================================
+   5. ART — cars drawn in code. All face right. viewBox 0 -8 100 60
+===================================================================== */
+function wheel(x, y, r){ return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="#0c0320" stroke="#3ff0ff" stroke-width="1.6"/><circle cx="' + x + '" cy="' + y + '" r="' + (r * .38) + '" fill="#9a9ab0"/>'; }
+function carSVG(id, o){
+  o = o || {};
+  const T = TY(id), c = T.c, W = '#1b1036', WS = '#7fe9ff';
+  let over = '', body = '', win = '', wh = [[25, 41, 7], [75, 41, 7]], extra = '', front = [93, 31], back = [8, 31], glow = T.r >= 2 ? c : '#3ff0ff', dirt = [[30,30],[55,33],[72,29],[42,22]];
+  const P = (d, f) => '<path d="' + d + '" fill="' + (f || c) + '" stroke="#ffffff66" stroke-width="1"/>';
+  const G = d => '<path d="' + d + '" fill="' + W + '" stroke="' + WS + '" stroke-width="1"/>';
+  switch(T.s){
+    case 'hatch':
+      body = P('M10 38 Q8 27 16 25 L30 23 L38 12 Q40 10 44 10 L80 10 Q85 10 86 15 L88 26 Q92 28 91 38 Z');
+      win = G('M41 13 L62 13 L62 23 L34 23 Z') + G('M65 13 L80 13 L82 23 L65 23 Z'); front = [89, 30]; back = [11, 31]; break;
+    case 'wagon':
+      body = P('M6 38 Q5 27 13 25 L26 23 L34 11 Q36 9 40 9 L86 9 Q90 9 91 13 L93 26 Q96 28 95 38 Z');
+      win = G('M37 12 L54 12 L54 23 L31 23 Z') + G('M57 12 L72 12 L72 23 L57 23 Z') + G('M75 12 L87 12 L89 23 L75 23 Z'); break;
+    case 'suv':
+      body = P('M7 39 L7 24 Q7 21 11 21 L20 20 L26 8 Q27 6 30 6 L84 6 Q88 6 89 10 L92 21 Q94 22 94 26 L94 39 Z');
+      win = G('M29 9 L55 9 L55 20 L23 20 Z') + G('M58 9 L85 9 L89 20 L58 20 Z'); break;
+    case 'van':
+      body = P('M6 39 L6 14 Q6 6 14 6 L78 6 Q88 6 92 16 L95 26 L95 39 Z');
+      win = G('M12 10 L32 10 L32 21 L12 21 Z') + G('M36 10 L56 10 L56 21 L36 21 Z') + G('M60 10 L78 10 Q85 10 88 17 L90 22 L60 22 Z'); break;
+    case 'pickup':
+      body = P('M6 39 L6 22 L48 22 L48 39 Z') + P('M46 39 L46 22 L52 8 Q53 6 56 6 L74 6 Q78 6 80 10 L86 22 Q94 23 94 28 L94 39 Z');
+      win = G('M55 9 L73 9 L79 21 L52 21 Z'); dirt = [[20,30],[60,30],[78,32],[35,26]]; break;
+    case 'bus':
+      body = P('M3 40 L3 8 Q3 3 8 3 L89 3 Q96 3 97 10 L97 40 Z') + '<rect x="3" y="27" width="94" height="2.5" fill="#00000066"/>';
+      for(let k = 0; k < 6; k++) win += G('M' + (8 + k * 14) + ' 8 h11 v11 h-11 Z');
+      wh = [[20, 41, 7], [80, 41, 7]]; front = [95, 33]; back = [5, 33]; break;
+    case 'truck':
+      body = P('M4 40 L4 12 L68 12 L68 40 Z') + P('M66 40 L66 10 Q66 6 70 6 L86 6 Q93 6 95 14 L97 40 Z');
+      win = G('M71 10 L86 10 L92 22 L71 22 Z'); wh = [[20, 41, 7], [82, 41, 7]]; front = [95, 32]; back = [6, 32]; break;
+    case 'sports':
+      body = P('M5 39 Q4 31 12 29 L34 26 L46 18 Q48 17 52 17 L66 17 Q70 17 74 21 L80 26 L95 31 Q97 34 95 39 Z');
+      win = G('M49 20 L65 20 L72 26 L41 26 Z'); wh = [[22, 41, 6.5], [78, 41, 6.5]]; front = [94, 34]; back = [7, 33]; dirt = [[25,33],[55,33],[80,34],[58,23]]; break;
+    case 'limo':
+      body = P('M2 38 Q1 28 9 26 L22 24 L28 14 Q30 12 34 12 L72 12 Q76 12 79 15 L86 24 L94 27 Q98 29 98 38 Z');
+      win = G('M31 15 L48 15 L48 24 L26 24 Z') + G('M51 15 L64 15 L64 24 L51 24 Z') + G('M67 15 L76 15 L82 24 L67 24 Z');
+      wh = [[17, 41, 6.5], [85, 41, 6.5]]; front = [96, 31]; back = [4, 31]; break;
+    case 'monster':
+      body = '<g transform="translate(0,-9)">' + P('M6 39 L6 22 L48 22 L48 39 Z') + P('M46 39 L46 22 L52 8 Q53 6 56 6 L74 6 Q78 6 80 10 L86 22 Q94 23 94 28 L94 39 Z') + G('M55 9 L73 9 L79 21 L52 21 Z') + '</g>';
+      wh = [[22, 39, 11], [78, 39, 11]]; front = [93, 21]; back = [8, 21]; dirt = [[20,20],[60,21],[78,23],[35,16]]; break;
+    case 'hover':
+      body = P('M5 32 Q4 25 12 23 L34 21 L46 13 Q48 12 52 12 L66 12 Q70 12 74 16 L80 21 L95 25 Q97 28 95 32 Z');
+      win = G('M49 15 L65 15 L72 21 L41 21 Z'); wh = [];
+      extra = '<ellipse cx="50" cy="44" rx="38" ry="4" fill="' + glow + '" opacity=".7"/><path d="M25 33 L22 41 M75 33 L78 41" stroke="' + glow + '" stroke-width="2.5"/>';
+      front = [94, 28]; back = [7, 27]; dirt = [[25,27],[55,27],[80,28],[58,18]]; break;
+    case 'rover':
+      body = P('M10 32 L90 32 L85 21 L15 21 Z', '#c9d1db') + '<path d="M33 21 Q50 1 67 21 Z" fill="#7fe9ff66" stroke="#7fe9ff" stroke-width="1"/>' +
+        '<path d="M80 21 L84 6" stroke="#ddd" stroke-width="1.5"/><ellipse cx="85" cy="5" rx="5" ry="2.5" fill="' + c + '" transform="rotate(-25 85 5)"/>';
+      wh = [[20, 41, 7], [50, 41, 7], [80, 41, 7]]; front = [89, 27]; back = [11, 27]; dirt = [[25,26],[50,27],[70,27],[45,15]]; break;
+    default: // sedan
+      body = P('M8 38 Q6 28 14 26 L28 24 L36 13 Q38 11 42 11 L64 11 Q68 11 71 14 L80 24 L90 27 Q95 29 94 38 Z');
+      win = G('M39 14 L52 14 L52 24 L33 24 Z') + G('M55 14 L64 14 Q66 14 68 16 L74 24 L55 24 Z');
+  }
+  switch(T.acc){
+    case 'taxi': over += '<rect x="44" y="5" width="14" height="6" rx="1.5" fill="#ffe93f" stroke="#000" stroke-width=".6"/><path d="M10 30 h82" stroke="#111" stroke-width="2" stroke-dasharray="3 3"/>'; break;
+    case 'police': over += '<rect x="42" y="7" width="8" height="4" fill="#ff3b3b"/><rect x="50" y="7" width="8" height="4" fill="#3b7bff"/><rect x="10" y="29" width="82" height="3" fill="#1b2a6b"/>'; break;
+    case 'ice': over += '<path d="M44 -2 L56 -2 L50 6 Z" fill="#e0a060"/><circle cx="50" cy="-3" r="5" fill="#ff8fc8"/><circle cx="52" cy="-6" r="2" fill="#fff"/>'; break;
+    case 'surf': over += '<ellipse cx="45" cy="3.5" rx="30" ry="2.6" fill="#ffe93f" stroke="#ff3fa4" stroke-width="1"/>'; break;
+    case 'ladder': over += '<g stroke="#e0e0e0" stroke-width="1.2"><path d="M8 8 H64 M8 11 H64"/>' + [12,20,28,36,44,52,60].map(x => '<path d="M' + x + ' 8 V11"/>').join('') + '</g><rect x="72" y="3" width="8" height="3" fill="#3b7bff"/>'; break;
+    case 'flux': over += '<path d="M14 31 H86" stroke="#3ff0ff" stroke-width="2"/><rect x="6" y="27" width="6" height="4" fill="#ff8a3d"/>'; break;
+    case 'stripe': over += '<path d="M8 33 L94 33" stroke="#ff3fa4" stroke-width="2.5"/>'; break;
+  }
+  let lights = '<circle cx="' + front[0] + '" cy="' + front[1] + '" r="2" fill="#fff6b0"/><circle cx="' + back[0] + '" cy="' + back[1] + '" r="1.8" fill="#ff3b5b"/>';
+  let d = '';
+  if(o.dirt) d = '<g class="dirt" fill="#6b4a2a" opacity="1">' + dirt.map((p, k) => '<ellipse cx="' + p[0] + '" cy="' + p[1] + '" rx="' + (6 - k % 2 * 2) + '" ry="' + (3 + k % 2) + '" opacity=".8"/>').join('') + '</g>';
+  const under = wh.length ? '<ellipse cx="50" cy="48" rx="40" ry="2.5" fill="' + glow + '" opacity=".5"/>' : '';
+  return '<svg viewBox="0 -8 100 60" xmlns="http://www.w3.org/2000/svg">' + under + extra + body + win + over + lights + wh.map(w => wheel(w[0], w[1], w[2])).join('') + d + '</svg>';
+}
+
+/* =====================================================================
+   6. SOUND — tiny synth blips, no files
+===================================================================== */
+let AC = null, lastCoinSfx = 0;
+function ac(){
+  if(!S || !S.sound) return null;
+  if(!AC){ try{ AC = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return null; } }
+  if(AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function beep(f, d, type, vol, slide, delay){
+  const a = ac(); if(!a) return;
+  const t0 = a.currentTime + (delay || 0), o = a.createOscillator(), g = a.createGain();
+  o.type = type || 'square'; o.frequency.setValueAtTime(f, t0);
+  if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, f + slide), t0 + d);
+  g.gain.setValueAtTime(vol || .04, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + d);
+  o.connect(g); g.connect(a.destination); o.start(t0); o.stop(t0 + d + .02);
+}
+function sfx(n){
+  if(!S || !S.sound) return;
+  switch(n){
+    case 'tap': beep(520 + Math.random() * 120, .05, 'triangle', .035, 200); break;
+    case 'coin': if(now() - lastCoinSfx < 140) return; lastCoinSfx = now(); beep(990, .06, 'square', .025); beep(1480, .09, 'square', .02, 0, .06); break;
+    case 'buy': beep(440, .08, 'sawtooth', .03, 440); beep(880, .1, 'triangle', .03, 0, .07); break;
+    case 'vip': [523, 659, 784, 1046].forEach((f, k) => beep(f, .12, 'square', .03, 0, k * .08)); break;
+    case 'rush': beep(220, .5, 'sawtooth', .035, 660); beep(330, .5, 'square', .02, 990, .1); break;
+    case 'spark': [880, 1175, 1568].forEach((f, k) => beep(f, .1, 'triangle', .035, 0, k * .06)); break;
+    case 'err': beep(160, .15, 'sawtooth', .03, -60); break;
+    case 'big': [392, 523, 659, 784, 1046].forEach((f, k) => beep(f, .16, 'square', .03, 0, k * .09)); break;
+  }
+}
+
+/* =====================================================================
+   7. SCENE — bays, scrubbing, register, Rush Hour, sparkly cars
+===================================================================== */
+let bayEls = [], tab = 'wash', dispCoins = 0;
+const sceneOn = () => tab === 'wash' && !document.hidden;
+
+function buildScene(){
+  const i = S.cur, l = S.loc[i], loc = LOCS[i];
+  $('signNm').textContent = loc.e + ' ' + L(loc).toUpperCase();
+  const opens = S.loc.map((x, k) => x.open ? k : -1).filter(k => k >= 0);
+  $('locPrev').classList.toggle('off', opens.indexOf(i) <= 0);
+  $('locNext').classList.toggle('off', opens.indexOf(i) >= opens.length - 1);
+  const box = $('bays'); box.innerHTML = ''; bayEls = [];
+  for(let b = 0; b < CONFIG.BAY_MAX; b++){
+    const el = document.createElement('div');
+    if(b < l.bays){
+      el.className = 'bay' + (TY(l.car[b]).r >= 2 ? ' vip' : '');
+      el.dataset.b = b;
+      el.innerHTML = '<div class="brush"></div><div class="car">' + carSVG(l.car[b], {dirt:1}) + '</div><div class="prog"><i></i></div>';
+      el.car = el.querySelector('.car'); el.pi = el.querySelector('.prog i'); el.dirt = el.querySelector('.dirt'); el.lastP = 0;
+      bayEls.push(el);
+    } else if(b === l.bays){
+      el.className = 'bay buy'; el.id = 'bayBuy';
+      el.innerHTML = '<b>+</b>' + t('Bay', 'Baie') + '<span id="bayBuyC">🪙' + fmt(bayCost(i)) + '</span>';
+    } else { el.className = 'bay lock'; el.textContent = '🔒'; }
+    box.appendChild(el);
+  }
+  drawScene(true);
+}
+function drawScene(force){
+  const i = S.cur, l = S.loc[i];
+  for(let b = 0; b < bayEls.length; b++){
+    const el = bayEls[b], p = Math.min(1, l.p[b]);
+    if(p < el.lastP){ el.pi.style.transition = 'none'; el.pi.style.transform = 'scaleX(' + p + ')'; void el.pi.offsetWidth; el.pi.style.transition = ''; }
+    else el.pi.style.transform = 'scaleX(' + p + ')';
+    if(el.dirt) el.dirt.style.opacity = (1 - p).toFixed(2);
+    el.lastP = p;
+  }
+  // register
+  const r = $('reg');
+  if(l.mgr){ r.className = 'mgr'; r.innerHTML = '👔 ' + esc(L({en:LOCS[i].mgr[0], fr:LOCS[i].mgr[1]})) + '<br>' + t('auto-banking', 'encaisse seul'); }
+  else {
+    const cap = regCap(i), f = Math.min(1, l.reg / cap);
+    r.className = f >= .999 ? 'full' : '';
+    r.innerHTML = '🧾 ' + fmt(l.reg) + (f >= .999 ? ' ' + t('FULL', 'PLEIN') : '') + '<div class="bar"><i style="transform:scaleX(' + f.toFixed(3) + ')"></i></div>';
+  }
+  $('locRate').textContent = '+' + fmt(rate(i)) + '/s';
+  const bb = $('bayBuy');
+  if(bb){ bb.classList.toggle('no', S.coins < bayCost(i)); }
+}
+function fx(html, x, y, cls){
+  const box = $('fx'); if(box.childElementCount > 16) return;
+  const d = document.createElement('div'); d.className = 'fl' + (cls ? ' ' + cls : '');
+  d.innerHTML = html; d.style.left = x + 'px'; d.style.top = y + 'px';
+  box.appendChild(d); setTimeout(() => d.remove(), 1000);
+}
+function bubbles(x, y, n){
+  const box = $('fx'); if(S.saver) n = Math.min(n, 2);
+  for(let k = 0; k < n; k++){
+    if(box.childElementCount > 20) return;
+    const d = document.createElement('div'); d.className = 'bub';
+    d.style.left = (x + rnd(-14, 14)) + 'px'; d.style.top = (y + rnd(-6, 8)) + 'px'; d.style.setProperty('--dx', rnd(-16, 16) + 'px');
+    box.appendChild(d); setTimeout(() => d.remove(), 750);
+  }
+}
+function elPos(el){ const s = $('scene').getBoundingClientRect(), r = el.getBoundingClientRect(); return {x: r.left - s.left + r.width / 2, y: r.top - s.top + r.height * .35}; }
+function shake(){ const s = $('scene'); s.classList.remove('shake'); void s.offsetWidth; s.classList.add('shake'); }
+
+function finishCar(i, b, quiet){
+  const l = S.loc[i], id = l.car[b], T = TY(id), vip = T.r >= 2;
+  const shine = Math.random() < shineChance(i);
+  const pay = carPrice(i) * incMul(i) * (vip ? CONFIG.VIP_MULT : 1) * (shine ? CONFIG.SHINE_MULT : 1);
+  earn(i, pay);
+  S.cars++; S.dex[id] = (S.dex[id] || 0) + 1; qAdd('wash');
+  if(rushOn()) qAdd('rush');
+  if(vip){ S.vips++; qAdd('vip'); }
+  if(S.dex[id] === 1 && S.cars > 1){ toast('📖 ' + t('New car: ', 'Nouvelle auto : ') + L(T) + ' (+1%)', 'gold'); _pmT = 0; }
+  if(S.dex[id] === CONFIG.DEX_SHINE_AT){ toast('⭐ ' + L(T) + t(' shined! +1% coins', ' brille! +1% pièces'), 'gold'); _pmT = 0; }
+  l.car[b] = pickCar(i);
+  if(i !== S.cur || !sceneOn() || quiet) return;
+  const el = bayEls[b]; if(!el) return;
+  const p = elPos(el);
+  fx((vip ? '👑 ' : shine ? '✨ ' : '') + '+' + fmt(pay), p.x, p.y, vip ? 'big' : '');
+  if(vip){ sfx('vip'); shake(); } else sfx('coin');
+  // car drives out, new one drives in (skipped if washes are super fast)
+  const fast = washTime(i) < .7;
+  if(fast){ el.car.innerHTML = carSVG(l.car[b], {dirt:1}); }
+  else {
+    const old = el.car; old.classList.add('out'); setTimeout(() => old.remove(), 360);
+    const nc = document.createElement('div'); nc.className = 'car pre'; nc.innerHTML = carSVG(l.car[b], {dirt:1});
+    el.appendChild(nc); void nc.offsetWidth; nc.classList.remove('pre'); el.car = nc;
+  }
+  el.dirt = el.car.querySelector('.dirt');
+  el.classList.toggle('vip', TY(l.car[b]).r >= 2);
+}
+function scrub(b){
+  const i = S.cur, l = S.loc[i], el = bayEls[b]; if(!el) return;
+  l.p[b] += CONFIG.SCRUB_PUSH;
+  const coin = Math.max(.1, carPrice(i) * incMul(i) * CONFIG.SCRUB_COIN);
+  addCoins(coin); S.scrubs++; qAdd('scrub');
+  const p = elPos(el); bubbles(p.x, p.y + 6, 4); sfx('tap');
+  el.classList.remove('hit'); void el.offsetWidth; el.classList.add('hit');
+  let k = 0; while(l.p[b] >= 1 && k < 5){ l.p[b] -= 1; finishCar(i, b); k++; }
+  drawScene();
+  if(S.tut === 0 && S.scrubs >= 5){ S.tut = 1; coach(); }
+}
+function collectReg(i, silent){
+  const l = S.loc[i]; if(l.mgr || l.reg <= 0) return 0;
+  const a = l.reg; addCoins(a); l.reg = 0; S.regs++; qAdd('reg');
+  if(!silent && i === S.cur && sceneOn()){ const p = elPos($('reg')); fx('+' + fmt(a), p.x, p.y + 30, 'big'); sfx('coin'); }
+  if(S.tut === 2){ S.tut = 3; coach(); }
+  return a;
+}
+/* ---------- Rush Hour ---------- */
+function startRush(){
+  S.rushUntil = now() + CONFIG.RUSH_LEN_S * 1000;
+  S.nextRush = S.rushUntil + rnd(CONFIG.RUSH_EVERY_MIN[0], CONFIG.RUSH_EVERY_MIN[1]) * 60000;
+  sfx('rush');
+  if(sceneOn()){ const b = $('rushBan'); b.textContent = '🚦 ' + t('RUSH HOUR!', 'HEURE DE POINTE!'); b.classList.remove('on'); void b.offsetWidth; b.classList.add('on'); shake(); }
+  else toast('🚦 ' + t('Rush Hour! Washes x2 faster', 'Heure de pointe! Lavages x2 plus vite'), 'gold');
+  renderChips();
+}
+/* ---------- sparkly car on the road ---------- */
+let sparkEl = null;
+function spawnSpark(){
+  S.nextSpark = now() + rnd(CONFIG.SPARK_EVERY_S[0], CONFIG.SPARK_EVERY_S[1]) * 1000;
+  if(sparkEl) return;
+  const pool = TYPES.filter(x => x.r <= 2 && x.m <= S.cur && !x.paid);
+  const id = pool[Math.floor(Math.random() * pool.length)].id;
+  const d = document.createElement('div'); d.className = 'spark'; d.innerHTML = '<div class="car">' + carSVG(id) + '</div>';
+  d.style.transitionDuration = CONFIG.SPARK_DRIVE_S + 's';
+  $('scene').querySelector('.road').appendChild(d); sparkEl = d;
+  void d.offsetWidth; d.style.transform = 'translateX(490%)';
+  setTimeout(() => { if(sparkEl === d){ d.remove(); sparkEl = null; } }, CONFIG.SPARK_DRIVE_S * 1000 + 100);
+}
+function catchSpark(){
+  if(!sparkEl) return;
+  const p = elPos(sparkEl); sparkEl.remove(); sparkEl = null;
+  const a = Math.max(20, totalRate() * CONFIG.SPARK_REWARD_S); addCoins(a); S.sparks++; qAdd('spark');
+  let g = Math.random() < CONFIG.SPARK_GEM_CHANCE ? 1 : 0; S.gems += g;
+  fx('✨ +' + fmt(a) + (g ? ' 💎' : ''), p.x, p.y - 10, 'big'); bubbles(p.x, p.y, 6); sfx('spark');
+}
+/* ---------- tutorial coach ---------- */
+function coach(){
+  document.querySelectorAll('.hl').forEach(e => e.classList.remove('hl'));
+  const c = $('coach'), st = S.tut;
+  const msg = [
+    t('👆 Tap a bay to scrub the car faster!', '👆 Touche une baie pour frotter l’auto plus vite!'),
+    t('🧼 Buy Soap below: every car pays more!', '🧼 Achète du Savon en bas : chaque auto paie plus!'),
+    t('🧾 Coins wait in the cash register. Tap it to collect!', '🧾 Les pièces attendent dans la caisse. Touche-la pour encaisser!'),
+    t('👔 Save up for a Manager: it collects for you, even while you’re away!', '👔 Économise pour un Gérant : il encaisse pour toi, même quand tu es absente!'),
+  ][st];
+  if(!msg || tab !== 'wash'){ c.classList.remove('on'); return; }
+  if(st === 2 && S.loc[S.cur].reg <= 0){ c.classList.remove('on'); return; }
+  c.textContent = msg; c.classList.add('on');
+  if(st === 1){ const e = document.querySelector('[data-up="soap"]'); if(e) e.closest('.card').classList.add('hl'); }
+  if(st === 2) $('reg').classList.add('hl');
+  if(st === 3){ const e = document.querySelector('[data-mgr]'); if(e) e.closest('.card').classList.add('hl'); }
+}
+
+/* =====================================================================
+   8. SCREENS
+===================================================================== */
+const TABS = [
+  {id:'wash',  e:'🧽', en:'Wash',  fr:'Lavage'},
+  {id:'chain', e:'🗺️', en:'Chain', fr:'Chaîne'},
+  {id:'cars',  e:'📖', en:'Cars',  fr:'Autos'},
+  {id:'goals', e:'🎯', en:'Goals', fr:'Défis'},
+  {id:'more',  e:'⚙️', en:'More',  fr:'Plus'},
+];
+function renderNav(){
+  $('nav').innerHTML = TABS.map(x => '<button data-tab="' + x.id + '" class="' + (tab === x.id ? 'on' : '') + '"><b>' + x.e + '</b>' + L(x) + '<span class="dot" id="dot_' + x.id + '"></span></button>').join('');
+  $('nav').querySelectorAll('button').forEach(b => b.onclick = () => { sfx('tap'); showTab(b.dataset.tab); });
+  updateDots();
+}
+function showTab(id){
+  tab = id; $('app').classList.toggle('full', id !== 'wash');
+  renderNav(); renderPanel(); $('panel').scrollTop = 0;
+  if(id === 'wash') buildScene();
+  coach();
+}
+function renderPanel(){
+  ({wash: renderWash, chain: renderChain, cars: renderCars, goals: renderGoals, more: renderMore})[tab]();
+}
+function costBtn(cost, attrs, label, cls){
+  return '<button class="btn ' + (cls || '') + (S.coins < cost ? ' no' : '') + '" data-cost="' + cost + '" ' + attrs + '>' + (label ? '<small>' + label + '</small>' : '') + '🪙 ' + fmt(cost) + '</button>';
+}
+/* ---------- Wash tab: upgrades for this location ---------- */
+function renderWash(){
+  const i = S.cur, l = S.loc[i], loc = LOCS[i];
+  let h = '<div class="row" style="justify-content:space-between"><h2>' + loc.e + ' ' + L(loc) + '</h2><div class="seg" id="amt">' +
+    [1, 10, 'max'].map(a => '<button data-a="' + a + '" class="' + (S.buyAmt === a ? 'on' : '') + '">' + (a === 'max' ? 'MAX' : 'x' + a) + '</button>').join('') + '</div></div>';
+  // bays
+  h += '<div class="card"><div class="ic">🚿</div><div class="info"><div class="nm">' + t('Wash Bays', 'Baies de lavage') + ' <span class="tag">' + l.bays + '/' + CONFIG.BAY_MAX + '</span></div><div class="sub">' +
+    t('Each bay washes one car at a time.', 'Chaque baie lave une auto à la fois.') + '</div></div>' +
+    (l.bays >= CONFIG.BAY_MAX ? '<span class="tag">MAX</span>' : costBtn(bayCost(i), 'data-bay="1"', '+1')) + '</div>';
+  // soap / brushes / detailers
+  const up = (k, nm, desc) => {
+    const lv = l[k], n = upN(i, k), maxed = lv >= UPG[k].max;
+    return '<div class="card"><div class="ic">' + UPG[k].e + '</div><div class="info"><div class="nm">' + nm + ' <span class="tag">' + t('Lv ', 'Niv. ') + lv + '</span></div><div class="sub">' + desc + '</div></div>' +
+      (maxed ? '<span class="tag">MAX</span>' : costBtn(upCost(i, k, n), 'data-up="' + k + '" data-n="' + n + '"', '+' + n)) + '</div>';
+  };
+  const nS = upN(i, 'soap') || 0, nextSoap = LOCS[i].price * (1 + CONFIG.SOAP_STEP * (l.soap + nS)) * Math.pow(2, Math.floor((l.soap + nS) / CONFIG.SOAP_DOUBLE_EVERY));
+  const toDouble = CONFIG.SOAP_DOUBLE_EVERY - l.soap % CONFIG.SOAP_DOUBLE_EVERY;
+  h += up('soap', t('Soap', 'Savon'), t('Each car pays ', 'Chaque auto paie ') + '<b>' + fmt(carPrice(i)) + ' → ' + fmt(nextSoap) + '</b><br>' + t('x2 pay in ', 'Paie x2 dans ') + toDouble + t(' levels', ' niveaux'));
+  const nB = upN(i, 'brush') || 0, nextT = LOCS[i].time / (1 + CONFIG.BRUSH_STEP * (l.brush + nB));
+  h += up('brush', t('Brushes', 'Brosses'), t('Wash time ', 'Temps de lavage ') + '<b>' + washTime(i, false).toFixed(2) + 's → ' + nextT.toFixed(2) + 's</b>');
+  const nD = upN(i, 'staff') || 0;
+  h += up('staff', t('Detailers', 'Esthéticiens'), t('Shine chance ', 'Chance de briller ') + '<b>' + Math.round(shineChance(i) * 100) + '% → ' + Math.round(Math.min(1, CONFIG.STAFF_STEP * (l.staff + nD)) * 100) + '%</b> ' + t('(pays x3)', '(paie x3)'));
+  // manager
+  const mn = L({en:loc.mgr[0], fr:loc.mgr[1]});
+  h += '<div class="card"><div class="ic">👔</div><div class="info"><div class="nm">' + t('Manager: ', 'Gérant : ') + esc(mn) + '</div><div class="sub">' +
+    (l.mgr ? t('Hired! Collects the register for you, +50% coins, full earnings while you’re away.', 'Engagé! Encaisse pour toi, +50 % de pièces, revenus complets pendant ton absence.')
+           : t('Collects the register for you, +50% coins, and earns full coins while you’re away.', 'Encaisse la caisse pour toi, +50 % de pièces, et gagne tout pendant ton absence.')) + '</div></div>' +
+    (l.mgr ? '<span class="tag" style="color:var(--green)">✔</span>' : costBtn(mgrCost(i), 'data-mgr="1"', t('Hire', 'Engager'), 'cy')) + '</div>';
+  h += '<p class="muted center">' + t('Tip: tap bays to scrub · tap the ✨ sparkly car on the road!', 'Astuce : touche les baies pour frotter · touche l’auto ✨ brillante sur la route!') + '</p>';
+  $('panel').innerHTML = h;
+  $('amt').querySelectorAll('button').forEach(b => b.onclick = () => { S.buyAmt = b.dataset.a === 'max' ? 'max' : +b.dataset.a; sfx('tap'); renderWash(); coach(); });
+  $('panel').querySelectorAll('[data-up]').forEach(b => b.onclick = () => buyUp(b.dataset.up, b));
+  const bb = $('panel').querySelector('[data-bay]'); if(bb) bb.onclick = () => buyBay(bb);
+  const mb = $('panel').querySelector('[data-mgr]'); if(mb) mb.onclick = () => buyMgr(mb);
+}
+function noMoney(){ sfx('err'); toast(t('Not enough coins yet', 'Pas encore assez de pièces'), 'err'); }
+function bought(btn){ sfx('buy'); S.ups++; qAdd('buy'); saveSoon(); if(btn) { btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); } }
+function buyUp(k, btn){
+  const i = S.cur, n = upN(i, k); if(n <= 0) return;
+  const c = upCost(i, k, n); if(S.coins < c) return noMoney();
+  S.coins -= c; S.loc[i][k] += n; bought(btn);
+  if(k === 'soap' && S.tut === 1){ S.tut = 2; }
+  renderWash(); drawScene(); coach();
+  const nb = $('panel').querySelector('[data-up="' + k + '"]'); if(nb){ nb.classList.add('pop'); }
+}
+function buyBay(btn){
+  const i = S.cur, l = S.loc[i]; if(l.bays >= CONFIG.BAY_MAX) return;
+  const c = bayCost(i); if(S.coins < c) return noMoney();
+  S.coins -= c; l.bays++; l.p.push(0); l.car.push(pickCar(i)); bought(btn);
+  if(tab === 'wash'){ buildScene(); renderWash(); coach(); }
+}
+function buyMgr(btn){
+  const i = S.cur, l = S.loc[i]; if(l.mgr) return;
+  const c = mgrCost(i); if(S.coins < c) return noMoney();
+  S.coins -= c; collectReg(i, true); l.mgr = true; bought(btn); sfx('big'); _pmT = 0;
+  if(S.tut === 3) S.tut = 4;
+  toast('👔 ' + L({en:LOCS[i].mgr[0], fr:LOCS[i].mgr[1]}) + t(' is on the job!', ' est au travail!'), 'gold');
+  renderWash(); drawScene(); coach();
+}
+/* ---------- Chain tab ---------- */
+function renderChain(){
+  let h = '<h2>🗺️ ' + t('Your Car Wash Chain', 'Ta chaîne de lave-autos') + '</h2>';
+  const unmanaged = S.loc.some(l => l.open && !l.mgr && l.reg > 0);
+  h += '<button class="btn green wide" id="colAll"' + (unmanaged ? '' : ' style="opacity:.5"') + '>🧾 ' + t('Collect all registers', 'Encaisser toutes les caisses') + ' <span id="colAllA"></span></button>';
+  let shownNext = false;
+  LOCS.forEach((loc, i) => {
+    const l = S.loc[i];
+    if(l.open){
+      h += '<div class="card"' + (i === S.cur ? ' style="border-color:var(--cyan)"' : '') + '><div class="ic">' + loc.e + '</div><div class="info"><div class="nm">' + L(loc) + '</div><div class="sub">' +
+        l.bays + t(' bays', ' baies') + ' · <b>+' + fmt(rate(i)) + '/s</b><br>' + (l.mgr ? '👔 ' + t('Manager hired', 'Gérant engagé') : '🧾 <span id="cr' + i + '">' + fmt(l.reg) + ' / ' + fmt(regCap(i)) + '</span>') +
+        '</div></div><button class="btn cy" data-go="' + i + '">' + (i === S.cur ? t('Here', 'Ici') : t('Go', 'Aller')) + '</button></div>';
+    } else if(!shownNext){
+      shownNext = true;
+      h += '<div class="card" style="border-style:dashed;border-color:var(--green)"><div class="ic">' + loc.e + '</div><div class="info"><div class="nm">' + L(loc) + '</div><div class="sub">' +
+        t('Cars pay ', 'Les autos paient ') + fmt(loc.price) + '+ · ' + t('new car types!', 'nouvelles autos!') + '</div></div>' + costBtn(openCost(i), 'data-open="' + i + '"', t('Open', 'Ouvrir'), 'green') + '</div>';
+    } else {
+      h += '<div class="card" style="opacity:.45"><div class="ic">❓</div><div class="info"><div class="nm">???</div><div class="sub">' + t('Open the one before first', 'Ouvre la précédente d’abord') + '</div></div><span class="tag">🔒</span></div>';
+    }
+  });
+  $('panel').innerHTML = h;
+  $('colAll').onclick = () => { let a = 0; S.loc.forEach((l, i) => { if(l.open) a += collectReg(i, true); }); if(a > 0){ sfx('coin'); toast('🧾 +' + fmt(a), 'gold'); } renderChain(); };
+  $('panel').querySelectorAll('[data-go]').forEach(b => b.onclick = () => { S.cur = +b.dataset.go; sfx('tap'); showTab('wash'); });
+  $('panel').querySelectorAll('[data-open]').forEach(b => b.onclick = () => openLoc(+b.dataset.open, b));
+  updateChain();
+}
+function updateChain(){
+  let tot = 0;
+  S.loc.forEach((l, i) => { if(l.open && !l.mgr){ tot += l.reg; const e = $('cr' + i); if(e) e.textContent = fmt(l.reg) + ' / ' + fmt(regCap(i)); } });
+  const e = $('colAllA'); if(e) e.textContent = tot > 0 ? '(+' + fmt(tot) + ')' : '';
+}
+function openLoc(i, btn){
+  const c = openCost(i); if(S.coins < c) return noMoney();
+  S.coins -= c; S.loc[i] = newLoc(i, true); bought(btn); sfx('big');
+  S.cur = i; toast('🎉 ' + L(LOCS[i]) + t(' is open!', ' est ouverte!'), 'gold');
+  showTab('wash');
+}
+/* ---------- Cars tab (collection) ---------- */
+function renderCars(){
+  const f = dexFound(), all = TYPES.length;
+  let h = '<h2>📖 ' + t('Car Collection', 'Collection d’autos') + '</h2><p class="muted">' + t('Find a car type: +1% coins forever. Wash 25 of it: ⭐ +1% more.', 'Trouve une sorte d’auto : +1 % de pièces pour toujours. Laves-en 25 : ⭐ +1 % de plus.') +
+    '<br><b style="color:var(--yellow)">' + f + '/' + all + ' · ' + t('bonus +', 'bonus +') + Math.round(dexBonus() * 100) + '%</b></p>';
+  RAR.forEach((r, ri) => {
+    const list = TYPES.filter(x => x.r === ri); if(!list.length) return;
+    h += '<h3 style="color:' + r.c + '">' + L(r) + '</h3><div class="grid3">';
+    list.forEach(x => {
+      const n = S.dex[x.id] || 0, sh = n >= CONFIG.DEX_SHINE_AT;
+      h += '<div class="dex' + (n ? '' : ' no') + (sh ? ' shined' : '') + '"><div class="car">' + carSVG(x.id) + '</div><b>' + (n ? L(x) : '???') + '</b><div class="cnt">' +
+        (n ? (sh ? '⭐ ' : '') + '×' + fmt(n) : (x.paid ? '💝 ' + t('Golden pack', 'Pack doré') : '📍 ' + L(LOCS[x.m]))) + '</div></div>';
+    });
+    h += '</div>';
+  });
+  $('panel').innerHTML = h;
+}
+/* ---------- Goals tab: daily gift, quests, achievements ---------- */
+function ensureQuests(){
+  const d = dayKey();
+  if(S.q && S.q.day === d) return;
+  const canReg = S.loc.some(l => l.open && !l.mgr);
+  let pool = QUESTS.filter(q => q.id !== 'reg' || canReg).sort(() => Math.random() - .5).slice(0, 3);
+  S.q = {day: d, chest: false, list: pool.map(q => ({id: q.id, goal: q.n[Math.floor(Math.random() * q.n.length)], have: 0, claimed: false}))};
+}
+function qAdd(id, n){ if(!S.q) return; S.q.list.forEach(q => { if(q.id === id && q.have < q.goal) q.have = Math.min(q.goal, q.have + (n || 1)); }); }
+function dailyReady(){ return S.daily.last !== dayKey(); }
+function claimables(){
+  ensureQuests();
+  let n = dailyReady() ? 1 : 0;
+  S.q.list.forEach(q => { if(q.have >= q.goal && !q.claimed) n++; });
+  if(!S.q.chest && S.q.list.every(q => q.claimed)) n++;
+  return n;
+}
+function renderGoals(){
+  ensureQuests();
+  let h = '<h2>🎁 ' + t('Daily Gift', 'Cadeau du jour') + '</h2>';
+  const d = streakDay();
+  h += '<div class="card"><div class="ic">🎁</div><div class="info"><div class="nm">' + t('Day ', 'Jour ') + d + '/7</div><div class="sub">' + t('Come back every day for bigger gifts!', 'Reviens chaque jour pour de plus gros cadeaux!') + '</div></div>' +
+    (dailyReady() ? '<button class="btn gold" id="dGift">' + t('Open', 'Ouvrir') + '</button>' : '<span class="tag">✔ ' + t('Tomorrow', 'Demain') + '</span>') + '</div>';
+  h += '<h2>📋 ' + t('Today’s Quests', 'Quêtes du jour') + '</h2>';
+  S.q.list.forEach((q, k) => {
+    const def = QUESTS.find(x => x.id === q.id), done = q.have >= q.goal;
+    h += '<div class="card"><div class="info"><div class="nm">' + L(def).replace('{n}', q.goal) + '</div><div class="bar2"><i style="width:' + (q.have / q.goal * 100) + '%"></i></div><div class="sub">' + q.have + ' / ' + q.goal + '</div></div>' +
+      (q.claimed ? '<span class="tag" style="color:var(--green)">✔</span>' : '<button class="btn ' + (done ? 'gold' : 'no') + '" data-q="' + k + '">💎 ' + CONFIG.QUEST_GEMS + '</button>') + '</div>';
+  });
+  const allC = S.q.list.every(q => q.claimed);
+  h += '<div class="card" style="border-color:var(--yellow)"><div class="ic">🧰</div><div class="info"><div class="nm">' + t('Quest Chest', 'Coffre de quêtes') + '</div><div class="sub">' + t('Finish all 3 quests: ', 'Termine les 3 quêtes : ') + '💎 ' + CONFIG.CHEST_GEMS + ' + ' + CONFIG.CHEST_MIN + t(' min of coins', ' min de pièces') + '</div></div>' +
+    (S.q.chest ? '<span class="tag" style="color:var(--green)">✔</span>' : '<button class="btn ' + (allC ? 'gold' : 'no') + '" id="qChest">' + t('Open', 'Ouvrir') + '</button>') + '</div>';
+  h += '<h2>🏆 ' + t('Achievements', 'Succès') + ' <span class="tag">' + Object.keys(S.ach).length + '/' + ACH.length + '</span></h2>';
+  ACH.forEach(a => {
+    const got = S.ach[a.id];
+    h += '<div class="card" style="' + (got ? 'border-color:var(--yellow)' : 'opacity:.6') + '"><div class="ic">' + (got ? a.e : '🔒') + '</div><div class="info"><div class="nm">' + L(a) + '</div><div class="sub">' + (S.lang === 'fr' ? a.d[1] : a.d[0]) + '</div></div><span class="tag">💎 ' + a.g + '</span></div>';
+  });
+  $('panel').innerHTML = h;
+  if($('dGift')) $('dGift').onclick = openDaily;
+  $('panel').querySelectorAll('[data-q]').forEach(b => b.onclick = () => {
+    const q = S.q.list[+b.dataset.q]; if(q.have < q.goal || q.claimed) return sfx('err');
+    q.claimed = true; S.gems += CONFIG.QUEST_GEMS; sfx('spark'); toast('💎 +' + CONFIG.QUEST_GEMS, 'gold'); save(); renderGoals(); updateDots();
+  });
+  if($('qChest')) $('qChest').onclick = () => {
+    if(!allC || S.q.chest) return sfx('err');
+    S.q.chest = true; const c = Math.max(50, totalRate(false) * CONFIG.CHEST_MIN * 60); addCoins(c); S.gems += CONFIG.CHEST_GEMS;
+    sfx('big'); showReward('🧰', t('Quest Chest!', 'Coffre de quêtes!'), '🪙 ' + fmt(c) + '<br>💎 ' + CONFIG.CHEST_GEMS); save(); renderGoals(); updateDots();
+  };
+}
+function streakDay(){
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  if(!dailyReady()) return ((S.daily.streak - 1) % 7) + 1;
+  const s = S.daily.last === dayKey(y) ? S.daily.streak + 1 : 1;
+  return ((s - 1) % 7) + 1;
+}
+function openDaily(){
+  if(!dailyReady()) return;
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  S.daily.streak = S.daily.last === dayKey(y) ? S.daily.streak + 1 : 1;
+  S.daily.last = dayKey();
+  const d = ((S.daily.streak - 1) % 7) + 1;
+  const coins = Math.max(30, totalRate(false) * CONFIG.DAILY_MIN * 60 * d), gems = CONFIG.DAILY_GEMS * d;
+  addCoins(coins); S.gems += gems; sfx('big'); save();
+  showReward('🎁', t('Day ', 'Jour ') + d + ' ' + t('gift!', 'cadeau!'), '🪙 ' + fmt(coins) + '<br>💎 ' + gems, {
+    label: t('Watch ad: double it', 'Pub : double-le'),
+    go: async () => { if(await rewardAd()){ addCoins(coins); S.gems += gems; toast('🎁 x2!', 'gold'); save(); } }
+  });
+  if(tab === 'goals') renderGoals(); updateDots();
+}
+function checkAch(){
+  let got = false;
+  ACH.forEach(a => { if(!S.ach[a.id] && a.ok()){ S.ach[a.id] = now(); S.gems += a.g; got = true; toast('🏆 ' + L(a) + ' · 💎 +' + a.g, 'gold'); } });
+  if(got){ sfx('spark'); save(); if(tab === 'goals') renderGoals(); }
+}
+/* ---------- More tab: boosts, shop, rebirth, settings ---------- */
+function renderMore(){
+  let h = '<h2>⚡ ' + t('Boosts', 'Boosts') + '</h2>';
+  h += '<div class="card"><div class="ic">📺</div><div class="info"><div class="nm">' + t('x2 coins', 'Pièces x2') + '</div><div class="sub">' + t('Watch an ad: +30 min of double coins (up to 4 h).', 'Regarde une pub : +30 min de pièces doublées (jusqu’à 4 h).') + (ad2xOn() ? '<br><b>' + t('Left: ', 'Reste : ') + fmtTime((S.ad2x - now()) / 1000) + '</b>' : '') + '</div></div><button class="btn" id="mAd2x">' + adIcon() + ' x2</button></div>';
+  const rushCd = Math.max(0, S.adRushAt + CONFIG.AD_RUSH_COOLDOWN_MIN * 60000 - now());
+  h += '<div class="card"><div class="ic">🚦</div><div class="info"><div class="nm">' + t('Rush Hour now', 'Heure de pointe maintenant') + '</div><div class="sub">' + t('40 s of x2 speed, +50% pay, more VIPs.', '40 s de vitesse x2, +50 % de paie, plus de VIP.') + (rushCd > 0 ? '<br>⏳ ' + fmtTime(rushCd / 1000) : '') + '</div></div><button class="btn' + (rushCd > 0 || rushOn() ? ' no' : '') + '" id="mAdRush">' + adIcon() + ' 🚦</button></div>';
+  if(S.adGemDay !== dayKey()){ S.adGemDay = dayKey(); S.adGemN = 0; }
+  const gemsLeft = CONFIG.AD_GEMS_PER_DAY - S.adGemN;
+  h += '<div class="card"><div class="ic">💎</div><div class="info"><div class="nm">' + t('Free gems', 'Gemmes gratuites') + '</div><div class="sub">' + t('Watch an ad for ', 'Regarde une pub pour ') + CONFIG.AD_GEMS + ' 💎 · ' + gemsLeft + t(' left today', ' restantes aujourd’hui') + '</div></div><button class="btn' + (gemsLeft <= 0 ? ' no' : '') + '" id="mAdGem">' + adIcon() + ' 💎' + CONFIG.AD_GEMS + '</button></div>';
+  h += '<h3>💎 ' + t('Gem Shop', 'Boutique de gemmes') + ' <span class="tag">💎 ' + S.gems + '</span></h3>';
+  const gemItem = (id, ic, nm, sub, cost) => '<div class="card"><div class="ic">' + ic + '</div><div class="info"><div class="nm">' + nm + '</div><div class="sub">' + sub + '</div></div><button class="btn cy' + (S.gems < cost ? ' no' : '') + '" data-gem="' + id + '">💎 ' + cost + '</button></div>';
+  h += gemItem('turbo', '🫧', t('Turbo Foam', 'Mousse turbo'), t('x2 wash speed for 15 min', 'Lavage x2 plus vite pendant 15 min') + (turboOn() ? '<br><b>' + t('Left: ', 'Reste : ') + fmtTime((S.turbo - now()) / 1000) + '</b>' : ''), CONFIG.GEM_TURBO);
+  h += gemItem('warp', '⏩', t('Time Warp', 'Saut dans le temps'), t('Get 1 hour of coins right now: ', 'Reçois 1 heure de pièces maintenant : ') + '🪙 ' + fmt(totalRate(false) * 3600 * CONFIG.WARP_H), CONFIG.GEM_WARP);
+  h += gemItem('rush', '🚦', t('Rush Hour', 'Heure de pointe'), t('Start a Rush Hour right now', 'Lance une heure de pointe maintenant'), CONFIG.GEM_RUSH);
+  h += '<h3>💝 ' + t('Golden Pack', 'Pack Doré') + '</h3>' + paidShopHtml();
+  // rebirth
+  const kg = keyGain();
+  h += '<h2>🔑 ' + t('Sell the Chain', 'Vendre la chaîne') + '</h2><div class="card" style="flex-direction:column;align-items:stretch"><div class="sub">' +
+    t('Sell everything to an investor for Gold Keys. Each key = +3% coins forever. Every sale doubles all prices, so each run stays a fair challenge.', 'Vends tout à un investisseur pour des Clés d’or. Chaque clé = +3 % de pièces pour toujours. Chaque vente double tous les prix, pour que chaque partie reste un défi juste.') +
+    '<br><br>🔑 ' + t('Keys: ', 'Clés : ') + '<b>' + S.keys + '</b> (×' + (1 + CONFIG.KEY_BONUS * S.keys).toFixed(2) + ') · ' + t('Sales: ', 'Ventes : ') + S.rebirths +
+    '<br>🪙 ' + t('Earned this run: ', 'Gagné cette partie : ') + '<b>' + fmt(S.run) + '</b><br>' + t('You need at least 10 keys (about 1B coins earned).', 'Il faut au moins 10 clés (environ 1B de pièces gagnées).') + '</div>' +
+    '<button class="btn wide ' + (kg >= CONFIG.KEY_MIN ? 'gold' : 'no') + '" id="mReb">🔑 ' + t('Sell for +', 'Vendre pour +') + kg + t(' keys', ' clés') + '</button></div>';
+  // settings
+  const tog = (id, on, nm, sub) => '<div class="card"><div class="info"><div class="nm">' + nm + '</div><div class="sub">' + sub + '</div></div><button class="tog' + (on ? ' on' : '') + '" id="' + id + '"></button></div>';
+  h += '<h2>⚙️ ' + t('Settings', 'Réglages') + '</h2>';
+  h += '<div class="card"><div class="info"><div class="nm">🌐 ' + t('Language', 'Langue') + '</div></div><div class="seg" id="sLang"><button data-l="en" class="' + (S.lang === 'en' ? 'on' : '') + '">English</button><button data-l="fr" class="' + (S.lang === 'fr' ? 'on' : '') + '">Français</button></div></div>';
+  h += tog('sSound', S.sound, '🔊 ' + t('Sound', 'Son'), t('Little synth blips', 'Petits bips synthé'));
+  h += tog('sSaver', S.saver, '🔋 ' + t('Battery saver', 'Économie de batterie'), t('On: keeps your phone cool. Off: extra animations.', 'Activé : garde ton téléphone frais. Désactivé : plus d’animations.'));
+  h += tog('sEasy', S.easy, '🔤 ' + t('Easy-read text', 'Texte facile à lire'), t('Wider letters and spacing', 'Lettres et espaces plus larges'));
+  if(S.pack) h += tog('sGold', S.gold, '✨ ' + t('Golden neon theme', 'Thème néon doré'), t('From the Golden Pack', 'Du Pack Doré'));
+  h += '<h3>📊 ' + t('Stats', 'Statistiques') + '</h3><div class="card"><div class="sub">' +
+    t('Cars washed: ', 'Autos lavées : ') + '<b>' + fmt(S.cars) + '</b><br>' + t('Scrubs: ', 'Frottages : ') + '<b>' + fmt(S.scrubs) + '</b><br>' + t('VIP cars: ', 'Autos VIP : ') + '<b>' + fmt(S.vips) + '</b><br>' +
+    t('Total coins earned: ', 'Pièces gagnées au total : ') + '<b>' + fmt(S.total) + '</b></div></div>';
+  h += '<button class="btn wide ghost" id="sReset" style="margin-top:14px;color:var(--red)">🗑️ ' + t('Erase my progress', 'Effacer ma progression') + '</button>';
+  h += '<p class="muted center" style="font-size:11px">MOS Arcade · Car Wash Tycoon</p>';
+  $('panel').innerHTML = h;
+  $('mAd2x').onclick = adBoost2x;
+  $('mAdRush').onclick = async () => { if(rushOn() || now() < S.adRushAt + CONFIG.AD_RUSH_COOLDOWN_MIN * 60000) return sfx('err'); if(await rewardAd()){ S.adRushAt = now(); startRush(); save(); } renderMore(); };
+  $('mAdGem').onclick = async () => { if(S.adGemN >= CONFIG.AD_GEMS_PER_DAY) return sfx('err'); if(await rewardAd()){ S.adGemN++; S.gems += CONFIG.AD_GEMS; toast('💎 +' + CONFIG.AD_GEMS, 'gold'); save(); } renderMore(); };
+  $('panel').querySelectorAll('[data-gem]').forEach(b => b.onclick = () => gemBuy(b.dataset.gem));
+  bindPaidShop();
+  $('mReb').onclick = openRebirth;
+  $('sLang').querySelectorAll('button').forEach(b => b.onclick = () => { S.lang = b.dataset.l; save(); applySettings(); renderNav(); renderMore(); });
+  $('sSound').onclick = () => { S.sound = !S.sound; save(); renderMore(); sfx('tap'); };
+  $('sSaver').onclick = () => { S.saver = !S.saver; save(); applySettings(); renderMore(); };
+  $('sEasy').onclick = () => { S.easy = !S.easy; save(); applySettings(); renderMore(); };
+  if($('sGold')) $('sGold').onclick = () => { S.gold = !S.gold; save(); applySettings(); renderMore(); };
+  $('sReset').onclick = () => {
+    openModal('🗑️ ' + t('Erase everything?', 'Tout effacer?'), '<p class="center">' + t('Your whole chain, keys, gems and collection will be gone. Purchases can be restored.', 'Toute ta chaîne, tes clés, gemmes et ta collection seront perdues. Les achats peuvent être restaurés.') + '</p><button class="btn wide" id="rsYes">' + t('Yes, erase', 'Oui, effacer') + '</button><button class="btn wide ghost" id="rsNo">' + t('Cancel', 'Annuler') + '</button>');
+    $('rsNo').onclick = closeModal;
+    $('rsYes').onclick = () => { const keep = {pack: S.pack, iapDone: S.iapDone, lang: S.lang}; S = fresh(); Object.assign(S, keep); save(); closeModal(); applySettings(); showTab('wash'); };
+  };
+}
+function gemBuy(id){
+  const cost = {turbo: CONFIG.GEM_TURBO, warp: CONFIG.GEM_WARP, rush: CONFIG.GEM_RUSH}[id];
+  if(S.gems < cost){ sfx('err'); toast(t('Not enough gems', 'Pas assez de gemmes'), 'err'); return; }
+  if(id === 'rush' && rushOn()){ sfx('err'); toast(t('Rush Hour is already on!', 'L’heure de pointe est déjà en cours!')); return; }
+  S.gems -= cost;
+  if(id === 'turbo'){ S.turbo = Math.max(now(), S.turbo) + CONFIG.TURBO_MIN * 60000; toast('🫧 ' + t('Turbo Foam on!', 'Mousse turbo activée!'), 'gold'); }
+  if(id === 'warp'){ const a = totalRate(false) * 3600 * CONFIG.WARP_H; addCoins(a); showReward('⏩', t('Time Warp!', 'Saut dans le temps!'), '🪙 ' + fmt(a)); }
+  if(id === 'rush') startRush();
+  sfx('buy'); save(); renderMore(); renderChips();
+}
+async function adBoost2x(){
+  const maxEnd = now() + CONFIG.AD_2X_MAX_H * 3600000;
+  if(S.ad2x >= maxEnd - 60000){ toast(t('x2 is full (4 h max)', 'x2 est plein (4 h max)')); return; }
+  if(await rewardAd()){ S.ad2x = Math.min(maxEnd, Math.max(now(), S.ad2x) + CONFIG.AD_2X_MIN * 60000); toast('📺 ' + t('Double coins! ', 'Pièces doublées! ') + fmtTime((S.ad2x - now()) / 1000), 'gold'); save(); }
+  renderChips(); if(tab === 'more') renderMore();
+}
+function openBoosts(){
+  openModal('⚡ ' + t('Boost', 'Boost'), '<div class="big">📺</div><p class="center">' + t('Watch a short ad for <b>x2 coins for 30 min</b> (stacks up to 4 h).', 'Regarde une courte pub pour <b>pièces x2 pendant 30 min</b> (jusqu’à 4 h).') +
+    (ad2xOn() ? '<br>' + t('Left: ', 'Reste : ') + '<b>' + fmtTime((S.ad2x - now()) / 1000) + '</b>' : '') + '</p><button class="btn wide gold" id="bAd">' + adIcon() + ' x2</button><button class="btn wide ghost" id="bMore">⚡ ' + t('More boosts', 'Plus de boosts') + '</button>');
+  $('bAd').onclick = async () => { closeModal(); await adBoost2x(); };
+  $('bMore').onclick = () => { closeModal(); showTab('more'); };
+}
+function openRebirth(){
+  const kg = keyGain();
+  if(kg < CONFIG.KEY_MIN){ sfx('err'); toast(t('Earn about 1B coins this run first', 'Gagne environ 1B de pièces dans cette partie d’abord'), 'err'); return; }
+  openModal('🔑 ' + t('Sell the Chain?', 'Vendre la chaîne?'),
+    '<p>🔄 <b>' + t('Starts over: ', 'Repart à zéro : ') + '</b>' + t('coins, locations, bays, upgrades, managers.', 'pièces, succursales, baies, améliorations, gérants.') + '</p>' +
+    '<p>✅ <b>' + t('You keep: ', 'Tu gardes : ') + '</b>' + t('keys, gems, car collection, achievements, purchases.', 'clés, gemmes, collection d’autos, succès, achats.') + '</p>' +
+    '<p>🎁 <b>' + t('Head start: ', 'Coup de pouce : ') + '</b>' + fmt(CONFIG.KEY_START * (S.keys + kg)) + ' 🪙</p>' +
+    '<p>📈 ' + t('Prices next run: ×', 'Prix à la prochaine partie : ×') + Math.pow(CONFIG.REBIRTH_PRICE_MULT, S.rebirths + 1) + '</p>' +
+    '<div class="amt">+' + kg + ' 🔑 → ×' + (1 + CONFIG.KEY_BONUS * (S.keys + kg)).toFixed(2) + '</div>' +
+    '<button class="btn wide gold" id="rbYes">' + t('Yes, sell it!', 'Oui, vendre!') + '</button><button class="btn wide ghost" id="rbNo">' + t('Not now', 'Pas maintenant') + '</button>');
+  $('rbNo').onclick = closeModal;
+  $('rbYes').onclick = () => {
+    S.keys += kg; S.rebirths++;
+    S.loc = LOCS.map((l, i) => newLoc(i, i === 0)); S.cur = 0; S.run = 0;
+    S.coins = CONFIG.KEY_START * S.keys; _pmT = 0;
+    closeModal(); sfx('big'); save(); showTab('wash');
+    showReward('🔑', t('Chain sold!', 'Chaîne vendue!'), '+' + kg + ' 🔑<br>' + t('Coins ×', 'Pièces ×') + (1 + CONFIG.KEY_BONUS * S.keys).toFixed(2));
+  };
+}
+/* ---------- modal, toast, reward ---------- */
+let modalClose = null;
+function openModal(title, html){ $('mBody').innerHTML = '<h2>' + title + '</h2>' + html; $('modalBg').classList.add('on'); }
+function closeModal(){ $('modalBg').classList.remove('on'); const f = modalClose; modalClose = null; if(f) f(); }
+const modalOpen = () => $('modalBg').classList.contains('on');
+function showReward(icon, title, body, ad){
+  openModal(title, '<div class="big">' + icon + '</div><div class="amt">' + body + '</div>' + (ad ? '<button class="btn wide gold" id="rwAd">' + adIcon() + ' ' + ad.label + '</button>' : '') + '<button class="btn wide ' + (ad ? 'ghost' : 'cy') + '" id="rwOk">' + t('Nice!', 'Super!') + '</button>');
+  $('rwOk').onclick = closeModal;
+  if(ad) $('rwAd').onclick = async () => { closeModal(); await ad.go(); };
+}
+let toastT = 0;
+function toast(msg, cls){ const e = $('toast'); e.className = 'on ' + (cls || ''); e.textContent = msg; clearTimeout(toastT); toastT = setTimeout(() => e.className = '', 2200); }
+
+/* =====================================================================
+   9. MONEY — rewarded ads (AdMob) + purchase (Google Play Billing)
+   ---------------------------------------------------------------------
+   FAKE FOR NOW: in a browser, ads are a 3-second pretend ad, and the
+   purchase is pretend (a "Demo" button gives you the item).
+   Inside the Android app (Capacitor) with the plugins installed, the
+   real ones take over automatically:
+     • @capacitor-community/admob   → rewarded video ads
+     • cordova-plugin-purchase      → Google Play purchase
+   BEFORE RELEASE: put your real AdMob rewarded unit ID below,
+   set MONEY.TESTING to false, and set MONEY.DEMO_BUY to false.
+   Ads are ALWAYS the player's choice. Nothing plays on its own.
+===================================================================== */
+const MONEY = {
+  TESTING: true,
+  DEMO_BUY: true,   // browser only: pretend purchase gives the item (for testing)
+  REWARDED_ID: 'ca-app-pub-3940256099942544/5224354917', // Google's TEST rewarded ID — replace with yours
+};
+const PACK = {sku: 'golden_pack', price: '$2.99'};
+const isNative = () => !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+const AdMobP = () => isNative() && window.Capacitor.Plugins ? Capacitor.Plugins.AdMob : null;
+let adBusy = false;
+const adIcon = () => S && S.pack ? '✨' : '📺';
+
+async function rewardAd(){
+  if(S.pack){ toast('✨ ' + t('Golden Pack: reward given!', 'Pack Doré : récompense donnée!'), 'gold'); return true; }
+  if(adBusy) return false;
+  adBusy = true; let ok = false;
+  try{ ok = AdMobP() ? await nativeAd() : await demoAd(); }catch(e){ ok = false; }
+  adBusy = false; lastTick = now();
+  if(!ok) toast(t('No reward this time', 'Pas de récompense cette fois'), 'err');
+  return ok;
+}
+function nativeAd(){
+  const A = AdMobP();
+  return new Promise(async res => {
+    let earned = false, finished = false, hs = [];
+    const finish = () => { if(finished) return; finished = true; hs.forEach(h => { try{ h.remove(); }catch(e){} }); res(earned); };
+    try{
+      hs.push(await A.addListener('onRewardedVideoAdReward', () => { earned = true; }));
+      hs.push(await A.addListener('onRewardedVideoAdDismissed', () => setTimeout(finish, 250)));
+      hs.push(await A.addListener('onRewardedVideoAdFailedToShow', finish));
+      await A.prepareRewardVideoAd({adId: MONEY.REWARDED_ID, isTesting: MONEY.TESTING});
+      const item = await A.showRewardVideoAd();
+      if(item && item.amount !== undefined) earned = true;
+      setTimeout(finish, 600);
+    }catch(e){ finish(); }
+  });
+}
+function demoAd(){
+  return new Promise(res => {
+    let n = 3;
+    openModal('📺 ' + t('Ad preview', 'Aperçu de pub'), '<div class="big">📺</div><p class="center">' + t('A real video ad plays here in the app.', 'Une vraie pub vidéo joue ici dans l’app.') + '</p><div class="amt" id="adCd">' + n + '</div><button class="btn wide ghost" id="adSkip">' + t('Close (no reward)', 'Fermer (pas de récompense)') + '</button>');
+    const iv = setInterval(() => { n--; const el = $('adCd'); if(el) el.textContent = n; if(n <= 0){ clearInterval(iv); closeModal(); res(true); } }, 1000);
+    $('adSkip').onclick = () => { clearInterval(iv); closeModal(); res(false); };
+  });
+}
+async function adsInit(){ const A = AdMobP(); if(!A) return; try{ await A.initialize({initializeForTesting: MONEY.TESTING}); }catch(e){} }
+
+function grantSku(sku){
+  if(sku !== PACK.sku || S.pack) return '';
+  S.pack = true; S.gold = true; S.gems += CONFIG.PACK_GEMS; _pmT = 0;
+  ['plat', 'laser'].forEach(id => { S.dex[id] = Math.max(1, S.dex[id] || 0); });
+  applySettings();
+  return t('✨ Golden neon theme<br>🚘 Platinum Cruiser + Laser Limo<br>🪙 x2 coins forever<br>📺 No ads: rewards are instant<br>💎 +', '✨ Thème néon doré<br>🚘 Croiseur platine + Limo laser<br>🪙 Pièces x2 pour toujours<br>📺 Sans pub : récompenses instantanées<br>💎 +') + CONFIG.PACK_GEMS;
+}
+const PRICES = {};
+let iapReady = false;
+function iapStore(){ return window.CdvPurchase && CdvPurchase.store; }
+function iapInit(){
+  const C = window.CdvPurchase; if(!C || iapReady) return;
+  const {store, ProductType, Platform} = C; iapReady = true;
+  store.register([{id: PACK.sku, type: ProductType.NON_CONSUMABLE, platform: Platform.GOOGLE_PLAY}]);
+  store.when()
+    .productUpdated(p => { if(p.pricing && p.pricing.price) PRICES[p.id] = p.pricing.price; })
+    .approved(tx => {
+      if(!S.iapDone) S.iapDone = {};
+      const tid = tx.transactionId || ('t' + now());
+      if(!S.iapDone[tid]){
+        S.iapDone[tid] = now();
+        (tx.products || []).forEach(it => { const msg = grantSku(it.id); if(msg) showReward('💝', t('Thank you!', 'Merci!'), msg); });
+        save(); if(tab === 'more') renderMore();
+      }
+      tx.finish();
+    });
+  store.error(e => { if(e && e.code !== C.ErrorCode.PAYMENT_CANCELLED) toast(t('Store error — please try again', 'Erreur de la boutique — réessaie'), 'err'); });
+  store.initialize([Platform.GOOGLE_PLAY]);
+}
+document.addEventListener('deviceready', iapInit, false);
+function buy(sku){
+  sfx('tap');
+  const st = iapStore();
+  if(st){
+    const p = st.get(sku), offer = p && p.getOffer();
+    if(!offer){ toast(t('Store is still loading — try again in a moment', 'La boutique charge encore — réessaie dans un instant'), 'err'); return; }
+    offer.order(); return;
+  }
+  openModal('💳 ' + t('Golden Pack', 'Pack Doré'), '<div class="big">🛍️</div><p class="center"><b>' + PACK.price + '</b></p><p class="muted center">' + t('Demo mode: real payments work in the Android app through Google Play.', 'Mode démo : les vrais paiements fonctionnent dans l’app Android avec Google Play.') + '</p>' +
+    (MONEY.DEMO_BUY ? '<button class="btn wide gold" id="dmBuy">' + t('Demo: get it free', 'Démo : l’avoir gratuitement') + '</button>' : '') + '<button class="btn wide ghost" id="dmNo">' + t('Close', 'Fermer') + '</button>');
+  if($('dmBuy')) $('dmBuy').onclick = () => { closeModal(); const msg = grantSku(sku); save(); if(tab === 'more') renderMore(); if(msg) showReward('💝', t('Thank you!', 'Merci!'), msg); };
+  $('dmNo').onclick = closeModal;
+}
+function restorePurchases(){
+  const st = iapStore();
+  if(st && st.restorePurchases){ st.restorePurchases(); toast(t('Checking your purchases...', 'Vérification de tes achats...')); }
+  else toast(t('Restore works in the Android app.', 'La restauration fonctionne dans l’app Android.'));
+}
+function paidShopHtml(){
+  return '<div class="card" style="flex-direction:column;align-items:stretch;background:linear-gradient(135deg,#3a1a02,#a05a10);border-color:#ffd23f">' +
+    '<div class="row" style="justify-content:center"><div style="width:120px">' + carSVG('plat') + '</div><div style="width:120px">' + carSVG('laser') + '</div></div>' +
+    '<div class="nm center" style="font-size:1.1em">💝 ' + t('Golden Pack', 'Pack Doré') + '</div><div class="center" style="font-size:.9em;opacity:.95">' +
+    t('x2 coins forever · no ads (rewards are instant) · golden neon theme · 2 exclusive VIP cars · +100 💎', 'Pièces x2 pour toujours · sans pub (récompenses instantanées) · thème néon doré · 2 autos VIP exclusives · +100 💎') + '</div>' +
+    (S.pack ? '<span class="tag center" style="margin-top:8px;color:var(--green)">✔ ' + t('Owned', 'Acheté') + '</span>' : '<button class="btn gold wide" id="buyPack">' + (PRICES[PACK.sku] || PACK.price) + '</button>') + '</div>' +
+    '<button class="btn wide ghost" id="spRestore">🔄 ' + t('Restore purchases', 'Restaurer les achats') + '</button>' +
+    '<p class="muted center" style="font-size:.75em">' + t('Totally optional! Everything else can be earned by playing.', 'Totalement optionnel! Tout le reste se gagne en jouant.') + '</p>';
+}
+function bindPaidShop(){
+  if($('buyPack')) $('buyPack').onclick = () => buy(PACK.sku);
+  if($('spRestore')) $('spRestore').onclick = restorePurchases;
+}
+
+/* =====================================================================
+   10. MAIN LOOP — game ticks, away time, tutorial, start-up
+   tick(): 4 times a second — washes, events, screen numbers
+===================================================================== */
+let lastTick = now(), tickN = 0, tickIv = null;
+function tick(){
+  const n = now(); let dt = (n - lastTick) / 1000; lastTick = n;
+  if(dt <= 0) return;
+  if(dt > 5){ offlineCredit(dt, dt > 60); dt = CONFIG.TICK_MS / 1000; }
+  dt = Math.min(dt, 2);
+  if(!rushOn() && n >= S.nextRush) startRush();
+  if(n >= S.nextSpark){ if(sceneOn() && !modalOpen()) spawnSpark(); else S.nextSpark = n + 10000; }
+  for(let i = 0; i < LOCS.length; i++){
+    const l = S.loc[i]; if(!l.open) continue;
+    const wt = washTime(i);
+    for(let b = 0; b < l.bays; b++){
+      l.p[b] += dt / wt;
+      let k = 0; while(l.p[b] >= 1 && k < 30){ l.p[b] -= 1; finishCar(i, b, k > 0); k++; }
+      if(l.p[b] >= 1) l.p[b] = 0;
+    }
+  }
+  S.lastSeen = n; tickN++;
+  // coins count up instead of snapping
+  const diff = S.coins - dispCoins;
+  dispCoins = Math.abs(diff) < Math.max(1, S.coins * .002) ? S.coins : dispCoins + diff * .4;
+  $('coins').textContent = '🪙 ' + fmt(dispCoins);
+  if(sceneOn()) drawScene();
+  if(tickN % 4 === 0) secondly();
+  if(tickN % 40 === 0) save();
+}
+function secondly(){
+  $('rate').textContent = '+' + fmt(totalRate()) + '/s';
+  $('gemPill').textContent = '💎 ' + fmt(S.gems);
+  renderChips();
+  if(tab === 'wash' || tab === 'more' || tab === 'chain'){
+    $('panel').querySelectorAll('[data-cost]').forEach(b => b.classList.toggle('no', S.coins < +b.dataset.cost));
+    if(tab === 'wash' && S.buyAmt === 'max' && tickN % 8 === 0) refreshMaxLabels();
+  }
+  if(tab === 'chain') updateChain();
+  if(tickN % 8 === 0){ checkAch(); updateDots(); }
+  if(S.tut === 2 && tab === 'wash' && !$('coach').classList.contains('on')) coach();
+}
+function refreshMaxLabels(){ // in MAX mode the amount you can buy changes as coins come in
+  const ch = ['soap', 'brush', 'staff'].some(k => { const b = $('panel').querySelector('[data-up="' + k + '"]'); return b && +b.dataset.n !== upN(S.cur, k); });
+  if(ch){ const sc = $('panel').scrollTop; renderWash(); $('panel').scrollTop = sc; coach(); }
+}
+function renderChips(){
+  let h = '';
+  if(rushOn()) h += '<span class="chip rush">🚦 ' + fmtTime((S.rushUntil - now()) / 1000) + '</span>';
+  if(ad2xOn()) h += '<span class="chip x2">x2 ' + fmtTime((S.ad2x - now()) / 1000) + '</span>';
+  if(turboOn()) h += '<span class="chip turbo">🫧 ' + fmtTime((S.turbo - now()) / 1000) + '</span>';
+  if($('chips').innerHTML !== h) $('chips').innerHTML = h;
+}
+function updateDots(){
+  const g = $('dot_goals'); if(g) g.classList.toggle('on', claimables() > 0);
+  const c = $('dot_chain');
+  if(c){ const nx = S.loc.findIndex(l => !l.open); c.classList.toggle('on', (nx >= 0 && S.coins >= openCost(nx)) || S.loc.some((l, i) => l.open && !l.mgr && i !== S.cur && l.reg >= regCap(i) * .999)); }
+}
+/* ---------- away time ---------- */
+function offlineCredit(sec, popup){
+  sec = Math.min(sec, CONFIG.OFFLINE_MAX_H * 3600);
+  const end = now(), start = end - sec * 1000;
+  const adOver = Math.max(0, Math.min(S.ad2x, end) - start) / 1000, adF = (sec + adOver) / sec;
+  let banked = 0, inReg = 0, cars = 0;
+  S.loc.forEach((l, i) => {
+    if(!l.open) return;
+    const e = rate(i, false) * adF * sec;
+    cars += l.bays * sec / washTime(i, false);
+    if(l.mgr) banked += e;
+    else { const add = Math.max(0, Math.min(regCap(i) - l.reg, e)); l.reg += add; inReg += add; }
+  });
+  addCoins(banked); S.cars += Math.floor(cars);
+  if(popup && banked + inReg > 0){
+    let body = '🪙 ' + fmt(banked) + '<div class="muted" style="font-size:13px;font-weight:400">' + t('banked by your managers', 'encaissé par tes gérants') + '</div>';
+    if(inReg > 0) body += '<div style="font-size:16px;margin-top:6px">🧾 +' + fmt(inReg) + '</div><div class="muted" style="font-size:13px;font-weight:400">' + t('waiting in cash registers (managers collect it for you)', 'en attente dans les caisses (les gérants l’encaissent pour toi)') + '</div>';
+    setTimeout(() => showReward('🌙', t('While you were away', 'Pendant ton absence') + ' (' + fmtTime(sec) + ')', body, banked > 0 ? {
+      label: t('Watch ad: double it', 'Pub : double-le'),
+      go: async () => { if(await rewardAd()){ addCoins(banked); toast('🪙 +' + fmt(banked), 'gold'); save(); } }
+    } : null), 300);
+  }
+  save();
+}
+function goBackground(){ if(!S) return; save(); clearInterval(tickIv); tickIv = null; try{ if(AC && AC.state === 'running') AC.suspend(); }catch(e){} }
+function goForeground(){
+  if(!S || tickIv) return;
+  const away = (now() - S.lastSeen) / 1000;
+  lastTick = now();
+  if(away > 5) offlineCredit(away, away > 60);
+  tickIv = setInterval(tick, CONFIG.TICK_MS);
+  if(tab === 'wash') buildScene(); else renderPanel();
+}
+function applySettings(){
+  document.body.classList.toggle('saver', !!S.saver);
+  document.body.classList.toggle('easy', !!S.easy);
+  document.body.classList.toggle('gold', !!(S.pack && S.gold));
+  document.documentElement.lang = S.lang;
+  $('boostBtn').textContent = (S.pack ? '✨' : '📺') + ' x2';
+}
+function boot(){
+  $('loadCar').innerHTML = carSVG('sports');
+  let p = 0; const iv = setInterval(() => { p = Math.min(100, p + rnd(15, 30)); $('loadBar').style.width = p + '%'; }, 120);
+  setTimeout(() => {
+    clearInterval(iv);
+    const saved = load();
+    S = saved || fresh();
+    dispCoins = S.coins;
+    applySettings(); ensureQuests(); renderNav(); showTab('wash');
+    if(saved){ const away = (now() - S.lastSeen) / 1000; if(away > 5) offlineCredit(away, away > 60); }
+    else save();
+    lastTick = now();
+    tickIv = setInterval(tick, CONFIG.TICK_MS); secondly();
+    $('load').style.opacity = 0; setTimeout(() => $('load').remove(), 500);
+    adsInit();
+  }, 900);
+  // scene taps (pointerdown = instant, good for fast scrubbing)
+  $('scene').addEventListener('pointerdown', e => {
+    if(!S) return;
+    const bay = e.target.closest('.bay[data-b]'); if(bay){ scrub(+bay.dataset.b); return; }
+    if(e.target.closest('#bayBuy')){ buyBay(); return; }
+    if(e.target.closest('#reg')){ collectReg(S.cur); drawScene(); return; }
+    if(e.target.closest('.spark')){ catchSpark(); return; }
+    const opens = S.loc.map((x, k) => x.open ? k : -1).filter(k => k >= 0), at = opens.indexOf(S.cur);
+    if(e.target.closest('#locPrev') && at > 0){ S.cur = opens[at - 1]; sfx('tap'); buildScene(); renderWash(); coach(); }
+    if(e.target.closest('#locNext') && at < opens.length - 1){ S.cur = opens[at + 1]; sfx('tap'); buildScene(); renderWash(); coach(); }
+  });
+  $('mClose').onclick = closeModal;
+  $('modalBg').addEventListener('pointerdown', e => { if(e.target === $('modalBg')) closeModal(); });
+  $('boostBtn').onclick = () => { sfx('tap'); openBoosts(); };
+  $('gemPill').onclick = () => { sfx('tap'); showTab('more'); };
+  document.addEventListener('visibilitychange', () => { if(document.hidden) goBackground(); else goForeground(); });
+  document.addEventListener('pause', goBackground, false);
+  document.addEventListener('resume', goForeground, false);
+  window.addEventListener('pagehide', save);
+}
+boot();
+</script>
+</body>
+</html>
