@@ -118,7 +118,16 @@ img.pxi{image-rendering:pixelated}
 .nav .btn{padding:6px 2px;flex-direction:column;gap:1px;font-size:11px}
 .nav .btn b{font-size:20px;line-height:1}
 .nav .btn.cur{background:var(--gold)}
-.nav .dot{position:absolute;top:-6px;right:-4px;width:14px;height:14px;background:var(--bad);border:2px solid var(--ink)}
+.nav .dot{position:absolute;top:-8px;right:-6px;min-width:22px;height:20px;padding:0 3px;background:var(--bad);color:#fff;border:2px solid var(--ink);font-style:normal;font-size:12px;line-height:16px;text-shadow:none;animation:pulse 1s infinite}
+.skillnag{display:flex;gap:10px;align-items:center;width:100%;text-align:left;font:inherit;font-size:14px;background:#e9f7dc;cursor:pointer;animation:pulse 1.4s infinite}
+.skillnag .si{font-size:30px}
+.qsk h3{font-size:15px;display:flex;gap:6px;align-items:center;justify-content:space-between}
+.qrow{display:flex;align-items:center;gap:8px;width:100%;background:#fff;border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);padding:4px 8px;margin-bottom:7px;text-align:left;font-size:13px;line-height:1.25}
+.qrow > img{width:34px;height:37px;image-rendering:pixelated}
+.qrow .qi{font-size:24px;width:34px;text-align:center}
+.qrow .qt{flex:1}
+.qrow .qc{background:var(--gold);border:2px solid var(--ink);padding:3px 7px;font-weight:900;white-space:nowrap}
+.qrow.dis{opacity:.5}
 .card{background:var(--card);border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);padding:10px;margin-bottom:12px}
 .card h3{margin:0 0 6px;font-size:17px}
 .muted{color:var(--ink2);font-size:13px}
@@ -581,6 +590,13 @@ const FR = {
   '+1 surprise power-up every day!': '+1 bonus surprise chaque jour!',
   'Tap a cat, then tap it again to place it.': 'Touche un chat, puis touche-le encore pour le placer.',
   'Closest': 'Proche',
+  'Make your cats stronger!': 'Rends tes chats plus forts!',
+  'All skills': 'Tous les talents',
+  'Stronger cats!': 'Chats plus forts!',
+  'You have {n} stars to spend!': 'Tu as {n} étoiles à dépenser!',
+  'Tap here to make your cats stronger.': 'Touche ici pour rendre tes chats plus forts.',
+  'Stars make your cats stronger forever!': 'Les étoiles rendent tes chats plus forts pour toujours!',
+  'Tap a gold button to buy. You can reset for free.': 'Touche un bouton doré pour acheter. Tu peux tout remettre à zéro gratuitement.',
 };
 /* =====================================================================
    5. PIXEL ART — every picture is a tiny text grid.
@@ -1321,7 +1337,7 @@ const CATS = [
     desc: 'Lightning jumps from bug to bug.', sp: '+2 jumps'},
   {id: 'cheer', name: 'Cheer Cat', unlock: 19, cost: 140, kind: 'buff', dmg: 8, rate: 1, range: 1.7, air: 1, proj: 'heart', pspd: 10, buff: 0.15, acc: 'pompom',
     desc: 'Cheers up cats nearby: more damage and speed. Level 3+: they see invisible bugs. Throws hearts at bugs too!', sp: 'Bigger boost (+10%)'},
-  {id: 'ninja', name: 'Ninja Cat', unlock: 22, cost: 180, dmg: 10, rate: 1.4, range: 2.8, air: 1, kind: 'multi', shots: 3, pspd: 13, detect: 1, acc: 'mask',
+  {id: 'ninja', name: 'Ninja Cat', unlock: 22, cost: 200, dmg: 7, rate: 1.15, range: 2.8, air: 1, kind: 'multi', shots: 3, pspd: 13, detect: 1, acc: 'mask',
     desc: 'Throws 3 stars at once. Sees invisible bugs.', sp: '+1 star'},
   {id: 'laser', name: 'Laser Cat', unlock: 25, cost: 320, dmg: 24, rate: 0, range: 3.6, air: 1, kind: 'beam', detect: 1, acc: 'visor', boss: 1,
     desc: 'BOSS CAT. Laser eyes get stronger the longer they hit.', sp: 'Laser melts armor'},
@@ -2604,7 +2620,7 @@ function showMenu(name) {
   el.innerHTML = '<div class="top"><h2>' + titles[name] + '</h2><div class="pill">' + starIco() + ' <span id="wallet">' + S.stars + '</span></div>' +
     '<button class="btn ib" id="mSet" aria-label="Settings">⚙️</button></div>' +
     '<div class="scroll" id="mScroll">' + body + '</div>' +
-    '<div class="nav">' + NAV.map(n => '<button class="btn' + (n[0] === name ? ' cur' : '') + '" data-nav="' + n[0] + '"><b>' + n[1] + '</b>' + tr(n[2]) + (n[0] === 'skills' && canBuySkill() ? '<i class="dot"></i>' : '') + '</button>').join('') + '</div>';
+    '<div class="nav">' + NAV.map(n => '<button class="btn' + (n[0] === name ? ' cur' : '') + '" data-nav="' + n[0] + '"><b>' + n[1] + '</b>' + tr(n[2]) + (n[0] === 'skills' && canBuySkill() ? '<i class="dot">' + S.stars + '</i>' : '') + '</button>').join('') + '</div>';
   el.style.background = name === 'map' ? ['#2b4a2a', '#2c3e57', '#3a2a44', '#141d33', '#2a6a7a', '#4a6a8a', '#7a3a5a', '#120f2a'][mapWorld] : '#3b2c38';
   el.classList.add('on');
   setBar(name === 'map' ? mapWorld : 0);
@@ -2630,6 +2646,7 @@ function mapHtml() {
   let h = '<div class="worlds">' + WORLDS.map((w, i) => '<button class="btn' + (i === mapWorld ? ' cur' : '') + (i > mw ? ' dis' : '') + '" data-world="' + i + '"><b>' + (i > mw ? '🔒' : w.icon) + '</b>' + tr(w.name) + '</button>').join('') + '</div>';
   h += '<div class="card wbanner"><div style="font-size:34px">' + WORLDS[mapWorld].icon + '</div><div style="flex:1"><div class="big">' + tr('World {n}', {n: mapWorld + 1}) + ': ' + tr(WORLDS[mapWorld].name) + '</div>' +
     '<div class="muted">' + starIco() + ' ' + worldStars(mapWorld) + ' / 30 · 👑 ' + worldCrowns(mapWorld) + ' / 10</div></div><button class="btn small" id="mComic">📖</button></div>';
+  if (canBuySkill()) h += '<button class="card skillnag" id="mSkills"><span class="si">🌳</span><span><b>' + tr('You have {n} stars to spend!', {n: S.stars}) + '</b><br>' + tr('Tap here to make your cats stronger.') + '</span></button>';
   h += '<div class="lvls">';
   for (let i = 0; i < 10; i++) {
     const L = mapWorld * 10 + i + 1, r = Math.floor(i / 3), col = r % 2 ? 2 - i % 3 : i % 3;
@@ -2656,6 +2673,7 @@ function bindMap() {
   });
   bindBtn('mEnd', () => { if (S.unlocked > (mapWorld + 1) * 10) endlessIntro(mapWorld); else toast(tr('Finish this world to unlock')); });
   bindBtn('mComic', () => showComic(mapWorld));
+  bindBtn('mSkills', () => showMenu('skills'));
 }
 
 function levelBugs(L) { const set = new Set(); genWaves(L, 1).forEach(w => w.forEach(e => set.add(e.type))); return BUG_ORDER.filter(k => set.has(k)); }
@@ -2734,6 +2752,42 @@ function dailyGift() {
   });
 }
 
+/* ---------- quick skills (shown between levels) ---------- */
+function skillOffers() {
+  const out = [], used = G ? [...new Set(G.towers.map(t => t.id))] : [];
+  const cats = [...used.map(id => CAT[id]), ...CATS.filter(c => !used.includes(c.id))].filter(c => catOpen(c));
+  for (const c of cats) {
+    const r = S.skills[c.id] || 0; if (r >= 4) continue;
+    out.push({kind: 'cat', id: c.id, cost: CAT_SKILL_COST[r], txt: r < 3 ? tr(CAT_SKILL_NAMES[r]) : '★ ' + tr(c.sp), img: catURL(c.id, breedOf(c.id))});
+  }
+  for (const g of GARDEN_SKILLS) { const r = S.garden[g.id] || 0; if (r < 3) out.push({kind: 'garden', id: g.id, cost: g.cost[r], txt: tr(g.name) + ': ' + tr(g.desc), icon: g.icon}); }
+  const can = out.filter(o => o.cost <= S.stars);
+  return (can.length ? can : out).slice(0, 3);
+}
+function quickSkillsHtml() {
+  if (S.stars <= 0) return '';
+  const offers = skillOffers();
+  if (!offers.length) return '';
+  return '<div class="card qsk" id="qsk" style="margin:10px 0;text-align:left"><h3>🌳 ' + tr('Make your cats stronger!') + ' <span class="st">' + starIco() + ' ' + S.stars + '</span></h3>' +
+    offers.map((o, i) => '<button class="qrow' + (o.cost > S.stars ? ' dis' : '') + '" data-qs="' + i + '">' +
+      (o.img ? '<img src="' + o.img + '" alt="">' : '<span class="qi">' + o.icon + '</span>') +
+      '<span class="qt">' + (o.kind === 'cat' ? '<b>' + tr(CAT[o.id].name) + '</b><br>' : '') + o.txt + '</span><span class="qc">' + starIco() + o.cost + '</span></button>').join('') +
+    '<button class="btn small wide" id="qsAll">🌳 ' + tr('All skills') + '</button></div>';
+}
+function bindQuickSkills() {
+  const offers = skillOffers();
+  document.querySelectorAll('[data-qs]').forEach(b => b.onclick = e => {
+    e.stopPropagation();
+    const o = offers[+b.dataset.qs];
+    if (!o || S.stars < o.cost) { sfx('no'); toast(tr('Not enough stars')); return; }
+    S.stars -= o.cost; S.skillSpent += o.cost;
+    if (o.kind === 'cat') S.skills[o.id] = (S.skills[o.id] || 0) + 1; else S.garden[o.id] = (S.garden[o.id] || 0) + 1;
+    save(); sfx('up'); toast('🌳 ' + tr('Stronger cats!'));
+    const el = $('qsk'); if (el) { el.outerHTML = quickSkillsHtml(); bindQuickSkills(); }
+  });
+  bindBtn('qsAll', () => { closeModal(); if (G) mapWorld = G.w; showMenu('skills'); });
+}
+
 /* ---------- skills ---------- */
 function canBuySkill() {
   for (const c of CATS) { const r = S.skills[c.id] || 0; if (catOpen(c) && r < 4 && S.stars >= CAT_SKILL_COST[r]) return true; }
@@ -2741,7 +2795,8 @@ function canBuySkill() {
   return false;
 }
 function skillsHtml() {
-  let h = '<div class="card"><h3>🏡 ' + tr('Garden') + '</h3>';
+  let h = '<div class="card center" style="background:#e9f7dc"><b>🌳 ' + tr('Stars make your cats stronger forever!') + '</b><br><span class="muted">' + tr('Tap a gold button to buy. You can reset for free.') + '</span></div>';
+  h += '<div class="card"><h3>🏡 ' + tr('Garden') + '</h3>';
   GARDEN_SKILLS.forEach(g => {
     const r = S.garden[g.id] || 0;
     h += '<div class="sk"><div style="font-size:26px;width:36px;text-align:center">' + g.icon + '</div><div class="nm">' + tr(g.name) + '<small>' + tr(g.desc) + '</small></div>' +
@@ -3169,6 +3224,7 @@ function onWin() {
       (gain ? '<div class="reward">' + starIco().replace('ico', 'ico') + ' +' + gain + '</div>' : '') +
       '<p>' + ICO('carrot') + ' ' + G.lives + '/' + G.maxLives + ' · 💥 ' + G.kills + '</p>' +
       got.map(a => '<div class="reward" style="font-size:15px">🏆 ' + tr(a.name) + ' +' + a.r + ' ' + starIco() + ' +🧪</div>').join('') +
+      quickSkillsHtml() +
       br.map(b => '<div class="reward" style="font-size:15px">🐱 ' + tr('New breed: {b}!', {b: tr(b.name)}) + '</div>').join('') +
       (nextCat && L < MAXL ? '<p><b>' + tr('Next level: new cat!') + '</b> <img class="pxi" style="width:40px;vertical-align:middle" src="' + catURL(nextCat.id, breedOf(nextCat.id)) + '" alt=""></p>' : '') +
       (L === MAXL && !hard ? '<p><b>' + tr('You saved the whole garden! Try Endless mode and Hard mode!') + '</b></p>' : '') +
@@ -3178,6 +3234,7 @@ function onWin() {
       '<div class="row"><button class="btn wide" id="wRe">↺ ' + tr('Replay') + '</button><button class="btn wide" id="wMap">🗺️ ' + tr('Map') + '</button></div>');
     const imgs = document.querySelectorAll('#wStars img');
     imgs.forEach((im, i) => setTimeout(() => { im.classList.add('in'); if (i < stars) sfx('star', i); }, 250 + i * 330));
+    bindQuickSkills();
     bindBtn('wNext', () => { closeModal(); const n = L + 1; if (worldOf(n) !== worldOf(L) && !S.comics[worldOf(n)]) { mapWorld = worldOf(n); showMenu('map'); levelIntro(n); } else startPlay(n); });
     bindBtn('wRe', () => { closeModal(); startPlay(L, hard); });
     bindBtn('wNextH', () => { closeModal(); startPlay(L + 1, true); });
@@ -3194,8 +3251,10 @@ function onLose() {
     openModal('<h2>😿 ' + tr('Oh no!') + '</h2><p>' + tr('The bugs ate the veggies!') + '</p>' +
       (G.mode === 'endless' ? '<div class="reward">' + tr('Wave {n}', {n: G.wi}) + '</div><p class="muted">' + tr('Best: wave {n}', {n: S.endless[G.w] || 0}) + '</p>' : '<p class="muted">' + tr('Tip: upgrade cats and use power-ups. Skills make cats stronger!') + '</p>') +
       got.map(a => '<div class="reward" style="font-size:15px">🏆 ' + tr(a.name) + ' +' + a.r + ' ' + starIco() + ' +🧪</div>').join('') +
+      quickSkillsHtml() +
       (canRevive ? '<button class="btn sky wide" id="lRev" style="font-size:18px">📺 ' + tr('Revive') + ' (+' + Math.ceil(G.maxLives * CONFIG.REVIVE_LIVES) + ' ' + ICO('carrot') + ')</button><div class="muted">' + tr('Optional: watch a short ad to keep playing') + '</div>' : '') +
       '<div class="row"><button class="btn org wide" id="lRe">↺ ' + tr('Try again') + '</button><button class="btn wide" id="lMap">🗺️ ' + tr('Map') + '</button></div>');
+    bindQuickSkills();
     bindBtn('lRev', () => rewardAd().then(ok => { if (ok) revive(); }));
     bindBtn('lRe', () => { closeModal(); restart(); });
     bindBtn('lMap', () => { closeModal(); toMap(); });
