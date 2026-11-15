@@ -269,6 +269,10 @@ const CONFIG = {
   MG_PATIENCE: 24,         // seconds a customer waits in those shops
   // ---------- friends ----------
   FRIEND_LEVELS: [0, 3, 8, 15, 25, 40], // friendship points needed for 0..5 hearts
+  // ---------- phone battery / heat ----------
+  FPS_TOWN: 30,            // frames per second in town (lower = cooler phone)
+  FPS_GAME: 60,            // frames per second in the Bistro and shops
+  MAX_DPR: 1.75,           // max screen sharpness (2-3 = sharper but hotter)
   // ---------- juice ----------
   SHAKE_SMALL: 4, SHAKE_BIG: 8,
   CONFETTI: 170,           // confetti pieces when you get 3 stars
@@ -654,10 +658,44 @@ function walkPath(o, dt, speed){
 function goTo(o, pts){ o.path = mkPath([[o.x, o.y], ...pts]); o.pd = 0; }
 
 /* ---------- canvas + drawing helpers ---------- */
-const cv = $('cv'), ctx = cv.getContext('2d');
+const cv = $('cv'), mainCtx = cv.getContext('2d');
+let ctx = mainCtx;
 let scale = 1, offX = 0, offY = 0, dpr = 1;
 const EMO = '"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
-function emoji(e, x, y, size){ ctx.fillStyle = '#000'; ctx.font = size + 'px ' + EMO; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(e, x, y); }
+/* PERFORMANCE: drawing color emoji as text is slow on phones (it made them hot).
+   Each emoji is drawn ONCE into a little picture (a "sprite"), then that picture is reused. */
+const EMOJI_CACHE = new Map();
+function emojiSprite(e, size){
+  const px = Math.max(4, Math.round(size * scale * dpr));
+  const key = e + '|' + px;
+  let c = EMOJI_CACHE.get(key);
+  if(!c){
+    if(EMOJI_CACHE.size > 700) EMOJI_CACHE.clear();
+    c = document.createElement('canvas'); const s = Math.ceil(px * 1.3); c.width = c.height = s;
+    const g = c.getContext('2d'); g.font = px + 'px ' + EMO; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#000'; g.fillText(e, s / 2, s / 2 + px * .04);
+    EMOJI_CACHE.set(key, c);
+  }
+  return c;
+}
+function emoji(e, x, y, size){
+  if(size < 1) return;
+  const c = emojiSprite(e, size), d = size * 1.3;
+  ctx.drawImage(c, x - d / 2, y - d / 2, d, d);
+}
+/* backgrounds that never move are painted once into a hidden canvas and reused every frame */
+const LAYERS = new Map();
+function layer(key, paint){
+  const k = key + '|' + scale.toFixed(3) + '|' + dpr;
+  let c = LAYERS.get(k);
+  if(!c){
+    if(LAYERS.size > 12) LAYERS.clear();
+    c = document.createElement('canvas'); c.width = Math.ceil(W * scale * dpr); c.height = Math.ceil(H * scale * dpr);
+    const saved = ctx; ctx = c.getContext('2d'); ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+    try{ paint(); } finally { ctx = saved; }
+    LAYERS.set(k, c);
+  }
+  ctx.drawImage(c, 0, 0, W, H);
+}
 let FONT = '"Nunito","Trebuchet MS",sans-serif';
 function txt(s, x, y, size, color, stroke, align){
   ctx.font = '900 ' + size + 'px ' + FONT; ctx.textAlign = align || 'center'; ctx.textBaseline = 'middle';
@@ -1080,6 +1118,16 @@ function drawTownPet(p){
   if(p.emote){ const a = Math.min(1, p.emote.t * 2); ctx.globalAlpha = a; ctx.fillStyle = '#fff'; ell(p.x + 14, p.y - 34, 12, 11); ctx.fill(); emoji(p.emote.e, p.x + 14, p.y - 34, 14); ctx.globalAlpha = 1; }
 }
 function townDraw(){
+  layer('town:' + S.houses, townGround);
+  ctx.fillStyle = 'rgba(255,255,255,.6)'; ell(PARK[0] + Math.sin(TOWN.time * 2) * 8, PARK[1] + 2, 6, 3); ctx.fill();
+  const things = [];
+  for(let i = 0; i < HOUSE_POS.length; i++) things.push({y:HOUSE_POS[i][1], d:() => drawHouse(i)});
+  SHOP_IDS.forEach(id => things.push({y:SHOPS[id].pos[1], d:() => drawShopBuilding(id)}));
+  TOWN.pets.forEach(p => things.push({y:p.y, d:() => drawTownPet(p)}));
+  things.sort((a, b) => a.y - b.y).forEach(t => t.d());
+  townOverlay();
+}
+function townGround(){
   // grass
   ctx.fillStyle = '#a8d98e'; ctx.fillRect(0, 0, W, H);
   ctx.fillStyle = '#9bd082';
@@ -1102,16 +1150,12 @@ function townDraw(){
   ctx.fillStyle = '#d4c4a8'; ell(PARK[0], PARK[1] + 4, 30, 18); ctx.fill();
   ctx.fillStyle = '#8fd3f4'; ell(PARK[0], PARK[1], 26, 15); ctx.fill();
   ctx.fillStyle = '#c4b293'; rr(PARK[0] - 4, PARK[1] - 16, 8, 16, 3); ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,.6)'; ell(PARK[0] + Math.sin(TOWN.time * 2) * 8, PARK[1] + 2, 6, 3); ctx.fill();
   FLOWERBEDS.forEach(([x, y]) => { emoji('🌼', x - 9, y, 13); emoji('🌷', x + 9, y + 2, 13); });
   emoji('🪑', PARK[0] - 58, PARK[1] + 18, 18); emoji('🪑', PARK[0] + 58, PARK[1] + 18, 18);
   // trees, houses, shops
   TREES.forEach(([x, y]) => emoji('🌳', x, y, 30));
-  const things = [];
-  for(let i = 0; i < HOUSE_POS.length; i++) things.push({y:HOUSE_POS[i][1], d:() => drawHouse(i)});
-  SHOP_IDS.forEach(id => things.push({y:SHOPS[id].pos[1], d:() => drawShopBuilding(id)}));
-  TOWN.pets.forEach(p => things.push({y:p.y, d:() => drawTownPet(p)}));
-  things.sort((a, b) => a.y - b.y).forEach(t => t.d());
+}
+function townOverlay(){
   drawParts(); drawFloats();
   // tapped pet card
   if(TOWN.card){
@@ -1477,7 +1521,8 @@ const THEMES = {
   snow: {fa:'#8d6e5a', fb:'#806250', line:'#5e4536', wa:'#dbe9f5', wb:'#c9dcee'},
   night:{fa:'#4a3b57', fb:'#423451', line:'#2c2238', wa:'#2b2d52', wb:'#25274a'},
 };
-function bFloor(){
+function bFloor(){ layer('bf:' + R.branch + S.floor + (S.decor.rug ? 1 : 0), bFloorPaint); }
+function bFloorPaint(){
   const th = THEMES[R.branch];
   const f = th ? {a:th.fa, b:th.fb, line:th.line} : (FLOORS[S.floor] || FLOORS.oak);
   if(!th && S.floor === 'checker'){
@@ -1502,6 +1547,10 @@ function bFloor(){
   if(R.branch === 'main' && S.decor.rug){ ctx.fillStyle = '#c0392b'; rr(165, 290, 70, 330, 30); ctx.fill(); ctx.strokeStyle = '#f4b73a'; ctx.lineWidth = 4; rr(172, 297, 56, 316, 24); ctx.stroke(); }
 }
 function bWall(){
+  layer('bw:' + R.branch + S.wall, bWallPaint);
+  bWallLive();
+}
+function bWallPaint(){
   const th = THEMES[R.branch];
   const w = th ? {a:th.wa, b:th.wb} : (WALLS[S.wall] || WALLS.cream);
   ctx.fillStyle = w.a; ctx.fillRect(0, 0, W, 52);
@@ -1513,10 +1562,13 @@ function bWall(){
   for(let y = 52; y < 206; y += 18){ ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
   for(let y = 52, r = 0; y < 206; y += 18, r++) for(let x = (r % 2) * 18; x < W; x += 36){ ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 18); ctx.stroke(); }
   ctx.fillStyle = '#7a4a2e'; ctx.fillRect(0, 50, W, 5);
-  // branch decorations
   if(R.branch === 'beach'){ ctx.fillStyle = '#4f9fd6'; for(let x = 0; x < W; x += 30){ ctx.beginPath(); ctx.arc(x + 15, 52, 15, Math.PI, 0); ctx.fill(); } emoji('☀️', 362, 22, 26); emoji('🌴', 22, 24, 26); emoji('🐚', 310, 30, 16); }
   if(R.branch === 'snow'){ ctx.fillStyle = '#7a4a2e'; rr(296, 6, 68, 40, 4); ctx.fill(); ctx.fillStyle = '#eaf4ff'; rr(300, 10, 60, 32, 3); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillRect(300, 34, 60, 8); emoji('🌲', 316, 26, 16); emoji('🧣', 30, 26, 20); }
-  if(R.branch === 'night'){ for(let i = 0; i < 14; i++){ ctx.fillStyle = 'rgba(255,255,220,' + (.4 + .4 * Math.sin(R.time * 2 + i)) + ')'; ell((i * 53) % W, 8 + (i * 17) % 36, 1.5, 1.5); ctx.fill(); } emoji('🌙', 360, 24, 24); emoji('🏮', 40, 26, 22); emoji('🏮', 110, 26, 22); }
+  if(R.branch === 'night'){ emoji('🌙', 360, 24, 24); emoji('🏮', 40, 26, 22); emoji('🏮', 110, 26, 22); }
+}
+function bWallLive(){
+  // branch decorations
+  if(R.branch === 'night'){ for(let i = 0; i < 14; i++){ ctx.fillStyle = 'rgba(255,255,220,' + (.4 + .4 * Math.sin(R.time * 2 + i)) + ')'; ell((i * 53) % W, 8 + (i * 17) % 36, 1.5, 1.5); ctx.fill(); } }
   if(R.branch === 'main'){
     if(S.decor.lights){
       ctx.strokeStyle = '#3d2416'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(0, 6);
@@ -1597,6 +1649,20 @@ function bTable(i){
   const [x, y] = TABLE_POS[i], locked = i >= S.tables, sc = popS('t' + i);
   if(locked){ ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.setLineDash([8, 8]); ctx.lineWidth = 3; ell(x, y, 46, 30); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = .55; emoji('🔒', x, y, 22); ctx.globalAlpha = 1; return; }
   ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);
+  ctx.drawImage(tableSprite(), -56, -40, 112, 92);
+  ctx.restore();
+}
+/* the table is painted once into a sprite (it used to redraw ~80 squares per table, every frame) */
+let TABLE_SPR = null, TABLE_KEY = '';
+function tableSprite(){
+  const key = R.branch + (S.decor.flowers ? 1 : 0) + '|' + scale + '|' + dpr;
+  if(TABLE_SPR && TABLE_KEY === key) return TABLE_SPR;
+  const k = scale * dpr, c = document.createElement('canvas'); c.width = Math.ceil(112 * k); c.height = Math.ceil(92 * k);
+  const saved = ctx; ctx = c.getContext('2d'); ctx.setTransform(k, 0, 0, k, 56 * k, 40 * k);
+  try{ tablePaint(); } finally { ctx = saved; }
+  TABLE_SPR = c; TABLE_KEY = key; return c;
+}
+function tablePaint(){
   ctx.fillStyle = 'rgba(0,0,0,.18)'; ell(0, 30, 50, 14); ctx.fill();
   ctx.fillStyle = '#5b3420'; ctx.fillRect(-6, 4, 12, 30);
   ctx.fillStyle = '#7a4a2e'; ell(0, 6, 50, 32); ctx.fill();
@@ -1607,7 +1673,6 @@ function bTable(i){
   ctx.restore();
   if(R.branch === 'main' && S.decor.flowers) emoji('🌷', 28, -8, 18);
   if(R.branch === 'night') emoji('🕯️', 30, -10, 16);
-  ctx.restore();
 }
 function bChair(i){
   if(i >= S.tables) return;
@@ -1844,7 +1909,8 @@ function mgTap(x, y){ if(G.intro > 0) return; if(G.impl.tap) G.impl.tap(x, y); }
 function mgDrag(x, y, down, moved){ if(G.impl.drag) G.impl.drag(x, y, down, moved); }
 
 /* ---------- shared drawing ---------- */
-function mgBg(){
+function mgBg(){ layer('mg:' + G.shop, mgBgPaint); }
+function mgBgPaint(){
   const L = SHOP_LOOK[G.shop];
   ctx.fillStyle = L.wall; ctx.fillRect(0, 0, W, 300);
   ctx.fillStyle = L.wall2; for(let x = 0; x < W; x += 36) ctx.fillRect(x, 0, 18, 300);
@@ -2612,7 +2678,8 @@ let mode = 'title', paused = false, sceneId = '', last = performance.now(), save
 
 function resize(){
   const st = $('stage'), w = st.clientWidth, h = st.clientHeight;
-  dpr = Math.min(2, window.devicePixelRatio || 1);
+  dpr = Math.min(CONFIG.MAX_DPR, window.devicePixelRatio || 1);
+  EMOJI_CACHE.clear(); LAYERS.clear();
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.width = w + 'px'; cv.style.height = h + 'px';
   scale = Math.min(w / W, h / H); offX = (w - W * scale) / 2; offY = (h - H * scale) / 2;
   fxResize();
@@ -2691,8 +2758,17 @@ document.addEventListener('visibilitychange', () => { if(document.hidden){ music
 window.addEventListener('resize', resize);
 
 /* ---------- main loop ---------- */
+/* PERFORMANCE: the town runs at 30 frames a second, games at 60, and nothing
+   is drawn while a full-screen menu (title, results, pause...) covers the game. */
+let drawnBehind = false;
 function frame(t){
+  requestAnimationFrame(frame);
+  const fps = sceneId === 'town' ? CONFIG.FPS_TOWN : CONFIG.FPS_GAME;
+  if(t - last < 1000 / fps - 2) return;
   const dt = Math.min(.05, (t - last) / 1000); last = t;
+  const covered = mode !== 'play' || paused || OVS.some(id => id !== 'pause' && $(id).classList.contains('on'));
+  if(covered && drawnBehind){ drawFx(dt); return; }
+  drawnBehind = covered;
   if(mode === 'play' && !paused){
     if(sceneId === 'town'){ townUpdate(dt); saveT += dt; if(saveT > 10){ saveT = 0; save(); } }
     else if(sceneId === 'bistro' && R){ bistroUpdate(dt); if(mode === 'play') hudGoal(); }
@@ -2708,7 +2784,6 @@ function frame(t){
   else if(G) mgDraw();
   ctx.restore();
   drawFx(dt);
-  requestAnimationFrame(frame);
 }
 applyEasy();
 resize(); renderTitle(); adsInit();
