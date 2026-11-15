@@ -73,6 +73,8 @@ img.pxi{image-rendering:pixelated}
 .pw img{width:30px;height:30px;image-rendering:pixelated}
 .pw .n{position:absolute;right:-7px;top:-9px;background:var(--bad);color:#fff;border:2px solid var(--ink);font-size:12px;min-width:21px;padding:1px 3px;text-shadow:none}
 .pw.on{background:var(--gold);animation:wob .5s infinite alternate}
+.pw.gift{animation:gift .9s 2}
+@keyframes gift{0%{transform:scale(1)}30%{transform:scale(1.25) rotate(-6deg);background:var(--gold)}60%{transform:scale(1.1) rotate(6deg)}100%{transform:scale(1)}}
 @keyframes wob{to{transform:translateY(-3px)}}
 #bWave{flex:1;height:48px;font-size:16px;min-width:0}
 #bWave.pulse{animation:pulse 1s infinite}
@@ -565,6 +567,7 @@ const FR = {
   'Winter': 'Hiver',
   'You saved the whole garden! Try Endless mode and Hard mode!': 'Tu as sauvé tout le jardin! Essaie le mode Sans fin et le mode Difficile!',
   'Smooth mode (uses more battery)': 'Mode fluide (utilise plus de batterie)',
+  'Boss fight! +1 of each power-up': 'Combat de boss! +1 de chaque bonus',
 };
 /* =====================================================================
    5. PIXEL ART — every picture is a tiny text grid.
@@ -1820,7 +1823,7 @@ function launchWave(early) {
   banner(isBoss ? tr('BOSS!') : tr('Wave {n}', {n: G.wi}));
   sfx(isBoss ? 'bossIn' : 'wave');
   if (G.mode === 'endless') endlessProgress();
-  if (isBoss) bossTip();
+  if (isBoss) { bossTip(); bossGift(); }
   tutEvent('wave');
 }
 
@@ -3242,6 +3245,13 @@ function tutTick() {
   if (!G || G.tut || G.mode !== 'level' || G.L !== 2 || S.tut.l2 || !G.started) return;
   const tw = G.towers.find(t => G.coins >= upCost(t) && t.lv < 5);
   if (tw) { G.tut = {step: 'up'}; showTip(tr('You have enough fish! Tap a cat to upgrade it.'), {img: catIcon(tw.id)}); pointAt({x: tw.x, y: tw.y - 8}); }
+}
+/* every boss fight gives +1 of each power-up */
+function bossGift() {
+  POWERS.forEach(p => S.pw[p.id] = (S.pw[p.id] || 0) + 1);
+  save(); refreshPw(); sfx('combo');
+  toast('🎁 ' + tr('Boss fight! +1 of each power-up'));
+  document.querySelectorAll('.pw').forEach(b => { b.classList.remove('gift'); void b.offsetWidth; b.classList.add('gift'); });
 }
 function newBugTip(k) {
   if (G && G.tut) return;
