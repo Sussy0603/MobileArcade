@@ -232,7 +232,7 @@ const CONFIG = {
   START_GEMS: 5,
   TICK_MS: 250,              // the game thinks every 250 ms (4 times a second)
   OFFLINE_MAX_H: 8,          // coins while the app is closed: up to 8 hours
-  REG_CAP_MIN: 20,           // a cash register holds 20 minutes of coins (no manager)
+  AWAY_NO_MGR_MIN: 20,       // a location WITHOUT a manager only earns the first 20 min while you're away
 
   /* ---- scrubbing (tap a bay) ---- */
   SCRUB_PUSH: 0.12,          // one tap = 12% of a wash
@@ -343,7 +343,6 @@ const RAR = [
 const QUESTS = [
   {id:'wash',  n:[60,120,200], en:'Wash {n} cars', fr:'Lave {n} autos'},
   {id:'scrub', n:[80,150,250], en:'Scrub {n} times', fr:'Frotte {n} fois'},
-  {id:'reg',   n:[5,10,15],    en:'Empty a cash register {n} times', fr:'Vide une caisse {n} fois'},
   {id:'buy',   n:[10,20,40],   en:'Buy {n} upgrades', fr:'Achète {n} améliorations'},
   {id:'vip',   n:[2,4,6],      en:'Wash {n} VIP cars', fr:'Lave {n} autos VIP'},
   {id:'spark', n:[2,3,5],      en:'Catch {n} sparkly cars', fr:'Attrape {n} autos brillantes'},
@@ -472,14 +471,9 @@ const shineChance = i => Math.min(1, CONFIG.STAFF_STEP * S.loc[i].staff);
 function avgMult(i){ return (1 + (CONFIG.SHINE_MULT - 1) * shineChance(i)) * (1 + (CONFIG.VIP_MULT - 1) * CONFIG.VIP_CHANCE); }
 function rate(i, live = true){ const l = S.loc[i]; if(!l.open) return 0; return l.bays * carPrice(i) * incMul(i, live) * avgMult(i) / washTime(i, live); }
 function totalRate(live = true){ let r = 0; for(let i = 0; i < LOCS.length; i++) r += rate(i, live); return r; }
-function regCap(i){ return Math.max(carPrice(i) * 20, rate(i, false) * CONFIG.REG_CAP_MIN * 60); }
 
 function addCoins(a){ if(!(a > 0)) return; S.coins += a; S.total += a; S.run += a; }
-function earn(i, a){
-  const l = S.loc[i];
-  if(l.mgr) addCoins(a);
-  else l.reg = Math.min(regCap(i), l.reg + a);
-}
+function earn(i, a){ addCoins(a); }   // all cash goes straight to your total
 function pickCar(i){
   const rush = S ? rushOn() : false;
   const vipCh = rush ? CONFIG.RUSH_VIP : CONFIG.VIP_CHANCE;
@@ -702,13 +696,9 @@ function drawScene(force){
     el.lastP = p;
   }
   // register
-  const r = $('reg');
-  if(l.mgr){ r.className = 'mgr'; r.innerHTML = '👔 ' + esc(L({en:LOCS[i].mgr[0], fr:LOCS[i].mgr[1]})) + '<br>' + t('auto-banking', 'encaisse seul'); }
-  else {
-    const cap = regCap(i), f = Math.min(1, l.reg / cap);
-    r.className = f >= .999 ? 'full' : '';
-    r.innerHTML = '💵 $' + fmt(l.reg) + (f >= .999 ? ' ' + t('FULL', 'PLEIN') : '') + '<div class="bar"><i style="transform:scaleX(' + f.toFixed(3) + ')"></i></div>';
-  }
+  const r = $('reg'), rh = l.mgr ? '👔 ' + esc(L({en:LOCS[i].mgr[0], fr:LOCS[i].mgr[1]})) + '<br>' + t('on the job', 'au travail') : '';
+  r.style.display = l.mgr ? '' : 'none';
+  if(r.innerHTML !== rh){ r.className = 'mgr'; r.innerHTML = rh; }
   $('locRate').textContent = '+$' + fmt(rate(i)) + '/s';
   const bb = $('bayBuy');
   if(bb){ bb.classList.toggle('no', S.coins < bayCost(i)); }
@@ -770,13 +760,7 @@ function scrub(b){
   drawScene();
   if(S.tut === 0 && S.scrubs >= 5){ S.tut = 1; coach(); }
 }
-function collectReg(i, silent){
-  const l = S.loc[i]; if(l.mgr || l.reg <= 0) return 0;
-  const a = l.reg; addCoins(a); l.reg = 0; S.regs++; qAdd('reg');
-  if(!silent && i === S.cur && sceneOn()){ const p = elPos($('reg')); fx('+$' + fmt(a), p.x, p.y + 30, 'big'); sfx('coin'); }
-  if(S.tut === 2){ S.tut = 3; coach(); }
-  return a;
-}
+function collectReg(i){ const l = S.loc[i]; const a = l.reg || 0; l.reg = 0; if(a > 0) addCoins(a); return a; }  // only for old saves
 /* ---------- Rush Hour ---------- */
 function startRush(){
   S.rushUntil = now() + CONFIG.RUSH_LEN_S * 1000;
@@ -813,15 +797,13 @@ function coach(){
   const msg = [
     t('👆 Tap a lane to scrub the car faster!', '👆 Touche une voie pour frotter l’auto plus vite!'),
     t('🧼 Buy Soap below: every car pays more!', '🧼 Achète du Savon en bas : chaque auto paie plus!'),
-    t('💵 Cash waits in the register. Tap it to collect!', '💵 L’argent attend dans la caisse. Touche-la pour encaisser!'),
-    t('👔 Save up for a Manager: it collects for you, even while you’re away!', '👔 Économise pour un Gérant : il encaisse pour toi, même quand tu es absente!'),
+    t('👔 Save up for a Manager: +50% cash, and it keeps earning while you’re away!', '👔 Économise pour un Gérant : +50 % d’argent, et il continue de gagner pendant ton absence!'),
+    t('👔 Save up for a Manager: +50% cash, and it keeps earning while you’re away!', '👔 Économise pour un Gérant : +50 % d’argent, et il continue de gagner pendant ton absence!'),
   ][st];
   if(!msg || tab !== 'wash'){ c.classList.remove('on'); return; }
-  if(st === 2 && S.loc[S.cur].reg <= 0){ c.classList.remove('on'); return; }
   c.textContent = msg; c.classList.add('on');
   if(st === 1){ const e = document.querySelector('[data-up="soap"]'); if(e) e.closest('.card').classList.add('hl'); }
-  if(st === 2) $('reg').classList.add('hl');
-  if(st === 3){ const e = document.querySelector('[data-mgr]'); if(e) e.closest('.card').classList.add('hl'); }
+  if(st >= 2){ const e = document.querySelector('[data-mgr]'); if(e) e.closest('.card').classList.add('hl'); }
 }
 
 /* =====================================================================
@@ -876,8 +858,8 @@ function renderWash(){
   // manager
   const mn = L({en:loc.mgr[0], fr:loc.mgr[1]});
   h += '<div class="card"><div class="ic">👔</div><div class="info"><div class="nm">' + t('Manager: ', 'Gérant : ') + esc(mn) + '</div><div class="sub">' +
-    (l.mgr ? t('Hired! Collects the register for you, +50% cash, full earnings while you’re away.', 'Engagé! Encaisse pour toi, +50 % d’argent, revenus complets pendant ton absence.')
-           : t('Collects the register for you, +50% cash, and earns full cash while you’re away.', 'Encaisse la caisse pour toi, +50 % d’argent, et gagne tout pendant ton absence.')) + '</div></div>' +
+    (l.mgr ? t('Hired! +50% cash, and full earnings while you’re away.', 'Engagé! +50 % d’argent, et revenus complets pendant ton absence.')
+           : t('+50% cash, and keeps earning the whole time you’re away (without one: only 20 min).', '+50 % d’argent, et gagne tout le temps de ton absence (sans gérant : seulement 20 min).')) + '</div></div>' +
     (l.mgr ? '<span class="tag" style="color:var(--green)">✔</span>' : costBtn(mgrCost(i), 'data-mgr="1"', t('Hire', 'Engager'), 'cy')) + '</div>';
   h += '<p class="muted center">' + t('Tip: tap lanes to scrub · tap the ✨ sparkly car on the road!', 'Astuce : touche les voies pour frotter · touche l’auto ✨ brillante sur la route!') + '</p>';
   $('panel').innerHTML = h;
@@ -905,22 +887,21 @@ function buyBay(btn){
 function buyMgr(btn){
   const i = S.cur, l = S.loc[i]; if(l.mgr) return;
   const c = mgrCost(i); if(S.coins < c) return noMoney();
-  S.coins -= c; collectReg(i, true); l.mgr = true; bought(btn); sfx('big'); _pmT = 0;
-  if(S.tut === 3) S.tut = 4;
+  S.coins -= c; l.mgr = true; bought(btn); sfx('big'); _pmT = 0;
+  if(S.tut >= 2) S.tut = 4;
   toast('👔 ' + L({en:LOCS[i].mgr[0], fr:LOCS[i].mgr[1]}) + t(' is on the job!', ' est au travail!'), 'gold');
   renderWash(); drawScene(); coach();
 }
 /* ---------- Chain tab ---------- */
 function renderChain(){
   let h = '<h2>🗺️ ' + t('Your Car Wash Chain', 'Ta chaîne de lave-autos') + '</h2>';
-  const unmanaged = S.loc.some(l => l.open && !l.mgr && l.reg > 0);
-  h += '<button class="btn green wide" id="colAll"' + (unmanaged ? '' : ' style="opacity:.5"') + '>🧾 ' + t('Collect all registers', 'Encaisser toutes les caisses') + ' <span id="colAllA"></span></button>';
+  h += '<p class="muted">' + t('Total: ', 'Total : ') + '<b>+$' + fmt(totalRate()) + '/s</b></p>';
   let shownNext = false;
   LOCS.forEach((loc, i) => {
     const l = S.loc[i];
     if(l.open){
       h += '<div class="card"' + (i === S.cur ? ' style="border-color:var(--cyan)"' : '') + '><div class="ic">' + loc.e + '</div><div class="info"><div class="nm">' + L(loc) + '</div><div class="sub">' +
-        l.bays + t(' lanes', ' voies') + ' · <b>+$' + fmt(rate(i)) + '/s</b><br>' + (l.mgr ? '👔 ' + t('Manager hired', 'Gérant engagé') : '💵 <span id="cr' + i + '">$' + fmt(l.reg) + ' / $' + fmt(regCap(i)) + '</span>') +
+        l.bays + t(' lanes', ' voies') + ' · <b>+$' + fmt(rate(i)) + '/s</b><br>' + (l.mgr ? '👔 ' + t('Manager hired', 'Gérant engagé') : '👔 ' + t('No manager yet', 'Pas encore de gérant')) +
         '</div></div><button class="btn cy" data-go="' + i + '">' + (i === S.cur ? t('Here', 'Ici') : t('Go', 'Aller')) + '</button></div>';
     } else if(!shownNext){
       shownNext = true;
@@ -931,16 +912,11 @@ function renderChain(){
     }
   });
   $('panel').innerHTML = h;
-  $('colAll').onclick = () => { let a = 0; S.loc.forEach((l, i) => { if(l.open) a += collectReg(i, true); }); if(a > 0){ sfx('coin'); toast('🧾 +$' + fmt(a), 'gold'); } renderChain(); };
   $('panel').querySelectorAll('[data-go]').forEach(b => b.onclick = () => { S.cur = +b.dataset.go; sfx('tap'); showTab('wash'); });
   $('panel').querySelectorAll('[data-open]').forEach(b => b.onclick = () => openLoc(+b.dataset.open, b));
   updateChain();
 }
-function updateChain(){
-  let tot = 0;
-  S.loc.forEach((l, i) => { if(l.open && !l.mgr){ tot += l.reg; const e = $('cr' + i); if(e) e.textContent = '$' + fmt(l.reg) + ' / $' + fmt(regCap(i)); } });
-  const e = $('colAllA'); if(e) e.textContent = tot > 0 ? '(+$' + fmt(tot) + ')' : '';
-}
+function updateChain(){}
 function openLoc(i, btn){
   const c = openCost(i); if(S.coins < c) return noMoney();
   S.coins -= c; S.loc[i] = newLoc(i, true); bought(btn); sfx('big');
@@ -969,7 +945,7 @@ function ensureQuests(){
   const d = dayKey();
   if(S.q && S.q.day === d) return;
   const canReg = S.loc.some(l => l.open && !l.mgr);
-  let pool = QUESTS.filter(q => q.id !== 'reg' || canReg).sort(() => Math.random() - .5).slice(0, 3);
+  let pool = QUESTS.slice().sort(() => Math.random() - .5).slice(0, 3);
   S.q = {day: d, chest: false, list: pool.map(q => ({id: q.id, goal: q.n[Math.floor(Math.random() * q.n.length)], have: 0, claimed: false}))};
 }
 function qAdd(id, n){ if(!S.q) return; S.q.list.forEach(q => { if(q.id === id && q.have < q.goal) q.have = Math.min(q.goal, q.have + (n || 1)); }); }
@@ -1306,7 +1282,6 @@ function secondly(){
   }
   if(tab === 'chain') updateChain();
   if(tickN % 8 === 0){ checkAch(); updateDots(); }
-  if(S.tut === 2 && tab === 'wash' && !$('coach').classList.contains('on')) coach();
 }
 function refreshMaxLabels(){ // in MAX mode the amount you can buy changes as coins come in
   const ch = ['soap', 'brush', 'staff'].some(k => { const b = $('panel').querySelector('[data-up="' + k + '"]'); return b && +b.dataset.n !== upN(S.cur, k); });
@@ -1322,7 +1297,7 @@ function renderChips(){
 function updateDots(){
   const g = $('dot_goals'); if(g) g.classList.toggle('on', claimables() > 0);
   const c = $('dot_chain');
-  if(c){ const nx = S.loc.findIndex(l => !l.open); c.classList.toggle('on', (nx >= 0 && S.coins >= openCost(nx)) || S.loc.some((l, i) => l.open && !l.mgr && i !== S.cur && l.reg >= regCap(i) * .999)); }
+  if(c){ const nx = S.loc.findIndex(l => !l.open); c.classList.toggle('on', (nx >= 0 && S.coins >= openCost(nx)) ); }
 }
 /* ---------- away time ---------- */
 function offlineCredit(sec, popup){
@@ -1335,16 +1310,16 @@ function offlineCredit(sec, popup){
     const e = rate(i, false) * adF * sec;
     cars += l.bays * sec / washTime(i, false);
     if(l.mgr) banked += e;
-    else { const add = Math.max(0, Math.min(regCap(i) - l.reg, e)); l.reg += add; inReg += add; }
+    else inReg += rate(i, false) * adF * Math.min(sec, CONFIG.AWAY_NO_MGR_MIN * 60);
   });
-  addCoins(banked); S.cars += Math.floor(cars);
+  addCoins(banked + inReg); S.cars += Math.floor(cars);
   if(popup && banked + inReg > 0){
-    let body = '$' + fmt(banked) + '<div class="muted" style="font-size:13px;font-weight:400">' + t('banked by your managers', 'encaissé par tes gérants') + '</div>';
-    if(inReg > 0) body += '<div style="font-size:16px;margin-top:6px">💵 +$' + fmt(inReg) + '</div><div class="muted" style="font-size:13px;font-weight:400">' + t('waiting in cash registers (managers collect it for you)', 'en attente dans les caisses (les gérants l’encaissent pour toi)') + '</div>';
-    setTimeout(() => showReward('🌙', t('While you were away', 'Pendant ton absence') + ' (' + fmtTime(sec) + ')', body, banked > 0 ? {
+    let body = '+$' + fmt(banked + inReg);
+    if(S.loc.some(l => l.open && !l.mgr)) body += '<div class="muted" style="font-size:13px;font-weight:400">' + t('Tip: locations without a manager only earn for 20 min while you’re away.', 'Astuce : les succursales sans gérant gagnent seulement 20 min pendant ton absence.') + '</div>';
+    setTimeout(() => showReward('🌙', t('While you were away', 'Pendant ton absence') + ' (' + fmtTime(sec) + ')', body, {
       label: t('Watch ad: double it', 'Pub : double-le'),
-      go: async () => { if(await rewardAd()){ addCoins(banked); toast('💵 +$' + fmt(banked), 'gold'); save(); } }
-    } : null), 300);
+      go: async () => { if(await rewardAd()){ addCoins(banked + inReg); toast('💵 +$' + fmt(banked + inReg), 'gold'); save(); } }
+    }), 300);
   }
   save();
 }
@@ -1370,6 +1345,7 @@ function boot(){
   setTimeout(() => {
     clearInterval(iv);
     const saved = load();
+    if(saved){ S = saved; S.loc.forEach((l, i) => collectReg(i)); if(S.q) S.q.list.forEach(q => { if(q.id === 'reg'){ q.id = 'wash'; q.goal = 60; q.have = 0; } }); }
     S = saved || fresh();
     dispCoins = S.coins;
     applySettings(); ensureQuests(); renderNav(); showTab('wash');
@@ -1385,7 +1361,6 @@ function boot(){
     if(!S) return;
     const bay = e.target.closest('.bay[data-b]'); if(bay){ scrub(+bay.dataset.b); return; }
     if(e.target.closest('#bayBuy')){ buyBay(); return; }
-    if(e.target.closest('#reg')){ collectReg(S.cur); drawScene(); return; }
     if(e.target.closest('.spark')){ catchSpark(); return; }
     const opens = S.loc.map((x, k) => x.open ? k : -1).filter(k => k >= 0), at = opens.indexOf(S.cur);
     if(e.target.closest('#locPrev') && at > 0){ S.cur = opens[at - 1]; sfx('tap'); buildScene(); renderWash(); coach(); }
